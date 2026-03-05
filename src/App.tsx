@@ -164,6 +164,7 @@ export default function App() {
   const [hata, setHata] = useState<string | null>(null);
   const [seciliGorsel, setSeciliGorsel] = useState<string | null>(null);
   const [acikKriter, setAcikKriter] = useState<string | null>(null);
+  const [kopyalananRenk, setKopyalananRenk] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -632,9 +633,24 @@ export default function App() {
                       <div className="p-5 flex flex-col gap-4">
                         <div className="flex flex-wrap gap-3 items-center">
                           {sonuc.renkPaleti.slice(0, 6).map((hex: string, i: number) => (
-                            <div key={i} className="flex flex-col items-center gap-1.5 group cursor-default">
+                            <div
+                              key={i}
+                              className="flex flex-col items-center gap-1.5 group cursor-pointer relative"
+                              onClick={() => {
+                                navigator.clipboard.writeText(hex.toUpperCase());
+                                setKopyalananRenk(hex);
+                                setTimeout(() => setKopyalananRenk(null), 1800);
+                              }}
+                              title={`Kopyala: ${hex.toUpperCase()}`}
+                            >
+                              {/* Tooltip */}
+                              {kopyalananRenk === hex && (
+                                <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-xl text-white text-[9px] font-semibold px-2 py-1 rounded-md border border-white/10 whitespace-nowrap z-20 animate-fade-in">
+                                  ✓ Kopyalandı
+                                </div>
+                              )}
                               <div
-                                className="w-9 h-9 rounded-xl border border-white/[0.12] shadow-lg transition-transform duration-200 group-hover:scale-110"
+                                className="w-9 h-9 rounded-xl border border-white/[0.12] shadow-lg transition-all duration-200 group-hover:scale-125 group-hover:rounded-2xl"
                                 style={{ backgroundColor: hex, boxShadow: `0 4px 16px ${hex}55` }}
                               />
                               <span className="text-[9px] text-white/25 font-mono tracking-wider group-hover:text-white/50 transition-colors">{hex.toUpperCase()}</span>
