@@ -261,14 +261,14 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050508] text-white selection:bg-blue-500/30 font-sans">
+    <div className="min-h-screen bg-[#050508] text-white selection:bg-blue-500/30 font-sans flex flex-col justify-between overflow-x-hidden">
       {/* Background Orbs */}
       <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
       <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full pointer-events-none" />
 
-      <div className={`max-w-screen-xl mx-auto px-4 py-12 transition-all duration-500 ${adim === 3 ? 'max-w-6xl' : 'max-w-lg'}`}>
+      <main className={`flex-1 flex flex-col justify-center w-full max-w-screen-xl mx-auto px-4 py-6 md:py-8 transition-all duration-500 ${adim === 3 ? 'max-w-6xl' : 'max-w-lg'}`}>
         {/* Header */}
-        <header className="text-center mb-12">
+        <header className="text-center mb-6 md:mb-8">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -282,7 +282,7 @@ export default function App() {
 
         {/* Stepper */}
         {adim < 3 && (
-          <div className="flex items-center justify-center mb-10">
+          <div className="flex items-center justify-center mb-6 md:mb-8">
             <StepIndicator n={1} active={adim === 1} done={adim > 1} />
             <div className={`w-12 h-[1px] mx-2 ${adim > 1 ? "bg-blue-500" : "bg-white/10"}`} />
             <StepIndicator n={2} active={adim === 2} done={adim > 2} />
@@ -306,17 +306,17 @@ export default function App() {
                   onClick={() => fileRef.current?.click()}
                   onDrop={e => { e.preventDefault(); handleDosya(e.dataTransfer.files[0]); }}
                   onDragOver={e => e.preventDefault()}
-                  className={`cursor-pointer min-h-[200px] flex flex-col items-center justify-center p-8 transition-all duration-300 ${gorsel ? 'p-0' : 'hover:bg-white/5'}`}
+                  className={`cursor-pointer flex flex-col items-center justify-center p-6 md:p-8 transition-all duration-300 ${gorsel ? 'p-0 md:p-0' : 'hover:bg-white/5 min-h-[160px] md:min-h-[200px]'}`}
                 >
                   {gorsel ? (
-                    <img src={gorsel} alt="Tasarım" className="w-full max-h-[400px] object-contain block" />
+                    <img src={gorsel} alt="Tasarım" className="w-full max-h-[25vh] md:max-h-[30vh] object-contain block" />
                   ) : (
                     <>
-                      <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-4 group-hover:scale-110 transition-transform">
-                        <Upload className="w-6 h-6" />
+                      <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-3 md:mb-4 group-hover:scale-110 transition-transform">
+                        <Upload className="w-5 h-5 md:w-6 md:h-6" />
                       </div>
-                      <p className="text-white font-semibold text-lg">Görsel Yükle</p>
-                      <p className="text-white/30 text-sm mt-1">Sürükle bırak veya tıkla · PNG, JPG</p>
+                      <p className="text-white font-semibold text-base md:text-lg">Görsel Yükle</p>
+                      <p className="text-white/30 text-xs md:text-sm mt-1">Sürükle bırak veya tıkla · PNG, JPG</p>
                     </>
                   )}
                 </div>
@@ -589,7 +589,7 @@ export default function App() {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </main>
 
       {/* Image Modal */}
       <AnimatePresence>
@@ -626,7 +626,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* Footer */}
-      <footer className="text-center py-8 mt-8 border-t border-white/[0.04]">
+      <footer className="text-center py-4 md:py-6 border-t border-white/[0.04] mt-auto">
         <p className="text-white/20 text-[11px] tracking-wider">
           Designed & Developed by{" "}
           <a
