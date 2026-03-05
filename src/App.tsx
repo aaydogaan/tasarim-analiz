@@ -628,7 +628,15 @@ export default function App() {
       {/* Footer */}
       <footer className="text-center py-8 mt-8 border-t border-white/[0.04]">
         <p className="text-white/20 text-[11px] tracking-wider">
-          Tasarım & Geliştirme <span className="text-white/35 font-medium">Selman Aydoğan</span>
+          Designed & Developed by{" "}
+          <a
+            href="https://www.instagram.com/selmnaydgn/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white/40 font-medium hover:text-blue-400 transition-colors duration-300"
+          >
+            Selman Aydoğan
+          </a>
         </p>
       </footer>
     </div>
