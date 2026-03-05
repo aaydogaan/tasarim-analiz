@@ -630,7 +630,7 @@ export default function App() {
         <p className="text-white/20 text-[11px] tracking-wider">
           Designed & Developed by{" "}
           <a
-            href="https://www.instagram.com/selmnaydgn/"
+            href="https://www.instagram.com/_selmanaydgn/"
             target="_blank"
             rel="noopener noreferrer"
             className="text-white/40 font-medium hover:text-blue-400 transition-colors duration-300"
