@@ -16,6 +16,7 @@ type AnalyzeRequestBody = {
     hedefKitle: string;
     slogan: string;
   };
+  guestMode?: boolean;
 };
 
 const kriterBilgisi: Record<TasarimTuru, { renk: string; font: string; butunluk: string; kompozisyon: string; context: string }> = {
@@ -71,7 +72,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const groq = new Groq({ apiKey });
 
-  const prompt = `Sen uzman bir grafik tasarım değerlendirme yapay zekasısın. Görseli analiz et ve YALNIZCA geçerli bir JSON nesnesi döndür. Başka hiçbir şey yazma, markdown kullanma, sadece JSON.
+  const prompt = `Sen dünya çapında ödüllü, son derece detaycı ve profesyonel bir Grafik Tasarım Analiz Yapay Zekasısın. Gönderilen görseli derinlemesine, akademik ve teknik bir dille analiz edeceksin. Lütfen cevaplarını çok detaylı, uzun ve açıklayıcı tut. Kısa ve yüzeysel yorumlardan kesinlikle kaçın! Analizlerinde font seçimlerinin psikolojik etkileri, renk teorisi, kompozisyon kuralları (altın oran, gestalt prensipleri) gibi profesyonel kavramları kullan.
 
 Tasarım Bağlamı:
 - Tasarım Türü: ${tasarimTuru}
@@ -83,14 +84,28 @@ ${platformBilgisi}
 
 ${kriterler.context}
 
-4 kriter için 0-25 puan ver:
+Lütfen yukarıdaki bağlamlarda tasarımı sert ama yapıcı bir dille eleştir. 4 temel kriter için 0-25 arası puan ver ve her bir kriter için derinlemesine nedenlerini açıkla:
 1. RENK: ${kriterler.renk}
 2. FONT: ${kriterler.font}
 3. BÜTÜNLÜK: ${kriterler.butunluk}
 4. KOMPOZİSYON: ${kriterler.kompozisyon}
 
-Döndür (SADECE JSON, başka hiçbir şey yok):
-{"renk":{"puan":20,"aciklama":"açıklama"},"font":{"puan":18,"aciklama":"açıklama"},"butunluk":{"puan":22,"aciklama":"açıklama"},"kompozisyon":{"puan":19,"aciklama":"açıklama"},"genelPuan":82,"genelYorum":"2-3 cümle yorum","oneri":"iyileştirme önerileri","genelDegerlendirme":"Harika","gucluYon":"güçlü yön","zayifYon":"zayıf nokta","renkPaleti":["#1a1a2e","#16213e","#0f3460","#e94560","#ffffff"],"teknikOzet":{"baskınRenkSayisi":4,"detayYogunlugu":35,"negatifAlanOrani":55}}`;
+YALNIZCA GEÇERLİ BİR JSON NESNESİ DÖNDÜR. (Markdown veya \`\`\`json ekleme, doğrudan salt JSON çıktısı ver).
+JSON Formatı Şablonu:
+{
+  "renk": {"puan": 20, "aciklama": "(Renk teorisi, psikolojik etki ve harmoni açısından en az 3-4 cümlelik derinlemesine analiz)"},
+  "font": {"puan": 18, "aciklama": "(Tipografi, okunabilirlik ve font hiyerarşisi üzerine teknik terimlerle bol detaylı açıklama)"},
+  "butunluk": {"puan": 22, "aciklama": "(Marka kimliği, sektör uyumu ve hedef kitle iletişimine dair 3-4 cümlelik profesyonel inceleme)"},
+  "kompozisyon": {"puan": 19, "aciklama": "(Görsel denge, boşluk kullanımı, hizalama ve gestalt prensipleriyle detaylı analiz)"},
+  "genelPuan": 82,
+  "genelYorum": "(Tasarımın genel karakteri, eksikleri ve nelerin parladığı hakkında en az 2-3 paragraflık derinlemesine sonuç değerlendirmesi)",
+  "oneri": "(Gelişim için maddeler halinde, nokta atışı ve çok spesifik tasarım tavsiyeleri)",
+  "genelDegerlendirme": "Örn: Profesyonel / Usta İşi / Geliştirilebilir",
+  "gucluYon": "(Tasarımı kurtaran en temel özellikler, çok detaylı)",
+  "zayifYon": "(Net ve teknik eksiklikler)",
+  "renkPaleti": ["#1a1a2e","#16213e","#0f3460","#e94560","#ffffff"],
+  "teknikOzet": {"baskınRenkSayisi": 4, "detayYogunlugu": 35, "negatifAlanOrani": 55}
+}`;
 
   try {
     const response = await groq.chat.completions.create({
@@ -109,8 +124,8 @@ Döndür (SADECE JSON, başka hiçbir şey yok):
           ],
         },
       ],
-      temperature: 0.2,
-      max_tokens: 2048,
+      temperature: 0.25,
+      max_tokens: 4000,
     });
 
     const rawText = response.choices[0]?.message?.content || '';
@@ -134,58 +149,77 @@ Döndür (SADECE JSON, başka hiçbir şey yok):
     }
 
     // Supabase'e kaydet
-    try {
-      const supabaseUrl = process.env.VITE_SUPABASE_URL;
-      const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
-      if (supabaseUrl && supabaseKey) {
-        const supabase = createClient(supabaseUrl, supabaseKey);
+    // Supabase'e kaydet
+    const { guestMode } = body;
+    if (!guestMode) {
+      try {
+        const supabaseUrl = process.env.VITE_SUPABASE_URL;
+        const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+        if (supabaseUrl && supabaseKey) {
+          const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // Görseli Storage'a yükle
-        let gorselUrl: string | null = null;
-        try {
-          const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
-          const imageBuffer = Buffer.from(imageBase64, 'base64');
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('tasarim-gorseller')
-            .upload(fileName, imageBuffer, { contentType: 'image/jpeg', upsert: false });
-          if (!uploadError && uploadData) {
-            const { data: urlData } = supabase.storage
-              .from('tasarim-gorseller')
-              .getPublicUrl(uploadData.path);
-            gorselUrl = urlData?.publicUrl || null;
+          // Kullanıcı token'ından user_id'yi bul
+          const token = req.headers.authorization?.replace('Bearer ', '');
+          let userId: string | null = null;
+          if (token) {
+            // Tokenı doğrudan auth API'sine gönderip doğrula
+            const authClient = createClient(supabaseUrl, supabaseKey, {
+              global: { headers: { Authorization: `Bearer ${token}` } }
+            });
+            const { data: { user }, error: userError } = await authClient.auth.getUser();
+            if (!userError && user) {
+              userId = user.id;
+            }
           }
-        } catch (storageErr) {
-          console.warn('Storage yükleme atlandı:', storageErr);
-        }
 
-        // DB'ye kaydet
-        const { data: dbData } = await supabase.from('analizler').insert({
-          tasarim_turu: tasarimTuru,
-          platform: platform || null,
-          isletme,
-          marka_adi: sorular?.markaAdi || null,
-          genel_puan: parsed.genelPuan,
-          renk_puan: parsed.renk?.puan,
-          font_puan: parsed.font?.puan,
-          butunluk_puan: parsed.butunluk?.puan,
-          kompozisyon_puan: parsed.kompozisyon?.puan,
-          genel_yorum: parsed.genelYorum,
-          oneri: parsed.oneri,
-          genel_degerlendirme: parsed.genelDegerlendirme,
-          guclu_yon: parsed.gucluYon,
-          zayif_yon: parsed.zayifYon,
-          teknik_ozet: parsed.teknikOzet || null,
-          renk_paleti: parsed.renkPaleti || null,
-          gorsel_url: gorselUrl,
-        }).select('id').single();
+          // Görseli Storage'a yükle
+          let gorselUrl: string | null = null;
+          try {
+            const fileName = `${userId || 'anon'}_${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+            const imageBuffer = Buffer.from(imageBase64, 'base64');
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('tasarim-gorseller')
+              .upload(fileName, imageBuffer, { contentType: 'image/jpeg', upsert: false });
+            if (!uploadError && uploadData) {
+              const { data: urlData } = supabase.storage
+                .from('tasarim-gorseller')
+                .getPublicUrl(uploadData.path);
+              gorselUrl = urlData?.publicUrl || null;
+            }
+          } catch (storageErr) {
+            console.warn('Storage yükleme atlandı:', storageErr);
+          }
 
-        if (dbData?.id) {
-          parsed._analiz_id = dbData.id;
-          parsed._gorsel_url = gorselUrl;
+          // DB'ye kaydet
+          const { data: dbData } = await supabase.from('analizler').insert({
+            user_id: userId,
+            tasarim_turu: tasarimTuru,
+            platform: platform || null,
+            isletme,
+            marka_adi: sorular?.markaAdi || null,
+            genel_puan: parsed.genelPuan,
+            renk_puan: parsed.renk?.puan,
+            font_puan: parsed.font?.puan,
+            butunluk_puan: parsed.butunluk?.puan,
+            kompozisyon_puan: parsed.kompozisyon?.puan,
+            genel_yorum: parsed.genelYorum,
+            oneri: parsed.oneri,
+            genel_degerlendirme: parsed.genelDegerlendirme,
+            guclu_yon: parsed.gucluYon,
+            zayif_yon: parsed.zayifYon,
+            teknik_ozet: parsed.teknikOzet || null,
+            renk_paleti: parsed.renkPaleti || null,
+            gorsel_url: gorselUrl,
+          }).select('id').single();
+
+          if (dbData?.id) {
+            parsed._analiz_id = dbData.id;
+            parsed._gorsel_url = gorselUrl;
+          }
         }
+      } catch (dbErr) {
+        console.error('Supabase kayıt hatası (analiz döndürülüyor):', dbErr);
       }
-    } catch (dbErr) {
-      console.error('Supabase kayıt hatası (analiz döndürülüyor):', dbErr);
     }
 
     return res.status(200).json(parsed);
