@@ -165,7 +165,7 @@ export default function App() {
       setAdim(3);
 
       // Start generating the revised image in the background
-      revizeEt(data.oneri);
+      // revizeEt(data.oneri); // Removed as per instruction
     } catch (err: any) {
       console.error("Analiz hatası:", err);
       setHata(err.message || "Analiz sırasında beklenmeyen bir hata oluştu.");
@@ -418,31 +418,62 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Revised */}
-                    <div className={`${gc.card} overflow-hidden flex flex-col relative`}>
+                    {/* Revised - Coming Soon */}
+                    <div className="relative overflow-hidden rounded-3xl border border-blue-500/20 bg-gradient-to-br from-blue-950/40 via-indigo-950/30 to-purple-950/40 backdrop-blur-3xl shadow-2xl flex flex-col">
                       <div className="p-3 bg-blue-500/10 border-b border-blue-500/20 flex items-center justify-between">
                         <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400">AI Revize Tasarım</span>
-                        {revizeYukleniyor && <div className="w-3 h-3 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" />}
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">Yakında</span>
                       </div>
-                      <div className="relative flex-1 min-h-[300px] flex items-center justify-center bg-black/20">
-                        {revizeYukleniyor ? (
-                          <div className="flex flex-col items-center gap-3">
-                            <div className="w-8 h-8 border-3 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
-                            <p className="text-blue-400/60 text-[10px] font-medium animate-pulse">Yeni tasarım oluşturuluyor...</p>
-                          </div>
-                        ) : revizeGorsel ? (
-                          <div
-                            onClick={() => setSeciliGorsel(revizeGorsel)}
-                            className="cursor-zoom-in group relative w-full h-full"
+                      <div className="relative flex-1 min-h-[300px] flex items-center justify-center p-8">
+                        {/* Animated gradient background */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-transparent to-purple-600/5" />
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-blue-500/10 rounded-full blur-[60px] animate-pulse" />
+                        <div className="absolute top-1/3 right-1/4 w-24 h-24 bg-purple-500/10 rounded-full blur-[40px] animate-pulse" style={{ animationDelay: '1s' }} />
+
+                        <div className="relative z-10 flex flex-col items-center gap-5 text-center">
+                          {/* Icon with glow */}
+                          <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.6, ease: 'easeOut' }}
+                            className="relative"
                           >
-                            <img src={revizeGorsel} alt="Revize" className="w-full h-[300px] object-contain transition-transform duration-500 group-hover:scale-105" />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <span className="text-white text-xs font-medium bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">Büyütmek için tıkla</span>
+                            <div className="absolute inset-0 bg-blue-500/20 rounded-2xl blur-xl" />
+                            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center">
+                              <Sparkles className="w-7 h-7 text-blue-400" />
                             </div>
+                          </motion.div>
+
+                          <div className="space-y-2">
+                            <motion.p
+                              initial={{ y: 10, opacity: 0 }}
+                              animate={{ y: 0, opacity: 1 }}
+                              transition={{ delay: 0.2 }}
+                              className="text-white font-semibold text-base"
+                            >
+                              AI Tasarım Revizyonu
+                            </motion.p>
+                            <motion.p
+                              initial={{ y: 10, opacity: 0 }}
+                              animate={{ y: 0, opacity: 1 }}
+                              transition={{ delay: 0.35 }}
+                              className="text-white/30 text-xs leading-relaxed max-w-[200px]"
+                            >
+                              Yapay zeka destekli otomatik tasarım revizyonu çok yakında sizlerle
+                            </motion.p>
                           </div>
-                        ) : (
-                          <p className="text-white/20 text-xs">Revizyon hazırlanamadı</p>
-                        )}
+
+                          {/* Animated badge */}
+                          <motion.div
+                            initial={{ y: 10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.5 }}
+                            className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-white/10"
+                          >
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                            <span className="text-white/50 text-[10px] font-semibold uppercase tracking-wider">Geliştiriliyor</span>
+                          </motion.div>
+                        </div>
                       </div>
                     </div>
                   </div>
