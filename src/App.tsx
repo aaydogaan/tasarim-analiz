@@ -708,6 +708,14 @@ export default function App() {
               transition={{ duration: 0.5 }}
               className="space-y-8"
             >
+              {/* Demo Mode Banner */}
+              {sonuc._demo && (
+                <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300/80 text-[11px] font-medium">
+                  <span className="text-lg">⚡</span>
+                  <span><strong>Demo Modu</strong> — Gemini API kotası doldu. Sabah 03:00'da sıfırlanır. Gösterilen sonuçlar örnek verilerdir.</span>
+                </div>
+              )}
+
               {/* Top Row: Image + Score Ring */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Original Image Card */}

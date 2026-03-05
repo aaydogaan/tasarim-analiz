@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { GoogleGenAI, Type } from '@google/genai';
+import Groq from 'groq-sdk';
 import { createClient } from '@supabase/supabase-js';
 
 type TasarimTuru = "Sosyal Medya" | "Kurumsal" | "E-Ticaret" | "Baskı Materyali";
@@ -55,9 +55,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'Missing GEMINI_API_KEY on server.' });
+    return res.status(500).json({ error: 'Missing GROQ_API_KEY on server.' });
   }
 
   const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body) as AnalyzeRequestBody;
@@ -69,9 +69,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const kriterler = kriterBilgisi[tasarimTuru];
   const platformBilgisi = tasarimTuru === "Sosyal Medya" && platform ? `Platform: ${platform}` : "";
 
-  const ai = new GoogleGenAI({ apiKey });
+  const groq = new Groq({ apiKey });
 
-  const prompt = `Sen uzman bir grafik tasarım değerlendirme yapay zekasısın.
+  const prompt = `Sen uzman bir grafik tasarım değerlendirme yapay zekasısın. Görseli analiz et ve YALNIZCA aşağıdaki formatta bir JSON nesnesi döndür. Başka hiçbir şey yazma.
 
 Tasarım Bağlamı:
 - Tasarım Türü: ${tasarimTuru}
@@ -85,123 +85,96 @@ ${platformBilgisi}
 
 ${kriterler.context}
 
-Bu tasarımı aşağıdaki 4 kritere göre değerlendir (her biri 0-25 puan):
-1. RENK kriteri → ${kriterler.renk}
-2. FONT kriteri → ${kriterler.font}
-3. BÜTÜNLÜK kriteri → ${kriterler.butunluk}
-4. KOMPOZİSYON kriteri → ${kriterler.kompozisyon}
+Bu tasarımı 4 kritere göre değerlendir (her biri 0-25 puan):
+1. RENK (renk anahtarı): ${kriterler.renk}
+2. FONT (font anahtarı): ${kriterler.font}
+3. BÜTÜNLÜK (butunluk anahtarı): ${kriterler.butunluk}
+4. KOMPOZİSYON (kompozisyon anahtarı): ${kriterler.kompozisyon}
 
-Ayrıca 0-100 arası bağımsız genel puan ver.
-
-Ek olarak:
-- Baskın renkleri hex kodu olarak tespit et (en fazla 6, # ile başlayan).
-- Teknik özellik tahmini: baskın renk sayısı, detay yoğunluğu % (0-100 tam sayı), negatif alan oranı % (0-100 tam sayı).
-- genelDegerlendirme: "Mükemmel", "Harika", "İyi", "Orta" veya "Geliştirilebilir" seçeneklerinden biri.
-- gucluYon: Tasarımın en güçlü özelliği, kısa bir cümle.
-- zayifYon: En kritik zayıf nokta, kısa bir cümle.`;
+Tam olarak şu JSON formatını döndür:
+{
+  "renk": {"puan": <0-25 tam sayı>, "aciklama": "<detaylı Türkçe açıklama>"},
+  "font": {"puan": <0-25 tam sayı>, "aciklama": "<detaylı Türkçe açıklama>"},
+  "butunluk": {"puan": <0-25 tam sayı>, "aciklama": "<detaylı Türkçe açıklama>"},
+  "kompozisyon": {"puan": <0-25 tam sayı>, "aciklama": "<detaylı Türkçe açıklama>"},
+  "genelPuan": <0-100 tam sayı>,
+  "genelYorum": "<2-3 cümle genel Türkçe yorum>",
+  "oneri": "<en önemli 2-3 iyileştirme önerisi>",
+  "genelDegerlendirme": "<Mükemmel veya Harika veya İyi veya Orta veya Geliştirilebilir>",
+  "gucluYon": "<tasarımın en güçlü tek özelliği, 1 cümle>",
+  "zayifYon": "<en kritik zayıf nokta, 1 cümle>",
+  "renkPaleti": ["#RRGGBB", "#RRGGBB", "#RRGGBB", "#RRGGBB", "#RRGGBB"],
+  "teknikOzet": {
+    "baskınRenkSayisi": <tam sayı>,
+    "detayYogunlugu": <0-100 tam sayı yüzde>,
+    "negatifAlanOrani": <0-100 tam sayı yüzde>
+  }
+}`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: [
+    const response = await groq.chat.completions.create({
+      model: 'llama-3.2-11b-vision-preview',
+      messages: [
         {
-          parts: [
-            { text: prompt },
+          role: 'user',
+          content: [
+            { type: 'text', text: prompt },
             {
-              inlineData: {
-                mimeType: 'image/jpeg',
-                data: imageBase64,
+              type: 'image_url',
+              image_url: {
+                url: `data:image/jpeg;base64,${imageBase64}`,
               },
             },
           ],
         },
       ],
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            renk: {
-              type: Type.OBJECT,
-              properties: {
-                puan: { type: Type.INTEGER },
-                aciklama: { type: Type.STRING },
-              },
-              required: ['puan', 'aciklama'],
-            },
-            font: {
-              type: Type.OBJECT,
-              properties: {
-                puan: { type: Type.INTEGER },
-                aciklama: { type: Type.STRING },
-              },
-              required: ['puan', 'aciklama'],
-            },
-            butunluk: {
-              type: Type.OBJECT,
-              properties: {
-                puan: { type: Type.INTEGER },
-                aciklama: { type: Type.STRING },
-              },
-              required: ['puan', 'aciklama'],
-            },
-            kompozisyon: {
-              type: Type.OBJECT,
-              properties: {
-                puan: { type: Type.INTEGER },
-                aciklama: { type: Type.STRING },
-              },
-              required: ['puan', 'aciklama'],
-            },
-            genelPuan: { type: Type.INTEGER },
-            genelYorum: { type: Type.STRING },
-            oneri: { type: Type.STRING },
-            genelDegerlendirme: { type: Type.STRING },
-            gucluYon: { type: Type.STRING },
-            zayifYon: { type: Type.STRING },
-            renkPaleti: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-            },
-            teknikOzet: {
-              type: Type.OBJECT,
-              properties: {
-                baskınRenkSayisi: { type: Type.INTEGER },
-                detayYogunlugu: { type: Type.INTEGER },
-                negatifAlanOrani: { type: Type.INTEGER },
-              },
-              required: ['baskınRenkSayisi', 'detayYogunlugu', 'negatifAlanOrani'],
-            },
-          },
-          required: [
-            'renk', 'font', 'butunluk', 'kompozisyon',
-            'genelPuan', 'genelYorum', 'oneri',
-            'genelDegerlendirme', 'gucluYon', 'zayifYon',
-            'renkPaleti', 'teknikOzet',
-          ],
-        },
-      },
+      response_format: { type: 'json_object' },
+      temperature: 0.3,
+      max_tokens: 2000,
     });
 
-    const rawText = response.text;
+    const rawText = response.choices[0]?.message?.content;
     if (!rawText) {
-      return res.status(502).json({ error: 'Gemini API boş yanıt döndürdü. Lütfen tekrar deneyin.' });
+      return res.status(502).json({ error: 'Groq API boş yanıt döndürdü. Lütfen tekrar deneyin.' });
     }
 
-    let parsed;
+    let parsed: any;
     try {
       parsed = JSON.parse(rawText);
     } catch (parseErr) {
       console.error('JSON parse hatası. Raw text:', rawText);
-      return res.status(502).json({ error: 'Gemini API geçersiz yanıt döndürdü. Lütfen tekrar deneyin.' });
+      return res.status(502).json({ error: 'Groq API geçersiz yanıt döndürdü. Lütfen tekrar deneyin.' });
     }
 
-    // Supabase'e kaydet (hata olursa sessizce devam et)
+    // Supabase'e kaydet
     try {
       const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
       const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
       if (supabaseUrl && supabaseKey) {
         const supabase = createClient(supabaseUrl, supabaseKey);
+
+        // 1. Görseli Storage'a yükle
+        let gorselUrl: string | null = null;
+        try {
+          const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+          const imageBuffer = Buffer.from(imageBase64, 'base64');
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('tasarim-gorseller')
+            .upload(fileName, imageBuffer, {
+              contentType: 'image/jpeg',
+              upsert: false,
+            });
+          if (!uploadError && uploadData) {
+            const { data: urlData } = supabase.storage
+              .from('tasarim-gorseller')
+              .getPublicUrl(uploadData.path);
+            gorselUrl = urlData?.publicUrl || null;
+          }
+        } catch (storageErr) {
+          console.error('Storage yükleme hatası (analiz devam ediyor):', storageErr);
+        }
+
+        // 2. Analiz sonucunu DB'ye kaydet
         const { data: dbData } = await supabase.from('analizler').insert({
           tasarim_turu: tasarimTuru,
           platform: platform || null,
@@ -219,15 +192,16 @@ Ek olarak:
           zayif_yon: parsed.zayifYon,
           teknik_ozet: parsed.teknikOzet || null,
           renk_paleti: parsed.renkPaleti || null,
+          gorsel_url: gorselUrl,
         }).select('id').single();
 
-        // Analiz ID'sini sonuca ekle (paylaşım için)
         if (dbData?.id) {
           parsed._analiz_id = dbData.id;
+          parsed._gorsel_url = gorselUrl;
         }
       }
     } catch (dbErr) {
-      console.error('Supabase kayıt hatası (analiz yine de döndürüldü):', dbErr);
+      console.error('Supabase kayıt hatası:', dbErr);
     }
 
     return res.status(200).json(parsed);
