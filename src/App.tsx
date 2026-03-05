@@ -513,13 +513,15 @@ export default function App() {
 
         {/* Header Action Buttons */}
         <div className="absolute top-6 right-4 md:right-8 flex items-center gap-2 z-20">
-          <button
-            onClick={statsAc}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-white/70 hover:bg-white/[0.09] transition-all text-[11px] font-medium"
-          >
-            <BarChart2 className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">Stats</span>
-          </button>
+          {kullanici && (
+            <button
+              onClick={statsAc}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-white/70 hover:bg-white/[0.09] transition-all text-[11px] font-medium"
+            >
+              <BarChart2 className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Stats</span>
+            </button>
+          )}
           {kullanici ? (
             <div className="flex items-center gap-2">
               <span className="text-white/25 text-[10px] hidden md:block max-w-[100px] truncate">{kullanici.email}</span>
@@ -1170,7 +1172,7 @@ export default function App() {
               <div className="p-5 border-b border-white/[0.06] flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <BarChart2 className="w-4 h-4 text-blue-400" />
-                  <span className="text-white text-sm font-bold">Platform İstatistikleri</span>
+                  <span className="text-white text-sm font-bold">Benim İstatistiklerim</span>
                 </div>
                 <button onClick={() => setStatsAcik(false)} className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors">
                   <X className="w-4 h-4" />
@@ -1185,28 +1187,7 @@ export default function App() {
                   </div>
                 ) : statsData ? (
                   <div className="space-y-6">
-                    {/* Kişisel (Özel) İstatistikler (Sadece giriş yapmışsa) */}
-                    {statsData.userStats && (
-                      <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-3xl">
-                        <p className="text-blue-400 text-[10px] font-bold uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                          <User className="w-3 h-3" /> Size Özel İstatistikler
-                        </p>
-                        <div className="grid grid-cols-2 gap-2 mb-3">
-                          <div className="bg-black/20 p-3 rounded-2xl">
-                            <div className="text-xl font-extrabold text-white">{statsData.userStats.total}</div>
-                            <div className="text-white/40 text-[10px]">Yaptığınız Analiz</div>
-                          </div>
-                          <div className="bg-black/20 p-3 rounded-2xl">
-                            <div className="text-xl font-extrabold text-blue-300">{statsData.userStats.ortalama}/100</div>
-                            <div className="text-white/40 text-[10px]">Ortalamanız</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between bg-black/20 p-3 rounded-2xl">
-                          <span className="text-white/40 text-[10px]">En Çok: <span className="text-white/80">{statsData.userStats.enCokTasarimTuru}</span></span>
-                          <span className="text-white/40 text-[10px]">Bu Hafta: <span className="text-emerald-400 font-bold">{statsData.userStats.buHafta}</span></span>
-                        </div>
-                      </div>
-                    )}
+                    {/* Daha önce burada olan userStats kısmı kaldırıldı çünkü root objesi zaten user_id'ye ait */}
 
                     {/* Ana sayılar */}
                     <div className="grid grid-cols-3 gap-3">
@@ -1225,10 +1206,7 @@ export default function App() {
                     {/* Tasarım türü dağılımı */}
                     {Object.keys(statsData.turDagilim || {}).length > 0 && (
                       <div>
-                        <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mb-2.5 flex items-center gap-1.5">
-                          <Globe className="w-3 h-3" /> Global Platform Verileri
-                        </p>
-                        <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-2.5">Dağılım</p>
+                        <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mb-2.5">Dağılım İstatistikleri</p>
                         <div className="space-y-2">
                           {Object.entries(statsData.turDagilim as Record<string, number>)
                             .sort(([, a], [, b]) => b - a)

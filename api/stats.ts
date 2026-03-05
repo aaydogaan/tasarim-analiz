@@ -11,39 +11,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Toplam analiz sayısı
-    const { count: toplamAnaliz } = await supabase
-        .from('analizler')
-        .select('*', { count: 'exact', head: true });
+    const token = req.headers.authorization?.replace('Bearer ', '');
 
-    // Ortalama genel puan
-    const { data: puanData } = await supabase
-        .from('analizler')
-        .select('genel_puan, renk_puan, font_puan, butunluk_puan, kompozisyon_puan');
+    if (!token) {
+        return res.status(401).json({ error: 'Bu verileri görmek için giriş yapmalısınız.' });
+    }
 
-    const genel = puanData?.map(d => d.genel_puan).filter(Boolean) || [];
-    const ortalamaGenel = genel.length
-        ? Math.round(genel.reduce((a, b) => a + b, 0) / genel.length)
-        : 0;
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user?.id) {
+        return res.status(401).json({ error: 'Oturum süresi dolmuş veya geçersiz.' });
+    }
 
-    // Tasarım türüne göre dağılım
-    const { data: turData } = await supabase
+    // Kullanıcının tüm analizlerini çek (Sadece ona özel RLS sayesinde gelecektir ama garantilemek için eq ekliyoruz)
+    const { data: myData } = await supabase
         .from('analizler')
-        .select('tasarim_turu');
+        .select('*')
+        .eq('user_id', user.id);
+
+    if (!myData || myData.length === 0) {
+        return res.status(200).json({
+            toplamAnaliz: 0,
+            buHafta: 0,
+            ortalamaGenel: 0,
+            turDagilim: {},
+            enPopulerSektor: [],
+            degDagilim: {},
+        });
+    }
+
+    const toplamAnaliz = myData.length;
+
+    const gecerliPuan = myData.filter(d => typeof d.genel_puan === 'number').map(d => d.genel_puan as number);
+    const ortalamaGenel = gecerliPuan.length ? Math.round(gecerliPuan.reduce((a, b) => a + b, 0) / gecerliPuan.length) : 0;
 
     const turDagilim: Record<string, number> = {};
-    turData?.forEach(d => {
-        if (d.tasarim_turu) turDagilim[d.tasarim_turu] = (turDagilim[d.tasarim_turu] || 0) + 1;
-    });
-
-    // Sektör dağılımı
-    const { data: isletmeData } = await supabase
-        .from('analizler')
-        .select('isletme');
-
     const isletmeDagilim: Record<string, number> = {};
-    isletmeData?.forEach(d => {
+    const degDagilim: Record<string, number> = {};
+
+    myData.forEach(d => {
+        if (d.tasarim_turu) turDagilim[d.tasarim_turu] = (turDagilim[d.tasarim_turu] || 0) + 1;
         if (d.isletme) isletmeDagilim[d.isletme] = (isletmeDagilim[d.isletme] || 0) + 1;
+        if (d.genel_degerlendirme) degDagilim[d.genel_degerlendirme] = (degDagilim[d.genel_degerlendirme] || 0) + 1;
     });
 
     const enPopulerSektor = Object.entries(isletmeDagilim)
@@ -51,30 +59,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .slice(0, 3)
         .map(([k, v]) => ({ isletme: k, sayi: v }));
 
-    // Değerlendirme dağılımı
-    const { data: degData } = await supabase
-        .from('analizler')
-        .select('genel_degerlendirme');
-
-    const degDagilim: Record<string, number> = {};
-    degData?.forEach(d => {
-        if (d.genel_degerlendirme) degDagilim[d.genel_degerlendirme] = (degDagilim[d.genel_degerlendirme] || 0) + 1;
-    });
-
-    // Bu haftaki analizler
     const haftaBaslangic = new Date();
     haftaBaslangic.setDate(haftaBaslangic.getDate() - 7);
-    const { count: buHafta } = await supabase
-        .from('analizler')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', haftaBaslangic.toISOString());
+    const buHafta = myData.filter(d => new Date(d.created_at) >= haftaBaslangic).length;
+
+    // Özel istatistik özeti (mevcut frontend desteklesin diye ekliyoruz)
+    const enCokTasarimTuru = Object.entries(turDagilim).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Bulunamadı';
+    const userStats = {
+        total: toplamAnaliz,
+        ortalama: ortalamaGenel,
+        buHafta: buHafta,
+        enCokTasarimTuru
+    };
 
     return res.status(200).json({
-        toplamAnaliz: toplamAnaliz || 0,
-        buHafta: buHafta || 0,
+        toplamAnaliz,
+        buHafta,
         ortalamaGenel,
         turDagilim,
         enPopulerSektor,
         degDagilim,
+        userStats,
     });
 }
