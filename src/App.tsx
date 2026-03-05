@@ -624,6 +624,13 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Footer */}
+      <footer className="text-center py-8 mt-8 border-t border-white/[0.04]">
+        <p className="text-white/20 text-[11px] tracking-wider">
+          Tasarım & Geliştirme <span className="text-white/35 font-medium">Selman Aydoğan</span>
+        </p>
+      </footer>
     </div>
   );
 }
