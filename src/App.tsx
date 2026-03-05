@@ -142,9 +142,18 @@ const getSessionData = (key: string, defaultValue: any) => {
 };
 
 export default function App() {
-  const [adim, setAdim] = useState(() => getSessionData('ra_adim', 1));
-  const [gorsel, setGorsel] = useState<string | null>(() => getSessionData('ra_gorsel', null));
-  const [gorselBase64, setGorselBase64] = useState<string | null>(() => getSessionData('ra_gorselBase64', null));
+  const initGorsel = getSessionData('ra_gorsel', null);
+  const initGorselBase64 = getSessionData('ra_gorselBase64', null);
+  let initAdim = getSessionData('ra_adim', 1);
+
+  // Eğer session'dan adım 2 veya 3 geliyorsa ancak görsel boyuttan dolayı kaydedilememişse başa döndür.
+  if (initAdim > 1 && (!initGorsel || !initGorselBase64)) {
+    initAdim = 1;
+  }
+
+  const [adim, setAdim] = useState(initAdim);
+  const [gorsel, setGorsel] = useState<string | null>(initGorsel);
+  const [gorselBase64, setGorselBase64] = useState<string | null>(initGorselBase64);
   const [revizeGorsel, setRevizeGorsel] = useState<string | null>(() => getSessionData('ra_revizeGorsel', null));
   const [isletme, setIsletme] = useState(() => getSessionData('ra_isletme', "E-Ticaret"));
   const [digerIsletme, setDigerIsletme] = useState(() => getSessionData('ra_digerIsletme', ""));
