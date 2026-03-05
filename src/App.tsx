@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Zap } from "lucide-react";
+import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles } from "lucide-react";
 
 declare global {
   interface Window {
@@ -12,10 +12,10 @@ declare global {
 }
 
 const kriterler = [
-  { key: "renk", label: "Renk Uyumu", emoji: <Palette className="w-4 h-4" />, color: "#0EA5E9" },
-  { key: "font", label: "Tipografi", emoji: <TypeIcon className="w-4 h-4" />, color: "#38BDF8" },
-  { key: "butunluk", label: "Bütünlük", emoji: <Layout className="w-4 h-4" />, color: "#06B6D4" },
-  { key: "kompozisyon", label: "Kompozisyon", emoji: <Grid className="w-4 h-4" />, color: "#22D3EE" },
+  { key: "renk", label: "Renk Uyumu", emoji: <Palette className="w-4 h-4" /> },
+  { key: "font", label: "Tipografi", emoji: <TypeIcon className="w-4 h-4" /> },
+  { key: "butunluk", label: "Bütünlük", emoji: <Layout className="w-4 h-4" /> },
+  { key: "kompozisyon", label: "Kompozisyon", emoji: <Grid className="w-4 h-4" /> },
 ];
 
 const isletmeTurleri = [
@@ -25,57 +25,96 @@ const isletmeTurleri = [
 ];
 
 const gc = {
-  card: "bg-[#0A1628]/80 backdrop-blur-2xl border border-[#1E3A5F]/50 rounded-2xl shadow-[0_0_30px_rgba(14,165,233,0.03)]",
-  input: "bg-[#0A1628] border border-[#1E3A5F]/60 rounded-xl text-white text-sm p-3.5 w-full outline-none focus:border-[#0EA5E9]/60 focus:shadow-[0_0_15px_rgba(14,165,233,0.1)] transition-all placeholder:text-white/15",
-  label: "text-[#38BDF8]/60 text-[10px] font-semibold tracking-[0.2em] uppercase mb-2.5 block",
+  card: "bg-white/10 backdrop-blur-3xl border border-white/20 rounded-3xl shadow-2xl",
+  input: "bg-white/5 border border-white/10 rounded-xl text-white text-sm p-3 w-full outline-none focus:border-blue-500/50 transition-colors placeholder:text-white/20",
+  label: "text-white/40 text-[10px] font-bold tracking-widest uppercase mb-2 block",
 };
 
+function GlassCard({ children, className = "", glowColor = "blue", delay = 0 }: { children: React.ReactNode; className?: string; glowColor?: string; delay?: number; key?: string }) {
+  const glowMap: Record<string, string> = {
+    blue: "from-blue-500/30 via-blue-400/10",
+    purple: "from-purple-500/30 via-purple-400/10",
+    green: "from-emerald-500/30 via-emerald-400/10",
+    cyan: "from-cyan-500/30 via-cyan-400/10",
+  };
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay }}
+      className={`relative group overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-b from-white/[0.06] to-white/[0.02] backdrop-blur-2xl ${className}`}
+    >
+      {/* Subtle grid overlay */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+      {/* Bottom glow */}
+      <div className={`absolute -bottom-8 left-1/2 -translate-x-1/2 w-[80%] h-20 bg-gradient-to-t ${glowMap[glowColor] || glowMap.blue} to-transparent blur-2xl opacity-60 group-hover:opacity-90 transition-opacity duration-700`} />
+      <div className="relative z-10">{children}</div>
+    </motion.div>
+  );
+}
+
 function ScoreRing({ score }: { score: number }) {
-  const r = 52, cx = 64, cy = 64;
+  const r = 58, cx = 70, cy = 70;
   const circ = 2 * Math.PI * r;
   const offset = circ - (score / 100) * circ;
-  const color = score >= 75 ? "#0EA5E9" : score >= 50 ? "#F59E0B" : "#EF4444";
-  const glowColor = score >= 75 ? "0,180,216" : score >= 50 ? "245,158,11" : "239,68,68";
+  const color = score >= 75 ? "#38bdf8" : score >= 50 ? "#fbbf24" : "#f87171";
+  const glowRgb = score >= 75 ? "56,189,248" : score >= 50 ? "251,191,36" : "248,113,113";
   const label = score >= 75 ? "Harika" : score >= 50 ? "İyi" : "Geliştirilebilir";
 
   return (
     <div className="flex flex-col items-center py-6">
-      <div className="relative w-36 h-36">
-        <div className="absolute inset-0 rounded-full" style={{ boxShadow: `0 0 40px rgba(${glowColor},0.15)` }} />
-        <svg width={144} height={144} viewBox="0 0 128 128" className="transform -rotate-90">
-          <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(14,165,233,0.06)" strokeWidth="7" />
+      <div className="relative w-[140px] h-[140px]">
+        {/* Glow behind ring */}
+        <div className="absolute inset-4 rounded-full blur-2xl" style={{ backgroundColor: `rgba(${glowRgb}, 0.15)` }} />
+        <svg width={140} height={140} viewBox="0 0 140 140" className="transform -rotate-90">
+          <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="6" />
           <motion.circle
-            cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="7"
+            cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="6"
             strokeDasharray={circ}
             initial={{ strokeDashoffset: circ }}
             animate={{ strokeDashoffset: offset }}
-            transition={{ duration: 1.8, ease: "easeOut" }}
+            transition={{ duration: 2, ease: [0.22, 1, 0.36, 1] }}
             strokeLinecap="round"
-            style={{ filter: `drop-shadow(0 0 8px rgba(${glowColor},0.5))` }}
+            style={{ filter: `drop-shadow(0 0 12px rgba(${glowRgb},0.6))` }}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-white text-4xl font-bold leading-none">{score}</span>
-          <span className="text-[#38BDF8]/30 text-[10px] font-medium mt-1">/100</span>
+          <motion.span
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="text-white text-4xl font-extrabold leading-none tracking-tight"
+          >
+            {score}
+          </motion.span>
+          <span className="text-white/20 text-[11px] font-semibold mt-1 tracking-wider">/100</span>
         </div>
       </div>
-      <span style={{ color, textShadow: `0 0 20px rgba(${glowColor},0.4)` }} className="text-base font-bold mt-4">{label}</span>
+      <motion.span
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+        style={{ color }}
+        className="text-sm font-bold mt-4 tracking-wide uppercase"
+      >
+        {label}
+      </motion.span>
     </div>
   );
 }
 
 function ScoreBar({ puan, max = 25 }: { puan: number; max?: number }) {
   const pct = (puan / max) * 100;
-  const color = pct >= 75 ? "#0EA5E9" : pct >= 50 ? "#F59E0B" : "#EF4444";
+  const color = pct >= 75 ? "#38bdf8" : pct >= 50 ? "#fbbf24" : "#f87171";
 
   return (
-    <div className="h-1.5 bg-[#0EA5E9]/8 rounded-full overflow-hidden">
+    <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
       <motion.div
         initial={{ width: 0 }}
         animate={{ width: `${pct}%` }}
-        transition={{ duration: 1.2, ease: "easeOut" }}
+        transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
         className="h-full rounded-full"
-        style={{ backgroundColor: color, boxShadow: `0 0 12px ${color}55` }}
+        style={{ backgroundColor: color, boxShadow: `0 0 16px ${color}55, 0 0 4px ${color}88` }}
       />
     </div>
   );
@@ -85,13 +124,8 @@ function StepIndicator({ n, active, done }: { n: number; active: boolean; done: 
   return (
     <div className="flex items-center gap-2">
       <div className={`
-        w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-500
-        ${done
-          ? "bg-[#0EA5E9] text-white shadow-[0_0_20px_rgba(14,165,233,0.4)]"
-          : active
-            ? "bg-[#0EA5E9]/15 border-2 border-[#0EA5E9] text-[#38BDF8] shadow-[0_0_15px_rgba(14,165,233,0.2)]"
-            : "bg-[#0A1628] border border-[#1E3A5F]/50 text-white/20"
-        }
+        w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300
+        ${done ? "bg-blue-500 text-white" : active ? "bg-blue-500/20 border-2 border-blue-500 text-white" : "bg-white/5 border border-white/10 text-white/30"}
       `}>
         {done ? "✓" : n}
       </div>
@@ -139,6 +173,7 @@ export default function App() {
         }),
       });
 
+      // Handle non-JSON responses (timeout, server error, etc.)
       const contentType = resp.headers.get("content-type") || "";
       let data: any;
 
@@ -153,6 +188,7 @@ export default function App() {
           throw new Error("Sunucu geçersiz yanıt döndürdü. Lütfen tekrar deneyin.");
         }
       } else {
+        // Response is not JSON (e.g. HTML error page, timeout)
         const text = await resp.text().catch(() => "");
         console.error("Non-JSON response:", resp.status, text.substring(0, 200));
         if (resp.status === 504) {
@@ -167,6 +203,9 @@ export default function App() {
 
       setSonuc(data);
       setAdim(3);
+
+      // Start generating the revised image in the background
+      // revizeEt(data.oneri); // Removed as per instruction
     } catch (err: any) {
       console.error("Analiz hatası:", err);
       setHata(err.message || "Analiz sırasında beklenmeyen bir hata oluştu.");
@@ -222,63 +261,32 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#060B18] text-white selection:bg-[#0EA5E9]/30 font-sans relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-[20%] w-[500px] h-[500px] bg-[#0EA5E9]/8 blur-[150px] rounded-full" />
-        <div className="absolute bottom-[-15%] right-[10%] w-[600px] h-[600px] bg-[#0EA5E9]/5 blur-[180px] rounded-full" />
-        <div className="absolute top-[40%] left-[-10%] w-[400px] h-[400px] bg-[#06B6D4]/4 blur-[140px] rounded-full" />
-        {/* Grid overlay */}
-        <div className="absolute inset-0 opacity-[0.02]" style={{
-          backgroundImage: 'linear-gradient(rgba(14,165,233,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(14,165,233,0.3) 1px, transparent 1px)',
-          backgroundSize: '60px 60px'
-        }} />
-      </div>
+    <div className="min-h-screen bg-[#050508] text-white selection:bg-blue-500/30 font-sans">
+      {/* Background Orbs */}
+      <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full pointer-events-none" />
 
-      <div className={`relative z-10 max-w-screen-xl mx-auto px-4 py-16 transition-all duration-500 ${adim === 3 ? 'max-w-6xl' : 'max-w-lg'}`}>
+      <div className={`max-w-screen-xl mx-auto px-4 py-12 transition-all duration-500 ${adim === 3 ? 'max-w-6xl' : 'max-w-lg'}`}>
         {/* Header */}
-        <header className="text-center mb-14">
+        <header className="text-center mb-12">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="inline-flex items-center gap-3 mb-8"
+            className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 mb-6 backdrop-blur-xl"
           >
-            <div className="relative">
-              <div className="absolute inset-0 bg-[#0EA5E9]/30 rounded-xl blur-lg" />
-              <div className="relative w-10 h-10 rounded-xl bg-[#0EA5E9] flex items-center justify-center shadow-[0_0_20px_rgba(14,165,233,0.5)]">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
-            </div>
-            <span className="text-xl font-bold tracking-tight">RevizeAI</span>
+            <Sparkles className="w-7 h-7" />
           </motion.div>
-          <motion.h1
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="text-4xl md:text-5xl font-bold tracking-tight mb-4 leading-tight"
-          >
-            Tasarımlarınızı <br />
-            <span className="bg-gradient-to-r from-[#0EA5E9] via-[#38BDF8] to-[#06B6D4] bg-clip-text text-transparent">
-              AI ile analiz edin.
-            </span>
-          </motion.h1>
-          <motion.p
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-white/35 text-base max-w-md mx-auto leading-relaxed"
-          >
-            Yapay zeka destekli profesyonel grafik tasarım analizi ve değerlendirme aracı
-          </motion.p>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">RevizeAI</h1>
+          <p className="text-white/40 text-sm">AI destekli profesyonel tasarım analizi ve revizyonu</p>
         </header>
 
         {/* Stepper */}
         {adim < 3 && (
-          <div className="flex items-center justify-center mb-12">
+          <div className="flex items-center justify-center mb-10">
             <StepIndicator n={1} active={adim === 1} done={adim > 1} />
-            <div className={`w-14 h-[2px] mx-3 rounded-full transition-all duration-500 ${adim > 1 ? "bg-[#0EA5E9] shadow-[0_0_8px_rgba(14,165,233,0.4)]" : "bg-[#1E3A5F]/50"}`} />
+            <div className={`w-12 h-[1px] mx-2 ${adim > 1 ? "bg-blue-500" : "bg-white/10"}`} />
             <StepIndicator n={2} active={adim === 2} done={adim > 2} />
-            <div className={`w-14 h-[2px] mx-3 rounded-full transition-all duration-500 ${adim > 2 ? "bg-[#0EA5E9] shadow-[0_0_8px_rgba(14,165,233,0.4)]" : "bg-[#1E3A5F]/50"}`} />
+            <div className={`w-12 h-[1px] mx-2 ${adim > 2 ? "bg-blue-500" : "bg-white/10"}`} />
             <StepIndicator n={3} active={adim === 3} done={false} />
           </div>
         )}
@@ -298,29 +306,26 @@ export default function App() {
                   onClick={() => fileRef.current?.click()}
                   onDrop={e => { e.preventDefault(); handleDosya(e.dataTransfer.files[0]); }}
                   onDragOver={e => e.preventDefault()}
-                  className={`cursor-pointer min-h-[220px] flex flex-col items-center justify-center p-8 transition-all duration-500 ${gorsel ? 'p-0' : 'hover:bg-[#0EA5E9]/3'}`}
+                  className={`cursor-pointer min-h-[200px] flex flex-col items-center justify-center p-8 transition-all duration-300 ${gorsel ? 'p-0' : 'hover:bg-white/5'}`}
                 >
                   {gorsel ? (
                     <img src={gorsel} alt="Tasarım" className="w-full max-h-[400px] object-contain block" />
                   ) : (
                     <>
-                      <div className="relative mb-5">
-                        <div className="absolute inset-0 bg-[#0EA5E9]/20 rounded-2xl blur-xl" />
-                        <div className="relative w-16 h-16 rounded-2xl bg-[#0EA5E9]/10 border border-[#0EA5E9]/30 flex items-center justify-center text-[#38BDF8] group-hover:scale-110 transition-transform duration-300">
-                          <Upload className="w-7 h-7" />
-                        </div>
+                      <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-4 group-hover:scale-110 transition-transform">
+                        <Upload className="w-6 h-6" />
                       </div>
                       <p className="text-white font-semibold text-lg">Görsel Yükle</p>
-                      <p className="text-white/25 text-sm mt-1.5">Sürükle bırak veya tıkla · PNG, JPG</p>
+                      <p className="text-white/30 text-sm mt-1">Sürükle bırak veya tıkla · PNG, JPG</p>
                     </>
                   )}
                 </div>
                 {gorsel && (
                   <div
                     onClick={() => fileRef.current?.click()}
-                    className="py-3 bg-[#0EA5E9]/5 hover:bg-[#0EA5E9]/10 transition-colors cursor-pointer text-center border-t border-[#1E3A5F]/50"
+                    className="py-3 bg-white/5 hover:bg-white/10 transition-colors cursor-pointer text-center border-t border-white/10"
                   >
-                    <span className="text-[#38BDF8] text-sm font-medium">Görseli Değiştir</span>
+                    <span className="text-blue-400 text-sm font-medium">Görseli Değiştir</span>
                   </div>
                 )}
               </div>
@@ -335,10 +340,7 @@ export default function App() {
                       onClick={() => setIsletme(t)}
                       className={`
                         px-4 py-2 rounded-full text-xs font-medium transition-all duration-300
-                        ${isletme === t
-                          ? "bg-[#0EA5E9] text-white shadow-[0_0_20px_rgba(14,165,233,0.4)]"
-                          : "bg-[#0A1628] border border-[#1E3A5F]/50 text-white/40 hover:border-[#0EA5E9]/30 hover:text-white/60"
-                        }
+                        ${isletme === t ? "bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]" : "bg-white/5 text-white/50 hover:bg-white/10"}
                       `}
                     >
                       {t}
@@ -351,11 +353,8 @@ export default function App() {
                 onClick={() => setAdim(2)}
                 disabled={!gorsel}
                 className={`
-                  w-full py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-all duration-300
-                  ${gorsel
-                    ? "bg-[#0EA5E9] text-white shadow-[0_0_30px_rgba(14,165,233,0.3)] hover:shadow-[0_0_40px_rgba(14,165,233,0.5)] hover:scale-[1.02] active:scale-[0.98]"
-                    : "bg-[#0A1628] border border-[#1E3A5F]/50 text-white/15 cursor-not-allowed"
-                  }
+                  w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300
+                  ${gorsel ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98]" : "bg-white/5 text-white/20 cursor-not-allowed"}
                 `}
               >
                 Devam Et <ChevronRight className="w-5 h-5" />
@@ -372,8 +371,8 @@ export default function App() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-6"
             >
-              <div className={`${gc.card} p-8 space-y-5`}>
-                <p className="text-white/40 text-sm leading-relaxed">Daha isabetli analiz için firmanız hakkında birkaç bilgi verin.</p>
+              <div className={`${gc.card} p-8 space-y-6`}>
+                <p className="text-white/50 text-sm leading-relaxed">Daha isabetli analiz için firmanız hakkında birkaç bilgi verin.</p>
                 {[
                   { key: "markaAdi", label: "Marka / Firma Adı", ph: "örn. Brew & Co." },
                   { key: "kurumselRenk", label: "Kurumsal Renk(ler)", ph: "örn. Koyu yeşil, krem beyazı" },
@@ -397,7 +396,7 @@ export default function App() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="p-4 bg-red-500/8 border border-red-500/20 rounded-xl text-red-400 text-sm"
+                  className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm"
                 >
                   {hata}
                 </motion.div>
@@ -406,7 +405,7 @@ export default function App() {
               <div className="flex gap-4">
                 <button
                   onClick={() => setAdim(1)}
-                  className="flex-1 py-4 rounded-xl bg-[#0A1628] border border-[#1E3A5F]/50 text-white/50 font-semibold hover:border-[#0EA5E9]/30 transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-4 rounded-2xl bg-white/5 border border-white/10 text-white/60 font-semibold hover:bg-white/10 transition-all flex items-center justify-center gap-2"
                 >
                   <ChevronLeft className="w-5 h-5" /> Geri
                 </button>
@@ -414,16 +413,13 @@ export default function App() {
                   onClick={analiz}
                   disabled={yukleniyor}
                   className={`
-                    flex-[2] py-4 rounded-xl font-bold text-white transition-all duration-300 flex items-center justify-center gap-2
-                    ${yukleniyor
-                      ? "bg-[#0A1628] border border-[#1E3A5F]/50 text-white/20 cursor-not-allowed"
-                      : "bg-[#0EA5E9] shadow-[0_0_30px_rgba(14,165,233,0.3)] hover:shadow-[0_0_40px_rgba(14,165,233,0.5)] hover:scale-[1.02] active:scale-[0.98]"
-                    }
+                    flex-[2] py-4 rounded-2xl font-bold text-white transition-all duration-300 flex items-center justify-center gap-2
+                    ${yukleniyor ? "bg-white/10 text-white/30 cursor-not-allowed" : "bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98]"}
                   `}
                 >
                   {yukleniyor ? (
                     <>
-                      <div className="w-5 h-5 border-2 border-[#38BDF8]/30 border-t-[#38BDF8] rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       Analiz ediliyor...
                     </>
                   ) : (
@@ -434,150 +430,161 @@ export default function App() {
             </motion.div>
           )}
 
-          {/* ADIM 3 */}
+          {/* ADIM 3 — Premium Dashboard */}
           {adim === 3 && sonuc && (
             <motion.div
               key="step3"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="space-y-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="space-y-8"
             >
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                {/* Visual Comparison */}
-                <div className="lg:col-span-3 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Original */}
-                    <div className={`${gc.card} overflow-hidden flex flex-col`}>
-                      <div className="p-3.5 bg-[#0A1628]/60 border-b border-[#1E3A5F]/40 flex items-center justify-between">
-                        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/30">Orijinal Tasarım</span>
-                      </div>
-                      <div
-                        onClick={() => gorsel && setSeciliGorsel(gorsel)}
-                        className="cursor-zoom-in group relative"
-                      >
-                        <img src={gorsel!} alt="Orijinal" className="w-full h-[300px] object-contain bg-[#060B18] transition-transform duration-500 group-hover:scale-105" />
-                        <div className="absolute inset-0 bg-[#060B18]/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <span className="text-white text-xs font-medium bg-[#0A1628]/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#1E3A5F]/50">Büyütmek için tıkla</span>
-                        </div>
-                      </div>
+              {/* Top Row: Image + Score Ring */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Original Image Card */}
+                <GlassCard className="lg:col-span-2" glowColor="cyan" delay={0.1}>
+                  <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-2 h-2 rounded-full bg-cyan-400" style={{ boxShadow: '0 0 8px rgba(56,189,248,0.6)' }} />
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Orijinal Tasarım</span>
                     </div>
-
-                    {/* Revised - Coming Soon */}
-                    <div className="relative overflow-hidden rounded-2xl border border-[#0EA5E9]/15 bg-gradient-to-br from-[#0A1628]/90 via-[#0A1628]/70 to-[#0A1628]/90 backdrop-blur-2xl shadow-[0_0_30px_rgba(14,165,233,0.03)] flex flex-col">
-                      <div className="p-3.5 bg-[#0EA5E9]/5 border-b border-[#0EA5E9]/15 flex items-center justify-between">
-                        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#38BDF8]/60">AI Revize Tasarım</span>
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-[#0EA5E9] bg-[#0EA5E9]/10 px-2.5 py-0.5 rounded-full border border-[#0EA5E9]/20">Yakında</span>
-                      </div>
-                      <div className="relative flex-1 min-h-[300px] flex items-center justify-center p-8">
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-44 h-44 bg-[#0EA5E9]/6 rounded-full blur-[70px]" />
-                        <div className="absolute top-1/3 right-1/4 w-28 h-28 bg-[#06B6D4]/5 rounded-full blur-[50px] animate-pulse" style={{ animationDelay: '1s' }} />
-
-                        <div className="relative z-10 flex flex-col items-center gap-5 text-center">
-                          <motion.div
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.6, ease: 'easeOut' }}
-                            className="relative"
-                          >
-                            <div className="absolute inset-0 bg-[#0EA5E9]/15 rounded-2xl blur-xl" />
-                            <div className="relative w-16 h-16 rounded-2xl bg-[#0EA5E9]/8 border border-[#0EA5E9]/20 flex items-center justify-center">
-                              <Sparkles className="w-7 h-7 text-[#38BDF8]" />
-                            </div>
-                          </motion.div>
-
-                          <div className="space-y-2">
-                            <motion.p
-                              initial={{ y: 10, opacity: 0 }}
-                              animate={{ y: 0, opacity: 1 }}
-                              transition={{ delay: 0.2 }}
-                              className="text-white font-semibold text-base"
-                            >
-                              AI Tasarım Revizyonu
-                            </motion.p>
-                            <motion.p
-                              initial={{ y: 10, opacity: 0 }}
-                              animate={{ y: 0, opacity: 1 }}
-                              transition={{ delay: 0.35 }}
-                              className="text-white/25 text-xs leading-relaxed max-w-[200px]"
-                            >
-                              Yapay zeka destekli otomatik tasarım revizyonu çok yakında sizlerle
-                            </motion.p>
-                          </div>
-
-                          <motion.div
-                            initial={{ y: 10, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: 0.5 }}
-                            className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#0EA5E9]/5 border border-[#0EA5E9]/15"
-                          >
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#0EA5E9] animate-pulse shadow-[0_0_6px_rgba(14,165,233,0.5)]" />
-                            <span className="text-white/35 text-[10px] font-semibold uppercase tracking-wider">Geliştiriliyor</span>
-                          </motion.div>
-                        </div>
-                      </div>
+                    <span className="text-[9px] font-semibold text-white/20 bg-white/[0.04] px-3 py-1 rounded-full">{isletme}</span>
+                  </div>
+                  <div
+                    onClick={() => gorsel && setSeciliGorsel(gorsel)}
+                    className="cursor-zoom-in group relative"
+                  >
+                    <img src={gorsel!} alt="Orijinal" className="w-full h-[340px] object-contain bg-black/20 transition-all duration-700 group-hover:scale-[1.03]" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-end justify-center pb-6">
+                      <span className="text-white text-xs font-medium bg-white/10 backdrop-blur-xl px-4 py-2 rounded-full border border-white/20">Büyütmek için tıkla</span>
                     </div>
                   </div>
+                </GlassCard>
 
-                  {/* Criteria Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {kriterler.map((k, i) => (
-                      <motion.div
-                        key={k.key}
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className={`${gc.card} p-6 hover:border-[#0EA5E9]/20 transition-all duration-300`}
-                      >
-                        <div className="flex justify-between items-center mb-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-lg bg-[#0EA5E9]/8 border border-[#0EA5E9]/15 flex items-center justify-center text-[#38BDF8]">
-                              {k.emoji}
-                            </div>
-                            <span className="text-white font-semibold text-sm">{k.label}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-white font-bold text-xl">{sonuc[k.key]?.puan}</span>
-                            <span className="text-[#38BDF8]/20 text-xs ml-1">/25</span>
-                          </div>
-                        </div>
-                        <ScoreBar puan={sonuc[k.key]?.puan || 0} />
-                        <p className="mt-4 text-white/30 text-xs leading-relaxed">
-                          {sonuc[k.key]?.aciklama}
-                        </p>
-                      </motion.div>
-                    ))}
+                {/* Score Ring Card */}
+                <GlassCard glowColor="blue" delay={0.2}>
+                  <div className="p-4 border-b border-white/[0.06]">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-2 h-2 rounded-full bg-blue-400" style={{ boxShadow: '0 0 8px rgba(56,189,248,0.6)' }} />
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Genel Puan</span>
+                    </div>
                   </div>
-                </div>
-
-                {/* Sidebar Stats */}
-                <div className="space-y-6">
-                  <div className={`${gc.card} p-8 flex flex-col items-center text-center`}>
-                    <span className={gc.label}>Genel Puan</span>
+                  <div className="p-6 flex flex-col items-center">
                     <ScoreRing score={sonuc.genelPuan} />
-                    <div className="mt-2 p-4 bg-[#0EA5E9]/3 rounded-xl border border-[#1E3A5F]/30">
-                      <p className="text-white/45 text-xs italic leading-relaxed">
+                    <div className="mt-4 p-4 bg-white/[0.03] rounded-xl border border-white/[0.06] w-full">
+                      <p className="text-white/50 text-[11px] italic leading-relaxed text-center">
                         "{sonuc.genelYorum}"
                       </p>
                     </div>
                   </div>
+                </GlassCard>
+              </div>
 
-                  <div className={`${gc.card} p-6`}>
-                    <div className="flex items-center gap-2 mb-4">
-                      <Sparkles className="w-4 h-4 text-[#0EA5E9]" />
-                      <span className={gc.label}>Gelişim Önerisi</span>
+              {/* Criteria Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                {kriterler.map((k, i) => {
+                  const puan = sonuc[k.key]?.puan || 0;
+                  const pct = (puan / 25) * 100;
+                  const color = pct >= 75 ? "#38bdf8" : pct >= 50 ? "#fbbf24" : "#f87171";
+                  const glowColors = ["cyan", "blue", "purple", "green"];
+                  return (
+                    <GlassCard key={k.key} glowColor={glowColors[i]} delay={0.15 * (i + 1)}>
+                      <div className="p-5">
+                        <div className="flex items-center justify-between mb-5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-white/50">
+                              {k.emoji}
+                            </div>
+                            <span className="text-white/70 font-semibold text-[13px]">{k.label}</span>
+                          </div>
+                        </div>
+                        {/* Big score number */}
+                        <div className="flex items-baseline gap-1.5 mb-3">
+                          <motion.span
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.6, delay: 0.3 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                            className="text-white text-3xl font-extrabold tracking-tight"
+                            style={{ textShadow: `0 0 30px ${color}33` }}
+                          >
+                            {puan}
+                          </motion.span>
+                          <span className="text-white/15 text-sm font-semibold">/25</span>
+                        </div>
+                        <ScoreBar puan={puan} />
+                        <p className="mt-4 text-white/30 text-[11px] leading-relaxed line-clamp-3">
+                          {sonuc[k.key]?.aciklama}
+                        </p>
+                      </div>
+                    </GlassCard>
+                  );
+                })}
+              </div>
+
+              {/* Bottom Row: Coming Soon + Suggestion + New Analysis */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* AI Revize Coming Soon */}
+                <GlassCard glowColor="purple" delay={0.6}>
+                  <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-2 h-2 rounded-full bg-purple-400" style={{ boxShadow: '0 0 8px rgba(168,85,247,0.6)' }} />
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">AI Revize</span>
                     </div>
-                    <p className="text-white/55 text-sm leading-relaxed">
+                    <span className="text-[8px] font-bold uppercase tracking-widest text-purple-300 bg-purple-500/10 px-2.5 py-1 rounded-full border border-purple-500/20">Yakında</span>
+                  </div>
+                  <div className="relative p-8 flex flex-col items-center justify-center min-h-[180px]">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-purple-500/10 rounded-full blur-[50px] animate-pulse" />
+                    <div className="relative z-10 flex flex-col items-center gap-4">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/15 to-blue-500/15 border border-white/[0.08] flex items-center justify-center">
+                        <Sparkles className="w-6 h-6 text-purple-400" />
+                      </div>
+                      <p className="text-white/60 text-sm font-semibold">AI Tasarım Revizyonu</p>
+                      <p className="text-white/25 text-[10px] leading-relaxed text-center max-w-[180px]">Yapay zeka destekli otomatik revizyon çok yakında</p>
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.06]">
+                        <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                        <span className="text-white/30 text-[9px] font-semibold uppercase tracking-wider">Geliştiriliyor</span>
+                      </div>
+                    </div>
+                  </div>
+                </GlassCard>
+
+                {/* Suggestion Card */}
+                <GlassCard className="lg:col-span-1" glowColor="green" delay={0.7}>
+                  <div className="p-4 border-b border-white/[0.06]">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-2 h-2 rounded-full bg-emerald-400" style={{ boxShadow: '0 0 8px rgba(52,211,153,0.6)' }} />
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Gelişim Önerisi</span>
+                    </div>
+                  </div>
+                  <div className="p-5">
+                    <p className="text-white/60 text-[13px] leading-relaxed">
                       {sonuc.oneri}
                     </p>
                   </div>
+                </GlassCard>
 
-                  <button
-                    onClick={sifirla}
-                    className="w-full py-4 rounded-xl bg-[#0A1628] border border-[#1E3A5F]/50 text-white/50 font-semibold hover:border-[#0EA5E9]/30 hover:text-[#38BDF8] transition-all flex items-center justify-center gap-2"
-                  >
-                    <RotateCcw className="w-4 h-4" /> Yeni Analiz Yap
-                  </button>
-                </div>
+                {/* New Analysis Button Card */}
+                <GlassCard glowColor="blue" delay={0.8}>
+                  <div className="p-4 border-b border-white/[0.06]">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-2 h-2 rounded-full bg-blue-400" style={{ boxShadow: '0 0 8px rgba(56,189,248,0.6)' }} />
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">İşlem</span>
+                    </div>
+                  </div>
+                  <div className="p-6 flex flex-col items-center justify-center min-h-[180px] gap-5">
+                    <p className="text-white/30 text-xs text-center">Başka bir tasarımı analiz etmek ister misiniz?</p>
+                    <button
+                      onClick={sifirla}
+                      className="group relative w-full py-4 rounded-xl font-bold text-sm overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 opacity-80 group-hover:opacity-100 transition-opacity" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 blur-xl opacity-40 group-hover:opacity-60 transition-opacity" />
+                      <span className="relative z-10 flex items-center justify-center gap-2 text-white">
+                        <RotateCcw className="w-4 h-4" /> Yeni Analiz Yap
+                      </span>
+                    </button>
+                  </div>
+                </GlassCard>
               </div>
             </motion.div>
           )}
@@ -592,25 +599,26 @@ export default function App() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setSeciliGorsel(null)}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-12 bg-[#060B18]/95 backdrop-blur-2xl cursor-zoom-out"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-12 bg-[#050508]/95 backdrop-blur-2xl cursor-zoom-out"
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.85, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              exit={{ scale: 0.85, opacity: 0 }}
+              transition={{ ease: [0.22, 1, 0.36, 1] }}
               className="relative max-w-full max-h-full"
               onClick={(e) => e.stopPropagation()}
             >
               <img
                 src={seciliGorsel}
                 alt="Büyütülmüş Görsel"
-                className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-[0_0_60px_rgba(14,165,233,0.1)] border border-[#1E3A5F]/30"
+                className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl border border-white/[0.08]"
               />
               <button
                 onClick={() => setSeciliGorsel(null)}
-                className="absolute -top-12 right-0 text-white/40 hover:text-[#38BDF8] transition-colors flex items-center gap-2 text-sm font-medium"
+                className="absolute -top-14 right-0 text-white/40 hover:text-white transition-colors flex items-center gap-2 text-sm font-medium bg-white/[0.04] backdrop-blur-xl px-4 py-2 rounded-full border border-white/[0.08]"
               >
-                Kapat <RotateCcw className="w-4 h-4" />
+                Kapat ✕
               </button>
             </motion.div>
           </motion.div>
