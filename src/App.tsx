@@ -618,6 +618,110 @@ export default function App() {
                 })}
               </div>
 
+              {/* Color Palette + Technical Summary Row */}
+              {(sonuc.renkPaleti?.length > 0 || sonuc.teknikOzet) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                  {/* Color Palette */}
+                  {sonuc.renkPaleti?.length > 0 && (
+                    <GlassCard glowColor="blue" delay={0.5}>
+                      <div className="p-4 border-b border-white/[0.06] flex items-center gap-2.5">
+                        <div className="w-2 h-2 rounded-full bg-blue-400" style={{ boxShadow: '0 0 8px rgba(96,165,250,0.6)' }} />
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Renk Paleti</span>
+                      </div>
+                      <div className="p-5 flex flex-col gap-4">
+                        <div className="flex flex-wrap gap-3 items-center">
+                          {sonuc.renkPaleti.slice(0, 6).map((hex: string, i: number) => (
+                            <div key={i} className="flex flex-col items-center gap-1.5 group cursor-default">
+                              <div
+                                className="w-9 h-9 rounded-xl border border-white/[0.12] shadow-lg transition-transform duration-200 group-hover:scale-110"
+                                style={{ backgroundColor: hex, boxShadow: `0 4px 16px ${hex}55` }}
+                              />
+                              <span className="text-[9px] text-white/25 font-mono tracking-wider group-hover:text-white/50 transition-colors">{hex.toUpperCase()}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {/* Güçlü / Zayıf yön */}
+                        {(sonuc.gucluYon || sonuc.zayifYon) && (
+                          <div className="space-y-2 pt-1 border-t border-white/[0.04]">
+                            {sonuc.gucluYon && (
+                              <div className="flex items-start gap-2">
+                                <span className="text-emerald-400/80 text-[10px] mt-0.5">✦</span>
+                                <span className="text-white/35 text-[10px] leading-relaxed">{sonuc.gucluYon}</span>
+                              </div>
+                            )}
+                            {sonuc.zayifYon && (
+                              <div className="flex items-start gap-2">
+                                <span className="text-amber-400/80 text-[10px] mt-0.5">△</span>
+                                <span className="text-white/35 text-[10px] leading-relaxed">{sonuc.zayifYon}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </GlassCard>
+                  )}
+
+                  {/* Technical Summary */}
+                  {sonuc.teknikOzet && (
+                    <GlassCard glowColor="purple" delay={0.55}>
+                      <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-2 h-2 rounded-full bg-purple-400" style={{ boxShadow: '0 0 8px rgba(168,85,247,0.5)' }} />
+                          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Teknik Özet</span>
+                        </div>
+                        {sonuc.genelDegerlendirme && (
+                          <span className="text-[8px] font-bold uppercase tracking-widest text-purple-200/70 bg-purple-500/10 px-2.5 py-1 rounded-full border border-purple-500/15">
+                            {sonuc.genelDegerlendirme}
+                          </span>
+                        )}
+                      </div>
+                      <div className="p-5 space-y-4">
+                        {[
+                          {
+                            label: 'Baskın Renk Sayısı',
+                            value: `${sonuc.teknikOzet.baskınRenkSayisi ?? '—'} renk`,
+                            bar: false,
+                          },
+                          {
+                            label: 'Detay Yoğunluğu',
+                            value: `%${sonuc.teknikOzet.detayYogunlugu ?? 0}`,
+                            bar: true,
+                            pct: sonuc.teknikOzet.detayYogunlugu ?? 0,
+                            color: '#818cf8',
+                          },
+                          {
+                            label: 'Negatif Alan Oranı',
+                            value: `%${sonuc.teknikOzet.negatifAlanOrani ?? 0}`,
+                            bar: true,
+                            pct: sonuc.teknikOzet.negatifAlanOrani ?? 0,
+                            color: '#34d399',
+                          },
+                        ].map((item) => (
+                          <div key={item.label}>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="text-white/30 text-[10px]">{item.label}</span>
+                              <span className="text-white/55 text-[10px] font-semibold font-mono">{item.value}</span>
+                            </div>
+                            {item.bar && (
+                              <div className="h-[3px] bg-white/[0.05] rounded-full overflow-hidden">
+                                <motion.div
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${item.pct}%` }}
+                                  transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.6 }}
+                                  className="h-full rounded-full"
+                                  style={{ backgroundColor: item.color, boxShadow: `0 0 8px ${item.color}66` }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </GlassCard>
+                  )}
+                </div>
+              )}
+
               {/* Bottom Row: Coming Soon + Suggestion + New Analysis */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* AI Revize Coming Soon */}

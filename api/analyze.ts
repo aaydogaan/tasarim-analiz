@@ -34,7 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const ai = new GoogleGenAI({ apiKey });
 
   const prompt = `Sen uzman bir grafik tasarım değerlendirme yapay zekasısın.
-      
+
 Firma Bilgileri:
 - İşletme Türü: ${isletme}
 - Marka Adı: ${sorular?.markaAdi || 'Belirtilmedi'}
@@ -43,7 +43,17 @@ Firma Bilgileri:
 - Hedef Kitle: ${sorular?.hedefKitle || 'Belirtilmedi'}
 - Slogan: ${sorular?.slogan || 'Belirtilmedi'}
 
-Bu bilgileri göz önünde bulundurarak tasarımı 4 kritere göre değerlendir (0-25 puan). Ardından bağımsız genel puan ver (0-100).`;
+Bu bilgileri göz önünde bulundurarak tasarımı 4 kritere göre değerlendir (0-25 puan). Ardından bağımsız genel puan ver (0-100).
+
+Ek olarak:
+- Tasarımda gördüğün baskın renkleri hex kodu olarak tespit et (en fazla 6 renk, # ile başlayan).
+- Teknik özellik tahmini:
+  * baskınRenkSayisi: Tasarımda algılanan baskın renk adedi (rakam)
+  * detayYogunlugu: Tasarımın detay yoğunluğu yüzdesi, 0-100 arası TAM SAYI
+  * negatifAlanOrani: Tasarımdaki boş/negatif alan oranı yüzdesi, 0-100 arası TAM SAYI
+- genelDegerlendirme: Şu seçeneklerden biri: "Mükemmel", "Harika", "İyi", "Orta", "Geliştirilebilir"
+- gucluYon: Tasarımın en güçlü tek özelliği, kısa bir cümle.
+- zayifYon: Tasarımın en kritik zayıf noktası, kısa bir cümle.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -101,8 +111,29 @@ Bu bilgileri göz önünde bulundurarak tasarımı 4 kritere göre değerlendir 
             genelPuan: { type: Type.INTEGER },
             genelYorum: { type: Type.STRING },
             oneri: { type: Type.STRING },
+            genelDegerlendirme: { type: Type.STRING },
+            gucluYon: { type: Type.STRING },
+            zayifYon: { type: Type.STRING },
+            renkPaleti: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+            },
+            teknikOzet: {
+              type: Type.OBJECT,
+              properties: {
+                baskınRenkSayisi: { type: Type.INTEGER },
+                detayYogunlugu: { type: Type.INTEGER },
+                negatifAlanOrani: { type: Type.INTEGER },
+              },
+              required: ['baskınRenkSayisi', 'detayYogunlugu', 'negatifAlanOrani'],
+            },
           },
-          required: ['renk', 'font', 'butunluk', 'kompozisyon', 'genelPuan', 'genelYorum', 'oneri'],
+          required: [
+            'renk', 'font', 'butunluk', 'kompozisyon',
+            'genelPuan', 'genelYorum', 'oneri',
+            'genelDegerlendirme', 'gucluYon', 'zayifYon',
+            'renkPaleti', 'teknikOzet',
+          ],
         },
       },
     });
