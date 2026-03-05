@@ -289,11 +289,57 @@ export default function App() {
   const handleDosya = (f: File) => {
     if (!f) return;
     setSonuc(null); setHata(null); setRevizeGorsel(null);
+
+    // Yükleniyor durumunu geçici olarak gösterelim (Ağır görsellerde donmayı önlemek için)
+    setYukleniyor(true);
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const d = e.target?.result as string;
-      setGorsel(d);
-      setGorselBase64(d.split(",")[1]);
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        const max_dim = 1600; // Maksimum uzun kenar
+
+        if (width < 2 || height < 2) {
+          setHata("Görsel çözünürlüğü çok düşük. Lütfen geçerli bir tasarım yükleyin.");
+          setYukleniyor(false);
+          return;
+        }
+
+        if (width > max_dim || height > max_dim) {
+          if (width > height) {
+            height = Math.round((height * max_dim) / width);
+            width = max_dim;
+          } else {
+            width = Math.round((width * max_dim) / height);
+            height = max_dim;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        // %80 kalite ile WebP'ye dönüştür, devasa yer tasarrufu sağlar
+        const webpDataUrl = canvas.toDataURL("image/webp", 0.85);
+
+        setGorsel(webpDataUrl);
+        setGorselBase64(webpDataUrl.split(",")[1]);
+        setYukleniyor(false);
+      };
+      img.onerror = () => {
+        setHata("Görsel işlenirken bir hata oluştu.");
+        setYukleniyor(false);
+      };
+      img.src = d;
+    };
+    reader.onerror = () => {
+      setHata("Dosya okunamadı.");
+      setYukleniyor(false);
     };
     reader.readAsDataURL(f);
   };
