@@ -19,9 +19,7 @@ const kriterler = [
 ];
 
 const isletmeTurleri = [
-  "Cafe", "Restoran", "Butik", "Spor Salonu", "Güzellik Salonu",
-  "Teknoloji", "Sanayi", "Gıda", "Sağlık & Klinik", "Eğitim",
-  "Otel & Konaklama", "E-Ticaret", "Hukuk & Finans", "Diğer"
+  "E-Ticaret", "Cafe & Restoran", "Sağlık & Klinik", "Eğitim", "Güzellik Salonu", "Diğer"
 ];
 
 const gc = {
@@ -138,7 +136,8 @@ export default function App() {
   const [gorsel, setGorsel] = useState<string | null>(null);
   const [gorselBase64, setGorselBase64] = useState<string | null>(null);
   const [revizeGorsel, setRevizeGorsel] = useState<string | null>(null);
-  const [isletme, setIsletme] = useState("Cafe");
+  const [isletme, setIsletme] = useState("E-Ticaret");
+  const [digerIsletme, setDigerIsletme] = useState("");
   const [sorular, setSorular] = useState({ markaAdi: "", kurumselRenk: "", isYapisi: "", hedefKitle: "", slogan: "" });
   const [yukleniyor, setYukleniyor] = useState(false);
   const [revizeYukleniyor, setRevizeYukleniyor] = useState(false);
@@ -168,7 +167,7 @@ export default function App() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           imageBase64: gorselBase64,
-          isletme,
+          isletme: isletme === "Diğer" ? (digerIsletme || "Bilinmiyor") : isletme,
           sorular,
         }),
       });
@@ -224,7 +223,7 @@ export default function App() {
           imageBase64: gorselBase64,
           oneri,
           sorular: { markaAdi: sorular.markaAdi },
-          isletme,
+          isletme: isletme === "Diğer" ? (digerIsletme || "Bilinmiyor") : isletme,
         }),
       });
 
@@ -258,6 +257,7 @@ export default function App() {
   const sifirla = () => {
     setAdim(1); setGorsel(null); setGorselBase64(null); setRevizeGorsel(null); setSonuc(null); setHata(null);
     setSorular({ markaAdi: "", kurumselRenk: "", isYapisi: "", hedefKitle: "", slogan: "" });
+    setDigerIsletme("");
   };
 
   return (
@@ -333,19 +333,41 @@ export default function App() {
 
               <div className={`${gc.card} p-6`}>
                 <span className={gc.label}>İşletme Türü</span>
-                <div className="flex flex-wrap gap-2">
-                  {isletmeTurleri.map(t => (
-                    <button
-                      key={t}
-                      onClick={() => setIsletme(t)}
-                      className={`
-                        px-4 py-2 rounded-full text-xs font-medium transition-all duration-300
-                        ${isletme === t ? "bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]" : "bg-white/5 text-white/50 hover:bg-white/10"}
-                      `}
-                    >
-                      {t}
-                    </button>
-                  ))}
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-wrap gap-2">
+                    {isletmeTurleri.map(t => (
+                      <button
+                        key={t}
+                        onClick={() => setIsletme(t)}
+                        className={`
+                          px-4 py-2 rounded-full text-xs font-medium transition-all duration-300
+                          ${isletme === t ? "bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]" : "bg-white/5 text-white/50 hover:bg-white/10"}
+                        `}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+
+                  <AnimatePresence>
+                    {isletme === "Diğer" && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <input
+                          type="text"
+                          placeholder="Lütfen sektörünüzü veya işletme türünüzü yazın..."
+                          value={digerIsletme}
+                          onChange={(e) => setDigerIsletme(e.target.value)}
+                          className={gc.input}
+                          autoFocus
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
 
