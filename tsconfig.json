@@ -12,7 +12,8 @@
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "types": [
-      "node"
+      "node",
+      "vite/client"
     ],
     "isolatedModules": true,
     "moduleDetection": "force",

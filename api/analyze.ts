@@ -71,7 +71,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const groq = new Groq({ apiKey });
 
-  const prompt = `Sen uzman bir grafik tasarım değerlendirme yapay zekasısın. Görseli analiz et ve YALNIZCA aşağıdaki formatta bir JSON nesnesi döndür. Başka hiçbir şey yazma.
+  const prompt = `Sen uzman bir grafik tasarım değerlendirme yapay zekasısın. Görseli analiz et ve YALNIZCA geçerli bir JSON nesnesi döndür. Başka hiçbir şey yazma, markdown kullanma, sadece JSON.
 
 Tasarım Bağlamı:
 - Tasarım Türü: ${tasarimTuru}
@@ -79,41 +79,22 @@ ${platformBilgisi}
 - Sektör: ${isletme}
 - Marka Adı: ${sorular?.markaAdi || 'Belirtilmedi'}
 - Kurumsal Renkler: ${sorular?.kurumselRenk || 'Belirtilmedi'}
-- İş Yapısı: ${sorular?.isYapisi || 'Belirtilmedi'}
 - Hedef Kitle: ${sorular?.hedefKitle || 'Belirtilmedi'}
-- Slogan: ${sorular?.slogan || 'Belirtilmedi'}
 
 ${kriterler.context}
 
-Bu tasarımı 4 kritere göre değerlendir (her biri 0-25 puan):
-1. RENK (renk anahtarı): ${kriterler.renk}
-2. FONT (font anahtarı): ${kriterler.font}
-3. BÜTÜNLÜK (butunluk anahtarı): ${kriterler.butunluk}
-4. KOMPOZİSYON (kompozisyon anahtarı): ${kriterler.kompozisyon}
+4 kriter için 0-25 puan ver:
+1. RENK: ${kriterler.renk}
+2. FONT: ${kriterler.font}
+3. BÜTÜNLÜK: ${kriterler.butunluk}
+4. KOMPOZİSYON: ${kriterler.kompozisyon}
 
-Tam olarak şu JSON formatını döndür:
-{
-  "renk": {"puan": <0-25 tam sayı>, "aciklama": "<detaylı Türkçe açıklama>"},
-  "font": {"puan": <0-25 tam sayı>, "aciklama": "<detaylı Türkçe açıklama>"},
-  "butunluk": {"puan": <0-25 tam sayı>, "aciklama": "<detaylı Türkçe açıklama>"},
-  "kompozisyon": {"puan": <0-25 tam sayı>, "aciklama": "<detaylı Türkçe açıklama>"},
-  "genelPuan": <0-100 tam sayı>,
-  "genelYorum": "<2-3 cümle genel Türkçe yorum>",
-  "oneri": "<en önemli 2-3 iyileştirme önerisi>",
-  "genelDegerlendirme": "<Mükemmel veya Harika veya İyi veya Orta veya Geliştirilebilir>",
-  "gucluYon": "<tasarımın en güçlü tek özelliği, 1 cümle>",
-  "zayifYon": "<en kritik zayıf nokta, 1 cümle>",
-  "renkPaleti": ["#RRGGBB", "#RRGGBB", "#RRGGBB", "#RRGGBB", "#RRGGBB"],
-  "teknikOzet": {
-    "baskınRenkSayisi": <tam sayı>,
-    "detayYogunlugu": <0-100 tam sayı yüzde>,
-    "negatifAlanOrani": <0-100 tam sayı yüzde>
-  }
-}`;
+Döndür (SADECE JSON, başka hiçbir şey yok):
+{"renk":{"puan":20,"aciklama":"açıklama"},"font":{"puan":18,"aciklama":"açıklama"},"butunluk":{"puan":22,"aciklama":"açıklama"},"kompozisyon":{"puan":19,"aciklama":"açıklama"},"genelPuan":82,"genelYorum":"2-3 cümle yorum","oneri":"iyileştirme önerileri","genelDegerlendirme":"Harika","gucluYon":"güçlü yön","zayifYon":"zayıf nokta","renkPaleti":["#1a1a2e","#16213e","#0f3460","#e94560","#ffffff"],"teknikOzet":{"baskınRenkSayisi":4,"detayYogunlugu":35,"negatifAlanOrani":55}}`;
 
   try {
     const response = await groq.chat.completions.create({
-      model: 'llama-3.2-11b-vision-preview',
+      model: 'llama-3.2-90b-vision-preview',
       messages: [
         {
           role: 'user',
@@ -128,42 +109,45 @@ Tam olarak şu JSON formatını döndür:
           ],
         },
       ],
-      response_format: { type: 'json_object' },
-      temperature: 0.3,
-      max_tokens: 2000,
+      temperature: 0.2,
+      max_tokens: 2048,
     });
 
-    const rawText = response.choices[0]?.message?.content;
-    if (!rawText) {
+    const rawText = response.choices[0]?.message?.content || '';
+
+    if (!rawText.trim()) {
       return res.status(502).json({ error: 'Groq API boş yanıt döndürdü. Lütfen tekrar deneyin.' });
     }
 
+    // JSON'u ayıkla — model bazen açıklama metni de ekleyebilir
     let parsed: any;
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.error('JSON bulunamadı. Raw:', rawText.substring(0, 500));
+      return res.status(502).json({ error: 'AI geçersiz format döndürdü. Lütfen tekrar deneyin.' });
+    }
     try {
-      parsed = JSON.parse(rawText);
-    } catch (parseErr) {
-      console.error('JSON parse hatası. Raw text:', rawText);
-      return res.status(502).json({ error: 'Groq API geçersiz yanıt döndürdü. Lütfen tekrar deneyin.' });
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch (e) {
+      console.error('JSON parse hatası:', e, 'Raw:', rawText.substring(0, 500));
+      return res.status(502).json({ error: 'AI yanıtı işlenemedi. Lütfen tekrar deneyin.' });
     }
 
     // Supabase'e kaydet
     try {
-      const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+      const supabaseUrl = process.env.VITE_SUPABASE_URL;
+      const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
       if (supabaseUrl && supabaseKey) {
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // 1. Görseli Storage'a yükle
+        // Görseli Storage'a yükle
         let gorselUrl: string | null = null;
         try {
           const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
           const imageBuffer = Buffer.from(imageBase64, 'base64');
           const { data: uploadData, error: uploadError } = await supabase.storage
             .from('tasarim-gorseller')
-            .upload(fileName, imageBuffer, {
-              contentType: 'image/jpeg',
-              upsert: false,
-            });
+            .upload(fileName, imageBuffer, { contentType: 'image/jpeg', upsert: false });
           if (!uploadError && uploadData) {
             const { data: urlData } = supabase.storage
               .from('tasarim-gorseller')
@@ -171,10 +155,10 @@ Tam olarak şu JSON formatını döndür:
             gorselUrl = urlData?.publicUrl || null;
           }
         } catch (storageErr) {
-          console.error('Storage yükleme hatası (analiz devam ediyor):', storageErr);
+          console.warn('Storage yükleme atlandı:', storageErr);
         }
 
-        // 2. Analiz sonucunu DB'ye kaydet
+        // DB'ye kaydet
         const { data: dbData } = await supabase.from('analizler').insert({
           tasarim_turu: tasarimTuru,
           platform: platform || null,
@@ -201,14 +185,14 @@ Tam olarak şu JSON formatını döndür:
         }
       }
     } catch (dbErr) {
-      console.error('Supabase kayıt hatası:', dbErr);
+      console.error('Supabase kayıt hatası (analiz döndürülüyor):', dbErr);
     }
 
     return res.status(200).json(parsed);
+
   } catch (err: any) {
-    console.error('Analyze API hatası:', err);
+    console.error('Analyze API hatası:', err?.message || err);
     const message = err?.message || 'Bilinmeyen hata oluştu';
-    const status = typeof err?.status === 'number' ? err.status : 500;
-    return res.status(status).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 }
