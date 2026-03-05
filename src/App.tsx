@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer } from "lucide-react";
+import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check } from "lucide-react";
+import { supabase } from "./lib/supabase";
 
 declare global {
   interface Window {
@@ -205,6 +206,66 @@ export default function App() {
   const [kopyalananRenk, setKopyalananRenk] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Stats modal
+  const [statsAcik, setStatsAcik] = useState(false);
+  const [statsData, setStatsData] = useState<any>(null);
+  const [statsYukleniyor, setStatsYukleniyor] = useState(false);
+
+  // Share
+  const [paylasimKopyalandi, setPaylasimKopyalandi] = useState(false);
+
+  // Auth
+  const [authAcik, setAuthAcik] = useState(false);
+  const [authMod, setAuthMod] = useState<'giris' | 'kayit'>('giris');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authSifre, setAuthSifre] = useState('');
+  const [authYukleniyor, setAuthYukleniyor] = useState(false);
+  const [authHata, setAuthHata] = useState<string | null>(null);
+  const [kullanici, setKullanici] = useState<any>(null);
+
+  // Auth session listener
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setKullanici(session?.user ?? null);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setKullanici(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const girisYap = async () => {
+    setAuthYukleniyor(true); setAuthHata(null);
+    const { error } = authMod === 'giris'
+      ? await supabase.auth.signInWithPassword({ email: authEmail, password: authSifre })
+      : await supabase.auth.signUp({ email: authEmail, password: authSifre });
+    if (error) setAuthHata(error.message);
+    else setAuthAcik(false);
+    setAuthYukleniyor(false);
+  };
+
+  const cikisYap = async () => { await supabase.auth.signOut(); };
+
+  const statsAc = async () => {
+    setStatsAcik(true);
+    if (statsData) return;
+    setStatsYukleniyor(true);
+    try {
+      const resp = await fetch('/api/stats');
+      setStatsData(await resp.json());
+    } catch (e) { console.error('Stats hata:', e); }
+    setStatsYukleniyor(false);
+  };
+
+  const paylasimLinkiKopyala = () => {
+    if (!sonuc?._analiz_id) return;
+    const link = `${window.location.origin}/share/${sonuc._analiz_id}`;
+    navigator.clipboard.writeText(link);
+    setPaylasimKopyalandi(true);
+    setTimeout(() => setPaylasimKopyalandi(false), 2000);
+  };
+
+
   useEffect(() => {
     try {
       sessionStorage.setItem('ra_adim', JSON.stringify(adim));
@@ -386,6 +447,30 @@ export default function App() {
             )}
           </motion.div>
         </header>
+
+        {/* Header Action Buttons */}
+        <div className="absolute top-6 right-4 md:right-8 flex items-center gap-2 z-20">
+          <button
+            onClick={statsAc}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-white/70 hover:bg-white/[0.09] transition-all text-[11px] font-medium"
+          >
+            <BarChart2 className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">Stats</span>
+          </button>
+          {kullanici ? (
+            <div className="flex items-center gap-2">
+              <span className="text-white/25 text-[10px] hidden md:block max-w-[100px] truncate">{kullanici.email}</span>
+              <button onClick={cikisYap} className="p-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-red-400 transition-colors">
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => setAuthAcik(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-white/70 hover:bg-white/[0.09] transition-all text-[11px] font-medium">
+              <User className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Giriş Yap</span>
+            </button>
+          )}
+        </div>
 
         {/* Stepper */}
         {adim < 3 && (
@@ -936,6 +1021,196 @@ export default function App() {
               </button>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── STATS MODAL ── */}
+      <AnimatePresence>
+        {statsAcik && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#050508]/90 backdrop-blur-2xl"
+            onClick={() => setStatsAcik(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ ease: [0.22, 1, 0.36, 1] }}
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-lg bg-white/[0.05] border border-white/[0.10] rounded-3xl backdrop-blur-2xl overflow-hidden"
+            >
+              <div className="p-5 border-b border-white/[0.06] flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <BarChart2 className="w-4 h-4 text-blue-400" />
+                  <span className="text-white text-sm font-bold">Platform İstatistikleri</span>
+                </div>
+                <button onClick={() => setStatsAcik(false)} className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-5">
+                {statsYukleniyor ? (
+                  <div className="flex items-center justify-center py-10 gap-3 text-white/30">
+                    <div className="w-5 h-5 border-2 border-white/20 border-t-blue-400 rounded-full animate-spin" />
+                    <span className="text-sm">Yükleniyor...</span>
+                  </div>
+                ) : statsData ? (
+                  <div className="space-y-5">
+                    {/* Ana sayılar */}
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { label: 'Toplam Analiz', value: statsData.toplamAnaliz, color: 'text-blue-400' },
+                        { label: 'Bu Hafta', value: statsData.buHafta, color: 'text-emerald-400' },
+                        { label: 'Ort. Puan', value: `${statsData.ortalamaGenel}/100`, color: 'text-purple-400' },
+                      ].map(s => (
+                        <div key={s.label} className="bg-white/[0.04] rounded-2xl p-3 text-center border border-white/[0.06]">
+                          <div className={`text-2xl font-extrabold ${s.color}`}>{s.value}</div>
+                          <div className="text-white/30 text-[10px] mt-1">{s.label}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Tasarım türü dağılımı */}
+                    {Object.keys(statsData.turDagilim || {}).length > 0 && (
+                      <div>
+                        <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mb-2.5">Tasarım Türü</p>
+                        <div className="space-y-2">
+                          {Object.entries(statsData.turDagilim as Record<string, number>)
+                            .sort(([, a], [, b]) => b - a)
+                            .map(([tur, sayi]) => {
+                              const pct = Math.round((sayi / statsData.toplamAnaliz) * 100);
+                              return (
+                                <div key={tur}>
+                                  <div className="flex justify-between mb-1">
+                                    <span className="text-white/50 text-[11px]">{tur}</span>
+                                    <span className="text-white/35 text-[11px] font-mono">{sayi} ({pct}%)</span>
+                                  </div>
+                                  <div className="h-[3px] bg-white/[0.05] rounded-full overflow-hidden">
+                                    <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.8 }}
+                                      className="h-full rounded-full bg-blue-500" />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* En popüler sektörler */}
+                    {statsData.enPopulerSektor?.length > 0 && (
+                      <div>
+                        <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mb-2.5">Popüler Sektörler</p>
+                        <div className="flex flex-wrap gap-2">
+                          {statsData.enPopulerSektor.map((s: any, i: number) => (
+                            <span key={i} className="px-3 py-1.5 rounded-full text-[10px] font-semibold bg-white/[0.05] border border-white/[0.08] text-white/50">
+                              {s.isletme} <span className="text-white/25">({s.sayi})</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Değerlendirme dağılımı */}
+                    {Object.keys(statsData.degDagilim || {}).length > 0 && (
+                      <div>
+                        <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mb-2.5">Değerlendirmeler</p>
+                        <div className="flex flex-wrap gap-2">
+                          {Object.entries(statsData.degDagilim as Record<string, number>).map(([deg, sayi]) => (
+                            <span key={deg} className="px-3 py-1.5 rounded-full text-[10px] font-semibold bg-white/[0.05] border border-white/[0.08] text-white/50">
+                              {deg} <span className="text-white/25">× {sayi}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-center text-white/30 py-8 text-sm">Veri yüklenemedi.</p>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── AUTH MODAL ── */}
+      <AnimatePresence>
+        {authAcik && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#050508]/90 backdrop-blur-2xl"
+            onClick={() => setAuthAcik(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ ease: [0.22, 1, 0.36, 1] }}
+              onClick={e => e.stopPropagation()}
+              className="w-full max-w-sm bg-white/[0.05] border border-white/[0.10] rounded-3xl backdrop-blur-2xl overflow-hidden"
+            >
+              <div className="p-5 border-b border-white/[0.06] flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <User className="w-4 h-4 text-blue-400" />
+                  <div className="flex gap-1">
+                    {(['giris', 'kayit'] as const).map(m => (
+                      <button key={m} onClick={() => setAuthMod(m)}
+                        className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${authMod === m ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 'text-white/30 hover:text-white/50'}`}>
+                        {m === 'giris' ? 'Giriş Yap' : 'Kayıt Ol'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <button onClick={() => setAuthAcik(false)} className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-5 space-y-3">
+                <input type="email" placeholder="E-posta" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
+                  className="bg-white/5 border border-white/10 rounded-xl text-white text-sm p-3 w-full outline-none focus:border-blue-500/50 transition-colors placeholder:text-white/20" />
+                <input type="password" placeholder="Şifre" value={authSifre} onChange={e => setAuthSifre(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && girisYap()}
+                  className="bg-white/5 border border-white/10 rounded-xl text-white text-sm p-3 w-full outline-none focus:border-blue-500/50 transition-colors placeholder:text-white/20" />
+
+                {authHata && <p className="text-red-400/80 text-[11px] px-1">{authHata}</p>}
+
+                <button onClick={girisYap} disabled={authYukleniyor || !authEmail || !authSifre}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                  {authYukleniyor ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
+                  {authMod === 'giris' ? 'Giriş Yap' : 'Hesap Oluştur'}
+                </button>
+
+                {authMod === 'kayit' && (
+                  <p className="text-white/20 text-[10px] text-center leading-relaxed">
+                    Kayıt olduktan sonra e-postanı doğrulamanı isteyebilir.
+                  </p>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── SHARE FLOATING BUTTON (sadece sonuç ekranında) ── */}
+      <AnimatePresence>
+        {adim === 3 && sonuc?._analiz_id && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 20 }}
+            onClick={paylasimLinkiKopyala}
+            className="fixed bottom-8 right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-2xl bg-gradient-to-r from-blue-600/90 to-indigo-600/90 backdrop-blur-xl border border-white/10 text-white text-sm font-semibold shadow-lg shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all"
+          >
+            {paylasimKopyalandi ? <Check className="w-4 h-4 text-emerald-300" /> : <Share2 className="w-4 h-4" />}
+            {paylasimKopyalandi ? 'Link Kopyalandı!' : 'Paylaş'}
+          </motion.button>
         )}
       </AnimatePresence>
 

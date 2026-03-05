@@ -202,7 +202,7 @@ Ek olarak:
       const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
       if (supabaseUrl && supabaseKey) {
         const supabase = createClient(supabaseUrl, supabaseKey);
-        await supabase.from('analizler').insert({
+        const { data: dbData } = await supabase.from('analizler').insert({
           tasarim_turu: tasarimTuru,
           platform: platform || null,
           isletme,
@@ -219,7 +219,12 @@ Ek olarak:
           zayif_yon: parsed.zayifYon,
           teknik_ozet: parsed.teknikOzet || null,
           renk_paleti: parsed.renkPaleti || null,
-        });
+        }).select('id').single();
+
+        // Analiz ID'sini sonuca ekle (paylaşım için)
+        if (dbData?.id) {
+          parsed._analiz_id = dbData.id;
+        }
       }
     } catch (dbErr) {
       console.error('Supabase kayıt hatası (analiz yine de döndürüldü):', dbErr);
