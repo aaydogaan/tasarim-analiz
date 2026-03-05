@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles } from "lucide-react";
+import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer } from "lucide-react";
 
 declare global {
   interface Window {
@@ -11,11 +11,45 @@ declare global {
   }
 }
 
-const kriterler = [
-  { key: "renk", label: "Renk Uyumu", emoji: <Palette className="w-4 h-4" /> },
-  { key: "font", label: "Tipografi", emoji: <TypeIcon className="w-4 h-4" /> },
-  { key: "butunluk", label: "Bütünlük", emoji: <Layout className="w-4 h-4" /> },
-  { key: "kompozisyon", label: "Kompozisyon", emoji: <Grid className="w-4 h-4" /> },
+type TasarimTuru = "Sosyal Medya" | "Kurumsal" | "E-Ticaret" | "Baskı Materyali";
+
+const kriterlerMap: Record<TasarimTuru, { key: string; label: string; emoji: React.ReactNode }[]> = {
+  "Sosyal Medya": [
+    { key: "renk", label: "Dikkat Çekicilik", emoji: <Sparkles className="w-4 h-4" /> },
+    { key: "font", label: "Mobil Okunabilirlik", emoji: <Smartphone className="w-4 h-4" /> },
+    { key: "butunluk", label: "Marka Tutarlılığı", emoji: <Layout className="w-4 h-4" /> },
+    { key: "kompozisyon", label: "CTA Netliği", emoji: <Grid className="w-4 h-4" /> },
+  ],
+  "Kurumsal": [
+    { key: "renk", label: "Profesyonel Çekicilik", emoji: <Palette className="w-4 h-4" /> },
+    { key: "font", label: "Tipografi", emoji: <TypeIcon className="w-4 h-4" /> },
+    { key: "butunluk", label: "Marka Uyumu", emoji: <Building2 className="w-4 h-4" /> },
+    { key: "kompozisyon", label: "Düzen & Hiyerarşi", emoji: <Grid className="w-4 h-4" /> },
+  ],
+  "E-Ticaret": [
+    { key: "renk", label: "Ürün Görünürlüğü", emoji: <Palette className="w-4 h-4" /> },
+    { key: "font", label: "Okunabilirlik", emoji: <TypeIcon className="w-4 h-4" /> },
+    { key: "butunluk", label: "Güven Sinyalleri", emoji: <ShoppingBag className="w-4 h-4" /> },
+    { key: "kompozisyon", label: "CTA & Dönüşüm", emoji: <Grid className="w-4 h-4" /> },
+  ],
+  "Baskı Materyali": [
+    { key: "renk", label: "Renk & Baskı Uyumu", emoji: <Printer className="w-4 h-4" /> },
+    { key: "font", label: "Tipografi", emoji: <TypeIcon className="w-4 h-4" /> },
+    { key: "butunluk", label: "Tasarım Bütünlüğü", emoji: <Layout className="w-4 h-4" /> },
+    { key: "kompozisyon", label: "Baskı Hazırlığı", emoji: <Grid className="w-4 h-4" /> },
+  ],
+};
+
+const tasarimTuruConfig: { id: TasarimTuru; icon: React.ReactNode; desc: string }[] = [
+  { id: "Sosyal Medya", icon: <Smartphone className="w-5 h-5" />, desc: "Post, Story, Reels, Banner" },
+  { id: "Kurumsal", icon: <Building2 className="w-5 h-5" />, desc: "Kartvizit, Sunum, Antetli" },
+  { id: "E-Ticaret", icon: <ShoppingBag className="w-5 h-5" />, desc: "Ürün, Banner, Kampanya" },
+  { id: "Baskı Materyali", icon: <Printer className="w-5 h-5" />, desc: "Broşür, Afiş, Katalog" },
+];
+
+const sosyalMedyaPlatformlari = [
+  "Instagram Post", "Instagram Story", "Instagram Reels",
+  "Twitter / X", "LinkedIn", "TikTok", "Facebook",
 ];
 
 const isletmeTurleri = [
@@ -155,12 +189,16 @@ export default function App() {
   const [gorsel, setGorsel] = useState<string | null>(initGorsel);
   const [gorselBase64, setGorselBase64] = useState<string | null>(initGorselBase64);
   const [revizeGorsel, setRevizeGorsel] = useState<string | null>(() => getSessionData('ra_revizeGorsel', null));
+  const [tasarimTuru, setTasarimTuru] = useState<TasarimTuru>(() => getSessionData('ra_tasarimTuru', 'Sosyal Medya'));
+  const [platform, setPlatform] = useState<string>(() => getSessionData('ra_platform', 'Instagram Post'));
   const [isletme, setIsletme] = useState(() => getSessionData('ra_isletme', "E-Ticaret"));
   const [digerIsletme, setDigerIsletme] = useState(() => getSessionData('ra_digerIsletme', ""));
   const [sorular, setSorular] = useState(() => getSessionData('ra_sorular', { markaAdi: "", kurumselRenk: "", isYapisi: "", hedefKitle: "", slogan: "" }));
   const [yukleniyor, setYukleniyor] = useState(false);
   const [revizeYukleniyor, setRevizeYukleniyor] = useState(false);
   const [sonuc, setSonuc] = useState<any>(() => getSessionData('ra_sonuc', null));
+
+  const kriterler = kriterlerMap[tasarimTuru];
   const [hata, setHata] = useState<string | null>(null);
   const [seciliGorsel, setSeciliGorsel] = useState<string | null>(null);
   const [acikKriter, setAcikKriter] = useState<string | null>(null);
@@ -173,14 +211,16 @@ export default function App() {
       sessionStorage.setItem('ra_gorsel', JSON.stringify(gorsel));
       sessionStorage.setItem('ra_gorselBase64', JSON.stringify(gorselBase64));
       sessionStorage.setItem('ra_revizeGorsel', JSON.stringify(revizeGorsel));
+      sessionStorage.setItem('ra_tasarimTuru', JSON.stringify(tasarimTuru));
+      sessionStorage.setItem('ra_platform', JSON.stringify(platform));
       sessionStorage.setItem('ra_isletme', JSON.stringify(isletme));
       sessionStorage.setItem('ra_digerIsletme', JSON.stringify(digerIsletme));
       sessionStorage.setItem('ra_sorular', JSON.stringify(sorular));
       sessionStorage.setItem('ra_sonuc', JSON.stringify(sonuc));
     } catch (e) {
-      console.warn("SessionStorage aşıldı, büyük görseller nedeniyle state kalıcılaştırılamayabilir.", e);
+      console.warn("SessionStorage aşıldı.", e);
     }
-  }, [adim, gorsel, gorselBase64, revizeGorsel, isletme, digerIsletme, sorular, sonuc]);
+  }, [adim, gorsel, gorselBase64, revizeGorsel, tasarimTuru, platform, isletme, digerIsletme, sorular, sonuc]);
 
   const handleDosya = (f: File) => {
     if (!f) return;
@@ -204,6 +244,8 @@ export default function App() {
         body: JSON.stringify({
           imageBase64: gorselBase64,
           isletme: isletme === "Diğer" ? (digerIsletme || "Bilinmiyor") : isletme,
+          tasarimTuru,
+          platform: tasarimTuru === "Sosyal Medya" ? platform : undefined,
           sorular,
         }),
       });
@@ -294,7 +336,7 @@ export default function App() {
     sessionStorage.clear();
     setAdim(1); setGorsel(null); setGorselBase64(null); setRevizeGorsel(null); setSonuc(null); setHata(null);
     setSorular({ markaAdi: "", kurumselRenk: "", isYapisi: "", hedefKitle: "", slogan: "" });
-    setDigerIsletme("");
+    setDigerIsletme(""); setTasarimTuru("Sosyal Medya"); setPlatform("Instagram Post");
   };
 
   return (
@@ -396,8 +438,63 @@ export default function App() {
               </div>
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => e.target.files && handleDosya(e.target.files[0])} />
 
-              <div className={`${gc.card} p-6`}>
-                <span className={gc.label}>İşletme Türü</span>
+              {/* Tasarım Türü Seçimi */}
+              <div className={`${gc.card} p-5`}>
+                <span className={gc.label}>Tasarım Türü</span>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {tasarimTuruConfig.map(({ id, icon, desc }) => (
+                    <button
+                      key={id}
+                      onClick={() => setTasarimTuru(id)}
+                      className={`flex items-center gap-3 p-3.5 rounded-2xl border text-left transition-all duration-300 ${tasarimTuru === id
+                        ? "bg-blue-500/15 border-blue-500/40 shadow-[0_0_20px_rgba(59,130,246,0.15)]"
+                        : "bg-white/[0.03] border-white/[0.07] hover:bg-white/[0.06]"
+                        }`}
+                    >
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${tasarimTuru === id ? "bg-blue-500/20 text-blue-300" : "bg-white/[0.05] text-white/30"
+                        }`}>
+                        {icon}
+                      </div>
+                      <div>
+                        <p className={`text-xs font-semibold transition-colors ${tasarimTuru === id ? "text-white" : "text-white/50"}`}>{id}</p>
+                        <p className="text-[9px] text-white/25 mt-0.5">{desc}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Sosyal Medya Platform Seçimi */}
+                <AnimatePresence>
+                  {tasarimTuru === "Sosyal Medya" && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pt-4 mt-4 border-t border-white/[0.05]">
+                        <span className="text-[10px] text-white/30 font-bold uppercase tracking-widest block mb-2.5">Platform</span>
+                        <div className="flex flex-wrap gap-2">
+                          {sosyalMedyaPlatformlari.map(p => (
+                            <button
+                              key={p}
+                              onClick={() => setPlatform(p)}
+                              className={`px-3 py-1.5 rounded-full text-[10px] font-semibold transition-all duration-200 ${platform === p ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" : "bg-white/[0.04] text-white/35 hover:bg-white/[0.08] border border-transparent"
+                                }`}
+                            >
+                              {p}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* İşletme Türü */}
+              <div className={`${gc.card} p-5`}>
+                <span className={gc.label}>Sektör</span>
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-wrap gap-2">
                     {isletmeTurleri.map(t => (

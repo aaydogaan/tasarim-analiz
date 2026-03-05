@@ -1,9 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, Type } from '@google/genai';
 
+type TasarimTuru = "Sosyal Medya" | "Kurumsal" | "E-Ticaret" | "Baskı Materyali";
+
 type AnalyzeRequestBody = {
   imageBase64: string;
   isletme: string;
+  tasarimTuru?: TasarimTuru;
+  platform?: string;
   sorular: {
     markaAdi: string;
     kurumselRenk: string;
@@ -11,6 +15,37 @@ type AnalyzeRequestBody = {
     hedefKitle: string;
     slogan: string;
   };
+};
+
+const kriterBilgisi: Record<TasarimTuru, { renk: string; font: string; butunluk: string; kompozisyon: string; context: string }> = {
+  "Sosyal Medya": {
+    renk: "Dikkat Çekicilik — Tasarım kaydırırken durduruyor mu? Renk kullanımı göz alıyor mu?",
+    font: "Mobil Okunabilirlik — Tipografi küçük ekranlarda ve hızlı bakışlarda anlaşılıyor mu?",
+    butunluk: "Marka Tutarlılığı — Renk, logo ve stil marka kimliğiyle örtüşüyor mu?",
+    kompozisyon: "CTA Netliği — Harekete geçirici mesaj net mi? Kullanıcı ne yapması gerektiğini anlıyor mu?",
+    context: "Bu bir sosyal medya tasarımı. Platform algoritmalarına, mobil görüntülemeye ve kullanıcı kaydırma davranışlarına göre değerlendir.",
+  },
+  "Kurumsal": {
+    renk: "Profesyonel Çekicilik — Renk paleti kurumsal, güvenilir ve sektöre uygun mu?",
+    font: "Tipografi — Font seçimleri profesyonel, hiyerarşik ve okunabilir mi?",
+    butunluk: "Marka Uyumu — Kurumsal kimlik öğeleri (logo, renkler, ton) tutarlı mı?",
+    kompozisyon: "Düzen & Hiyerarşi — Bilgi akışı, beyaz alan kullanımı ve düzen profesyonel standartlarda mı?",
+    context: "Bu bir kurumsal tasarım materyali. Profesyonellik, güvenilirlik ve kurumsal kimliğe uyum açısından değerlendir.",
+  },
+  "E-Ticaret": {
+    renk: "Ürün Görünürlüğü — Ürün öne çıkıyor mu? Arka plan ve renkler ürünü destekliyor mu?",
+    font: "Okunabilirlik — Fiyat, başlık ve açıklama metinleri hızlı okunabiliyor mu?",
+    butunluk: "Güven Sinyalleri — Tasarım güvenilir, kaliteli ve alışveriş yapmaya teşvik edici mi?",
+    kompozisyon: "CTA & Dönüşüm — Satın alma düğmesi, fiyat ve aksiyonlar doğru konumlandırılmış mı?",
+    context: "Bu bir e-ticaret tasarımı. Satış dönüşümü, ürün vurgusu ve güven yaratma açısından değerlendir.",
+  },
+  "Baskı Materyali": {
+    renk: "Renk & Baskı Uyumu — Renkler CMYK baskıya uygun mu? Baskıda sorun çıkabilecek renkler var mı?",
+    font: "Tipografi — Baskı boyutunda okunabilirlik ve font ağırlıkları uygun mu?",
+    butunluk: "Tasarım Bütünlüğü — Tüm materyalin genel düzeni ve görsel bütünlüğü iyi mi?",
+    kompozisyon: "Baskı Hazırlığı — Kenar boşlukları, taşma alanı (bleed) ve güvenli alan kullanımı doğru mu?",
+    context: "Bu bir baskı materyali. CMYK renk uyumu, baskı teknik gereksinimleri ve fiziksel üretim kalitesi açısından da değerlendir.",
+  },
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -29,31 +64,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Missing imageBase64.' });
   }
 
-  const { imageBase64, isletme, sorular } = body;
+  const { imageBase64, isletme, tasarimTuru = "Kurumsal", platform, sorular } = body;
+  const kriterler = kriterBilgisi[tasarimTuru];
+  const platformBilgisi = tasarimTuru === "Sosyal Medya" && platform ? `Platform: ${platform}` : "";
 
   const ai = new GoogleGenAI({ apiKey });
 
   const prompt = `Sen uzman bir grafik tasarım değerlendirme yapay zekasısın.
 
-Firma Bilgileri:
-- İşletme Türü: ${isletme}
+Tasarım Bağlamı:
+- Tasarım Türü: ${tasarimTuru}
+${platformBilgisi}
+- Sektör: ${isletme}
 - Marka Adı: ${sorular?.markaAdi || 'Belirtilmedi'}
 - Kurumsal Renkler: ${sorular?.kurumselRenk || 'Belirtilmedi'}
 - İş Yapısı: ${sorular?.isYapisi || 'Belirtilmedi'}
 - Hedef Kitle: ${sorular?.hedefKitle || 'Belirtilmedi'}
 - Slogan: ${sorular?.slogan || 'Belirtilmedi'}
 
-Bu bilgileri göz önünde bulundurarak tasarımı 4 kritere göre değerlendir (0-25 puan). Ardından bağımsız genel puan ver (0-100).
+${kriterler.context}
+
+Bu tasarımı aşağıdaki 4 kritere göre değerlendir (her biri 0-25 puan):
+1. RENK kriteri → ${kriterler.renk}
+2. FONT kriteri → ${kriterler.font}
+3. BÜTÜNLÜK kriteri → ${kriterler.butunluk}
+4. KOMPOZİSYON kriteri → ${kriterler.kompozisyon}
+
+Ayrıca 0-100 arası bağımsız genel puan ver.
 
 Ek olarak:
-- Tasarımda gördüğün baskın renkleri hex kodu olarak tespit et (en fazla 6 renk, # ile başlayan).
-- Teknik özellik tahmini:
-  * baskınRenkSayisi: Tasarımda algılanan baskın renk adedi (rakam)
-  * detayYogunlugu: Tasarımın detay yoğunluğu yüzdesi, 0-100 arası TAM SAYI
-  * negatifAlanOrani: Tasarımdaki boş/negatif alan oranı yüzdesi, 0-100 arası TAM SAYI
-- genelDegerlendirme: Şu seçeneklerden biri: "Mükemmel", "Harika", "İyi", "Orta", "Geliştirilebilir"
-- gucluYon: Tasarımın en güçlü tek özelliği, kısa bir cümle.
-- zayifYon: Tasarımın en kritik zayıf noktası, kısa bir cümle.`;
+- Baskın renkleri hex kodu olarak tespit et (en fazla 6, # ile başlayan).
+- Teknik özellik tahmini: baskın renk sayısı, detay yoğunluğu % (0-100 tam sayı), negatif alan oranı % (0-100 tam sayı).
+- genelDegerlendirme: "Mükemmel", "Harika", "İyi", "Orta" veya "Geliştirilebilir" seçeneklerinden biri.
+- gucluYon: Tasarımın en güçlü özelliği, kısa bir cümle.
+- zayifYon: En kritik zayıf nokta, kısa bir cümle.`;
 
   try {
     const response = await ai.models.generateContent({
