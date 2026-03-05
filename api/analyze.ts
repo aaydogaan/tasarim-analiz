@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, Type } from '@google/genai';
+import { createClient } from '@supabase/supabase-js';
 
 type TasarimTuru = "Sosyal Medya" | "Kurumsal" | "E-Ticaret" | "Baskı Materyali";
 
@@ -193,6 +194,35 @@ Ek olarak:
     } catch (parseErr) {
       console.error('JSON parse hatası. Raw text:', rawText);
       return res.status(502).json({ error: 'Gemini API geçersiz yanıt döndürdü. Lütfen tekrar deneyin.' });
+    }
+
+    // Supabase'e kaydet (hata olursa sessizce devam et)
+    try {
+      const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+      if (supabaseUrl && supabaseKey) {
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        await supabase.from('analizler').insert({
+          tasarim_turu: tasarimTuru,
+          platform: platform || null,
+          isletme,
+          marka_adi: sorular?.markaAdi || null,
+          genel_puan: parsed.genelPuan,
+          renk_puan: parsed.renk?.puan,
+          font_puan: parsed.font?.puan,
+          butunluk_puan: parsed.butunluk?.puan,
+          kompozisyon_puan: parsed.kompozisyon?.puan,
+          genel_yorum: parsed.genelYorum,
+          oneri: parsed.oneri,
+          genel_degerlendirme: parsed.genelDegerlendirme,
+          guclu_yon: parsed.gucluYon,
+          zayif_yon: parsed.zayifYon,
+          teknik_ozet: parsed.teknikOzet || null,
+          renk_paleti: parsed.renkPaleti || null,
+        });
+      }
+    } catch (dbErr) {
+      console.error('Supabase kayıt hatası (analiz yine de döndürüldü):', dbErr);
     }
 
     return res.status(200).json(parsed);
