@@ -163,6 +163,7 @@ export default function App() {
   const [sonuc, setSonuc] = useState<any>(() => getSessionData('ra_sonuc', null));
   const [hata, setHata] = useState<string | null>(null);
   const [seciliGorsel, setSeciliGorsel] = useState<string | null>(null);
+  const [acikKriter, setAcikKriter] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -597,9 +598,20 @@ export default function App() {
                           <span className="text-white/15 text-sm font-semibold">/25</span>
                         </div>
                         <ScoreBar puan={puan} />
-                        <p className="mt-4 text-white/30 text-[11px] leading-relaxed line-clamp-3">
-                          {sonuc[k.key]?.aciklama}
-                        </p>
+                        <div className="mt-4">
+                          <p className={`text-white/30 text-[11px] leading-relaxed transition-all duration-300 ${acikKriter === k.key ? '' : 'line-clamp-2'}`}>
+                            {sonuc[k.key]?.aciklama}
+                          </p>
+                          {sonuc[k.key]?.aciklama && sonuc[k.key].aciklama.length > 80 && (
+                            <button
+                              onClick={() => setAcikKriter(acikKriter === k.key ? null : k.key)}
+                              className="mt-1.5 text-[10px] font-semibold tracking-wide transition-colors"
+                              style={{ color }}
+                            >
+                              {acikKriter === k.key ? '↑ Kapat' : '↓ Devamını gör'}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </GlassCard>
                   );
