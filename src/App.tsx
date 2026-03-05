@@ -63,7 +63,7 @@ function ScoreRing({ score }: { score: number }) {
     <div className="flex flex-col items-center py-6">
       <div className="relative w-[140px] h-[140px]">
         {/* Glow behind ring */}
-        <div className="absolute inset-4 rounded-full blur-2xl" style={{ backgroundColor: `rgba(${glowRgb}, 0.15)` }} />
+        <div className="absolute -inset-4 rounded-full" style={{ background: `radial-gradient(circle at center, rgba(${glowRgb}, 0.25) 0%, rgba(${glowRgb}, 0) 70%)` }} />
         <svg width={140} height={140} viewBox="0 0 140 140" className="transform -rotate-90">
           <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="6" />
           <motion.circle
