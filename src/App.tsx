@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles } from "lucide-react";
 
@@ -131,20 +131,45 @@ function StepIndicator({ n, active, done }: { n: number; active: boolean; done: 
   );
 }
 
+const getSessionData = (key: string, defaultValue: any) => {
+  if (typeof window === "undefined") return defaultValue;
+  try {
+    const item = sessionStorage.getItem(key);
+    return item ? JSON.parse(item) : defaultValue;
+  } catch (e) {
+    return defaultValue;
+  }
+};
+
 export default function App() {
-  const [adim, setAdim] = useState(1);
-  const [gorsel, setGorsel] = useState<string | null>(null);
-  const [gorselBase64, setGorselBase64] = useState<string | null>(null);
-  const [revizeGorsel, setRevizeGorsel] = useState<string | null>(null);
-  const [isletme, setIsletme] = useState("E-Ticaret");
-  const [digerIsletme, setDigerIsletme] = useState("");
-  const [sorular, setSorular] = useState({ markaAdi: "", kurumselRenk: "", isYapisi: "", hedefKitle: "", slogan: "" });
+  const [adim, setAdim] = useState(() => getSessionData('ra_adim', 1));
+  const [gorsel, setGorsel] = useState<string | null>(() => getSessionData('ra_gorsel', null));
+  const [gorselBase64, setGorselBase64] = useState<string | null>(() => getSessionData('ra_gorselBase64', null));
+  const [revizeGorsel, setRevizeGorsel] = useState<string | null>(() => getSessionData('ra_revizeGorsel', null));
+  const [isletme, setIsletme] = useState(() => getSessionData('ra_isletme', "E-Ticaret"));
+  const [digerIsletme, setDigerIsletme] = useState(() => getSessionData('ra_digerIsletme', ""));
+  const [sorular, setSorular] = useState(() => getSessionData('ra_sorular', { markaAdi: "", kurumselRenk: "", isYapisi: "", hedefKitle: "", slogan: "" }));
   const [yukleniyor, setYukleniyor] = useState(false);
   const [revizeYukleniyor, setRevizeYukleniyor] = useState(false);
-  const [sonuc, setSonuc] = useState<any>(null);
+  const [sonuc, setSonuc] = useState<any>(() => getSessionData('ra_sonuc', null));
   const [hata, setHata] = useState<string | null>(null);
   const [seciliGorsel, setSeciliGorsel] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('ra_adim', JSON.stringify(adim));
+      sessionStorage.setItem('ra_gorsel', JSON.stringify(gorsel));
+      sessionStorage.setItem('ra_gorselBase64', JSON.stringify(gorselBase64));
+      sessionStorage.setItem('ra_revizeGorsel', JSON.stringify(revizeGorsel));
+      sessionStorage.setItem('ra_isletme', JSON.stringify(isletme));
+      sessionStorage.setItem('ra_digerIsletme', JSON.stringify(digerIsletme));
+      sessionStorage.setItem('ra_sorular', JSON.stringify(sorular));
+      sessionStorage.setItem('ra_sonuc', JSON.stringify(sonuc));
+    } catch (e) {
+      console.warn("SessionStorage aşıldı, büyük görseller nedeniyle state kalıcılaştırılamayabilir.", e);
+    }
+  }, [adim, gorsel, gorselBase64, revizeGorsel, isletme, digerIsletme, sorular, sonuc]);
 
   const handleDosya = (f: File) => {
     if (!f) return;
@@ -255,6 +280,7 @@ export default function App() {
   };
 
   const sifirla = () => {
+    sessionStorage.clear();
     setAdim(1); setGorsel(null); setGorselBase64(null); setRevizeGorsel(null); setSonuc(null); setHata(null);
     setSorular({ markaAdi: "", kurumselRenk: "", isYapisi: "", hedefKitle: "", slogan: "" });
     setDigerIsletme("");
