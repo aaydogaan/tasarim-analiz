@@ -37,7 +37,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.5-flash-image',
       contents: [
         {
           parts: [
@@ -52,7 +52,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         },
       ],
       config: {
-        responseModalities: ['IMAGE'],
+        responseModalities: ['TEXT', 'IMAGE'],
       },
     });
 
