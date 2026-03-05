@@ -268,16 +268,44 @@ export default function App() {
 
       <main className={`flex-1 flex flex-col justify-center w-full max-w-screen-xl mx-auto px-4 py-6 md:py-8 transition-all duration-500 ${adim === 3 ? 'max-w-6xl' : 'max-w-lg'}`}>
         {/* Header */}
-        <header className="text-center mb-6 md:mb-8">
+        <header className="text-center mb-8 md:mb-12 relative z-10">
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 mb-6 backdrop-blur-xl"
+            initial={{ scale: 0.8, opacity: 0, y: -20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="inline-flex flex-col items-center"
           >
-            <Sparkles className="w-7 h-7" />
+            {adim === 1 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.6 }}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6 backdrop-blur-xl"
+              >
+                <Sparkles className="w-4 h-4 text-blue-400" />
+                <span className="text-blue-200/80 text-[10px] md:text-xs font-bold tracking-widest uppercase">Yapay Zeka Destekli Tasarım Asistanı</span>
+              </motion.div>
+            )}
+
+            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-4 text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+              Revize<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500">AI</span>
+            </h1>
+
+            {adim === 1 ? (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.7 }}
+                className="text-white/50 text-sm md:text-base max-w-xl mx-auto leading-relaxed mt-2 font-medium"
+              >
+                Tasarımlarınızı profesyonel kriterlere göre saniyeler içinde analiz edin.
+                Renk uyumu, tipografi, kompozisyon ve marka bütünlüğü açısından
+                kapsamlı geri bildirim ve gelişim önerileri alın.
+              </motion.p>
+            ) : (
+              <p className="text-white/40 text-sm mt-2 font-medium">Profesyonel Tasarım Analizi</p>
+            )}
           </motion.div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">RevizeAI</h1>
-          <p className="text-white/40 text-sm">AI destekli profesyonel tasarım analizi ve revizyonu</p>
         </header>
 
         {/* Stepper */}
