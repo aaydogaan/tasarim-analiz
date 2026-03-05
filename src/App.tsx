@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check } from "lucide-react";
+import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check, AlertCircle, Globe } from "lucide-react";
 import { supabase } from "./lib/supabase";
 
 declare global {
@@ -222,6 +222,7 @@ export default function App() {
   const [authYukleniyor, setAuthYukleniyor] = useState(false);
   const [authHata, setAuthHata] = useState<string | null>(null);
   const [kullanici, setKullanici] = useState<any>(null);
+  const [authUyariAcik, setAuthUyariAcik] = useState(false);
 
   // Auth session listener
   useEffect(() => {
@@ -248,10 +249,12 @@ export default function App() {
 
   const statsAc = async () => {
     setStatsAcik(true);
-    if (statsData) return;
     setStatsYukleniyor(true);
     try {
-      const resp = await fetch('/api/stats');
+      const gecerliToken = (await supabase.auth.getSession()).data.session?.access_token;
+      const resp = await fetch('/api/stats', {
+        headers: gecerliToken ? { "Authorization": `Bearer ${gecerliToken}` } : {}
+      });
       setStatsData(await resp.json());
     } catch (e) { console.error('Stats hata:', e); }
     setStatsYukleniyor(false);
@@ -295,19 +298,33 @@ export default function App() {
     reader.readAsDataURL(f);
   };
 
-  const analiz = async () => {
+  const analiz = () => {
     if (!gorselBase64) return;
+    if (!kullanici) {
+      setAuthUyariAcik(true);
+      return;
+    }
+    analiziBaslat(false);
+  };
+
+  const analiziBaslat = async (guestMode: boolean) => {
     setYukleniyor(true); setHata(null); setRevizeGorsel(null);
     try {
+      const gecerliToken = (await supabase.auth.getSession()).data.session?.access_token;
+
       const resp = await fetch("/api/analyze", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          ...(gecerliToken ? { "Authorization": `Bearer ${gecerliToken}` } : {})
+        },
         body: JSON.stringify({
           imageBase64: gorselBase64,
           isletme: isletme === "Diğer" ? (digerIsletme || "Bilinmiyor") : isletme,
           tasarimTuru,
           platform: tasarimTuru === "Sosyal Medya" ? platform : undefined,
           sorular,
+          guestMode
         }),
       });
 
@@ -1032,6 +1049,60 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* ── AUTH MISAFIR UYARISI MODAL ── */}
+      <AnimatePresence>
+        {authUyariAcik && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-sm bg-white/5 border border-white/10 p-6 rounded-3xl backdrop-blur-3xl text-center shadow-2xl shadow-blue-500/10"
+            >
+              <div className="w-16 h-16 mx-auto mb-4 bg-orange-500/20 text-orange-400 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Giriş Yapmadınız</h3>
+              <p className="text-white/60 text-sm mb-6 leading-relaxed">
+                Misafir olarak analiz yapabilirsiniz ancak analiziniz <strong>kaydedilmeyecek</strong>, istatistiklerinize yansımayacak ve daha sonra erişilemeyecektir.
+              </p>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => {
+                    setAuthUyariAcik(false);
+                    setAuthAcik(true);
+                    setAuthMod('kayit');
+                  }}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold transition-transform hover:scale-[1.02]"
+                >
+                  Kayıt Ol / Giriş Yap
+                </button>
+                <button
+                  onClick={() => {
+                    setAuthUyariAcik(false);
+                    analiziBaslat(true);
+                  }}
+                  className="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/50 hover:text-white font-semibold transition-colors border border-white/5"
+                >
+                  Kayıt Olmadan Devam Et
+                </button>
+                <button
+                  onClick={() => setAuthUyariAcik(false)}
+                  className="w-full py-2 mt-2 text-white/30 hover:text-white/50 text-xs transition-colors underline decoration-white/20 underline-offset-2"
+                >
+                  İptal Et
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── STATS MODAL ── */}
       <AnimatePresence>
         {statsAcik && (
@@ -1067,7 +1138,30 @@ export default function App() {
                     <span className="text-sm">Yükleniyor...</span>
                   </div>
                 ) : statsData ? (
-                  <div className="space-y-5">
+                  <div className="space-y-6">
+                    {/* Kişisel (Özel) İstatistikler (Sadece giriş yapmışsa) */}
+                    {statsData.userStats && (
+                      <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-3xl">
+                        <p className="text-blue-400 text-[10px] font-bold uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                          <User className="w-3 h-3" /> Size Özel İstatistikler
+                        </p>
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          <div className="bg-black/20 p-3 rounded-2xl">
+                            <div className="text-xl font-extrabold text-white">{statsData.userStats.total}</div>
+                            <div className="text-white/40 text-[10px]">Yaptığınız Analiz</div>
+                          </div>
+                          <div className="bg-black/20 p-3 rounded-2xl">
+                            <div className="text-xl font-extrabold text-blue-300">{statsData.userStats.ortalama}/100</div>
+                            <div className="text-white/40 text-[10px]">Ortalamanız</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between bg-black/20 p-3 rounded-2xl">
+                          <span className="text-white/40 text-[10px]">En Çok: <span className="text-white/80">{statsData.userStats.enCokTasarimTuru}</span></span>
+                          <span className="text-white/40 text-[10px]">Bu Hafta: <span className="text-emerald-400 font-bold">{statsData.userStats.buHafta}</span></span>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Ana sayılar */}
                     <div className="grid grid-cols-3 gap-3">
                       {[
@@ -1085,7 +1179,10 @@ export default function App() {
                     {/* Tasarım türü dağılımı */}
                     {Object.keys(statsData.turDagilim || {}).length > 0 && (
                       <div>
-                        <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mb-2.5">Tasarım Türü</p>
+                        <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mb-2.5 flex items-center gap-1.5">
+                          <Globe className="w-3 h-3" /> Global Platform Verileri
+                        </p>
+                        <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-2.5">Dağılım</p>
                         <div className="space-y-2">
                           {Object.entries(statsData.turDagilim as Record<string, number>)
                             .sort(([, a], [, b]) => b - a)
@@ -1180,16 +1277,15 @@ export default function App() {
                 </button>
               </div>
 
-              <div className="p-5 space-y-3">
+              <form onSubmit={e => { e.preventDefault(); girisYap(); }} className="p-5 space-y-3">
                 <input type="email" placeholder="E-posta" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
                   className="bg-white/5 border border-white/10 rounded-xl text-white text-sm p-3 w-full outline-none focus:border-blue-500/50 transition-colors placeholder:text-white/20" />
                 <input type="password" placeholder="Şifre" value={authSifre} onChange={e => setAuthSifre(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && girisYap()}
                   className="bg-white/5 border border-white/10 rounded-xl text-white text-sm p-3 w-full outline-none focus:border-blue-500/50 transition-colors placeholder:text-white/20" />
 
                 {authHata && <p className="text-red-400/80 text-[11px] px-1">{authHata}</p>}
 
-                <button onClick={girisYap} disabled={authYukleniyor || !authEmail || !authSifre}
+                <button type="submit" disabled={authYukleniyor || !authEmail || !authSifre}
                   className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                   {authYukleniyor ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
                   {authMod === 'giris' ? 'Giriş Yap' : 'Hesap Oluştur'}
@@ -1200,7 +1296,7 @@ export default function App() {
                     Kayıt olduktan sonra e-postanı doğrulamanı isteyebilir.
                   </p>
                 )}
-              </div>
+              </form>
             </motion.div>
           </motion.div>
         )}
