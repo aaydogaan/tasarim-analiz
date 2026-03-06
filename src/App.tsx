@@ -535,7 +535,7 @@ export default function App() {
             onClick={() => setGorunum('vitrin')}
             className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${gorunum === 'vitrin' ? 'bg-white/10 text-white shadow-sm shadow-blue-500/10' : 'text-white/40 hover:text-white/70'}`}
           >
-            🌟 İlham Vitrini
+            🌟 Keşfet
           </button>
         </div>
 
@@ -929,10 +929,10 @@ export default function App() {
                       </div>
                       <div className="text-left flex-1">
                         <h4 className="text-white text-sm font-bold tracking-wide flex items-center gap-2">
-                          İlham Vitrininde Paylaş
+                          Keşfet'te Paylaş
                         </h4>
                         <p className="text-white/60 text-[12px] mt-1.5 leading-relaxed">
-                          Tasarımını toplulukla buluştur, puan topla ve vitrinde öne çık.
+                          Tasarımını toplulukla buluştur, puan topla ve keşfet akışında öne çık.
                         </p>
                       </div>
                     </div>

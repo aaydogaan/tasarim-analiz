@@ -81,10 +81,10 @@ export function Vitrin() {
         <div className="w-full relative z-10 pt-4 pb-12">
             <div className="text-center mb-10">
                 <h2 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight mb-4 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-                    İlham Kaynağı <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500">Vitrin</span>
+                    Tasarım <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500">Keşfet</span>
                 </h2>
                 <p className="text-white/50 text-sm md:text-base max-w-2xl mx-auto">
-                    Topluluğun analiz ettiği en dikkat çekici tasarımları keşfedin. Yapay zekanın değerlendirmeleriyle insanların puanlarını karşılaştırın.
+                    Topluluk tarafından analiz edilen en ilham verici tasarımları keşfedin. AI değerlendirmeleri ve kullanıcı oylarıyla en iyileri bulun.
                 </p>
             </div>
 
@@ -98,14 +98,14 @@ export function Vitrin() {
                     <p className="text-white/40">Henüz vitrinde sergilenen bir tasarım yok.</p>
                 </div>
             ) : (
-                <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+                <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-4 space-y-4">
                     {items.map((item, idx) => (
                         <motion.div
                             key={item.id}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.05 }}
-                            className="break-inside-avoid mb-8"
+                            className="break-inside-avoid mb-5"
                         >
                             <div
                                 className="relative group rounded-[20px] overflow-hidden bg-[#0A0A0F] cursor-pointer"
