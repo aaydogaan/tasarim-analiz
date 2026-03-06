@@ -905,39 +905,56 @@ export default function App() {
                 <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
                   <button
                     onClick={sifirla}
-                    className="group relative md:flex-1 py-4 px-6 rounded-2xl font-bold text-sm overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] border border-white/[0.08]"
+                    className="group relative md:flex-1 py-6 px-6 rounded-2xl font-bold overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] border border-blue-500/20 bg-blue-500/5 shadow-[0_0_30px_rgba(59,130,246,0.05)] hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] flex flex-col items-center justify-center min-h-[120px]"
                   >
-                    <div className="absolute inset-0 bg-white/[0.03] group-hover:bg-white/[0.06] transition-colors" />
-                    <span className="relative z-10 flex items-center justify-center gap-2 text-white">
-                      <RotateCcw className="w-5 h-5 text-blue-400" /> Yeni Bir Tasarım Analiz Et
+                    <div className="absolute inset-0 bg-gradient-to-b from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <span className="relative z-10 flex flex-col items-center justify-center gap-3 text-white">
+                      <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/30 group-hover:-rotate-180 transition-transform duration-700">
+                        <RotateCcw className="w-5 h-5 text-blue-400" />
+                      </div>
+                      <span className="text-sm tracking-wide font-semibold text-blue-100">Yeni Analiz Yap</span>
                     </span>
                   </button>
 
-                  <GlassCard className="flex-[1.5] flex flex-col md:flex-row items-center justify-between p-4 px-6" glowColor="yellow" delay={0.2}>
-                    <div className="flex items-center gap-4 mb-4 md:mb-0 w-full md:w-auto">
-                      <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20 flex-shrink-0">
-                        <Sparkles className="w-6 h-6 text-yellow-400" />
+                  <GlassCard className="flex-[1.8] flex flex-col md:flex-row items-center justify-between p-6 overflow-hidden min-h-[120px] relative group" glowColor="yellow" delay={0.2}>
+                    {/* Arka plan animasyonu */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/5 to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+                    <div className="relative z-10 flex items-center gap-5 mb-5 md:mb-0 w-full md:w-auto">
+                      <div className="w-14 h-14 rounded-full bg-yellow-500/10 flex items-center justify-center border border-yellow-500/30 flex-shrink-0 relative">
+                        <div className="absolute inset-0 rounded-full border border-yellow-400/20 animate-ping opacity-20" />
+                        <Sparkles className="w-7 h-7 text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.8)]" />
                       </div>
                       <div className="text-left w-full">
-                        <h4 className="text-white text-sm font-semibold tracking-wide">İlham Vitrininde Yayınla</h4>
-                        <p className="text-white/50 text-[11px] mt-1 leading-relaxed md:max-w-xs">Tasarımınızı toplulukla paylaşıp harika tasarımlar arasına girmek ister misiniz?</p>
+                        <h4 className="text-white text-[15px] font-bold tracking-wide flex items-center gap-2">
+                          Tasarımını Vitrinde Paylaş
+                        </h4>
+                        <p className="text-white/60 text-[12px] mt-1.5 leading-relaxed md:max-w-[280px]">
+                          Analizini toplulukla paylaş, oy al ve ilham vitrininde yerini al.
+                        </p>
                       </div>
                     </div>
-                    {vitrindeYayinlandi ? (
-                      <button
-                        disabled
-                        className="px-6 py-3 rounded-xl bg-emerald-500/10 text-emerald-400 font-bold text-xs border border-emerald-500/30 w-full md:w-auto cursor-default flex-shrink-0 flex items-center justify-center gap-1.5"
-                      >
-                        <Check className="w-4 h-4" /> Vitrinde Yayında!
-                      </button>
-                    ) : (
-                      <button
-                        onClick={vitrindeYayinla}
-                        className="px-6 py-3 rounded-xl bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-bold text-xs shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-[1.03] active:scale-[0.97] transition-all w-full md:w-auto flex-shrink-0"
-                      >
-                        Evet, Yayınla
-                      </button>
-                    )}
+
+                    <div className="relative z-10 w-full md:w-auto">
+                      {vitrindeYayinlandi ? (
+                        <button
+                          disabled
+                          className="w-full md:w-auto px-6 py-3.5 rounded-xl bg-emerald-500/10 text-emerald-400 font-bold text-sm border border-emerald-500/30 cursor-default flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.15)]"
+                        >
+                          <Check className="w-5 h-5" /> Yayında!
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            vitrindeYayinla();
+                            setTimeout(() => setGorunum('vitrin'), 1500); // 1.5s sonra vitrine yönlendir
+                          }}
+                          className="w-full md:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-yellow-500 via-amber-500 to-orange-500 text-white font-bold text-sm shadow-[0_0_30px_rgba(245,158,11,0.4)] hover:shadow-[0_0_40px_rgba(245,158,11,0.6)] hover:scale-[1.03] active:scale-[0.97] transition-all flex items-center justify-center gap-2"
+                        >
+                          Evet, Yayınla! <ChevronRight className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                   </GlassCard>
                 </div>
 
