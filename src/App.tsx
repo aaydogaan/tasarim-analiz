@@ -515,25 +515,27 @@ export default function App() {
 
       {/* Top Navbar */}
       <nav className="relative z-30 w-full flex items-center justify-between px-6 py-4 border-b border-white/[0.05] bg-[#050508]/50 backdrop-blur-lg">
-        <div className="flex items-center gap-6">
-          <div className="font-bold text-xl tracking-tight text-white cursor-pointer" onClick={() => setGorunum('app')}>
-            Revize<span className="text-blue-500">AI</span>
-          </div>
-          <div className="hidden md:flex items-center gap-1 bg-white/[0.03] p-1 rounded-xl border border-white/[0.05]">
-            <button
-              onClick={() => setGorunum('app')}
-              className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${gorunum === 'app' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}`}
-            >
-              Yeni Analiz
-            </button>
-            <button
-              onClick={() => setGorunum('vitrin')}
-              className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${gorunum === 'vitrin' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}`}
-            >
-              🌟 İlham Vitrini
-            </button>
-          </div>
+        {/* Logo (Left Component) */}
+        <div className="font-bold text-xl tracking-tight text-white cursor-pointer z-10" onClick={() => setGorunum('app')}>
+          Revize<span className="text-blue-500">AI</span>
         </div>
+
+        {/* Center Tabs (Absolute centered on desktop for perfect symmetry) */}
+        <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-1 bg-white/[0.03] p-1 rounded-xl border border-white/[0.05] z-0">
+          <button
+            onClick={() => setGorunum('app')}
+            className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${gorunum === 'app' ? 'bg-white/10 text-white shadow-sm shadow-blue-500/10' : 'text-white/40 hover:text-white/70'}`}
+          >
+            Yeni Analiz
+          </button>
+          <button
+            onClick={() => setGorunum('vitrin')}
+            className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${gorunum === 'vitrin' ? 'bg-white/10 text-white shadow-sm shadow-blue-500/10' : 'text-white/40 hover:text-white/70'}`}
+          >
+            🌟 İlham Vitrini
+          </button>
+        </div>
+
 
         {/* Right Side Auth/Stats */}
         <div className="flex items-center gap-2">
