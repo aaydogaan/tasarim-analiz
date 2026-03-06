@@ -108,30 +108,48 @@ JSON Formatı Şablonu:
 }`;
 
   try {
-    const response = await groq.chat.completions.create({
-      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: prompt },
+    const models = ['llama-3.2-11b-vision-preview', 'llama-3.2-90b-vision-preview'];
+    let rawText = '';
+    let secilenModel = '';
+
+    for (const mod of models) {
+      try {
+        const response = await groq.chat.completions.create({
+          model: mod,
+          messages: [
             {
-              type: 'image_url',
-              image_url: {
-                url: `data:image/jpeg;base64,${imageBase64}`,
-              },
+              role: 'user',
+              content: [
+                { type: 'text', text: prompt },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:image/jpeg;base64,${imageBase64}`,
+                  },
+                },
+              ],
             },
           ],
-        },
-      ],
-      temperature: 0.25,
-      max_tokens: 4000,
-    });
+          temperature: 0.25,
+          max_tokens: 4000,
+        });
 
-    const rawText = response.choices[0]?.message?.content || '';
+        rawText = response.choices[0]?.message?.content || '';
+        if (rawText.trim()) {
+          secilenModel = mod;
+          break; // Başarılı, döngüyü kır
+        }
+      } catch (modErr: any) {
+        console.warn(`Model [${mod}] hatası:`, modErr?.message);
+        // Eğer denediğimiz son model de hata verdiyse fırlat
+        if (mod === models[models.length - 1]) {
+          throw new Error("Sunucularımız (Yapay Zeka) şu anda aşırı yoğun. Lütfen 1 dakika sonra tekrar deneyin.");
+        }
+      }
+    }
 
     if (!rawText.trim()) {
-      return res.status(502).json({ error: 'Groq API boş yanıt döndürdü. Lütfen tekrar deneyin.' });
+      return res.status(502).json({ error: 'Yapay zeka analiz üretemedi. Lütfen tekrar deneyin.' });
     }
 
     // JSON'u ayıkla — model bazen açıklama metni de ekleyebilir

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check, AlertCircle, Globe, BrainCircuit } from "lucide-react";
 import { supabase } from "./lib/supabase";
+import { Vitrin } from "./components/Vitrin";
 
 declare global {
   interface Window {
@@ -195,6 +196,7 @@ export default function App() {
   }
 
   const [adim, setAdim] = useState(initAdim);
+  const [gorunum, setGorunum] = useState<'app' | 'vitrin'>('app'); // App or Showcase mode
   const [gorsel, setGorsel] = useState<string | null>(initGorsel);
   const [gorselBase64, setGorselBase64] = useState<string | null>(initGorselBase64);
   const [revizeGorsel, setRevizeGorsel] = useState<string | null>(() => getSessionData('ra_revizeGorsel', null));
@@ -221,6 +223,7 @@ export default function App() {
 
   // Share
   const [paylasimKopyalandi, setPaylasimKopyalandi] = useState(false);
+  const [vitrindeYayinlandi, setVitrindeYayinlandi] = useState(false);
 
   // Auth
   const [authAcik, setAuthAcik] = useState(false);
@@ -289,6 +292,24 @@ export default function App() {
     navigator.clipboard.writeText(link);
     setPaylasimKopyalandi(true);
     setTimeout(() => setPaylasimKopyalandi(false), 2000);
+  };
+
+  const vitrindeYayinla = async () => {
+    if (!sonuc?._analiz_id) return;
+
+    // Güvenlik: Eğer guest iseler veya login olmadan yapmışlarsa _analiz_id olmayabilir veya supabase izin vermeyebilir,
+    // Ancak zaten guestMode false olduğunda ekleniyor.
+    const { error } = await supabase
+      .from('analizler')
+      .update({ paylasim_aktif: true })
+      .eq('id', sonuc._analiz_id);
+
+    if (!error) {
+      setVitrindeYayinlandi(true);
+    } else {
+      console.error(error);
+      alert('Yayınlanırken bir hata oluştu.');
+    }
   };
 
 
@@ -492,50 +513,30 @@ export default function App() {
       <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
       <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full pointer-events-none" />
 
-      <main className={`flex-1 flex flex-col justify-center w-full max-w-screen-xl mx-auto px-4 py-6 md:py-8 transition-all duration-500 ${adim === 3 ? 'max-w-6xl' : 'max-w-lg'}`}>
-        {/* Header */}
-        <header className="text-center mb-8 md:mb-12 relative z-10">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0, y: -20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="inline-flex flex-col items-center"
-          >
-            {adim === 1 && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.6 }}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6 backdrop-blur-xl"
-              >
-                <Sparkles className="w-4 h-4 text-blue-400" />
-                <span className="text-blue-200/80 text-[10px] md:text-xs font-bold tracking-widest uppercase">Yapay Zeka Destekli Tasarım Asistanı</span>
-              </motion.div>
-            )}
+      {/* Top Navbar */}
+      <nav className="relative z-30 w-full flex items-center justify-between px-6 py-4 border-b border-white/[0.05] bg-[#050508]/50 backdrop-blur-lg">
+        <div className="flex items-center gap-6">
+          <div className="font-bold text-xl tracking-tight text-white cursor-pointer" onClick={() => setGorunum('app')}>
+            Revize<span className="text-blue-500">AI</span>
+          </div>
+          <div className="hidden md:flex items-center gap-1 bg-white/[0.03] p-1 rounded-xl border border-white/[0.05]">
+            <button
+              onClick={() => setGorunum('app')}
+              className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${gorunum === 'app' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}`}
+            >
+              Yeni Analiz
+            </button>
+            <button
+              onClick={() => setGorunum('vitrin')}
+              className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${gorunum === 'vitrin' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}`}
+            >
+              🌟 İlham Vitrini
+            </button>
+          </div>
+        </div>
 
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-4 text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]">
-              Revize<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500">AI</span>
-            </h1>
-
-            {adim === 1 ? (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3, duration: 0.7 }}
-                className="text-white/50 text-sm md:text-base max-w-xl mx-auto leading-relaxed mt-2 font-medium"
-              >
-                Tasarımlarınızı profesyonel kriterlere göre saniyeler içinde analiz edin.
-                Renk uyumu, tipografi, kompozisyon ve marka bütünlüğü açısından
-                kapsamlı geri bildirim ve gelişim önerileri alın.
-              </motion.p>
-            ) : (
-              <p className="text-white/40 text-sm mt-2 font-medium">Profesyonel Tasarım Analizi</p>
-            )}
-          </motion.div>
-        </header>
-
-        {/* Header Action Buttons */}
-        <div className="absolute top-6 right-4 md:right-8 flex items-center gap-2 z-20">
+        {/* Right Side Auth/Stats */}
+        <div className="flex items-center gap-2">
           {kullanici && (
             <button
               onClick={statsAc}
@@ -559,532 +560,607 @@ export default function App() {
             </button>
           )}
         </div>
+      </nav>
 
-        {/* Stepper */}
-        {adim < 3 && (
-          <div className="flex items-center justify-center mb-6 md:mb-8">
-            <StepIndicator n={1} active={adim === 1} done={adim > 1} />
-            <div className={`w-12 h-[1px] mx-2 ${adim > 1 ? "bg-blue-500" : "bg-white/10"}`} />
-            <StepIndicator n={2} active={adim === 2} done={adim > 2} />
-            <div className={`w-12 h-[1px] mx-2 ${adim > 2 ? "bg-blue-500" : "bg-white/10"}`} />
-            <StepIndicator n={3} active={adim === 3} done={false} />
-          </div>
-        )}
-
-        <AnimatePresence mode="wait">
-          {/* ADIM 1 */}
-          {adim === 1 && (
+      {gorunum === 'vitrin' ? (
+        <main className="flex-1 w-full max-w-screen-2xl mx-auto px-4">
+          <Vitrin />
+        </main>
+      ) : (
+        <main className={`flex-1 flex flex-col justify-center w-full max-w-screen-xl mx-auto px-4 py-6 md:py-8 transition-all duration-500 ${adim === 3 ? 'max-w-6xl' : 'max-w-lg'}`}>
+          {/* Header */}
+          <header className="text-center mb-8 md:mb-12 relative z-10">
             <motion.div
-              key="step1"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-6"
+              initial={{ scale: 0.8, opacity: 0, y: -20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              className="inline-flex flex-col items-center"
             >
-              <div className={`${gc.card} overflow-hidden group`}>
-                <div
-                  onClick={() => fileRef.current?.click()}
-                  onDrop={e => { e.preventDefault(); handleDosya(e.dataTransfer.files[0]); }}
-                  onDragOver={e => e.preventDefault()}
-                  className={`cursor-pointer flex flex-col items-center justify-center p-6 md:p-8 transition-all duration-300 ${gorsel ? 'p-0 md:p-0' : 'hover:bg-white/5 min-h-[160px] md:min-h-[200px]'}`}
+              {adim === 1 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.6 }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6 backdrop-blur-xl"
                 >
-                  {gorsel ? (
-                    <img src={gorsel} alt="Tasarım" className="w-full max-h-[25vh] md:max-h-[30vh] object-contain block" />
-                  ) : (
-                    <>
-                      <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-3 md:mb-4 group-hover:scale-110 transition-transform">
-                        <Upload className="w-5 h-5 md:w-6 md:h-6" />
-                      </div>
-                      <p className="text-white font-semibold text-base md:text-lg">Görsel Yükle</p>
-                      <p className="text-white/30 text-xs md:text-sm mt-1">Sürükle bırak veya tıkla · PNG, JPG</p>
-                    </>
-                  )}
-                </div>
-                {gorsel && (
+                  <Sparkles className="w-4 h-4 text-blue-400" />
+                  <span className="text-blue-200/80 text-[10px] md:text-xs font-bold tracking-widest uppercase">Yapay Zeka Destekli Tasarım Asistanı</span>
+                </motion.div>
+              )}
+
+              <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-4 text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+                Revize<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500">AI</span>
+              </h1>
+
+              {adim === 1 ? (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.7 }}
+                  className="text-white/50 text-sm md:text-base max-w-xl mx-auto leading-relaxed mt-2 font-medium"
+                >
+                  Tasarımlarınızı profesyonel kriterlere göre saniyeler içinde analiz edin.
+                  Renk uyumu, tipografi, kompozisyon ve marka bütünlüğü açısından
+                  kapsamlı geri bildirim ve gelişim önerileri alın.
+                </motion.p>
+              ) : (
+                <p className="text-white/40 text-sm mt-2 font-medium">Profesyonel Tasarım Analizi</p>
+              )}
+            </motion.div>
+          </header>
+
+          {/* Header Action Buttons */}
+          <div className="absolute top-6 right-4 md:right-8 flex items-center gap-2 z-20">
+            {kullanici && (
+              <button
+                onClick={statsAc}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-white/70 hover:bg-white/[0.09] transition-all text-[11px] font-medium"
+              >
+                <BarChart2 className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Stats</span>
+              </button>
+            )}
+            {kullanici ? (
+              <div className="flex items-center gap-2">
+                <span className="text-white/25 text-[10px] hidden md:block max-w-[100px] truncate">{kullanici.email}</span>
+                <button onClick={cikisYap} className="p-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-red-400 transition-colors">
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setAuthAcik(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-white/70 hover:bg-white/[0.09] transition-all text-[11px] font-medium">
+                <User className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Giriş Yap</span>
+              </button>
+            )}
+          </div>
+
+          {/* Stepper */}
+          {adim < 3 && (
+            <div className="flex items-center justify-center mb-6 md:mb-8">
+              <StepIndicator n={1} active={adim === 1} done={adim > 1} />
+              <div className={`w-12 h-[1px] mx-2 ${adim > 1 ? "bg-blue-500" : "bg-white/10"}`} />
+              <StepIndicator n={2} active={adim === 2} done={adim > 2} />
+              <div className={`w-12 h-[1px] mx-2 ${adim > 2 ? "bg-blue-500" : "bg-white/10"}`} />
+              <StepIndicator n={3} active={adim === 3} done={false} />
+            </div>
+          )}
+
+          <AnimatePresence mode="wait">
+            {/* ADIM 1 */}
+            {adim === 1 && (
+              <motion.div
+                key="step1"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-6"
+              >
+                <div className={`${gc.card} overflow-hidden group`}>
                   <div
                     onClick={() => fileRef.current?.click()}
-                    className="py-3 bg-white/5 hover:bg-white/10 transition-colors cursor-pointer text-center border-t border-white/10"
+                    onDrop={e => { e.preventDefault(); handleDosya(e.dataTransfer.files[0]); }}
+                    onDragOver={e => e.preventDefault()}
+                    className={`cursor-pointer flex flex-col items-center justify-center p-6 md:p-8 transition-all duration-300 ${gorsel ? 'p-0 md:p-0' : 'hover:bg-white/5 min-h-[160px] md:min-h-[200px]'}`}
                   >
-                    <span className="text-blue-400 text-sm font-medium">Görseli Değiştir</span>
-                  </div>
-                )}
-              </div>
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => e.target.files && handleDosya(e.target.files[0])} />
-
-              {/* Tasarım Türü Seçimi */}
-              <div className={`${gc.card} p-5`}>
-                <span className={gc.label}>Tasarım Türü</span>
-                <div className="grid grid-cols-2 gap-2.5">
-                  {tasarimTuruConfig.map(({ id, icon, desc }) => (
-                    <button
-                      key={id}
-                      onClick={() => setTasarimTuru(id)}
-                      className={`flex items-center gap-3 p-3.5 rounded-2xl border text-left transition-all duration-300 ${tasarimTuru === id
-                        ? "bg-blue-500/15 border-blue-500/40 shadow-[0_0_20px_rgba(59,130,246,0.15)]"
-                        : "bg-white/[0.03] border-white/[0.07] hover:bg-white/[0.06]"
-                        }`}
-                    >
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${tasarimTuru === id ? "bg-blue-500/20 text-blue-300" : "bg-white/[0.05] text-white/30"
-                        }`}>
-                        {icon}
-                      </div>
-                      <div>
-                        <p className={`text-xs font-semibold transition-colors ${tasarimTuru === id ? "text-white" : "text-white/50"}`}>{id}</p>
-                        <p className="text-[9px] text-white/25 mt-0.5">{desc}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Sosyal Medya Platform Seçimi */}
-                <AnimatePresence>
-                  {tasarimTuru === "Sosyal Medya" && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="pt-4 mt-4 border-t border-white/[0.05]">
-                        <span className="text-[10px] text-white/30 font-bold uppercase tracking-widest block mb-2.5">Platform</span>
-                        <div className="flex flex-wrap gap-2">
-                          {sosyalMedyaPlatformlari.map(p => (
-                            <button
-                              key={p}
-                              onClick={() => setPlatform(p)}
-                              className={`px-3 py-1.5 rounded-full text-[10px] font-semibold transition-all duration-200 ${platform === p ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" : "bg-white/[0.04] text-white/35 hover:bg-white/[0.08] border border-transparent"
-                                }`}
-                            >
-                              {p}
-                            </button>
-                          ))}
+                    {gorsel ? (
+                      <img src={gorsel} alt="Tasarım" className="w-full max-h-[25vh] md:max-h-[30vh] object-contain block" />
+                    ) : (
+                      <>
+                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-3 md:mb-4 group-hover:scale-110 transition-transform">
+                          <Upload className="w-5 h-5 md:w-6 md:h-6" />
                         </div>
-                      </div>
-                    </motion.div>
+                        <p className="text-white font-semibold text-base md:text-lg">Görsel Yükle</p>
+                        <p className="text-white/30 text-xs md:text-sm mt-1">Sürükle bırak veya tıkla · PNG, JPG</p>
+                      </>
+                    )}
+                  </div>
+                  {gorsel && (
+                    <div
+                      onClick={() => fileRef.current?.click()}
+                      className="py-3 bg-white/5 hover:bg-white/10 transition-colors cursor-pointer text-center border-t border-white/10"
+                    >
+                      <span className="text-blue-400 text-sm font-medium">Görseli Değiştir</span>
+                    </div>
                   )}
-                </AnimatePresence>
-              </div>
+                </div>
+                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => e.target.files && handleDosya(e.target.files[0])} />
 
-              {/* İşletme Türü */}
-              <div className={`${gc.card} p-5`}>
-                <span className={gc.label}>Sektör</span>
-                <div className="flex flex-col gap-4">
-                  <div className="flex flex-wrap gap-2">
-                    {isletmeTurleri.map(t => (
+                {/* Tasarım Türü Seçimi */}
+                <div className={`${gc.card} p-5`}>
+                  <span className={gc.label}>Tasarım Türü</span>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {tasarimTuruConfig.map(({ id, icon, desc }) => (
                       <button
-                        key={t}
-                        onClick={() => setIsletme(t)}
-                        className={`
-                          px-4 py-2 rounded-full text-xs font-medium transition-all duration-300
-                          ${isletme === t ? "bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]" : "bg-white/5 text-white/50 hover:bg-white/10"}
-                        `}
+                        key={id}
+                        onClick={() => setTasarimTuru(id)}
+                        className={`flex items-center gap-3 p-3.5 rounded-2xl border text-left transition-all duration-300 ${tasarimTuru === id
+                          ? "bg-blue-500/15 border-blue-500/40 shadow-[0_0_20px_rgba(59,130,246,0.15)]"
+                          : "bg-white/[0.03] border-white/[0.07] hover:bg-white/[0.06]"
+                          }`}
                       >
-                        {t}
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${tasarimTuru === id ? "bg-blue-500/20 text-blue-300" : "bg-white/[0.05] text-white/30"
+                          }`}>
+                          {icon}
+                        </div>
+                        <div>
+                          <p className={`text-xs font-semibold transition-colors ${tasarimTuru === id ? "text-white" : "text-white/50"}`}>{id}</p>
+                          <p className="text-[9px] text-white/25 mt-0.5">{desc}</p>
+                        </div>
                       </button>
                     ))}
                   </div>
 
+                  {/* Sosyal Medya Platform Seçimi */}
                   <AnimatePresence>
-                    {isletme === "Diğer" && (
+                    {tasarimTuru === "Sosyal Medya" && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
                         className="overflow-hidden"
                       >
-                        <input
-                          type="text"
-                          placeholder="Lütfen sektörünüzü veya işletme türünüzü yazın..."
-                          value={digerIsletme}
-                          onChange={(e) => setDigerIsletme(e.target.value)}
-                          className={gc.input}
-                          autoFocus
-                        />
+                        <div className="pt-4 mt-4 border-t border-white/[0.05]">
+                          <span className="text-[10px] text-white/30 font-bold uppercase tracking-widest block mb-2.5">Platform</span>
+                          <div className="flex flex-wrap gap-2">
+                            {sosyalMedyaPlatformlari.map(p => (
+                              <button
+                                key={p}
+                                onClick={() => setPlatform(p)}
+                                className={`px-3 py-1.5 rounded-full text-[10px] font-semibold transition-all duration-200 ${platform === p ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" : "bg-white/[0.04] text-white/35 hover:bg-white/[0.08] border border-transparent"
+                                  }`}
+                              >
+                                {p}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
-              </div>
 
-              <button
-                onClick={() => setAdim(2)}
-                disabled={!gorsel}
-                className={`
+                {/* İşletme Türü */}
+                <div className={`${gc.card} p-5`}>
+                  <span className={gc.label}>Sektör</span>
+                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-wrap gap-2">
+                      {isletmeTurleri.map(t => (
+                        <button
+                          key={t}
+                          onClick={() => setIsletme(t)}
+                          className={`
+                          px-4 py-2 rounded-full text-xs font-medium transition-all duration-300
+                          ${isletme === t ? "bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]" : "bg-white/5 text-white/50 hover:bg-white/10"}
+                        `}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+
+                    <AnimatePresence>
+                      {isletme === "Diğer" && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <input
+                            type="text"
+                            placeholder="Lütfen sektörünüzü veya işletme türünüzü yazın..."
+                            value={digerIsletme}
+                            onChange={(e) => setDigerIsletme(e.target.value)}
+                            className={gc.input}
+                            autoFocus
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setAdim(2)}
+                  disabled={!gorsel}
+                  className={`
                   w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300
                   ${gorsel ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98]" : "bg-white/5 text-white/20 cursor-not-allowed"}
                 `}
-              >
-                Devam Et <ChevronRight className="w-5 h-5" />
-              </button>
-            </motion.div>
-          )}
-
-          {/* ADIM 2 */}
-          {adim === 2 && (
-            <motion.div
-              key="step2"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-6"
-            >
-              <div className={`${gc.card} p-8 space-y-6`}>
-                <p className="text-white/50 text-sm leading-relaxed">Daha isabetli analiz için firmanız hakkında birkaç bilgi verin.</p>
-                {[
-                  { key: "markaAdi", label: "Marka / Firma Adı", ph: "örn. Brew & Co." },
-                  { key: "kurumselRenk", label: "Kurumsal Renk(ler)", ph: "örn. Koyu yeşil, krem beyazı" },
-                  { key: "isYapisi", label: "Ne iş yapıyorsunuz?", ph: "örn. Organik kahve ve tatlı sunan butik cafe" },
-                  { key: "hedefKitle", label: "Hedef Kitleniz", ph: "örn. 25-40 yaş, profesyoneller" },
-                  { key: "slogan", label: "Slogan / Özel Mesaj (opsiyonel)", ph: "örn. Her yudumda huzur" },
-                ].map(f => (
-                  <div key={f.key}>
-                    <label className={gc.label}>{f.label}</label>
-                    <input
-                      value={(sorular as any)[f.key]}
-                      onChange={e => setSorular(p => ({ ...p, [f.key]: e.target.value }))}
-                      placeholder={f.ph}
-                      className={gc.input}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              {hata && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm"
                 >
-                  {hata}
-                </motion.div>
-              )}
-
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setAdim(1)}
-                  className="flex-1 py-4 rounded-2xl bg-white/5 border border-white/10 text-white/60 font-semibold hover:bg-white/10 transition-all flex items-center justify-center gap-2"
-                >
-                  <ChevronLeft className="w-5 h-5" /> Geri
+                  Devam Et <ChevronRight className="w-5 h-5" />
                 </button>
-                <button
-                  onClick={analiz}
-                  disabled={yukleniyor}
-                  className={`
+              </motion.div>
+            )}
+
+            {/* ADIM 2 */}
+            {adim === 2 && (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-6"
+              >
+                <div className={`${gc.card} p-8 space-y-6`}>
+                  <p className="text-white/50 text-sm leading-relaxed">Daha isabetli analiz için firmanız hakkında birkaç bilgi verin.</p>
+                  {[
+                    { key: "markaAdi", label: "Marka / Firma Adı", ph: "örn. Brew & Co." },
+                    { key: "kurumselRenk", label: "Kurumsal Renk(ler)", ph: "örn. Koyu yeşil, krem beyazı" },
+                    { key: "isYapisi", label: "Ne iş yapıyorsunuz?", ph: "örn. Organik kahve ve tatlı sunan butik cafe" },
+                    { key: "hedefKitle", label: "Hedef Kitleniz", ph: "örn. 25-40 yaş, profesyoneller" },
+                    { key: "slogan", label: "Slogan / Özel Mesaj (opsiyonel)", ph: "örn. Her yudumda huzur" },
+                  ].map(f => (
+                    <div key={f.key}>
+                      <label className={gc.label}>{f.label}</label>
+                      <input
+                        value={(sorular as any)[f.key]}
+                        onChange={e => setSorular(p => ({ ...p, [f.key]: e.target.value }))}
+                        placeholder={f.ph}
+                        className={gc.input}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {hata && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm"
+                  >
+                    {hata}
+                  </motion.div>
+                )}
+
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => setAdim(1)}
+                    className="flex-1 py-4 rounded-2xl bg-white/5 border border-white/10 text-white/60 font-semibold hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                  >
+                    <ChevronLeft className="w-5 h-5" /> Geri
+                  </button>
+                  <button
+                    onClick={analiz}
+                    disabled={yukleniyor}
+                    className={`
                     flex-[2] py-4 rounded-2xl font-bold text-white transition-all duration-300 flex items-center justify-center gap-2
                     ${yukleniyor ? "bg-white/10 text-white/30 cursor-not-allowed" : "bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98]"}
                   `}
-                >
-                  {yukleniyor ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Analiz ediliyor...
-                    </>
-                  ) : (
-                    <>Tasarımı Analiz Et <Sparkles className="w-5 h-5" /></>
-                  )}
-                </button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* ADIM 3 — Premium Dashboard */}
-          {adim === 3 && sonuc && (
-            <motion.div
-              key="step3"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              className="space-y-8"
-            >
-              {/* Demo Mode Banner */}
-              {sonuc._demo && (
-                <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300/80 text-[11px] font-medium">
-                  <span className="text-lg">⚡</span>
-                  <span><strong>Demo Modu</strong> — Gemini API kotası doldu. Sabah 03:00'da sıfırlanır. Gösterilen sonuçlar örnek verilerdir.</span>
-                </div>
-              )}
-
-              {/* Top Row: Image + Score Ring */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Original Image Card */}
-                <GlassCard className="lg:col-span-2" glowColor="cyan" delay={0.1}>
-                  <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-2 h-2 rounded-full bg-cyan-400" style={{ boxShadow: '0 0 8px rgba(56,189,248,0.6)' }} />
-                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Orijinal Tasarım</span>
-                    </div>
-                    <span className="text-[9px] font-semibold text-white/20 bg-white/[0.04] px-3 py-1 rounded-full">{isletme}</span>
-                  </div>
-                  <div
-                    onClick={() => gorsel && setSeciliGorsel(gorsel)}
-                    className="cursor-zoom-in group relative"
                   >
-                    <img src={gorsel!} alt="Orijinal" className="w-full h-[340px] object-contain bg-black/20 transition-all duration-700 group-hover:scale-[1.03]" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-end justify-center pb-6">
-                      <span className="text-white text-xs font-medium bg-white/10 backdrop-blur-xl px-4 py-2 rounded-full border border-white/20">Büyütmek için tıkla</span>
-                    </div>
-                  </div>
-                </GlassCard>
+                    {yukleniyor ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Analiz ediliyor...
+                      </>
+                    ) : (
+                      <>Tasarımı Analiz Et <Sparkles className="w-5 h-5" /></>
+                    )}
+                  </button>
+                </div>
+              </motion.div>
+            )}
 
-                {/* Score Ring Card */}
-                <GlassCard glowColor="blue" delay={0.2}>
-                  <div className="p-4 border-b border-white/[0.06]">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-2 h-2 rounded-full bg-blue-400" style={{ boxShadow: '0 0 8px rgba(56,189,248,0.6)' }} />
-                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Genel Puan</span>
-                    </div>
+            {/* ADIM 3 — Premium Dashboard */}
+            {adim === 3 && sonuc && (
+              <motion.div
+                key="step3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="space-y-8"
+              >
+                {/* Demo Mode Banner */}
+                {sonuc._demo && (
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300/80 text-[11px] font-medium">
+                    <span className="text-lg">⚡</span>
+                    <span><strong>Demo Modu</strong> — Gemini API kotası doldu. Sabah 03:00'da sıfırlanır. Gösterilen sonuçlar örnek verilerdir.</span>
                   </div>
-                  <div className="p-6 flex flex-col items-center">
-                    <ScoreRing score={sonuc.genelPuan} />
-                    <div className="mt-4 p-4 bg-white/[0.03] rounded-xl border border-white/[0.06] w-full">
-                      <p className="text-white/50 text-[11px] italic leading-relaxed text-center">
-                        "{sonuc.genelYorum}"
-                      </p>
-                    </div>
-                  </div>
-                </GlassCard>
-              </div>
+                )}
 
-              {/* Criteria Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                {kriterler.map((k, i) => {
-                  const puan = sonuc[k.key]?.puan || 0;
-                  const pct = (puan / 25) * 100;
-                  const color = pct >= 75 ? "#38bdf8" : pct >= 50 ? "#fbbf24" : "#f87171";
-                  const glowColors = ["cyan", "blue", "purple", "green"];
-                  return (
-                    <GlassCard key={k.key} glowColor={glowColors[i]} delay={0.15 * (i + 1)}>
-                      <div className="p-5">
-                        <div className="flex items-center justify-between mb-5">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-white/50">
-                              {k.emoji}
+                {/* Top Row: Image + Score Ring */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Original Image Card */}
+                  <GlassCard className="lg:col-span-2" glowColor="cyan" delay={0.1}>
+                    <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-2 h-2 rounded-full bg-cyan-400" style={{ boxShadow: '0 0 8px rgba(56,189,248,0.6)' }} />
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Orijinal Tasarım</span>
+                      </div>
+                      <span className="text-[9px] font-semibold text-white/20 bg-white/[0.04] px-3 py-1 rounded-full">{isletme}</span>
+                    </div>
+                    <div
+                      onClick={() => gorsel && setSeciliGorsel(gorsel)}
+                      className="cursor-zoom-in group relative"
+                    >
+                      <img src={gorsel!} alt="Orijinal" className="w-full h-[340px] object-contain bg-black/20 transition-all duration-700 group-hover:scale-[1.03]" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-end justify-center pb-6">
+                        <span className="text-white text-xs font-medium bg-white/10 backdrop-blur-xl px-4 py-2 rounded-full border border-white/20">Büyütmek için tıkla</span>
+                      </div>
+                    </div>
+                  </GlassCard>
+
+                  {/* Score Ring Card */}
+                  <GlassCard glowColor="blue" delay={0.2}>
+                    <div className="p-4 border-b border-white/[0.06]">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-2 h-2 rounded-full bg-blue-400" style={{ boxShadow: '0 0 8px rgba(56,189,248,0.6)' }} />
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Genel Puan</span>
+                      </div>
+                    </div>
+                    <div className="p-6 flex flex-col items-center">
+                      <ScoreRing score={sonuc.genelPuan} />
+                      <div className="mt-4 p-4 bg-white/[0.03] rounded-xl border border-white/[0.06] w-full">
+                        <p className="text-white/50 text-[11px] italic leading-relaxed text-center">
+                          "{sonuc.genelYorum}"
+                        </p>
+                      </div>
+                    </div>
+                  </GlassCard>
+                </div>
+
+                {/* Criteria Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                  {kriterler.map((k, i) => {
+                    const puan = sonuc[k.key]?.puan || 0;
+                    const pct = (puan / 25) * 100;
+                    const color = pct >= 75 ? "#38bdf8" : pct >= 50 ? "#fbbf24" : "#f87171";
+                    const glowColors = ["cyan", "blue", "purple", "green"];
+                    return (
+                      <GlassCard key={k.key} glowColor={glowColors[i]} delay={0.15 * (i + 1)}>
+                        <div className="p-5">
+                          <div className="flex items-center justify-between mb-5">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-white/50">
+                                {k.emoji}
+                              </div>
+                              <span className="text-white/70 font-semibold text-[13px]">{k.label}</span>
                             </div>
-                            <span className="text-white/70 font-semibold text-[13px]">{k.label}</span>
+                          </div>
+                          {/* Big score number */}
+                          <div className="flex items-baseline gap-1.5 mb-3">
+                            <motion.span
+                              initial={{ opacity: 0, scale: 0.5 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ duration: 0.6, delay: 0.3 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                              className="text-white text-3xl font-extrabold tracking-tight"
+                              style={{ textShadow: `0 0 30px ${color}33` }}
+                            >
+                              {puan}
+                            </motion.span>
+                            <span className="text-white/15 text-sm font-semibold">/25</span>
+                          </div>
+                          <ScoreBar puan={puan} />
+                          <div className="mt-4">
+                            <p className={`text-white/30 text-[11px] leading-relaxed transition-all duration-300 ${acikKriter === k.key ? '' : 'line-clamp-2'}`}>
+                              {sonuc[k.key]?.aciklama}
+                            </p>
+                            {sonuc[k.key]?.aciklama && sonuc[k.key].aciklama.length > 80 && (
+                              <button
+                                onClick={() => setAcikKriter(acikKriter === k.key ? null : k.key)}
+                                className="mt-1.5 text-[10px] font-semibold tracking-wide transition-colors"
+                                style={{ color }}
+                              >
+                                {acikKriter === k.key ? '↑ Kapat' : '↓ Devamını gör'}
+                              </button>
+                            )}
                           </div>
                         </div>
-                        {/* Big score number */}
-                        <div className="flex items-baseline gap-1.5 mb-3">
-                          <motion.span
-                            initial={{ opacity: 0, scale: 0.5 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.6, delay: 0.3 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                            className="text-white text-3xl font-extrabold tracking-tight"
-                            style={{ textShadow: `0 0 30px ${color}33` }}
-                          >
-                            {puan}
-                          </motion.span>
-                          <span className="text-white/15 text-sm font-semibold">/25</span>
-                        </div>
-                        <ScoreBar puan={puan} />
-                        <div className="mt-4">
-                          <p className={`text-white/30 text-[11px] leading-relaxed transition-all duration-300 ${acikKriter === k.key ? '' : 'line-clamp-2'}`}>
-                            {sonuc[k.key]?.aciklama}
-                          </p>
-                          {sonuc[k.key]?.aciklama && sonuc[k.key].aciklama.length > 80 && (
-                            <button
-                              onClick={() => setAcikKriter(acikKriter === k.key ? null : k.key)}
-                              className="mt-1.5 text-[10px] font-semibold tracking-wide transition-colors"
-                              style={{ color }}
-                            >
-                              {acikKriter === k.key ? '↑ Kapat' : '↓ Devamını gör'}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </GlassCard>
-                  );
-                })}
-              </div>
+                      </GlassCard>
+                    );
+                  })}
+                </div>
 
-              {/* Color Palette + Technical Summary Row */}
-              {(sonuc.renkPaleti?.length > 0 || sonuc.teknikOzet) && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* Color Palette + Technical Summary Row */}
+                {(sonuc.renkPaleti?.length > 0 || sonuc.teknikOzet) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-                  {/* Color Palette */}
-                  {sonuc.renkPaleti?.length > 0 && (
-                    <GlassCard glowColor="blue" delay={0.5}>
-                      <div className="p-4 border-b border-white/[0.06] flex items-center gap-2.5">
-                        <div className="w-2 h-2 rounded-full bg-blue-400" style={{ boxShadow: '0 0 8px rgba(96,165,250,0.6)' }} />
-                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Renk Paleti</span>
-                      </div>
-                      <div className="p-5 flex flex-col gap-4">
-                        <div className="flex flex-wrap gap-3 items-center">
-                          {sonuc.renkPaleti.slice(0, 6).map((hex: string, i: number) => (
-                            <div
-                              key={i}
-                              className="flex flex-col items-center gap-1.5 group cursor-pointer relative"
-                              onClick={() => {
-                                navigator.clipboard.writeText(hex.toUpperCase());
-                                setKopyalananRenk(hex);
-                                setTimeout(() => setKopyalananRenk(null), 1800);
-                              }}
-                              title={`Kopyala: ${hex.toUpperCase()}`}
-                            >
-                              {/* Tooltip */}
-                              {kopyalananRenk === hex && (
-                                <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-xl text-white text-[9px] font-semibold px-2 py-1 rounded-md border border-white/10 whitespace-nowrap z-20 animate-fade-in">
-                                  ✓ Kopyalandı
+                    {/* Color Palette */}
+                    {sonuc.renkPaleti?.length > 0 && (
+                      <GlassCard glowColor="blue" delay={0.5}>
+                        <div className="p-4 border-b border-white/[0.06] flex items-center gap-2.5">
+                          <div className="w-2 h-2 rounded-full bg-blue-400" style={{ boxShadow: '0 0 8px rgba(96,165,250,0.6)' }} />
+                          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Renk Paleti</span>
+                        </div>
+                        <div className="p-5 flex flex-col gap-4">
+                          <div className="flex flex-wrap gap-3 items-center">
+                            {sonuc.renkPaleti.slice(0, 6).map((hex: string, i: number) => (
+                              <div
+                                key={i}
+                                className="flex flex-col items-center gap-1.5 group cursor-pointer relative"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(hex.toUpperCase());
+                                  setKopyalananRenk(hex);
+                                  setTimeout(() => setKopyalananRenk(null), 1800);
+                                }}
+                                title={`Kopyala: ${hex.toUpperCase()}`}
+                              >
+                                {/* Tooltip */}
+                                {kopyalananRenk === hex && (
+                                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-xl text-white text-[9px] font-semibold px-2 py-1 rounded-md border border-white/10 whitespace-nowrap z-20 animate-fade-in">
+                                    ✓ Kopyalandı
+                                  </div>
+                                )}
+                                <div
+                                  className="w-9 h-9 rounded-xl border border-white/[0.12] shadow-lg transition-all duration-200 group-hover:scale-125 group-hover:rounded-2xl"
+                                  style={{ backgroundColor: hex, boxShadow: `0 4px 16px ${hex}55` }}
+                                />
+                                <span className="text-[9px] text-white/25 font-mono tracking-wider group-hover:text-white/50 transition-colors">{hex.toUpperCase()}</span>
+                              </div>
+                            ))}
+                          </div>
+                          {/* Güçlü / Zayıf yön */}
+                          {(sonuc.gucluYon || sonuc.zayifYon) && (
+                            <div className="space-y-2 pt-1 border-t border-white/[0.04]">
+                              {sonuc.gucluYon && (
+                                <div className="flex items-start gap-2">
+                                  <span className="text-emerald-400/80 text-[10px] mt-0.5">✦</span>
+                                  <span className="text-white/35 text-[10px] leading-relaxed">{sonuc.gucluYon}</span>
                                 </div>
                               )}
-                              <div
-                                className="w-9 h-9 rounded-xl border border-white/[0.12] shadow-lg transition-all duration-200 group-hover:scale-125 group-hover:rounded-2xl"
-                                style={{ backgroundColor: hex, boxShadow: `0 4px 16px ${hex}55` }}
-                              />
-                              <span className="text-[9px] text-white/25 font-mono tracking-wider group-hover:text-white/50 transition-colors">{hex.toUpperCase()}</span>
+                              {sonuc.zayifYon && (
+                                <div className="flex items-start gap-2">
+                                  <span className="text-amber-400/80 text-[10px] mt-0.5">△</span>
+                                  <span className="text-white/35 text-[10px] leading-relaxed">{sonuc.zayifYon}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </GlassCard>
+                    )}
+
+                    {/* Technical Summary */}
+                    {sonuc.teknikOzet && (
+                      <GlassCard glowColor="purple" delay={0.55}>
+                        <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-2 h-2 rounded-full bg-purple-400" style={{ boxShadow: '0 0 8px rgba(168,85,247,0.5)' }} />
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Teknik Özet</span>
+                          </div>
+                          {sonuc.genelDegerlendirme && (
+                            <span className="text-[8px] font-bold uppercase tracking-widest text-purple-200/70 bg-purple-500/10 px-2.5 py-1 rounded-full border border-purple-500/15">
+                              {sonuc.genelDegerlendirme}
+                            </span>
+                          )}
+                        </div>
+                        <div className="p-5 space-y-4">
+                          {[
+                            {
+                              label: 'Baskın Renk Sayısı',
+                              value: `${sonuc.teknikOzet.baskınRenkSayisi ?? '—'} renk`,
+                              bar: false,
+                            },
+                            {
+                              label: 'Detay Yoğunluğu',
+                              value: `%${sonuc.teknikOzet.detayYogunlugu ?? 0}`,
+                              bar: true,
+                              pct: sonuc.teknikOzet.detayYogunlugu ?? 0,
+                              color: '#818cf8',
+                            },
+                            {
+                              label: 'Negatif Alan Oranı',
+                              value: `%${sonuc.teknikOzet.negatifAlanOrani ?? 0}`,
+                              bar: true,
+                              pct: sonuc.teknikOzet.negatifAlanOrani ?? 0,
+                              color: '#34d399',
+                            },
+                          ].map((item) => (
+                            <div key={item.label}>
+                              <div className="flex items-center justify-between mb-1.5">
+                                <span className="text-white/30 text-[10px]">{item.label}</span>
+                                <span className="text-white/55 text-[10px] font-semibold font-mono">{item.value}</span>
+                              </div>
+                              {item.bar && (
+                                <div className="h-[3px] bg-white/[0.05] rounded-full overflow-hidden">
+                                  <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${item.pct}%` }}
+                                    transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.6 }}
+                                    className="h-full rounded-full"
+                                    style={{ backgroundColor: item.color, boxShadow: `0 0 8px ${item.color}66` }}
+                                  />
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
-                        {/* Güçlü / Zayıf yön */}
-                        {(sonuc.gucluYon || sonuc.zayifYon) && (
-                          <div className="space-y-2 pt-1 border-t border-white/[0.04]">
-                            {sonuc.gucluYon && (
-                              <div className="flex items-start gap-2">
-                                <span className="text-emerald-400/80 text-[10px] mt-0.5">✦</span>
-                                <span className="text-white/35 text-[10px] leading-relaxed">{sonuc.gucluYon}</span>
-                              </div>
-                            )}
-                            {sonuc.zayifYon && (
-                              <div className="flex items-start gap-2">
-                                <span className="text-amber-400/80 text-[10px] mt-0.5">△</span>
-                                <span className="text-white/35 text-[10px] leading-relaxed">{sonuc.zayifYon}</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </GlassCard>
-                  )}
+                      </GlassCard>
+                    )}
+                  </div>
+                )}
 
-                  {/* Technical Summary */}
-                  {sonuc.teknikOzet && (
-                    <GlassCard glowColor="purple" delay={0.55}>
-                      <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-2 h-2 rounded-full bg-purple-400" style={{ boxShadow: '0 0 8px rgba(168,85,247,0.5)' }} />
-                          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Teknik Özet</span>
+                {/* Bottom Row: Coming Soon + Suggestion + New Analysis */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* AI Revize Coming Soon */}
+                  <GlassCard glowColor="purple" delay={0.6}>
+                    <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-2 h-2 rounded-full bg-purple-400" style={{ boxShadow: '0 0 8px rgba(168,85,247,0.6)' }} />
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">AI Revize</span>
+                      </div>
+                      <span className="text-[8px] font-bold uppercase tracking-widest text-purple-300 bg-purple-500/10 px-2.5 py-1 rounded-full border border-purple-500/20">Yakında</span>
+                    </div>
+                    <div className="relative p-8 flex flex-col items-center justify-center min-h-[180px]">
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-purple-500/10 rounded-full blur-[50px] animate-pulse" />
+                      <div className="relative z-10 flex flex-col items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/15 to-blue-500/15 border border-white/[0.08] flex items-center justify-center">
+                          <Sparkles className="w-6 h-6 text-purple-400" />
                         </div>
-                        {sonuc.genelDegerlendirme && (
-                          <span className="text-[8px] font-bold uppercase tracking-widest text-purple-200/70 bg-purple-500/10 px-2.5 py-1 rounded-full border border-purple-500/15">
-                            {sonuc.genelDegerlendirme}
-                          </span>
-                        )}
+                        <p className="text-white/60 text-sm font-semibold">AI Tasarım Revizyonu</p>
+                        <p className="text-white/25 text-[10px] leading-relaxed text-center max-w-[180px]">Yapay zeka destekli otomatik revizyon çok yakında</p>
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.06]">
+                          <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                          <span className="text-white/30 text-[9px] font-semibold uppercase tracking-wider">Geliştiriliyor</span>
+                        </div>
                       </div>
-                      <div className="p-5 space-y-4">
-                        {[
-                          {
-                            label: 'Baskın Renk Sayısı',
-                            value: `${sonuc.teknikOzet.baskınRenkSayisi ?? '—'} renk`,
-                            bar: false,
-                          },
-                          {
-                            label: 'Detay Yoğunluğu',
-                            value: `%${sonuc.teknikOzet.detayYogunlugu ?? 0}`,
-                            bar: true,
-                            pct: sonuc.teknikOzet.detayYogunlugu ?? 0,
-                            color: '#818cf8',
-                          },
-                          {
-                            label: 'Negatif Alan Oranı',
-                            value: `%${sonuc.teknikOzet.negatifAlanOrani ?? 0}`,
-                            bar: true,
-                            pct: sonuc.teknikOzet.negatifAlanOrani ?? 0,
-                            color: '#34d399',
-                          },
-                        ].map((item) => (
-                          <div key={item.label}>
-                            <div className="flex items-center justify-between mb-1.5">
-                              <span className="text-white/30 text-[10px]">{item.label}</span>
-                              <span className="text-white/55 text-[10px] font-semibold font-mono">{item.value}</span>
-                            </div>
-                            {item.bar && (
-                              <div className="h-[3px] bg-white/[0.05] rounded-full overflow-hidden">
-                                <motion.div
-                                  initial={{ width: 0 }}
-                                  animate={{ width: `${item.pct}%` }}
-                                  transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.6 }}
-                                  className="h-full rounded-full"
-                                  style={{ backgroundColor: item.color, boxShadow: `0 0 8px ${item.color}66` }}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                    </div>
+                  </GlassCard>
+
+                  {/* Suggestion Card */}
+                  <GlassCard className="lg:col-span-1" glowColor="green" delay={0.7}>
+                    <div className="p-4 border-b border-white/[0.06]">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-2 h-2 rounded-full bg-emerald-400" style={{ boxShadow: '0 0 8px rgba(52,211,153,0.6)' }} />
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Gelişim Önerisi</span>
                       </div>
-                    </GlassCard>
-                  )}
+                    </div>
+                    <div className="p-5">
+                      <p className="text-white/60 text-[13px] leading-relaxed">
+                        {sonuc.oneri}
+                      </p>
+                    </div>
+                  </GlassCard>
+
+                  {/* New Analysis Button Card */}
+                  <GlassCard glowColor="blue" delay={0.8}>
+                    <div className="p-4 border-b border-white/[0.06]">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-2 h-2 rounded-full bg-blue-400" style={{ boxShadow: '0 0 8px rgba(56,189,248,0.6)' }} />
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">İşlem</span>
+                      </div>
+                    </div>
+                    <div className="p-6 flex flex-col items-center justify-center min-h-[180px] gap-5">
+                      <p className="text-white/30 text-xs text-center">Başka bir tasarımı analiz etmek ister misiniz?</p>
+                      <button
+                        onClick={sifirla}
+                        className="group relative w-full py-4 rounded-xl font-bold text-sm overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 opacity-80 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 blur-xl opacity-40 group-hover:opacity-60 transition-opacity" />
+                        <span className="relative z-10 flex items-center justify-center gap-2 text-white">
+                          <RotateCcw className="w-4 h-4" /> Yeni Analiz Yap
+                        </span>
+                      </button>
+                    </div>
+                  </GlassCard>
                 </div>
-              )}
-
-              {/* Bottom Row: Coming Soon + Suggestion + New Analysis */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* AI Revize Coming Soon */}
-                <GlassCard glowColor="purple" delay={0.6}>
-                  <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-2 h-2 rounded-full bg-purple-400" style={{ boxShadow: '0 0 8px rgba(168,85,247,0.6)' }} />
-                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">AI Revize</span>
-                    </div>
-                    <span className="text-[8px] font-bold uppercase tracking-widest text-purple-300 bg-purple-500/10 px-2.5 py-1 rounded-full border border-purple-500/20">Yakında</span>
-                  </div>
-                  <div className="relative p-8 flex flex-col items-center justify-center min-h-[180px]">
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-purple-500/10 rounded-full blur-[50px] animate-pulse" />
-                    <div className="relative z-10 flex flex-col items-center gap-4">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/15 to-blue-500/15 border border-white/[0.08] flex items-center justify-center">
-                        <Sparkles className="w-6 h-6 text-purple-400" />
-                      </div>
-                      <p className="text-white/60 text-sm font-semibold">AI Tasarım Revizyonu</p>
-                      <p className="text-white/25 text-[10px] leading-relaxed text-center max-w-[180px]">Yapay zeka destekli otomatik revizyon çok yakında</p>
-                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.06]">
-                        <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
-                        <span className="text-white/30 text-[9px] font-semibold uppercase tracking-wider">Geliştiriliyor</span>
-                      </div>
-                    </div>
-                  </div>
-                </GlassCard>
-
-                {/* Suggestion Card */}
-                <GlassCard className="lg:col-span-1" glowColor="green" delay={0.7}>
-                  <div className="p-4 border-b border-white/[0.06]">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-2 h-2 rounded-full bg-emerald-400" style={{ boxShadow: '0 0 8px rgba(52,211,153,0.6)' }} />
-                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Gelişim Önerisi</span>
-                    </div>
-                  </div>
-                  <div className="p-5">
-                    <p className="text-white/60 text-[13px] leading-relaxed">
-                      {sonuc.oneri}
-                    </p>
-                  </div>
-                </GlassCard>
-
-                {/* New Analysis Button Card */}
-                <GlassCard glowColor="blue" delay={0.8}>
-                  <div className="p-4 border-b border-white/[0.06]">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-2 h-2 rounded-full bg-blue-400" style={{ boxShadow: '0 0 8px rgba(56,189,248,0.6)' }} />
-                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">İşlem</span>
-                    </div>
-                  </div>
-                  <div className="p-6 flex flex-col items-center justify-center min-h-[180px] gap-5">
-                    <p className="text-white/30 text-xs text-center">Başka bir tasarımı analiz etmek ister misiniz?</p>
-                    <button
-                      onClick={sifirla}
-                      className="group relative w-full py-4 rounded-xl font-bold text-sm overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 opacity-80 group-hover:opacity-100 transition-opacity" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 blur-xl opacity-40 group-hover:opacity-60 transition-opacity" />
-                      <span className="relative z-10 flex items-center justify-center gap-2 text-white">
-                        <RotateCcw className="w-4 h-4" /> Yeni Analiz Yap
-                      </span>
-                    </button>
-                  </div>
-                </GlassCard>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </main>
+      )}
 
       {/* Image Modal */}
       <AnimatePresence>
