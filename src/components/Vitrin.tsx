@@ -31,6 +31,25 @@ export function Vitrin() {
         fetchVitrin();
     }, []);
 
+    useEffect(() => {
+        const handleEsc = (event: KeyboardEvent) => {
+            if (event.key === "Escape") setSeciliGorsel(null);
+        };
+        window.addEventListener("keydown", handleEsc);
+
+        // Modal açıkken kaydırmayı engelle
+        if (seciliGorsel) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "auto";
+        }
+
+        return () => {
+            window.removeEventListener("keydown", handleEsc);
+            document.body.style.overflow = "auto";
+        };
+    }, [seciliGorsel]);
+
     const fetchVitrin = async () => {
         setLoading(true);
         const { data, error } = await supabase
@@ -174,26 +193,33 @@ export function Vitrin() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl"
+                        className="fixed inset-0 z-[999] flex items-center justify-center p-4 md:p-12 overflow-y-auto overflow-x-hidden"
                     >
-                        <div className="absolute top-4 right-4 md:top-8 md:right-8 flex gap-3">
-                            <button
-                                onClick={() => setSeciliGorsel(null)}
-                                className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-                            >
-                                <X className="w-6 h-6" />
-                            </button>
-                        </div>
+                        {/* Arkaplan Katmanı - Tıklanabilir alan */}
+                        <div
+                            className="fixed inset-0 bg-black/95 backdrop-blur-xl cursor-zoom-out"
+                            onClick={() => setSeciliGorsel(null)}
+                        />
 
-                        <div className="max-w-6xl w-full flex flex-col md:flex-row gap-8 items-center justify-center">
-                            <div className="w-full md:w-2/3 flex justify-center max-h-[85vh]">
+                        {/* Kapatma Butonu - Z-Index artırıldı */}
+                        <button
+                            onClick={() => setSeciliGorsel(null)}
+                            className="fixed top-6 right-6 z-[1001] p-4 rounded-full bg-white/10 hover:bg-white/20 text-white shadow-2xl backdrop-blur-xl transition-all hover:rotate-90"
+                        >
+                            <X className="w-8 h-8" />
+                        </button>
+
+                        <div
+                            className="relative z-[1000] max-w-7xl w-full flex flex-col md:flex-row gap-8 items-center justify-center pointer-events-none"
+                        >
+                            <div className="w-full md:w-2/3 flex justify-center max-h-[80vh] pointer-events-auto">
                                 <img
                                     src={seciliGorsel.gorsel_url}
                                     alt="Büyütülmüş Görsel"
-                                    className="max-w-full max-h-full object-contain rounded-2xl border border-white/10 shadow-2xl shadow-blue-500/10"
+                                    className="max-w-full max-h-full object-contain rounded-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]"
                                 />
                             </div>
-                            <div className="w-full md:w-[400px] p-8 border border-white/10 bg-[#0A0A0F]/90 backdrop-blur-2xl rounded-[32px] h-fit md:max-h-[85vh] flex flex-col justify-center relative overflow-hidden shadow-2xl">
+                            <div className="w-full md:w-[400px] p-8 border border-white/10 bg-[#0A0A0F]/90 backdrop-blur-2xl rounded-[32px] h-fit flex flex-col justify-center relative overflow-hidden shadow-2xl pointer-events-auto">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-[100px] rounded-full pointer-events-none" />
 
                                 {/* Üst Profil Bölümü */}
