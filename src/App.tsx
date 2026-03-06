@@ -905,44 +905,43 @@ export default function App() {
                 </GlassCard>
 
                 {/* Butonlar: Yeni Analiz & Showcase Yayınla */}
-                <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <button
                     onClick={sifirla}
-                    className="group relative md:flex-1 py-6 px-6 rounded-2xl font-bold overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] border border-blue-500/20 bg-blue-500/5 shadow-[0_0_30px_rgba(59,130,246,0.05)] hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] flex flex-col items-center justify-center min-h-[120px]"
+                    className="group relative w-full py-6 px-6 rounded-[24px] font-bold overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] border border-blue-500/20 bg-blue-500/5 shadow-[0_0_30px_rgba(59,130,246,0.05)] hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] flex flex-col items-center justify-center min-h-[180px]"
                   >
                     <div className="absolute inset-0 bg-gradient-to-b from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <span className="relative z-10 flex flex-col items-center justify-center gap-3 text-white">
-                      <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/30 group-hover:-rotate-180 transition-transform duration-700">
-                        <RotateCcw className="w-5 h-5 text-blue-400" />
+                    <span className="relative z-10 flex flex-col items-center justify-center gap-4 text-white">
+                      <div className="w-14 h-14 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/30 group-hover:-rotate-180 transition-transform duration-700">
+                        <RotateCcw className="w-6 h-6 text-blue-400" />
                       </div>
-                      <span className="text-sm tracking-wide font-semibold text-blue-100">Yeni Analiz Yap</span>
+                      <span className="text-base tracking-wide font-black text-blue-100">Yeni Analiz Yap</span>
                     </span>
                   </button>
 
-                  <GlassCard className="flex-[1.8] flex flex-col md:flex-row items-center justify-between p-6 overflow-hidden min-h-[120px] relative group" glowColor="yellow" delay={0.2}>
-                    {/* Arka plan animasyonu */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/5 to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  <GlassCard className="w-full flex flex-col justify-between p-6 overflow-hidden min-h-[180px] relative group rounded-[24px]" glowColor="yellow" delay={0.2}>
+                    <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 via-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
-                    <div className="relative z-10 flex items-center gap-5 mb-5 md:mb-0 w-full md:w-auto">
-                      <div className="w-14 h-14 rounded-full bg-yellow-500/10 flex items-center justify-center border border-yellow-500/30 flex-shrink-0 relative">
+                    <div className="relative z-10 flex gap-4 mb-5">
+                      <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center border border-yellow-500/30 flex-shrink-0 relative">
                         <div className="absolute inset-0 rounded-full border border-yellow-400/20 animate-ping opacity-20" />
-                        <Sparkles className="w-7 h-7 text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.8)]" />
+                        <Sparkles className="w-5 h-5 text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.8)]" />
                       </div>
-                      <div className="text-left w-full">
-                        <h4 className="text-white text-[15px] font-bold tracking-wide flex items-center gap-2">
-                          Tasarımını Vitrinde Paylaş
+                      <div className="text-left flex-1">
+                        <h4 className="text-white text-sm font-bold tracking-wide flex items-center gap-2">
+                          İlham Vitrininde Paylaş
                         </h4>
-                        <p className="text-white/60 text-[12px] mt-1.5 leading-relaxed md:max-w-[280px]">
-                          Analizini toplulukla paylaş, oy al ve ilham vitrininde yerini al.
+                        <p className="text-white/60 text-[12px] mt-1.5 leading-relaxed">
+                          Tasarımını toplulukla buluştur, puan topla ve vitrinde öne çık.
                         </p>
                       </div>
                     </div>
 
-                    <div className="relative z-10 w-full md:w-auto">
+                    <div className="relative z-10 mt-auto w-full">
                       {vitrindeYayinlandi ? (
                         <button
                           disabled
-                          className="w-full md:w-auto px-6 py-3.5 rounded-xl bg-emerald-500/10 text-emerald-400 font-bold text-sm border border-emerald-500/30 cursor-default flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.15)]"
+                          className="w-full py-4 rounded-xl bg-emerald-500/10 text-emerald-400 font-bold text-sm border border-emerald-500/30 cursor-default flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.15)]"
                         >
                           <Check className="w-5 h-5" /> Yayında!
                         </button>
@@ -956,17 +955,17 @@ export default function App() {
                               setTimeout(() => {
                                 setGorunum('vitrin');
                                 setYayinlaniyor(false);
-                              }, 1500); // 1.5s sonra vitrine yönlendir
+                              }, 1500);
                             } else {
                               setYayinlaniyor(false);
                             }
                           }}
-                          className={`w-full md:w-auto px-8 py-3.5 rounded-xl text-white font-bold text-sm transition-all flex items-center justify-center gap-2 ${yayinlaniyor ? 'bg-white/10 cursor-not-allowed border border-white/20 text-white/50' : 'bg-gradient-to-r from-yellow-500 via-amber-500 to-orange-500 shadow-[0_0_30px_rgba(245,158,11,0.4)] hover:shadow-[0_0_40px_rgba(245,158,11,0.6)] hover:scale-[1.03] active:scale-[0.97]'}`}
+                          className={`w-full py-4 rounded-xl text-white font-bold text-sm transition-all flex items-center justify-center gap-2 ${yayinlaniyor ? 'bg-white/10 cursor-not-allowed border border-white/20 text-white/50' : 'bg-gradient-to-r from-yellow-500 via-amber-500 to-orange-500 shadow-[0_0_30px_rgba(245,158,11,0.4)] hover:shadow-[0_0_40px_rgba(245,158,11,0.6)] hover:scale-[1.03] active:scale-[0.97]'}`}
                         >
                           {yayinlaniyor ? (
                             <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Yayınlanıyor...</>
                           ) : (
-                            <>Evet, Yayınla! <ChevronRight className="w-4 h-4" /></>
+                            <>Evet, Vitrinde Yayınla! <ChevronRight className="w-4 h-4" /></>
                           )}
                         </button>
                       )}

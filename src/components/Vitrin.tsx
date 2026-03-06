@@ -13,6 +13,8 @@ interface VitrinItem {
     topluluk_puan: number;
     oy_sayisi: number;
     created_at: string;
+    user_name: string | null;
+    user_avatar: string | null;
 }
 
 export function Vitrin() {
@@ -103,47 +105,60 @@ export function Vitrin() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.05 }}
-                            className="break-inside-avoid relative group rounded-3xl overflow-hidden border border-white/[0.08] bg-[#0A0A0F]"
+                            className="break-inside-avoid mb-8"
                         >
-                            <div className="relative aspect-auto">
-                                <img
-                                    src={item.gorsel_url}
-                                    alt={item.isletme}
-                                    className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700"
-                                    loading="lazy"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80" />
+                            <div
+                                className="relative group rounded-[20px] overflow-hidden bg-[#0A0A0F] cursor-pointer"
+                                onClick={() => setSeciliGorsel(item)}
+                            >
+                                <div className="relative aspect-auto">
+                                    <img
+                                        src={item.gorsel_url}
+                                        alt={item.isletme}
+                                        className="w-full h-auto object-cover group-hover:scale-[1.03] transition-transform duration-[600ms] ease-out"
+                                        loading="lazy"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                                {/* Overlay Action */}
-                                <button
-                                    onClick={() => setSeciliGorsel(item)}
-                                    className="absolute top-4 right-4 p-2.5 rounded-xl bg-black/40 backdrop-blur-md text-white/70 hover:text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                    <Maximize2 className="w-4 h-4" />
-                                </button>
+                                    <div className="absolute top-4 left-4 pt-1 transition-all duration-300 transform -translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100">
+                                        <span className="inline-block px-3 py-1.5 bg-black/60 backdrop-blur-md rounded-lg text-[10px] font-bold uppercase tracking-wider text-white border border-white/10 shadow-xl">
+                                            {item.tasarim_turu}
+                                        </span>
+                                    </div>
 
-                                <div className="absolute bottom-0 w-full p-4 md:p-5">
-                                    <div className="flex justify-between items-end">
-                                        <div>
-                                            <span className="inline-block px-2 py-1 bg-white/10 backdrop-blur-md rounded-md text-[10px] font-bold uppercase tracking-wider text-white/70 mb-2 border border-white/10">
-                                                {item.tasarim_turu}
-                                            </span>
-                                            <h3 className="text-white font-bold tracking-wide truncate max-w-[180px]">{item.isletme}</h3>
-                                        </div>
+                                    <div className="absolute bottom-4 left-4 pt-1 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100">
+                                        <h3 className="text-white font-bold tracking-wide text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] pb-1">{item.isletme}</h3>
+                                    </div>
 
-                                        <div className="flex items-center gap-2">
-                                            <div className="flex flex-col items-end">
-                                                <span className="text-[10px] text-blue-400 font-bold tracking-widest uppercase">AI Puanı</span>
-                                                <div className="text-xl font-black text-white">{item.ai_puan}</div>
-                                            </div>
-                                            <div className="h-8 w-px bg-white/20 mx-1" />
-                                            <div className="flex flex-col items-end">
-                                                <span className="text-[10px] text-emerald-400 font-bold tracking-widest uppercase flex items-center gap-1">
-                                                    Topluluk
-                                                </span>
-                                                <div className="text-xl font-black text-white">{item.topluluk_puan || "0"}</div>
-                                            </div>
-                                        </div>
+                                    <button
+                                        className="absolute top-4 right-4 p-3 rounded-full bg-white/10 backdrop-blur-md text-white/90 hover:text-white border border-white/20 hover:bg-white/20 opacity-0 group-hover:opacity-100 transition-all shadow-xl"
+                                    >
+                                        <Maximize2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Dribbble Style Footer Info */}
+                            <div className="flex justify-between items-center mt-3 px-1.5">
+                                <div className="flex items-center gap-3">
+                                    <img
+                                        src={item.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${item.id}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`}
+                                        alt="Designer"
+                                        className="w-7 h-7 rounded-full bg-white/5 object-cover"
+                                    />
+                                    <span className="text-white/80 hover:text-white cursor-pointer transition-colors text-sm font-medium leading-none">
+                                        {item.user_name || "Gizli Tasarımcı"}
+                                    </span>
+                                </div>
+
+                                <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-1.5 group cursor-help" title="AI Puanı">
+                                        <Star className="w-4 h-4 text-white/30 group-hover:text-amber-400 group-hover:fill-amber-400 transition-colors" />
+                                        <span className="text-white/60 text-xs font-semibold tabular-nums">{item.ai_puan}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 group cursor-help" title="Topluluk Puanı">
+                                        <Heart className="w-4 h-4 text-white/30 group-hover:text-emerald-400 group-hover:fill-emerald-400 transition-colors" />
+                                        <span className="text-white/60 text-xs font-semibold tabular-nums tracking-tighter">{item.topluluk_puan || 0}</span>
                                     </div>
                                 </div>
                             </div>
@@ -178,34 +193,59 @@ export function Vitrin() {
                                     className="max-w-full max-h-full object-contain rounded-2xl border border-white/10 shadow-2xl shadow-blue-500/10"
                                 />
                             </div>
-                            <div className="w-full md:w-1/3 p-6 md:p-8 border border-white/10 bg-white/5 backdrop-blur-xl rounded-3xl h-full flex flex-col justify-center">
-                                <h4 className="text-white/40 text-xs font-bold uppercase tracking-widest mb-1">{seciliGorsel.tasarim_turu}</h4>
-                                <h2 className="text-white text-3xl font-extrabold mb-8">{seciliGorsel.isletme}</h2>
+                            <div className="w-full md:w-[400px] p-8 border border-white/10 bg-[#0A0A0F]/90 backdrop-blur-2xl rounded-[32px] h-fit md:max-h-[85vh] flex flex-col justify-center relative overflow-hidden shadow-2xl">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-[100px] rounded-full pointer-events-none" />
 
-                                <div className="flex flex-col gap-6 mb-8">
-                                    <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex flex-col items-center text-center">
-                                        <span className="text-blue-400 text-[10px] uppercase font-bold tracking-widest mb-1">Yapay Zeka Puanı</span>
-                                        <span className="text-4xl text-white font-black">{seciliGorsel.ai_puan}/100</span>
-                                    </div>
-                                    <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col items-center text-center">
-                                        <span className="text-emerald-400 text-[10px] uppercase font-bold tracking-widest mb-1 block">Topluluk Puanı ({seciliGorsel.oy_sayisi} Oy)</span>
-                                        <span className="text-4xl text-white font-black">{seciliGorsel.topluluk_puan || '-'}/100</span>
+                                {/* Üst Profil Bölümü */}
+                                <div className="flex items-center gap-4 mb-8 relative z-10 pb-6 border-b border-white/[0.08]">
+                                    <img
+                                        src={seciliGorsel.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${seciliGorsel.id}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`}
+                                        alt="Designer"
+                                        className="w-14 h-14 rounded-full border border-white/10 object-cover bg-white/5"
+                                    />
+                                    <div>
+                                        <h3 className="text-white text-lg font-bold leading-tight mb-1">
+                                            {seciliGorsel.user_name || "Gizli Tasarımcı"}
+                                        </h3>
+                                        <div className="flex items-center gap-2 text-white/40 text-[10px] uppercase font-bold tracking-widest">
+                                            <span>{seciliGorsel.tasarim_turu}</span>
+                                            <span className="w-1 h-1 rounded-full bg-white/20" />
+                                            <span>{new Date(seciliGorsel.created_at).toLocaleDateString('tr-TR')}</span>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Voting Action */}
-                                <div className="space-y-3">
-                                    <p className="text-white/60 text-sm text-center font-medium">Bu tasarıma siz kaç puan verirsiniz?</p>
-                                    <div className="grid grid-cols-4 gap-2">
-                                        {[70, 80, 90, 100].map(pt => (
-                                            <button
-                                                key={pt}
-                                                onClick={() => vote(seciliGorsel.id, pt)}
-                                                className="py-3 bg-white/5 hover:bg-emerald-500/20 hover:text-emerald-400 hover:border-emerald-500/50 border border-white/10 rounded-xl text-white font-bold transition-all text-sm"
-                                            >
-                                                {pt}
-                                            </button>
-                                        ))}
+                                <div className="relative z-10">
+                                    <h4 className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-2">Marka / Şirket</h4>
+                                    <h2 className="text-white text-3xl font-black mb-8 leading-tight">{seciliGorsel.isletme}</h2>
+
+                                    <div className="flex gap-4 mb-10">
+                                        <div className="flex-1 p-5 rounded-[24px] bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20 flex flex-col items-center text-center shadow-[0_0_30px_rgba(59,130,246,0.1)] relative overflow-hidden group">
+                                            <div className="absolute inset-0 bg-blue-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <span className="text-blue-400 text-[10px] uppercase font-black tracking-widest mb-1 relative z-10">Yapay Zeka Puanı</span>
+                                            <span className="text-4xl text-white font-black tracking-tighter relative z-10">{seciliGorsel.ai_puan}</span>
+                                        </div>
+                                        <div className="flex-1 p-5 rounded-[24px] bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 flex flex-col items-center text-center shadow-[0_0_30px_rgba(16,185,129,0.1)] relative overflow-hidden group">
+                                            <div className="absolute inset-0 bg-emerald-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <span className="text-emerald-400 text-[10px] uppercase font-black tracking-widest mb-1 relative z-10">Topluluk ({seciliGorsel.oy_sayisi} Oy)</span>
+                                            <span className="text-4xl text-white font-black tracking-tighter relative z-10">{seciliGorsel.topluluk_puan || '-'}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Oylama Alanı */}
+                                    <div className="space-y-4 bg-white/[0.02] p-6 rounded-[24px] border border-white/[0.05]">
+                                        <p className="text-white/70 text-sm text-center font-medium">Bu tasarıma siz kaç puan verirsiniz?</p>
+                                        <div className="grid grid-cols-4 gap-2.5">
+                                            {[70, 80, 90, 100].map(pt => (
+                                                <button
+                                                    key={pt}
+                                                    onClick={() => vote(seciliGorsel.id, pt)}
+                                                    className="py-3.5 bg-white/[0.04] hover:bg-emerald-500 hover:text-white hover:border-emerald-400 hover:scale-105 active:scale-95 border border-white/10 rounded-xl text-white font-bold transition-all text-base shadow-lg hover:shadow-emerald-500/25"
+                                                >
+                                                    {pt}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

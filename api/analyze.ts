@@ -187,6 +187,9 @@ JSON Formatı Şablonu:
           // Kullanıcı token'ından user_id'yi bul
           const token = req.headers.authorization?.replace('Bearer ', '');
           let userId: string | null = null;
+          let userName: string | null = null;
+          let userAvatar: string | null = null;
+
           if (token) {
             // Tokenı doğrudan auth API'sine gönderip doğrula
             const authClient = createClient(supabaseUrl, supabaseKey, {
@@ -195,6 +198,8 @@ JSON Formatı Şablonu:
             const { data: { user }, error: userError } = await authClient.auth.getUser();
             if (!userError && user) {
               userId = user.id;
+              userName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || "Gizli Tasarımcı";
+              userAvatar = user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`;
             }
           }
 
@@ -226,6 +231,8 @@ JSON Formatı Şablonu:
           // DB'ye kaydet
           const { data: dbData } = await dbClient.from('analizler').insert({
             user_id: userId,
+            user_name: userName,
+            user_avatar: userAvatar,
             tasarim_turu: tasarimTuru,
             platform: platform || null,
             isletme,
