@@ -487,12 +487,12 @@ export default function App() {
   };
 
   return (
-    <div className="h-[100dvh] w-full bg-[#050508] text-white selection:bg-blue-500/30 font-sans flex flex-col justify-between overflow-hidden relative">
+    <div className="min-h-screen bg-[#050508] text-white selection:bg-blue-500/30 font-sans flex flex-col justify-between overflow-x-hidden">
       {/* Background Orbs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full pointer-events-none" />
 
-      <main className={`flex-1 flex flex-col items-center justify-start w-full max-w-screen-xl mx-auto px-4 py-6 md:py-8 transition-all duration-500 overflow-y-auto overflow-x-hidden ${adim === 3 ? 'max-w-6xl' : 'max-w-lg'}`}>
+      <main className={`flex-1 flex flex-col justify-center w-full max-w-screen-xl mx-auto px-4 py-6 md:py-8 transition-all duration-500 ${adim === 3 ? 'max-w-6xl' : 'max-w-lg'}`}>
         {/* Header */}
         <header className="text-center mb-8 md:mb-12 relative z-10">
           <motion.div
