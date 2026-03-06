@@ -2,6 +2,14 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Groq from 'groq-sdk';
 import { createClient } from '@supabase/supabase-js';
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+};
+
 type TasarimTuru = "Sosyal Medya" | "Kurumsal" | "E-Ticaret" | "Baskı Materyali";
 
 type AnalyzeRequestBody = {
@@ -190,7 +198,6 @@ JSON Formatı Şablonu:
             }
           }
 
-          // Görseli Storage'a yükle
           let gorselUrl: string | null = null;
           try {
             const fileName = `${userId || 'anon'}_${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
@@ -208,8 +215,16 @@ JSON Formatı Şablonu:
             console.warn('Storage yükleme atlandı:', storageErr);
           }
 
+          // DB'ye kaydetmek için doğru yetkilere sahip client oluşturalım (SELECT RLS için)
+          let dbClient = supabase;
+          if (token) {
+            dbClient = createClient(supabaseUrl, supabaseKey, {
+              global: { headers: { Authorization: `Bearer ${token}` } }
+            });
+          }
+
           // DB'ye kaydet
-          const { data: dbData } = await supabase.from('analizler').insert({
+          const { data: dbData } = await dbClient.from('analizler').insert({
             user_id: userId,
             tasarim_turu: tasarimTuru,
             platform: platform || null,
