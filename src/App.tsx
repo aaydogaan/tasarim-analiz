@@ -881,46 +881,87 @@ export default function App() {
                   </div>
                 )}
 
-                {/* Top Row: Image + Score Ring */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Original Image Card */}
-                  <GlassCard className="lg:col-span-2" glowColor="cyan" delay={0.1}>
-                    <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-2 h-2 rounded-full bg-cyan-400" style={{ boxShadow: '0 0 8px rgba(56,189,248,0.6)' }} />
-                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Orijinal Tasarım</span>
-                      </div>
-                      <span className="text-[9px] font-semibold text-white/20 bg-white/[0.04] px-3 py-1 rounded-full">{isletme}</span>
+                {/* Hero Feature: Orijinal Tasarım (Tam Genişlik) */}
+                <GlassCard glowColor="cyan" delay={0.1}>
+                  <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-cyan-400" style={{ boxShadow: '0 0 8px rgba(56,189,248,0.6)' }} />
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Orijinal Tasarım</span>
                     </div>
-                    <div
-                      onClick={() => gorsel && setSeciliGorsel(gorsel)}
-                      className="cursor-zoom-in group relative"
-                    >
-                      <img src={gorsel!} alt="Orijinal" className="w-full h-[340px] object-contain bg-black/20 transition-all duration-700 group-hover:scale-[1.03]" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-end justify-center pb-6">
-                        <span className="text-white text-xs font-medium bg-white/10 backdrop-blur-xl px-4 py-2 rounded-full border border-white/20">Büyütmek için tıkla</span>
-                      </div>
+                    <span className="text-[9px] font-semibold text-white/20 bg-white/[0.04] px-3 py-1 rounded-full">{isletme}</span>
+                  </div>
+                  <div
+                    onClick={() => gorsel && setSeciliGorsel(gorsel)}
+                    className="cursor-zoom-in group relative"
+                  >
+                    <img src={gorsel!} alt="Orijinal" className="w-full max-h-[500px] object-contain bg-[#0a0a0f] transition-all duration-700 group-hover:scale-[1.01]" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-end justify-center pb-6">
+                      <span className="text-white text-xs font-medium bg-white/10 backdrop-blur-xl px-4 py-2 rounded-full border border-white/20">Büyütmek için tıkla</span>
                     </div>
-                  </GlassCard>
+                  </div>
+                </GlassCard>
 
-                  {/* Score Ring Card */}
-                  <GlassCard glowColor="blue" delay={0.2}>
-                    <div className="p-4 border-b border-white/[0.06]">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-2 h-2 rounded-full bg-blue-400" style={{ boxShadow: '0 0 8px rgba(56,189,248,0.6)' }} />
-                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Genel Puan</span>
+                {/* Butonlar: Yeni Analiz & Showcase Yayınla */}
+                <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
+                  <button
+                    onClick={sifirla}
+                    className="group relative md:flex-1 py-4 px-6 rounded-2xl font-bold text-sm overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] border border-white/[0.08]"
+                  >
+                    <div className="absolute inset-0 bg-white/[0.03] group-hover:bg-white/[0.06] transition-colors" />
+                    <span className="relative z-10 flex items-center justify-center gap-2 text-white">
+                      <RotateCcw className="w-5 h-5 text-blue-400" /> Yeni Bir Tasarım Analiz Et
+                    </span>
+                  </button>
+
+                  <GlassCard className="flex-[1.5] flex flex-col md:flex-row items-center justify-between p-4 px-6" glowColor="yellow" delay={0.2}>
+                    <div className="flex items-center gap-4 mb-4 md:mb-0 w-full md:w-auto">
+                      <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20 flex-shrink-0">
+                        <Sparkles className="w-6 h-6 text-yellow-400" />
+                      </div>
+                      <div className="text-left w-full">
+                        <h4 className="text-white text-sm font-semibold tracking-wide">İlham Vitrininde Yayınla</h4>
+                        <p className="text-white/50 text-[11px] mt-1 leading-relaxed md:max-w-xs">Tasarımınızı toplulukla paylaşıp harika tasarımlar arasına girmek ister misiniz?</p>
                       </div>
                     </div>
-                    <div className="p-6 flex flex-col items-center">
-                      <ScoreRing score={sonuc.genelPuan} />
-                      <div className="mt-4 p-4 bg-white/[0.03] rounded-xl border border-white/[0.06] w-full">
-                        <p className="text-white/50 text-[11px] italic leading-relaxed text-center">
-                          "{sonuc.genelYorum}"
-                        </p>
-                      </div>
-                    </div>
+                    {vitrindeYayinlandi ? (
+                      <button
+                        disabled
+                        className="px-6 py-3 rounded-xl bg-emerald-500/10 text-emerald-400 font-bold text-xs border border-emerald-500/30 w-full md:w-auto cursor-default flex-shrink-0 flex items-center justify-center gap-1.5"
+                      >
+                        <Check className="w-4 h-4" /> Vitrinde Yayında!
+                      </button>
+                    ) : (
+                      <button
+                        onClick={vitrindeYayinla}
+                        className="px-6 py-3 rounded-xl bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-bold text-xs shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-[1.03] active:scale-[0.97] transition-all w-full md:w-auto flex-shrink-0"
+                      >
+                        Evet, Yayınla
+                      </button>
+                    )}
                   </GlassCard>
                 </div>
+
+                {/* Score & General Summary Card */}
+                <GlassCard glowColor="blue" delay={0.3}>
+                  <div className="p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 md:gap-10">
+                    <div className="flex-shrink-0 scale-110">
+                      <ScoreRing score={sonuc.genelPuan} />
+                    </div>
+                    <div className="flex-1 space-y-4">
+                      <div className="flex flex-col md:flex-row md:items-center gap-3">
+                        <h3 className="text-2xl font-bold text-white tracking-tight">Analiz Sonucu</h3>
+                        {sonuc.genelDegerlendirme && (
+                          <span className="inline-flex w-fit text-[10px] font-bold uppercase tracking-widest text-blue-300 bg-blue-500/10 px-3 py-1.5 rounded-full border border-blue-500/20">
+                            {sonuc.genelDegerlendirme}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-white/70 text-[15px] leading-relaxed text-left">
+                        "{sonuc.genelYorum}"
+                      </p>
+                    </div>
+                  </div>
+                </GlassCard>
 
                 {/* Criteria Row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -930,7 +971,7 @@ export default function App() {
                     const color = pct >= 75 ? "#38bdf8" : pct >= 50 ? "#fbbf24" : "#f87171";
                     const glowColors = ["cyan", "blue", "purple", "green"];
                     return (
-                      <GlassCard key={k.key} glowColor={glowColors[i]} delay={0.15 * (i + 1)}>
+                      <GlassCard key={k.key} glowColor={glowColors[i]} delay={0.4 + (i * 0.1)}>
                         <div className="p-5">
                           <div className="flex items-center justify-between mb-5">
                             <div className="flex items-center gap-2.5">
@@ -980,7 +1021,7 @@ export default function App() {
 
                     {/* Color Palette */}
                     {sonuc.renkPaleti?.length > 0 && (
-                      <GlassCard glowColor="blue" delay={0.5}>
+                      <GlassCard glowColor="blue" delay={0.7}>
                         <div className="p-4 border-b border-white/[0.06] flex items-center gap-2.5">
                           <div className="w-2 h-2 rounded-full bg-blue-400" style={{ boxShadow: '0 0 8px rgba(96,165,250,0.6)' }} />
                           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Renk Paleti</span>
@@ -1035,17 +1076,12 @@ export default function App() {
 
                     {/* Technical Summary */}
                     {sonuc.teknikOzet && (
-                      <GlassCard glowColor="purple" delay={0.55}>
+                      <GlassCard glowColor="purple" delay={0.75}>
                         <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
                           <div className="flex items-center gap-2.5">
                             <div className="w-2 h-2 rounded-full bg-purple-400" style={{ boxShadow: '0 0 8px rgba(168,85,247,0.5)' }} />
                             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Teknik Özet</span>
                           </div>
-                          {sonuc.genelDegerlendirme && (
-                            <span className="text-[8px] font-bold uppercase tracking-widest text-purple-200/70 bg-purple-500/10 px-2.5 py-1 rounded-full border border-purple-500/15">
-                              {sonuc.genelDegerlendirme}
-                            </span>
-                          )}
                         </div>
                         <div className="p-5 space-y-4">
                           {[
@@ -1093,67 +1129,45 @@ export default function App() {
                   </div>
                 )}
 
-                {/* Bottom Row: Coming Soon + Suggestion + New Analysis */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* AI Revize Coming Soon */}
-                  <GlassCard glowColor="purple" delay={0.6}>
-                    <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-2 h-2 rounded-full bg-purple-400" style={{ boxShadow: '0 0 8px rgba(168,85,247,0.6)' }} />
-                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">AI Revize</span>
-                      </div>
-                      <span className="text-[8px] font-bold uppercase tracking-widest text-purple-300 bg-purple-500/10 px-2.5 py-1 rounded-full border border-purple-500/20">Yakında</span>
-                    </div>
-                    <div className="relative p-8 flex flex-col items-center justify-center min-h-[180px]">
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-purple-500/10 rounded-full blur-[50px] animate-pulse" />
-                      <div className="relative z-10 flex flex-col items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/15 to-blue-500/15 border border-white/[0.08] flex items-center justify-center">
-                          <Sparkles className="w-6 h-6 text-purple-400" />
-                        </div>
-                        <p className="text-white/60 text-sm font-semibold">AI Tasarım Revizyonu</p>
-                        <p className="text-white/25 text-[10px] leading-relaxed text-center max-w-[180px]">Yapay zeka destekli otomatik revizyon çok yakında</p>
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.06]">
-                          <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
-                          <span className="text-white/30 text-[9px] font-semibold uppercase tracking-wider">Geliştiriliyor</span>
-                        </div>
-                      </div>
-                    </div>
-                  </GlassCard>
-
+                {/* PRO Feature & Oneri Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Suggestion Card */}
-                  <GlassCard className="lg:col-span-1" glowColor="green" delay={0.7}>
+                  <GlassCard glowColor="green" delay={0.8}>
                     <div className="p-4 border-b border-white/[0.06]">
                       <div className="flex items-center gap-2.5">
                         <div className="w-2 h-2 rounded-full bg-emerald-400" style={{ boxShadow: '0 0 8px rgba(52,211,153,0.6)' }} />
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Gelişim Önerisi</span>
                       </div>
                     </div>
-                    <div className="p-5">
-                      <p className="text-white/60 text-[13px] leading-relaxed">
+                    <div className="p-6">
+                      <p className="text-white/70 text-[14px] leading-relaxed">
                         {sonuc.oneri}
                       </p>
                     </div>
                   </GlassCard>
 
-                  {/* New Analysis Button Card */}
-                  <GlassCard glowColor="blue" delay={0.8}>
-                    <div className="p-4 border-b border-white/[0.06]">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-2 h-2 rounded-full bg-blue-400" style={{ boxShadow: '0 0 8px rgba(56,189,248,0.6)' }} />
-                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">İşlem</span>
+                  {/* PRO Feature: AI Revize */}
+                  <GlassCard glowColor="pink" delay={0.9} className="relative overflow-hidden group">
+                    {/* Arka plan efektleri */}
+                    <div className="absolute top-[-50%] right-[-10%] w-[150%] h-[150%] bg-gradient-to-br from-fuchsia-600/10 via-purple-600/5 to-transparent blur-3xl rounded-full transform rotate-12 group-hover:opacity-100 opacity-60 transition-opacity duration-700"></div>
+                    <div className="relative p-6 px-8 h-full flex flex-col justify-between min-h-[220px] z-10">
+                      <div>
+                        <div className="flex items-center justify-between mb-5">
+                          <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center border border-purple-500/30">
+                            <Sparkles className="w-6 h-6 text-fuchsia-400" />
+                          </div>
+                          <div className="px-3 py-1.5 rounded-full bg-gradient-to-r from-fuchsia-600 to-purple-600 shadow-[0_0_20px_rgba(217,70,239,0.5)]">
+                            <span className="text-[10px] font-extrabold uppercase tracking-widest text-white flex items-center gap-1.5">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                              PRO Özellik
+                            </span>
+                          </div>
+                        </div>
+                        <h4 className="text-2xl font-black text-white mb-3">AI Tasarım Revizyonu</h4>
+                        <p className="text-white/60 text-[14px] leading-relaxed pr-4">Tasarımınızı yapay zekaya emanet edin. Saniyeler içinde kusurları düzeltsin ve alternatif, mükemmel varyasyonlar üretsin!</p>
                       </div>
-                    </div>
-                    <div className="p-6 flex flex-col items-center justify-center min-h-[180px] gap-5">
-                      <p className="text-white/30 text-xs text-center">Başka bir tasarımı analiz etmek ister misiniz?</p>
-                      <button
-                        onClick={sifirla}
-                        className="group relative w-full py-4 rounded-xl font-bold text-sm overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 opacity-80 group-hover:opacity-100 transition-opacity" />
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 blur-xl opacity-40 group-hover:opacity-60 transition-opacity" />
-                        <span className="relative z-10 flex items-center justify-center gap-2 text-white">
-                          <RotateCcw className="w-4 h-4" /> Yeni Analiz Yap
-                        </span>
+                      <button className="mt-8 w-full py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/20 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 hover:border-fuchsia-500/50 hover:shadow-[0_0_20px_rgba(217,70,239,0.2)]">
+                        Şimdi PRO'ya Geç <ChevronRight className="w-4 h-4" />
                       </button>
                     </div>
                   </GlassCard>
