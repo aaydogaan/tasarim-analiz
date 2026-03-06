@@ -224,6 +224,7 @@ export default function App() {
   // Share
   const [paylasimKopyalandi, setPaylasimKopyalandi] = useState(false);
   const [vitrindeYayinlandi, setVitrindeYayinlandi] = useState(false);
+  const [yayinlaniyor, setYayinlaniyor] = useState(false);
 
   // Auth
   const [authAcik, setAuthAcik] = useState(false);
@@ -295,7 +296,7 @@ export default function App() {
   };
 
   const vitrindeYayinla = async () => {
-    if (!sonuc?._analiz_id) return;
+    if (!sonuc?._analiz_id) return false;
 
     // Güvenlik: Eğer guest iseler veya login olmadan yapmışlarsa _analiz_id olmayabilir veya supabase izin vermeyebilir,
     // Ancak zaten guestMode false olduğunda ekleniyor.
@@ -306,9 +307,11 @@ export default function App() {
 
     if (!error) {
       setVitrindeYayinlandi(true);
+      return true;
     } else {
       console.error(error);
-      alert('Yayınlanırken bir hata oluştu.');
+      alert('Yayınlanırken bir hata oluştu: ' + error.message);
+      return false;
     }
   };
 
@@ -945,13 +948,26 @@ export default function App() {
                         </button>
                       ) : (
                         <button
-                          onClick={() => {
-                            vitrindeYayinla();
-                            setTimeout(() => setGorunum('vitrin'), 1500); // 1.5s sonra vitrine yönlendir
+                          disabled={yayinlaniyor}
+                          onClick={async () => {
+                            setYayinlaniyor(true);
+                            const basarili = await vitrindeYayinla();
+                            if (basarili) {
+                              setTimeout(() => {
+                                setGorunum('vitrin');
+                                setYayinlaniyor(false);
+                              }, 1500); // 1.5s sonra vitrine yönlendir
+                            } else {
+                              setYayinlaniyor(false);
+                            }
                           }}
-                          className="w-full md:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-yellow-500 via-amber-500 to-orange-500 text-white font-bold text-sm shadow-[0_0_30px_rgba(245,158,11,0.4)] hover:shadow-[0_0_40px_rgba(245,158,11,0.6)] hover:scale-[1.03] active:scale-[0.97] transition-all flex items-center justify-center gap-2"
+                          className={`w-full md:w-auto px-8 py-3.5 rounded-xl text-white font-bold text-sm transition-all flex items-center justify-center gap-2 ${yayinlaniyor ? 'bg-white/10 cursor-not-allowed border border-white/20 text-white/50' : 'bg-gradient-to-r from-yellow-500 via-amber-500 to-orange-500 shadow-[0_0_30px_rgba(245,158,11,0.4)] hover:shadow-[0_0_40px_rgba(245,158,11,0.6)] hover:scale-[1.03] active:scale-[0.97]'}`}
                         >
-                          Evet, Yayınla! <ChevronRight className="w-4 h-4" />
+                          {yayinlaniyor ? (
+                            <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Yayınlanıyor...</>
+                          ) : (
+                            <>Evet, Yayınla! <ChevronRight className="w-4 h-4" /></>
+                          )}
                         </button>
                       )}
                     </div>
