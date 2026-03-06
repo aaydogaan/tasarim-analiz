@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check, AlertCircle, Globe } from "lucide-react";
+import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check, AlertCircle, Globe, BrainCircuit } from "lucide-react";
 import { supabase } from "./lib/supabase";
 
 declare global {
@@ -12,6 +12,14 @@ declare global {
   }
 }
 
+const KARUSEL_IPUCLARI = [
+  "💡 Zıt (kontrast) renklerin bir arada kullanımı, butonların ve harekete geçirici mesajların algılanmasını %40 artırır.",
+  "💡 Gestalt prensiplerine göre, birbirine yakın duran tasarımsal ögeler beyin tarafından otomatik olarak gruplandırılır.",
+  "💡 Renklerin psikolojisi vardır: Mavi 'Güven', Kırmızı 'Tutku', Yeşil ise 'Doğa ve Büyüme' hissi verir.",
+  "💡 Tasarımdaki 'negatif boş alanlar' kusur değildir; aksine odaklanmayı sağlar ve lüks hissettirir.",
+  "💡 İnsan gözünün oluşturduğu en estetik denge şekli matematikteki 'Altın Oran' (1.618) formülünde gizlidir.",
+  "💡 Metin hiyerarşisi, kullanıcının sayfada nereye bakacağını saniyeler içinde zihinsel olarak yönlendirir."
+];
 type TasarimTuru = "Sosyal Medya" | "Kurumsal" | "E-Ticaret" | "Baskı Materyali";
 
 const kriterlerMap: Record<TasarimTuru, { key: string; label: string; emoji: React.ReactNode }[]> = {
@@ -234,6 +242,21 @@ export default function App() {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  // Karusel Yükleme İpuçları
+  const [loadingTipIndex, setLoadingTipIndex] = useState(0);
+
+  useEffect(() => {
+    let interval: any;
+    if (yukleniyor) {
+      interval = setInterval(() => {
+        setLoadingTipIndex((prev) => (prev + 1) % KARUSEL_IPUCLARI.length);
+      }, 4500);
+    } else {
+      setLoadingTipIndex(0);
+    }
+    return () => clearInterval(interval);
+  }, [yukleniyor]);
 
   const girisYap = async () => {
     setAuthYukleniyor(true); setAuthHata(null);
@@ -1093,6 +1116,64 @@ export default function App() {
                 Kapat ✕
               </button>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── YÜKLEME (LOADING) EKRANI MODAL ── */}
+      <AnimatePresence>
+        {yukleniyor && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[70] flex flex-col items-center justify-center p-4 bg-[#050508]/95 backdrop-blur-3xl"
+          >
+            {/* AI Beyin / Tarama Animasyonu */}
+            <motion.div
+              animate={{
+                scale: [1, 1.1, 1],
+                boxShadow: [
+                  "0 0 0 rgba(59, 130, 246, 0)",
+                  "0 0 60px rgba(59, 130, 246, 0.4)",
+                  "0 0 0 rgba(59, 130, 246, 0)"
+                ]
+              }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              className="w-32 h-32 rounded-full border border-blue-500/30 flex items-center justify-center bg-blue-500/10 mb-8"
+            >
+              <BrainCircuit className="w-12 h-12 text-blue-400" />
+            </motion.div>
+
+            {/* Başlık */}
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent mb-4 text-center">
+              Yapay Zeka Tasarımınızı İnceleyip Ölçüyor
+            </h2>
+            <div className="flex items-center gap-2 mb-12">
+              <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
+              <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
+              <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '400ms' }} />
+            </div>
+
+            {/* Dinamik İpuçları (Karusel) */}
+            <div className="h-24 w-full max-w-lg flex items-center justify-center overflow-hidden relative border border-white/5 bg-white/[0.02] rounded-3xl p-6">
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={loadingTipIndex}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.5 }}
+                  className="text-white/60 text-sm md:text-base text-center leading-relaxed font-medium absolute w-full px-6"
+                >
+                  {KARUSEL_IPUCLARI[loadingTipIndex]}
+                </motion.p>
+              </AnimatePresence>
+            </div>
+
+            <p className="fixed bottom-10 text-white/20 text-xs font-medium tracking-widest uppercase">
+              Bu işlem birkaç saniye sürebilir
+            </p>
           </motion.div>
         )}
       </AnimatePresence>
