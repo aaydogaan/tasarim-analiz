@@ -16,11 +16,11 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
     const brandOrange = "var(--color-brand-orange, #ff4d00)";
 
     return (
-        <div className="relative min-h-screen bg-[var(--color-brand-light)] text-[var(--color-brand-dark)] font-sans overflow-x-hidden selection:bg-[#ff4d00] selection:text-white">
+        <div className="relative min-h-screen font-sans overflow-x-hidden selection:bg-[#ff4d00] selection:text-white">
 
             {/* Subtle Grid Background - Limited to Hero Area to prevent overlapping black sections */}
             <div
-                className="absolute top-0 left-0 w-full h-[100vh] bg-[linear-gradient(to_right,#00000006_1px,rgba(0,0,0,0)_1px),linear-gradient(to_bottom,#00000006_1px,rgba(0,0,0,0)_1px)] bg-[size:32px_32px] pointer-events-none z-0"
+                className="absolute top-0 left-0 w-full h-[100vh] bg-[linear-gradient(to_right,var(--grid-color)_1px,rgba(0,0,0,0)_1px),linear-gradient(to_bottom,var(--grid-color)_1px,rgba(0,0,0,0)_1px)] bg-[size:32px_32px] pointer-events-none z-0"
                 style={{
                     maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
                     WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)'

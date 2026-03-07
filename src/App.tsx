@@ -227,6 +227,15 @@ export default function App() {
   const [yukleniyor, setYukleniyor] = useState(false);
   const [revizeYukleniyor, setRevizeYukleniyor] = useState(false);
   const [sonuc, setSonuc] = useState<any>(() => getSessionData('ra_sonuc', null));
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem('ra_darkMode');
+    return saved ? saved === 'true' : false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('ra_darkMode', darkMode.toString());
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
 
   const kriterler = kriterlerMap[tasarimTuru];
   const [hata, setHata] = useState<string | null>(null);
@@ -555,7 +564,7 @@ export default function App() {
 
 
   return (
-    <div className="min-h-screen bg-[var(--color-brand-light)] text-[var(--color-brand-dark)] selection:bg-[#ff4d00] selection:text-white font-sans flex flex-col justify-between overflow-x-hidden" style={{ scrollBehavior: 'smooth' }}>
+    <div className="min-h-screen selection:bg-[#ff4d00] selection:text-white font-sans flex flex-col justify-between overflow-x-hidden" style={{ scrollBehavior: 'smooth' }}>
       {/* Studio Grid Background */}
       {gorunum === 'app' && adim < 3 && (
         <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.03]"
@@ -571,6 +580,8 @@ export default function App() {
         onLogoutClick={cikisYap}
         onAuthClick={() => setAuthAcik(true)}
         goHome={goHome}
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
       />
 
       {gorunum === 'landing' ? (

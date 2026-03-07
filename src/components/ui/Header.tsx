@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { LogOut, BarChart2, ChevronDown } from 'lucide-react';
+import { LogOut, BarChart2, ChevronDown, Sun, Moon } from 'lucide-react';
 
 interface HeaderProps {
     gorunum: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography';
@@ -10,6 +10,8 @@ interface HeaderProps {
     onLogoutClick: () => void;
     onAuthClick: () => void;
     goHome: () => void;
+    darkMode: boolean;
+    setDarkMode: (d: boolean) => void;
 }
 
 export default function Header({
@@ -19,7 +21,9 @@ export default function Header({
     onStatsClick,
     onLogoutClick,
     onAuthClick,
-    goHome
+    goHome,
+    darkMode,
+    setDarkMode
 }: HeaderProps) {
     const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
     const [isToolsDropdownOpen, setIsToolsDropdownOpen] = React.useState(false);
@@ -142,6 +146,28 @@ export default function Header({
 
             {/* Right Side Actions */}
             <div className="flex items-center gap-3">
+                {/* Dark Mode Toggle */}
+                <button
+                    onClick={() => setDarkMode(!darkMode)}
+                    className="p-2 rounded-xl hover:bg-[var(--color-brand-dark)]/5 transition-all active:scale-95 group relative mb-0.5"
+                    aria-label="Karanlık Modu Değiştir"
+                >
+                    <motion.div
+                        animate={{ rotate: darkMode ? 0 : 90, scale: darkMode ? 0 : 1 }}
+                        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                        transition={{ duration: 0.3 }}
+                    >
+                        <Sun className="w-[18px] h-[18px] text-amber-500" />
+                    </motion.div>
+                    <motion.div
+                        animate={{ rotate: darkMode ? 0 : -90, scale: darkMode ? 1 : 0 }}
+                        className="flex items-center justify-center p-0.5"
+                        transition={{ duration: 0.3 }}
+                    >
+                        <Moon className="w-[18px] h-[18px] text-[var(--color-brand-orange)]" />
+                    </motion.div>
+                </button>
+
                 {gorunum !== 'app' && (
                     <button
                         onClick={() => setGorunum('app')}

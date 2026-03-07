@@ -7,12 +7,39 @@
   src: url(https://fonts.gstatic.com/s/calsans/v2/fdN99sWUv3gWqXxqqRBctFs.woff2) format('woff2');
 }
 
+:root {
+  --color-brand-orange: #ff4d00;
+  --bg-primary: #f8f9fa;
+  --bg-secondary: #ffffff;
+  --text-primary: #111111;
+  --text-secondary: #666666;
+  --border-primary: rgba(0, 0, 0, 0.05);
+  --header-bg: rgba(248, 249, 250, 0.8);
+  --card-bg: #ffffff;
+  --grid-color: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme='dark'] {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #111111;
+  --text-primary: #ffffff;
+  --text-secondary: #999999;
+  --border-primary: rgba(255, 255, 255, 0.1);
+  --header-bg: rgba(10, 10, 10, 0.8);
+  --card-bg: #161616;
+  --grid-color: rgba(255, 255, 255, 0.05);
+}
+
 @theme {
   --color-brand-orange: #ff4d00;
-  --color-brand-light: #f0f0f0;
-  --color-brand-dark: #131313;
+  --color-brand-light: var(--bg-primary);
+  --color-brand-dark: var(--text-primary);
   --font-sans: "Inter", "Cal Sans", sans-serif;
   --font-display: "Cal Sans", sans-serif;
+}
+
+* {
+  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, shadow 0.4s ease;
 }
 
 html {
@@ -20,6 +47,6 @@ html {
 }
 
 body {
-  background-color: var(--color-brand-light);
-  color: var(--color-brand-dark);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
