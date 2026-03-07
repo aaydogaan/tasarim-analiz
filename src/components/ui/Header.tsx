@@ -1,10 +1,10 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { LogOut, BarChart2 } from 'lucide-react';
+import { LogOut, BarChart2, ChevronDown } from 'lucide-react';
 
 interface HeaderProps {
-    gorunum: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing';
-    setGorunum: (v: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing') => void;
+    gorunum: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about';
+    setGorunum: (v: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about') => void;
     kullanici: any;
     onStatsClick: () => void;
     onLogoutClick: () => void;
@@ -22,7 +22,7 @@ export default function Header({
     goHome
 }: HeaderProps) {
 
-    const handleNavClick = (view: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing', sectionId?: string) => {
+    const handleNavClick = (view: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about', sectionId?: string) => {
         if (gorunum !== view) {
             setGorunum(view);
             // Wait for render if moving to landing
@@ -73,12 +73,39 @@ export default function Header({
                 >
                     Topluluk
                 </button>
-                <button
-                    onClick={() => handleNavClick('pricing')}
-                    className={`transition-colors whitespace-nowrap ${gorunum === 'pricing' ? 'text-[var(--color-brand-orange)] font-bold' : 'hover:text-[var(--color-brand-orange)]'}`}
-                >
-                    Planlar
-                </button>
+
+                {/* Dropdown for Hakkımızda (About + Pricing) */}
+                <div className="relative group">
+                    <button
+                        className={`flex items-center gap-1 transition-colors whitespace-nowrap ${['about', 'pricing'].includes(gorunum) ? 'text-[var(--color-brand-orange)] font-bold' : 'hover:text-[var(--color-brand-dark)] text-[#666666]'}`}
+                    >
+                        Hakkımızda <ChevronDown className="w-3 h-3 opacity-60 group-hover:rotate-180 transition-transform duration-300" />
+                    </button>
+                    {/* Hover Dropdown Box */}
+                    <div className="absolute top-full right-0 md:left-1/2 md:-translate-x-1/2 pt-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                        <div className="bg-white rounded-[24px] shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-[var(--color-brand-dark)]/5 p-2 w-56 flex flex-col gap-1 relative before:absolute before:content-[''] before:w-4 before:h-4 before:bg-white before:border-l before:border-t before:border-[var(--color-brand-dark)]/5 before:-top-2 before:left-1/2 before:-translate-x-1/2 before:rotate-45">
+                            <div className="relative z-10 bg-white rounded-xl">
+                                <button
+                                    onClick={() => handleNavClick('about')}
+                                    className={`w-full text-left px-5 py-3.5 rounded-xl hover:bg-[var(--color-brand-light)] text-[13px] font-bold transition-all ${gorunum === 'about' ? 'text-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]/5' : 'text-[var(--color-brand-dark)]/80 hover:text-[var(--color-brand-dark)]'}`}
+                                >
+                                    Proje Hakkında
+                                    <span className="block text-[10px] text-[var(--color-brand-dark)]/40 font-medium mt-0.5">Motivasyon ve Amaç</span>
+                                </button>
+                                <button
+                                    onClick={() => handleNavClick('pricing')}
+                                    className={`w-full text-left px-5 py-3.5 rounded-xl hover:bg-[var(--color-brand-orange)]/10 text-[13px] font-bold transition-all flex justify-between items-center ${gorunum === 'pricing' ? 'text-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]/5' : 'text-[var(--color-brand-dark)]/80 hover:text-[var(--color-brand-orange)]'}`}
+                                >
+                                    <div>
+                                        Planlar
+                                        <span className="block text-[10px] text-[var(--color-brand-dark)]/40 font-medium mt-0.5">Abonelik & Özellikler</span>
+                                    </div>
+                                    <span className="text-[9px] bg-[var(--color-brand-orange)] text-white px-2 py-0.5 rounded-md font-black tracking-wider uppercase">Pro</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Right Side Actions */}
