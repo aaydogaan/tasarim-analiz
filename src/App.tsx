@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Lenis from 'lenis';
 import { motion, AnimatePresence } from "motion/react";
-import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check, AlertCircle, Globe, BrainCircuit } from "lucide-react";
+import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check, AlertCircle, Globe, BrainCircuit, ArrowUpRight } from "lucide-react";
 import { supabase } from "./lib/supabase";
 import { Vitrin } from "./pages/Vitrin";
 import TextPressure from "./components/ui/TextPressure";
@@ -566,9 +566,26 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[var(--color-brand-light)] text-[var(--color-brand-dark)] selection:bg-[#ff4d00] selection:text-white font-sans flex flex-col justify-between overflow-x-hidden" style={{ scrollBehavior: 'smooth' }}>
-      {/* Background Orbs */}
-      <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#ff4d00]/5 blur-[120px] rounded-full pointer-events-none" />
-      <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[var(--color-brand-dark)]/5 blur-[120px] rounded-full pointer-events-none" />
+      {/* Background Animated Blobs (Landing Page Style) */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none">
+        <motion.div
+          animate={{
+            left: ["-10%", "40%", "80%", "20%", "-10%"],
+            top: ["10%", "60%", "20%", "80%", "10%"],
+            scale: [1, 1.2, 0.9, 1.1, 1],
+          }}
+          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute w-[300px] h-[300px] bg-[var(--color-brand-orange)]/5 backdrop-blur-[40px] rounded-full"
+        />
+        <motion.div
+          animate={{
+            left: ["90%", "20%", "50%", "80%", "90%"],
+            top: ["70%", "20%", "80%", "30%", "70%"],
+          }}
+          transition={{ duration: 30, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute w-[250px] h-[250px] bg-[var(--color-brand-dark)]/5 backdrop-blur-[30px] rounded-full"
+        />
+      </div>
 
       <Header
         gorunum={gorunum}
@@ -601,50 +618,20 @@ export default function App() {
           <Community />
         </main>
       ) : (
-        <main className={`flex-1 flex flex-col items-center w-full max-w-screen-xl mx-auto px-4 py-4 md:py-6 mt-16 transition-all duration-500 ${adim === 3 ? 'max-w-6xl' : 'max-w-md'}`}>
-          {/* Header */}
-          <header className="text-center mb-6 md:mb-8 relative z-10 pt-4">
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
+        <main className={`flex-1 flex flex-col items-center w-full max-w-screen-xl mx-auto px-4 py-12 md:py-20 mt-16 transition-all duration-700 ${adim === 3 ? 'max-w-6xl' : 'max-w-xl'}`}>
+          {/* Minimal Header for App Content */}
+          {adim < 3 && (
+            <motion.header
+              initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-              className="flex flex-col items-center w-full"
+              className="text-center mb-12"
             >
-              {adim === 1 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2, duration: 0.6 }}
-                  className="flex items-center gap-2 px-5 py-2 rounded-full bg-white border border-[var(--color-brand-dark)]/10 mb-8 backdrop-blur-xl shadow-sm"
-                >
-                  <Sparkles className="w-4 h-4 text-[#ff4d00]" />
-                  <span className="text-[var(--color-brand-dark)]/70 text-xs font-semibold tracking-wider uppercase">Tasarım Asistanı Hazır</span>
-                </motion.div>
-              )}
-
-              <div className="flex flex-col items-center mb-2">
-                <h1 className="text-4xl md:text-5xl font-black text-[var(--color-brand-dark)] tracking-tighter mb-2">
-                  REVIZE<span className="text-[var(--color-brand-orange)]">AI</span>
-                </h1>
-                <div className="w-12 h-1 bg-[var(--color-brand-orange)] rounded-full mb-4" />
-              </div>
-
-              {adim === 1 ? (
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.7 }}
-                  className="text-[var(--color-brand-dark)]/60 text-sm md:text-base max-w-xl mx-auto leading-relaxed mt-2 font-medium"
-                >
-                  Tasarımlarınızı profesyonel kriterlere göre saniyeler içinde analiz edin.
-                  Renk uyumu, tipografi, kompozisyon ve marka bütünlüğü açısından
-                  kapsamlı geri bildirim ve gelişim önerileri alın.
-                </motion.p>
-              ) : (
-                <p className="text-[var(--color-brand-dark)]/40 text-sm mt-2 font-medium">Profesyonel Tasarım Analizi</p>
-              )}
-            </motion.div>
-          </header>
+              <h1 className="text-5xl md:text-7xl font-black text-[var(--color-brand-dark)] tracking-tighter mb-4 leading-none">
+                REVİZE<span className="text-[var(--color-brand-orange)]">AI</span> <span className="text-[var(--color-brand-dark)]/10">STÜDYO</span>
+              </h1>
+              <p className="text-[var(--color-brand-dark)]/40 text-sm font-bold uppercase tracking-[0.3em]">Tasarımını Analiz Et ve Mükemmelleştir</p>
+            </motion.header>
+          )}
 
           {/* Stepper */}
           {adim < 3 && (
@@ -662,161 +649,120 @@ export default function App() {
             {adim === 1 && (
               <motion.div
                 key="step1"
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                className="space-y-4 w-full"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="w-full space-y-8"
               >
-                <div className={`${gc.card} overflow-hidden group`}>
+                {/* Compact Studio Upload Area */}
+                <div className="relative group mx-auto w-full max-w-lg">
                   <div
                     onClick={() => fileRef.current?.click()}
-                    onDrop={e => { e.preventDefault(); handleDosya(e.dataTransfer.files[0]); }}
-                    onDragOver={e => e.preventDefault()}
-                    className={`cursor-pointer flex flex-col items-center justify-center p-6 md:p-8 transition-all duration-300 ${gorsel ? 'p-0 md:p-0' : 'hover:bg-[var(--color-brand-light)] bg-white border border-[var(--color-brand-dark)]/5 rounded-2xl min-h-[160px] md:min-h-[200px]'}`}
+                    className={`
+                      relative overflow-hidden cursor-pointer transition-all duration-500 rounded-[40px] border-2 border-dashed
+                      ${gorsel
+                        ? 'border-transparent bg-white shadow-2xl'
+                        : 'border-[var(--color-brand-dark)]/5 bg-white/50 backdrop-blur-xl hover:bg-white hover:border-[var(--color-brand-orange)]/30 hover:shadow-2xl hover:shadow-[var(--color-brand-orange)]/5'
+                      }
+                      aspect-[4/3] flex flex-col items-center justify-center p-4
+                    `}
                   >
-                    {gorsel ? (
-                      <img src={gorsel} alt="Tasarım" className="w-full max-h-[25vh] md:max-h-[30vh] object-contain block" />
-                    ) : (
-                      <>
-                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-[var(--color-brand-orange)]/10 border border-[var(--color-brand-orange)]/20 flex items-center justify-center text-[var(--color-brand-orange)] mb-3 md:mb-4 group-hover:scale-110 transition-transform">
-                          <Upload className="w-5 h-5 md:w-6 md:h-6" />
+                    {!gorsel && (
+                      <div className="text-center space-y-4">
+                        <div className="w-20 h-20 rounded-full bg-[var(--color-brand-orange)]/10 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-500">
+                          <Upload className="w-8 h-8 text-[var(--color-brand-orange)]" />
                         </div>
-                        <p className="text-[var(--color-brand-dark)] font-semibold text-base md:text-lg">Görsel Yükle</p>
-                        <p className="text-[var(--color-brand-dark)]/40 text-xs md:text-sm mt-1">Sürükle bırak veya tıkla · PNG, JPG</p>
-                      </>
+                        <div>
+                          <p className="text-xl font-black text-[var(--color-brand-dark)]">Tasarımı Bırak veya Seç</p>
+                          <p className="text-[var(--color-brand-dark)]/30 text-xs font-bold uppercase tracking-widest mt-1">PNG, JPG, WEBP • Max 10MB</p>
+                        </div>
+                      </div>
                     )}
-                  </div>
-                  {gorsel && (
-                    <div className="flex border-t border-[var(--color-brand-dark)]/5 overflow-hidden">
-                      <div
-                        onClick={() => fileRef.current?.click()}
-                        className="flex-1 py-3 bg-[var(--color-brand-light)] hover:bg-[var(--color-brand-orange)]/10 transition-colors cursor-pointer text-center border-r border-[var(--color-brand-dark)]/5 flex items-center justify-center gap-2 group"
-                      >
-                        <RotateCcw className="w-4 h-4 text-[var(--color-brand-orange)] group-hover:scale-110 transition-transform" />
-                        <span className="text-[var(--color-brand-orange)] text-sm font-medium">Değiştir</span>
-                      </div>
-                      <div
-                        onClick={() => {
-                          setGorsel(null);
-                          setGorselBase64(null);
-                          setSonuc(null);
-                          if (fileRef.current) fileRef.current.value = "";
-                        }}
-                        className="flex-1 py-3 bg-[var(--color-brand-light)] hover:bg-red-500/10 transition-colors cursor-pointer text-center flex items-center justify-center gap-2 group/remove"
-                      >
-                        <X className="w-4 h-4 text-[var(--color-brand-dark)]/40 group-hover/remove:text-red-500 transition-colors" />
-                        <span className="text-[var(--color-brand-dark)]/50 group-hover/remove:text-red-500 text-sm font-medium transition-colors">Kaldır</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => e.target.files && handleDosya(e.target.files[0])} />
 
-                {/* Tasarım Türü Seçimi */}
-                <div className={`${gc.card} p-4`}>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-brand-dark)]/40 ml-1 mb-3 block">Tasarım Türü</span>
-                  <div className="grid grid-cols-2 gap-2">
-                    {tasarimTuruConfig.map(({ id, icon, desc }) => (
-                      <button
-                        key={id}
-                        onClick={() => setTasarimTuru(id)}
-                        className={`flex items-center gap-3 p-3 rounded-2xl border text-left transition-all duration-300 ${tasarimTuru === id
-                          ? "bg-[var(--color-brand-orange)]/10 border-[var(--color-brand-orange)]/30 shadow-sm"
-                          : "bg-white border-[var(--color-brand-dark)]/5 hover:bg-[var(--color-brand-light)]"
-                          }`}
-                      >
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${tasarimTuru === id ? "bg-[var(--color-brand-orange)]/20 text-[var(--color-brand-orange)]" : "bg-[var(--color-brand-light)] text-[var(--color-brand-dark)]/30 border border-[var(--color-brand-dark)]/5"
-                          }`}>
-                          {icon}
-                        </div>
-                        <div className="overflow-hidden">
-                          <p className={`text-[11px] font-bold truncate transition-colors ${tasarimTuru === id ? "text-[var(--color-brand-dark)]" : "text-[var(--color-brand-dark)]/60"}`}>{id}</p>
-                          <p className={`text-[9px] truncate ${tasarimTuru === id ? "text-[var(--color-brand-dark)]/60" : "text-[var(--color-brand-dark)]/40"}`}>{desc}</p>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Sosyal Medya Platform Seçimi */}
-                  <AnimatePresence>
-                    {tasarimTuru === "Sosyal Medya" && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="pt-4 mt-4 border-t border-[var(--color-brand-dark)]/5">
-                          <span className="text-[10px] text-[var(--color-brand-dark)]/40 font-bold uppercase tracking-widest block mb-2.5">Platform</span>
-                          <div className="flex flex-wrap gap-2">
-                            {sosyalMedyaPlatformlari.map(p => (
-                              <button
-                                key={p}
-                                onClick={() => setPlatform(p)}
-                                className={`px-3 py-1.5 rounded-full text-[10px] font-semibold transition-all duration-200 ${platform === p ? "bg-[var(--color-brand-dark)] text-white shadow-sm" : "bg-white border border-[var(--color-brand-dark)]/10 text-[var(--color-brand-dark)]/50 hover:bg-[var(--color-brand-light)]"
-                                  }`}
-                              >
-                                {p}
-                              </button>
-                            ))}
+                    {gorsel && (
+                      <div className="w-full h-full relative group/img">
+                        <img src={gorsel} alt="Tasarım" className="w-full h-full object-contain rounded-[32px]" />
+                        <div className="absolute inset-0 bg-[var(--color-brand-dark)]/40 opacity-0 group-hover/img:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm rounded-[32px]">
+                          <div className="flex gap-4">
+                            <button onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }} className="p-3 bg-white rounded-2xl text-[var(--color-brand-dark)] hover:scale-110 transition-transform shadow-xl">
+                              <RotateCcw className="w-6 h-6" />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); setGorsel(null); setGorselBase64(null); }} className="p-3 bg-white rounded-2xl text-red-500 hover:scale-110 transition-transform shadow-xl">
+                              <X className="w-6 h-6" />
+                            </button>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     )}
-                  </AnimatePresence>
-                </div>
-
-                {/* İşletme Türü */}
-                <div className={`${gc.card} p-5`}>
-                  <span className={gc.label}>Sektör</span>
-                  <div className="flex flex-col gap-4">
-                    <div className="flex flex-wrap gap-2">
-                      {isletmeTurleri.map(t => (
-                        <button
-                          key={t}
-                          onClick={() => setIsletme(t)}
-                          className={`
-                          px-4 py-2 rounded-full text-xs font-medium transition-all duration-300
-                          ${isletme === t ? "bg-[var(--color-brand-dark)] text-white shadow-sm" : "bg-white border border-[var(--color-brand-dark)]/10 text-[var(--color-brand-dark)]/50 hover:bg-[var(--color-brand-light)]"}
-                        `}
-                        >
-                          {t}
-                        </button>
-                      ))}
-                    </div>
-
-                    <AnimatePresence>
-                      {isletme === "Diğer" && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="overflow-hidden"
-                        >
-                          <input
-                            type="text"
-                            placeholder="Lütfen sektörünüzü veya işletme türünüzü yazın..."
-                            value={digerIsletme}
-                            onChange={(e) => setDigerIsletme(e.target.value)}
-                            className={gc.input}
-                            autoFocus
-                          />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
                   </div>
                 </div>
 
-                <button
-                  onClick={() => setAdim(2)}
-                  disabled={!gorsel}
-                  className={`
-                  w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300
-                  ${gorsel ? "bg-[var(--color-brand-orange)] text-white shadow-xl shadow-black/10 hover:scale-[1.02] active:scale-[0.98]" : "bg-[var(--color-brand-dark)]/5 text-[var(--color-brand-dark)]/20 cursor-not-allowed"}
-                `}
-                >
-                  Devam Et <ChevronRight className="w-5 h-5" />
-                </button>
+                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => e.target.files && handleDosya(e.target.files[0])} />
+
+                {/* Compact Config Panel */}
+                {gorsel && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                  >
+                    {/* Tasarım Türü */}
+                    <div className={`${gc.card} p-5`}>
+                      <span className={gc.label}>Tasarım Türü</span>
+                      <div className="grid grid-cols-2 gap-2">
+                        {tasarimTuruConfig.map(({ id, icon }) => (
+                          <button
+                            key={id}
+                            onClick={() => setTasarimTuru(id)}
+                            className={`flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all duration-300 ${tasarimTuru === id
+                              ? "bg-[var(--color-brand-orange)]/10 border-[var(--color-brand-orange)]/30"
+                              : "bg-white border-[var(--color-brand-dark)]/5"
+                              }`}
+                          >
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${tasarimTuru === id ? "text-[var(--color-brand-orange)]" : "text-[var(--color-brand-dark)]/20"}`}>
+                              {icon}
+                            </div>
+                            <span className={`text-[11px] font-bold ${tasarimTuru === id ? "text-[var(--color-brand-dark)]" : "text-[var(--color-brand-dark)]/40"}`}>{id}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Sektör */}
+                    <div className={`${gc.card} p-5`}>
+                      <span className={gc.label}>İşletme / Sektör</span>
+                      <div className="space-y-3">
+                        <select
+                          value={isletme}
+                          onChange={(e) => setIsletme(e.target.value)}
+                          className={`${gc.input} !py-3 !px-4 text-xs font-bold appearance-none`}
+                        >
+                          {isletmeTurleri.map(t => <option key={t} value={t}>{t}</option>)}
+                        </select>
+                        {isletme === "Diğer" && (
+                          <input
+                            type="text"
+                            placeholder="Sektörünüz..."
+                            value={digerIsletme}
+                            onChange={(e) => setDigerIsletme(e.target.value)}
+                            className={`${gc.input} !py-3 !px-4 text-xs`}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {gorsel && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    onClick={() => setAdim(2)}
+                    className="w-full py-5 rounded-[24px] bg-[var(--color-brand-orange)] text-white font-black text-xl shadow-2xl shadow-[var(--color-brand-orange)]/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                  >
+                    İLERLE <ArrowUpRight className="w-6 h-6" />
+                  </motion.button>
+                )}
               </motion.div>
             )}
 
@@ -824,32 +770,34 @@ export default function App() {
             {adim === 2 && (
               <motion.div
                 key="step2"
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                className="space-y-4 w-full"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="w-full space-y-6"
               >
                 <div className={`${gc.card} p-6 space-y-4`}>
-                  <p className="text-[var(--color-brand-dark)]/60 text-xs font-medium bg-[var(--color-brand-dark)]/5 p-3 rounded-xl border border-[var(--color-brand-dark)]/5">
-                    Daha isabetli analiz için firmanız hakkında birkaç bilgi verin.
-                  </p>
-                  {[
-                    { key: "markaAdi", label: "Marka / Firma Adı", ph: "örn. Brew & Co." },
-                    { key: "kurumselRenk", label: "Kurumsal Renk(ler)", ph: "örn. Koyu yeşil, krem beyazı" },
-                    { key: "isYapisi", label: "Ne iş yapıyorsunuz?", ph: "örn. Organik kahve ve tatlı sunan butik cafe" },
-                    { key: "hedefKitle", label: "Hedef Kitleniz", ph: "örn. 25-40 yaş, profesyoneller" },
-                    { key: "slogan", label: "Slogan / Özel Mesaj (opsiyonel)", ph: "örn. Her yudumda huzur" },
-                  ].map(f => (
-                    <div key={f.key} className="space-y-1.5">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-brand-dark)]/40 ml-1">{f.label}</label>
-                      <input
-                        value={(sorular as any)[f.key]}
-                        onChange={e => setSorular(p => ({ ...p, [f.key]: e.target.value }))}
-                        placeholder={f.ph}
-                        className={gc.input}
-                      />
-                    </div>
-                  ))}
+                  <div className="flex items-center gap-3 mb-2 p-3 bg-[var(--color-brand-orange)]/5 rounded-2xl border border-[var(--color-brand-orange)]/10">
+                    <Sparkles className="w-5 h-5 text-[var(--color-brand-orange)]" />
+                    <p className="text-[var(--color-brand-dark)] text-[11px] font-bold uppercase tracking-wider">Son Birkaç Detay</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    {[
+                      { key: "markaAdi", label: "Marka Adı", ph: "örn. Brew & Co." },
+                      { key: "isYapisi", label: "Marka Ne İş Yapar?", ph: "örn. Butik Cafe ve Tatlı Salonu" },
+                      { key: "kurumselRenk", label: "Kurumsal Renkler", ph: "örn. Yeşil, Krem" },
+                    ].map(f => (
+                      <div key={f.key}>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-[var(--color-brand-dark)]/30 ml-2 mb-1.5 block">{f.label}</label>
+                        <input
+                          value={(sorular as any)[f.key]}
+                          onChange={e => setSorular(p => ({ ...p, [f.key]: e.target.value }))}
+                          placeholder={f.ph}
+                          className={`${gc.input} !py-3.5`}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {hata && (
