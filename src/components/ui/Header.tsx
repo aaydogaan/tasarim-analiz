@@ -3,8 +3,8 @@ import { motion } from 'motion/react';
 import { LogOut, BarChart2, ChevronDown } from 'lucide-react';
 
 interface HeaderProps {
-    gorunum: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools';
-    setGorunum: (v: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools') => void;
+    gorunum: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography';
+    setGorunum: (v: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography') => void;
     kullanici: any;
     onStatsClick: () => void;
     onLogoutClick: () => void;
@@ -22,9 +22,11 @@ export default function Header({
     goHome
 }: HeaderProps) {
     const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+    const [isToolsDropdownOpen, setIsToolsDropdownOpen] = React.useState(false);
 
-    const handleNavClick = (view: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools', sectionId?: string) => {
+    const handleNavClick = (view: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography', sectionId?: string) => {
         setIsDropdownOpen(false); // Close dropdown if it was open
+        setIsToolsDropdownOpen(false); // Close tools dropdown
         if (gorunum !== view) {
             setGorunum(view);
             // Wait for render if moving to landing
@@ -57,12 +59,39 @@ export default function Header({
                 >
                     Anasayfa
                 </button>
-                <button
-                    onClick={() => handleNavClick('tools')}
-                    className={`transition-colors whitespace-nowrap flex items-center gap-1.5 ${gorunum === 'tools' ? 'text-[var(--color-brand-orange)] font-bold' : 'hover:text-[var(--color-brand-dark)] text-[#666666]'}`}
-                >
-                    Renk Atölyesi <span className="text-[8px] bg-[var(--color-brand-orange)] text-white px-1.5 py-0.5 rounded-full font-black tracking-widest uppercase shadow-sm">BETA</span>
-                </button>
+                {/* Dropdown for Araçlar (Tools + Typography) */}
+                <div className="relative group">
+                    <button
+                        onClick={() => setIsToolsDropdownOpen(!isToolsDropdownOpen)}
+                        className={`flex items-center gap-1 transition-colors whitespace-nowrap ${['tools', 'typography'].includes(gorunum) ? 'text-[var(--color-brand-orange)] font-bold' : 'hover:text-[var(--color-brand-dark)] text-[#666666]'}`}
+                    >
+                        Araçlar ✨ <ChevronDown className={`w-3 h-3 opacity-60 transition-transform duration-300 ${isToolsDropdownOpen ? 'rotate-180' : 'group-hover:rotate-180'}`} />
+                    </button>
+                    {/* Hover & Click Dropdown Box */}
+                    <div className={`absolute top-full right-0 md:left-1/2 md:-translate-x-1/2 pt-5 transition-all duration-300 ${isToolsDropdownOpen ? 'opacity-100 visible' : 'opacity-0 invisible group-hover:opacity-100 group-hover:visible'}`}>
+                        <div className="bg-white rounded-[24px] shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-[var(--color-brand-dark)]/5 p-2 w-56 flex flex-col gap-1 relative before:absolute before:content-[''] before:w-4 before:h-4 before:bg-white before:border-l before:border-t before:border-[var(--color-brand-dark)]/5 before:-top-2 before:left-1/2 before:-translate-x-1/2 before:rotate-45">
+                            <div className="relative z-10 bg-white rounded-xl">
+                                <button
+                                    onClick={() => handleNavClick('tools')}
+                                    className={`w-full text-left px-5 py-3.5 rounded-xl hover:bg-[var(--color-brand-light)] text-[13px] font-bold transition-all ${gorunum === 'tools' ? 'text-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]/5' : 'text-[var(--color-brand-dark)]/80 hover:text-[var(--color-brand-dark)]'}`}
+                                >
+                                    Renk Atölyesi
+                                    <span className="block text-[10px] text-[var(--color-brand-dark)]/40 font-medium mt-0.5">Palet ve Sentez</span>
+                                </button>
+                                <button
+                                    onClick={() => handleNavClick('typography')}
+                                    className={`w-full text-left px-5 py-3.5 rounded-xl hover:bg-[var(--color-brand-orange)]/10 text-[13px] font-bold transition-all flex justify-between items-center ${gorunum === 'typography' ? 'text-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]/5' : 'text-[var(--color-brand-dark)]/80 hover:text-[var(--color-brand-orange)]'}`}
+                                >
+                                    <div>
+                                        Tipografi Lab.
+                                        <span className="block text-[10px] text-[var(--color-brand-dark)]/40 font-medium mt-0.5">Yazı Tipi Uyumları</span>
+                                    </div>
+                                    <span className="text-[9px] bg-[var(--color-brand-orange)] text-white px-2 py-0.5 rounded-md font-black tracking-wider uppercase">YENİ</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <button
                     onClick={() => handleNavClick('vitrin')}
                     className={`transition-colors whitespace-nowrap ${gorunum === 'vitrin' ? 'text-[var(--color-brand-dark)]' : 'hover:text-[var(--color-brand-dark)]'}`}
