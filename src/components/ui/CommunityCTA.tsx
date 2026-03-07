@@ -76,10 +76,10 @@ export default function CommunityCTA() {
                             Topluluk Gücü
                         </motion.div>
 
-                        <div className="flex flex-col items-center mb-10 h-[64px] md:h-[96px] lg:h-[128px]">
-                            <h2 className="text-[2.5rem] md:text-7xl lg:text-8xl font-bold text-white leading-[1] max-w-full tracking-tight font-display flex flex-nowrap justify-center gap-x-3 md:gap-x-5">
+                        <div className="flex flex-col items-center mb-10 h-[64px] md:h-[96px] lg:h-[128px] w-full">
+                            <h2 className="text-[2rem] sm:text-[2.5rem] md:text-7xl lg:text-8xl font-bold text-white leading-[1] max-w-full tracking-tight font-display flex flex-nowrap justify-center gap-x-2 md:gap-x-5">
                                 <span>Birlikte</span>
-                                <span className="relative min-w-[140px] md:min-w-[260px] lg:min-w-[340px] text-center inline-flex justify-center">
+                                <span className="relative min-w-[100px] sm:min-w-[140px] md:min-w-[260px] lg:min-w-[340px] text-center inline-flex justify-center">
                                     <AnimatePresence mode="wait">
                                         <motion.span
                                             key={CHANGING_WORDS[wordIndex]}
@@ -101,7 +101,7 @@ export default function CommunityCTA() {
                             initial={{ opacity: 0 }}
                             whileInView={{ opacity: 1 }}
                             transition={{ delay: 0.4 }}
-                            className="text-white/60 text-lg md:text-2xl max-w-3xl mb-12 font-medium leading-relaxed"
+                            className="text-white/60 text-base md:text-2xl max-w-3xl mb-12 font-medium leading-relaxed"
                         >
                             Sadece AI değil, koca bir topluluk yanında. <br className="hidden md:block" /> Discord'a katıl, tasarımlarını canlı tartış ve yeni fikirler edin.
                         </motion.p>

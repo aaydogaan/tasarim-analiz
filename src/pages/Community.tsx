@@ -24,7 +24,7 @@ export default function Community() {
     return (
         <div className="min-h-screen bg-[var(--color-brand-light)] text-[var(--color-brand-dark)]">
             {/* Dispersed Hero Section */}
-            <section className="relative w-full bg-[#050505] pt-12 pb-32 md:pb-48 overflow-hidden">
+            <section className="relative w-full bg-[#050505] pt-16 md:pt-12 pb-24 md:pb-48 overflow-hidden">
                 {/* Background Decor */}
                 <motion.div
                     animate={{
@@ -32,41 +32,33 @@ export default function Community() {
                         scale: [1, 1.1, 1]
                     }}
                     transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-0 right-0 w-2/3 h-full bg-orange-600 blur-[140px] pointer-events-none"
-                />
-                <motion.div
-                    animate={{
-                        opacity: [0.02, 0.06, 0.02],
-                        scale: [1, 1.2, 1]
-                    }}
-                    transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                    className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-blue-600 blur-[120px] pointer-events-none"
+                    className="absolute top-0 right-0 w-2/3 h-full bg-orange-600 blur-[80px] md:blur-[140px] pointer-events-none"
                 />
 
                 <div className="max-w-screen-xl mx-auto px-6 relative z-10">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+                    <div className="flex flex-col lg:grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
 
                         {/* Left: Content Area */}
-                        <div className="lg:col-span-7 text-left">
+                        <div className="lg:col-span-7 text-left w-full">
                             <motion.div
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-white/5 border border-white/10 text-[var(--color-brand-orange)] text-[11px] font-bold uppercase tracking-[0.3em] mb-8"
+                                className="inline-flex items-center gap-2 px-5 md:px-6 py-2 rounded-full bg-white/5 border border-white/10 text-[var(--color-brand-orange)] text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] md:tracking-[0.3em] mb-6 md:mb-8"
                             >
-                                <Sparkles size={14} />
+                                <Sparkles size={12} />
                                 Tasarımcı Topluluğu
                             </motion.div>
 
-                            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white leading-[0.9] tracking-tighter mb-8">
+                            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-white leading-[0.95] md:leading-[0.9] tracking-tighter mb-6 md:mb-8">
                                 Birlikte <br />
                                 <div className="h-[1.1em] overflow-hidden inline-flex items-baseline">
                                     <AnimatePresence mode="wait">
                                         <motion.span
                                             key={wordIndex}
-                                            initial={{ y: 40, opacity: 0, filter: 'blur(10px)' }}
+                                            initial={{ y: 30, opacity: 0, filter: 'blur(8px)' }}
                                             animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
-                                            exit={{ y: -40, opacity: 0, filter: 'blur(10px)' }}
-                                            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                                            exit={{ y: -30, opacity: 0, filter: 'blur(8px)' }}
+                                            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                                             className="text-[var(--color-brand-orange)] italic block"
                                         >
                                             {CHANGING_WORDS[wordIndex]}
@@ -76,49 +68,49 @@ export default function Community() {
                                 Kazanıyoruz.
                             </h1>
 
-                            <p className="text-white/40 text-lg md:text-xl max-w-xl font-medium leading-relaxed mb-12">
+                            <p className="text-white/40 text-base md:text-xl max-w-xl font-medium leading-relaxed mb-10 md:mb-12">
                                 Sadece yapay zeka değil, binlerce profesyonel tasarımcı yanınızda. Tasarımlarınızı paylaşın, öğrenin ve toplulukla beraber büyüyün.
                             </p>
 
-                            <div className="flex flex-wrap gap-6 items-center">
+                            <div className="flex flex-col sm:flex-row gap-4 md:gap-6 items-start sm:items-center">
                                 <motion.a
                                     href="#"
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className="flex items-center gap-4 px-10 py-4 bg-white text-black rounded-full text-lg font-bold transition-all shadow-2xl hover:shadow-white/10 group"
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    className="flex items-center justify-center gap-4 w-full sm:w-auto px-8 md:px-10 py-4 bg-white text-black rounded-full text-base md:text-lg font-bold transition-all shadow-2xl hover:shadow-white/10 group"
                                 >
-                                    <MessageCircle size={22} fill="black" />
+                                    <MessageCircle size={20} fill="black" />
                                     Discord Akışına Katıl
                                 </motion.a>
 
-                                <div className="flex items-center gap-4 px-5 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+                                <div className="flex items-center gap-4 px-5 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md w-full sm:w-auto justify-center">
                                     <div className="flex -space-x-2">
                                         {[1, 2, 3].map(i => (
                                             <img
                                                 key={i}
                                                 src={`https://api.dicebear.com/7.x/notionists/svg?seed=${i + 40}`}
-                                                className="w-10 h-10 rounded-full border-2 border-[#050505] bg-[#222]"
+                                                className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-[#050505] bg-[#222]"
                                                 alt="User"
                                             />
                                         ))}
                                     </div>
-                                    <div className="flex flex-col leading-none">
-                                        <span className="text-white font-bold text-sm">400+ Online</span>
-                                        <span className="text-emerald-400 text-[9px] font-bold uppercase tracking-widest mt-1 italic">Aktif Tartışma</span>
+                                    <div className="flex flex-col leading-none text-left">
+                                        <span className="text-white font-bold text-xs md:text-sm">400+ Online</span>
+                                        <span className="text-emerald-400 text-[8px] md:text-[9px] font-bold uppercase tracking-widest mt-1 italic">Aktif Tartışma</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Right: Dispersed Stats Area */}
-                        <div className="lg:col-span-5 grid grid-cols-2 gap-4 relative mt-12 lg:mt-0">
+                        <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-4 relative w-full lg:mt-0">
                             {STATS.map((stat, i) => (
                                 <motion.div
                                     key={i}
                                     initial={{ opacity: 0, y: 30 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.2 + (i * 0.1) }}
-                                    className={`p-6 rounded-[32px] bg-white/[0.03] border border-white/10 backdrop-blur-xl hover:bg-white/[0.06] transition-colors group ${i % 2 === 1 ? 'mt-8' : 'mb-8'}`}
+                                    className={`p-6 rounded-[24px] md:rounded-[32px] bg-white/[0.03] border border-white/10 backdrop-blur-xl hover:bg-white/[0.06] transition-colors group ${i % 2 === 1 ? 'sm:mt-8' : 'sm:mb-8'}`}
                                 >
                                     <div className={`p-3 rounded-2xl bg-white/5 border border-white/10 w-max mb-5 group-hover:scale-110 transition-transform`}>
                                         <stat.icon className={`w-5 h-5 ${stat.color}`} />
