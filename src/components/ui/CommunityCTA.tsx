@@ -46,22 +46,7 @@ export default function CommunityCTA() {
                         className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-600 blur-[150px] pointer-events-none"
                     />
 
-                    {/* Floating Icons for depth */}
-                    <motion.div
-                        animate={{ y: [0, -20, 0], rotate: [0, 10, 0] }}
-                        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute top-12 left-12 hidden xl:block p-4 rounded-3xl bg-white/[0.03] border border-white/10 backdrop-blur-xl"
-                    >
-                        <Sparkles className="text-[var(--color-brand-orange)] w-8 h-8" />
-                    </motion.div>
-
-                    <motion.div
-                        animate={{ y: [0, 20, 0], rotate: [0, -15, 0] }}
-                        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                        className="absolute bottom-12 right-12 hidden xl:block p-4 rounded-3xl bg-white/[0.03] border border-white/10 backdrop-blur-xl"
-                    >
-                        <MousePointer2 className="text-white/30 w-8 h-8" />
-                    </motion.div>
+                    {/* Floating icons removed by user request (they looked like white reflections) */}
 
                     <div className="relative z-10 flex flex-col items-center">
                         <motion.div

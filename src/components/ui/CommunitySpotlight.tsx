@@ -185,9 +185,6 @@ export default function CommunitySpotlight({ onExploreClick }: { onExploreClick:
                 </motion.button>
             </div>
 
-            {/* Smooth Fade Overlays at the edges of the section */}
-            <div className="absolute inset-y-0 left-0 w-24 md:w-32 bg-gradient-to-r from-[var(--color-brand-light)] to-transparent z-20 pointer-events-none" />
-            <div className="absolute inset-y-0 right-0 w-24 md:w-32 bg-gradient-to-l from-[var(--color-brand-light)] to-transparent z-20 pointer-events-none" />
         </section>
     );
 }
