@@ -2,13 +2,13 @@ import React, { useState, useRef, useEffect } from "react";
 import Lenis from 'lenis';
 import { motion, AnimatePresence } from "motion/react";
 import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check, AlertCircle, Globe, BrainCircuit } from "lucide-react";
-import Navbar from './components/ui/Navbar';
 import { supabase } from "./lib/supabase";
 import { Vitrin } from "./pages/Vitrin";
 import TextPressure from "./components/ui/TextPressure";
 import LandingPage from "./pages/LandingPage";
 import Footer from "./components/ui/Footer";
 import Community from "./pages/Community";
+import Header from "./components/ui/Header";
 
 declare global {
   interface Window {
@@ -563,19 +563,6 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (gorunum === 'landing') {
-    return <LandingPage
-      onStart={() => setGorunum('app')}
-      onVitrinClick={() => {
-        setGorunum('vitrin');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }}
-      onCommunityClick={() => {
-        setGorunum('community');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }}
-    />;
-  }
 
   return (
     <div className="min-h-screen bg-[var(--color-brand-light)] text-[var(--color-brand-dark)] selection:bg-[#ff4d00] selection:text-white font-sans flex flex-col justify-between overflow-x-hidden" style={{ scrollBehavior: 'smooth' }}>
@@ -583,31 +570,38 @@ export default function App() {
       <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#ff4d00]/5 blur-[120px] rounded-full pointer-events-none" />
       <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[var(--color-brand-dark)]/5 blur-[120px] rounded-full pointer-events-none" />
 
-
-
-      <Navbar
+      <Header
         gorunum={gorunum}
         setGorunum={setGorunum}
         kullanici={kullanici}
-        onStart={() => {
-          if (kullanici) setGorunum('app');
-          else setAuthAcik(true);
-        }}
         onStatsClick={statsAc}
-        onLogout={cikisYap}
+        onLogoutClick={cikisYap}
         onAuthClick={() => setAuthAcik(true)}
+        goHome={goHome}
       />
 
-      {gorunum === 'vitrin' ? (
-        <main className="flex-1 w-full max-w-screen-2xl mx-auto px-4">
+      {gorunum === 'landing' ? (
+        <LandingPage
+          onStart={() => setGorunum('app')}
+          onVitrinClick={() => {
+            setGorunum('vitrin');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          onCommunityClick={() => {
+            setGorunum('community');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        />
+      ) : gorunum === 'vitrin' ? (
+        <main className="flex-1 w-full max-w-screen-2xl mx-auto px-4 mt-20">
           <Vitrin />
         </main>
       ) : gorunum === 'community' ? (
-        <main className="flex-1 w-full">
+        <main className="flex-1 w-full mt-20">
           <Community />
         </main>
       ) : (
-        <main className={`flex-1 flex flex-col justify-center w-full max-w-screen-xl mx-auto px-4 py-6 md:py-8 transition-all duration-500 ${adim === 3 ? 'max-w-6xl' : 'max-w-lg'}`}>
+        <main className={`flex-1 flex flex-col items-center w-full max-w-screen-xl mx-auto px-4 py-6 md:py-8 mt-16 transition-all duration-500 ${adim === 3 ? 'max-w-6xl' : 'max-w-lg'}`}>
           {/* Header */}
           <header className="text-center mb-8 md:mb-12 relative z-10 pt-10">
             <motion.div
@@ -654,32 +648,6 @@ export default function App() {
               )}
             </motion.div>
           </header>
-
-          {/* Header Action Buttons */}
-          <div className="absolute top-6 right-4 md:right-8 flex items-center gap-2 z-20">
-            {kullanici && (
-              <button
-                onClick={statsAc}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-[var(--color-brand-dark)]/10 text-[var(--color-brand-dark)]/50 hover:text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-light)] transition-all text-[11px] font-medium shadow-sm"
-              >
-                <BarChart2 className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">Stats</span>
-              </button>
-            )}
-            {kullanici ? (
-              <div className="flex items-center gap-2">
-                <span className="text-[var(--color-brand-dark)]/50 text-[10px] hidden md:block max-w-[100px] truncate">{kullanici.email}</span>
-                <button onClick={cikisYap} className="p-2 rounded-xl bg-white border border-[var(--color-brand-dark)]/10 text-[var(--color-brand-dark)]/50 hover:text-red-500 hover:bg-red-50 transition-colors shadow-sm">
-                  <LogOut className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ) : (
-              <button onClick={() => setAuthAcik(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-[var(--color-brand-dark)]/10 text-[var(--color-brand-dark)]/50 hover:text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-light)] transition-all text-[11px] font-medium shadow-sm">
-                <User className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">Giriş Yap</span>
-              </button>
-            )}
-          </div>
 
           {/* Stepper */}
           {adim < 3 && (

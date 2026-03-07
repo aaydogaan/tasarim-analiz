@@ -18,8 +18,6 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
     return (
         <div className="min-h-screen bg-[var(--color-brand-light)] text-[var(--color-brand-dark)] font-sans overflow-x-hidden selection:bg-[#ff4d00] selection:text-white">
 
-            {/* Navbar is now global in App.tsx */}
-
             {/* Hero Section */}
             <main className="flex flex-col items-center pt-32 md:pt-48 pb-12 px-6 relative z-10 w-full max-w-6xl mx-auto">
                 <motion.div
