@@ -3,8 +3,8 @@ import { motion } from 'motion/react';
 import { LogOut, BarChart2, ChevronDown } from 'lucide-react';
 
 interface HeaderProps {
-    gorunum: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about';
-    setGorunum: (v: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about') => void;
+    gorunum: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools';
+    setGorunum: (v: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools') => void;
     kullanici: any;
     onStatsClick: () => void;
     onLogoutClick: () => void;
@@ -23,7 +23,7 @@ export default function Header({
 }: HeaderProps) {
     const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
 
-    const handleNavClick = (view: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about', sectionId?: string) => {
+    const handleNavClick = (view: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools', sectionId?: string) => {
         setIsDropdownOpen(false); // Close dropdown if it was open
         if (gorunum !== view) {
             setGorunum(view);
@@ -58,10 +58,10 @@ export default function Header({
                     Anasayfa
                 </button>
                 <button
-                    onClick={() => handleNavClick('landing', 'nasil-calisir')}
-                    className="hover:text-[var(--color-brand-dark)] transition-colors whitespace-nowrap"
+                    onClick={() => handleNavClick('tools')}
+                    className={`transition-colors whitespace-nowrap flex items-center gap-1.5 ${gorunum === 'tools' ? 'text-[var(--color-brand-orange)] font-bold' : 'hover:text-[var(--color-brand-dark)] text-[#666666]'}`}
                 >
-                    Nasıl Çalışır
+                    Renk Atölyesi <span className="text-[8px] bg-[var(--color-brand-orange)] text-white px-1.5 py-0.5 rounded-full font-black tracking-widest uppercase shadow-sm">BETA</span>
                 </button>
                 <button
                     onClick={() => handleNavClick('vitrin')}
