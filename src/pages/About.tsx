@@ -162,7 +162,7 @@ export default function About() {
                                 {/* Photo / Avatar */}
                                 <div className="relative z-10 w-48 h-48 md:w-56 md:h-56 rounded-full overflow-hidden border-4 border-[#2a2b30] group-hover:scale-105 transition-transform duration-700 shadow-2xl">
                                     <img
-                                        src="https://avatars.githubusercontent.com/u/84683050?v=4"
+                                        src="https://media.licdn.com/dms/image/v2/D4D03AQGTe3YJhn1C0w/profile-displayphoto-scale_400_400/B4DZwtEbtBG8Ag-/0/1770282666435?e=1774483200&v=beta&t=N0pixadCPu9zDllXtiWcGoGmb6z_zqpKR1Dd4y-tib8"
                                         alt="Selman Aydoğan"
                                         className="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-700"
                                     />
