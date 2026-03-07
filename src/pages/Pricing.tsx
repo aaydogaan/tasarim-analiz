@@ -10,16 +10,15 @@ const plans = [
         period: 'Sonsuza kadar',
         description: 'Temel analiz ihtiyaçları ve topluluk deneyimi.',
         features: [
-            'Günde 3 temel tasarım analizi',
-            'Toplulukta paylaşım ve etkileşim',
-            'Beğeni ve yorum alma',
-            'Temel renk paleti çıkarma',
-            'Standart skorlama sistemi'
+            'Günde 3 Temel Tasarım Analizi',
+            'Keşfet\'te Paylaşım ve Etkileşim',
+            'Genel Kalite Skorlaması (100 Üzerinden)',
+            'Baskın Renk Paleti Çıkarımı',
         ],
         notIncluded: [
-            'Yapay Zeka Tasarım Önerileri',
-            'Sınırsız analiz',
-            'Öncelikli API erişimi'
+            'Yapay Zeka İyileştirme Önerisi (PRO)',
+            'Teknik Detay Analizleri (Boşluk, Kontrast)',
+            'Sınırsız Analiz Hakkı'
         ],
         buttonText: 'Hemen Başla',
         buttonVariant: 'outline',
@@ -32,18 +31,18 @@ const plans = [
         badge: 'En Çok Tercih Edilen',
         price: '₺149',
         period: '/ay',
-        description: 'Yapay zeka asistanı ve gelişmiş revizyon önerileri.',
+        description: 'Yapay zeka asistanı ve gelişmiş analiz metrikleri.',
         features: [
-            'Sınırsız tasarım analizi',
-            'Yapay Zeka (PRO) Kapsamlı Öneriler',
-            'Rakip tasarım kıyaslamaları',
-            'Detaylı UI/UX raporları',
-            'Gelişmiş renk ve tipografi analizi',
-            'Yüksek çözünürlüklü indirme imkanı'
+            'Sınırsız Tasarım Analizi',
+            'Yapay Zeka (PRO) Tasarım İyileştirme Önerisi',
+            'Teknik Detaylar (Negatif Alan, Kontrast vb.)',
+            'Analiz Geçmişine Erişim',
+            'Keşfet\'te Öne Çıkan Tasarımlar',
+            'Öncelikli Hızlı Analiz Kuyruğu'
         ],
         notIncluded: [
-            'White-label raporlama',
-            'Ekip yönetimi'
+            'Markaya Özel AI Model Eğitimi',
+            'Limitsiz Geliştirici API\'si'
         ],
         buttonText: '14 Gün Ücretsiz Dene',
         buttonVariant: 'solid',
@@ -56,15 +55,14 @@ const plans = [
         badge: 'Profesyoneller İçin',
         price: '₺499',
         period: '/ay',
-        description: 'Ajanslar ve büyük tasarım ekipleri için tam donanımlı.',
+        description: 'Ajanslar ve yoğun üretim yapan takımlar için.',
         features: [
             'Pro plandaki her şey +',
-            'Sınırsız ekip üyesi ekleme',
-            'White-label rapor (Kendi logonuz)',
-            'RevizeAI API erişimi',
-            'Öncelikli, saniyeler içinde analiz',
-            'Geçmiş tüm analizlerin tam arşivi',
-            '7/24 Özel Slack Danışmanı'
+            'Markaya Özel Tasarım Dili Eğitme (Çok Yakında)',
+            'Toplu Klasör & Sayfa Analizi (Çok Yakında)',
+            'RevizeAI Geliştirici API Erişimi (Sınırlandırılmış)',
+            'Rakip Tasarım Kıyaslama Raporu (Çok Yakında)',
+            '7/24 Öncelikli Kurumsal Destek'
         ],
         notIncluded: [],
         buttonText: 'Satış Ekibiyle Görüş',
@@ -77,7 +75,7 @@ const plans = [
 
 export default function Pricing() {
     return (
-        <div className="w-full pt-32 pb-24 px-6 md:px-12 max-w-7xl mx-auto flex flex-col items-center min-h-screen">
+        <div className="w-full pt-8 md:pt-12 pb-24 px-6 md:px-12 max-w-7xl mx-auto flex flex-col items-center min-h-screen">
 
             {/* Header Section */}
             <motion.div
@@ -141,10 +139,10 @@ export default function Pricing() {
 
                             <button
                                 className={`w-full py-4 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 mb-8 ${plan.buttonVariant === 'solid'
-                                        ? 'bg-gradient-to-r from-[#ff4d00] to-amber-500 text-white shadow-xl hover:shadow-2xl hover:scale-[1.02]'
-                                        : plan.buttonVariant === 'dark'
-                                            ? 'bg-[var(--color-brand-dark)] text-white hover:bg-black/90 hover:scale-[1.02]'
-                                            : 'bg-white text-[var(--color-brand-dark)] border border-[var(--color-brand-dark)]/20 hover:bg-gray-50'
+                                    ? 'bg-gradient-to-r from-[#ff4d00] to-amber-500 text-white shadow-xl hover:shadow-2xl hover:scale-[1.02]'
+                                    : plan.buttonVariant === 'dark'
+                                        ? 'bg-[var(--color-brand-dark)] text-white hover:bg-black/90 hover:scale-[1.02]'
+                                        : 'bg-white text-[var(--color-brand-dark)] border border-[var(--color-brand-dark)]/20 hover:bg-gray-50'
                                     }`}
                             >
                                 {plan.buttonText} <ArrowRight className="w-4 h-4" />
