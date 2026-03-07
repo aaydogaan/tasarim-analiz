@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Cal Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/calsans/v2/fdN99sWUv3gWqXxqqRBctFs.woff2) format('woff2');
+}
+
+@theme {
+  --color-brand-orange: #ff4d00;
+  --color-brand-light: #f0f0f0;
+  --color-brand-dark: #131313;
+  --font-sans: "Inter", "Cal Sans", sans-serif;
+  --font-display: "Cal Sans", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-brand-light);
+  color: var(--color-brand-dark);
+}

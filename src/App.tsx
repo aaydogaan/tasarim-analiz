@@ -1,8 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
+import Lenis from 'lenis';
 import { motion, AnimatePresence } from "motion/react";
 import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check, AlertCircle, Globe, BrainCircuit } from "lucide-react";
 import { supabase } from "./lib/supabase";
-import { Vitrin } from "./components/Vitrin";
+import { Vitrin } from "./pages/Vitrin";
+import TextPressure from "./components/ui/TextPressure";
+import LandingPage from "./pages/LandingPage";
+import Footer from "./components/ui/Footer";
+import Community from "./pages/Community";
 
 declare global {
   interface Window {
@@ -67,17 +72,17 @@ const isletmeTurleri = [
 ];
 
 const gc = {
-  card: "bg-white/10 backdrop-blur-3xl border border-white/20 rounded-3xl shadow-2xl",
-  input: "bg-white/5 border border-white/10 rounded-xl text-white text-sm p-3 w-full outline-none focus:border-blue-500/50 transition-colors placeholder:text-white/20",
-  label: "text-white/40 text-[10px] font-bold tracking-widest uppercase mb-2 block",
+  card: "bg-white border border-[var(--color-brand-dark)]/10 rounded-3xl shadow-sm",
+  input: "bg-white/50 border border-[var(--color-brand-dark)]/10 rounded-xl text-[var(--color-brand-dark)] text-sm p-3 w-full outline-none focus:border-[#ff4d00]/50 focus:bg-white transition-colors placeholder:text-[var(--color-brand-dark)]/40 hover:bg-white/80",
+  label: "text-[var(--color-brand-dark)]/40 text-[10px] font-bold tracking-widest uppercase mb-2 block",
 };
 
 function GlassCard({ children, className = "", glowColor = "blue", delay = 0 }: { children: React.ReactNode; className?: string; glowColor?: string; delay?: number; key?: string }) {
   const glowMap: Record<string, string> = {
-    blue: "from-blue-500/30 via-blue-400/10",
-    purple: "from-purple-500/30 via-purple-400/10",
-    green: "from-emerald-500/30 via-emerald-400/10",
-    cyan: "from-cyan-500/30 via-cyan-400/10",
+    blue: "from-[var(--color-brand-orange)]/10 via-white/50",
+    purple: "from-[var(--color-brand-orange)]/10 via-white/50",
+    green: "from-[var(--color-brand-orange)]/10 via-white/50",
+    cyan: "from-[var(--color-brand-orange)]/10 via-white/50",
   };
   return (
     <motion.div
@@ -125,11 +130,11 @@ function ScoreRing({ score }: { score: number }) {
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="text-white text-4xl font-extrabold leading-none tracking-tight"
+            className="text-[var(--color-brand-dark)] text-4xl font-extrabold leading-none tracking-tight"
           >
             {score}
           </motion.span>
-          <span className="text-white/20 text-[11px] font-semibold mt-1 tracking-wider">/100</span>
+          <span className="text-[var(--color-brand-dark)]/40 text-[11px] font-semibold mt-1 tracking-wider">/100</span>
         </div>
       </div>
       <motion.span
@@ -150,7 +155,7 @@ function ScoreBar({ puan, max = 25 }: { puan: number; max?: number }) {
   const color = pct >= 75 ? "#38bdf8" : pct >= 50 ? "#fbbf24" : "#f87171";
 
   return (
-    <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
+    <div className="h-2 bg-[var(--color-brand-dark)]/10 rounded-full overflow-hidden">
       <motion.div
         initial={{ width: 0 }}
         animate={{ width: `${pct}%` }}
@@ -167,7 +172,7 @@ function StepIndicator({ n, active, done }: { n: number; active: boolean; done: 
     <div className="flex items-center gap-2">
       <div className={`
         w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300
-        ${done ? "bg-blue-500 text-white" : active ? "bg-blue-500/20 border-2 border-blue-500 text-white" : "bg-white/5 border border-white/10 text-white/30"}
+        ${done ? "bg-[#ff4d00] text-white" : active ? "bg-[#ff4d00]/20 border-2 border-[#ff4d00] text-[#ff4d00]" : "bg-white border border-[var(--color-brand-dark)]/10 text-[var(--color-brand-dark)]/30"}
       `}>
         {done ? "✓" : n}
       </div>
@@ -186,6 +191,29 @@ const getSessionData = (key: string, defaultValue: any) => {
 };
 
 export default function App() {
+  // Lenis Smooth Scroll Initialization
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 1,
+      touchMultiplier: 2,
+    });
+
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    return () => {
+      lenis.destroy();
+    };
+  }, []);
+
   const initGorsel = getSessionData('ra_gorsel', null);
   const initGorselBase64 = getSessionData('ra_gorselBase64', null);
   let initAdim = getSessionData('ra_adim', 1);
@@ -196,7 +224,7 @@ export default function App() {
   }
 
   const [adim, setAdim] = useState(initAdim);
-  const [gorunum, setGorunum] = useState<'app' | 'vitrin'>('app'); // App or Showcase mode
+  const [gorunum, setGorunum] = useState<'landing' | 'app' | 'vitrin' | 'community'>('landing'); // Default to landing page
   const [gorsel, setGorsel] = useState<string | null>(initGorsel);
   const [gorselBase64, setGorselBase64] = useState<string | null>(initGorselBase64);
   const [revizeGorsel, setRevizeGorsel] = useState<string | null>(() => getSessionData('ra_revizeGorsel', null));
@@ -246,6 +274,25 @@ export default function App() {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  // Modal Escape Key & Scroll Lock for seciliGorsel
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSeciliGorsel(null);
+    };
+    window.addEventListener("keydown", handleEsc);
+
+    if (seciliGorsel) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+      document.body.style.overflow = "auto";
+    };
+  }, [seciliGorsel]);
 
   // Karusel Yükleme İpuçları
   const [loadingTipIndex, setLoadingTipIndex] = useState(0);
@@ -510,58 +557,89 @@ export default function App() {
     setDigerIsletme(""); setTasarimTuru("Sosyal Medya"); setPlatform("Instagram Post");
   };
 
+  const goHome = () => {
+    setGorunum('landing');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (gorunum === 'landing') {
+    return <LandingPage
+      onStart={() => setGorunum('app')}
+      onVitrinClick={() => {
+        setGorunum('vitrin');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }}
+      onCommunityClick={() => {
+        setGorunum('community');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }}
+    />;
+  }
+
   return (
-    <div className="min-h-screen bg-[#050508] text-white selection:bg-blue-500/30 font-sans flex flex-col justify-between overflow-x-hidden">
+    <div className="min-h-screen bg-[var(--color-brand-light)] text-[var(--color-brand-dark)] selection:bg-[#ff4d00] selection:text-white font-sans flex flex-col justify-between overflow-x-hidden" style={{ scrollBehavior: 'smooth' }}>
       {/* Background Orbs */}
-      <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
-      <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#ff4d00]/5 blur-[120px] rounded-full pointer-events-none" />
+      <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[var(--color-brand-dark)]/5 blur-[120px] rounded-full pointer-events-none" />
+
+
 
       {/* Top Navbar */}
-      <nav className="relative z-30 w-full flex items-center justify-between px-6 py-4 border-b border-white/[0.05] bg-[#050508]/50 backdrop-blur-lg">
+      <nav className="sticky top-0 w-full z-50 flex flex-col md:flex-row items-center justify-between px-8 md:px-16 py-4 bg-[var(--color-brand-light)]/80 backdrop-blur-xl border-b border-[var(--color-brand-dark)]/5 gap-4 md:gap-0 transition-all duration-300">
         {/* Logo (Left Component) */}
-        <div className="font-bold text-xl tracking-tight text-white cursor-pointer z-10" onClick={() => setGorunum('app')}>
-          Revize<span className="text-blue-500">AI</span>
+        <div className="cursor-pointer" onClick={goHome}>
+          <span className="text-[32px] font-bold tracking-tight text-[var(--color-brand-orange)] font-display leading-none">Revize.</span>
         </div>
 
-        {/* Center Tabs (Absolute centered on desktop for perfect symmetry) */}
-        <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-1 bg-white/[0.03] p-1 rounded-xl border border-white/[0.05] z-0">
+        {/* Center Tabs (Perfect Agero match) */}
+        <div className="flex items-center gap-10 text-[13px] font-medium text-[#666666]">
           <button
             onClick={() => setGorunum('app')}
-            className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${gorunum === 'app' ? 'bg-white/10 text-white shadow-sm shadow-blue-500/10' : 'text-white/40 hover:text-white/70'}`}
+            className={`transition-colors ${gorunum === 'app' ? 'text-[var(--color-brand-dark)]' : 'hover:text-[var(--color-brand-dark)]'}`}
           >
             Yeni Analiz
           </button>
           <button
-            onClick={() => setGorunum('vitrin')}
-            className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${gorunum === 'vitrin' ? 'bg-white/10 text-white shadow-sm shadow-blue-500/10' : 'text-white/40 hover:text-white/70'}`}
+            onClick={() => {
+              setGorunum('vitrin');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className={`transition-colors ${gorunum === 'vitrin' ? 'text-[var(--color-brand-dark)]' : 'hover:text-[var(--color-brand-dark)]'}`}
           >
-            🌟 Keşfet
+            Keşfet
+          </button>
+          <button
+            onClick={() => {
+              setGorunum('community');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className={`transition-colors ${gorunum === 'community' ? 'text-[var(--color-brand-dark)]' : 'hover:text-[var(--color-brand-dark)]'}`}
+          >
+            Topluluk
           </button>
         </div>
 
-
         {/* Right Side Auth/Stats */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {kullanici && (
             <button
               onClick={statsAc}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-white/70 hover:bg-white/[0.09] transition-all text-[11px] font-medium"
+              className="flex items-center gap-1.5 text-[#666666] hover:text-[var(--color-brand-dark)] text-[13px] font-medium transition-colors"
             >
-              <BarChart2 className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Stats</span>
+              <BarChart2 className="w-4 h-4" />
+              <span className="hidden md:inline">İstatistikler</span>
             </button>
           )}
           {kullanici ? (
-            <div className="flex items-center gap-2">
-              <span className="text-white/25 text-[10px] hidden md:block max-w-[100px] truncate">{kullanici.email}</span>
-              <button onClick={cikisYap} className="p-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-red-400 transition-colors">
-                <LogOut className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-3 ml-2 border-l border-[var(--color-brand-dark)]/10 pl-5">
+              <span className="text-[#666666] text-[12px] hidden md:block max-w-[120px] truncate">{kullanici.email}</span>
+              <button onClick={cikisYap} className="text-[#666666] hover:text-red-500 transition-colors">
+                <LogOut className="w-4 h-4" />
               </button>
             </div>
           ) : (
-            <button onClick={() => setAuthAcik(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-white/70 hover:bg-white/[0.09] transition-all text-[11px] font-medium">
-              <User className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Giriş Yap</span>
+            <button onClick={() => setAuthAcik(true)} className="px-6 py-2.5 rounded-full text-[#ebebeb] text-[13px] font-medium transition-all hover:scale-105 bg-[#4A4A4A] hover:bg-[#333] shadow-sm tracking-wide ml-4">
+              Giriş Yap
             </button>
           )}
         </div>
@@ -571,45 +649,55 @@ export default function App() {
         <main className="flex-1 w-full max-w-screen-2xl mx-auto px-4">
           <Vitrin />
         </main>
+      ) : gorunum === 'community' ? (
+        <main className="flex-1 w-full">
+          <Community />
+        </main>
       ) : (
         <main className={`flex-1 flex flex-col justify-center w-full max-w-screen-xl mx-auto px-4 py-6 md:py-8 transition-all duration-500 ${adim === 3 ? 'max-w-6xl' : 'max-w-lg'}`}>
           {/* Header */}
-          <header className="text-center mb-8 md:mb-12 relative z-10">
+          <header className="text-center mb-8 md:mb-12 relative z-10 pt-10">
             <motion.div
-              initial={{ scale: 0.8, opacity: 0, y: -20 }}
+              initial={{ scale: 0.9, opacity: 0, y: -20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              className="inline-flex flex-col items-center"
+              transition={{ duration: 0.7, ease: "easeOut" }}
+              className="inline-flex flex-col items-center w-full max-w-2xl mx-auto"
             >
               {adim === 1 && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2, duration: 0.6 }}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6 backdrop-blur-xl"
+                  className="flex items-center gap-2 px-5 py-2 rounded-full bg-white border border-[var(--color-brand-dark)]/10 mb-8 backdrop-blur-xl shadow-sm"
                 >
-                  <Sparkles className="w-4 h-4 text-blue-400" />
-                  <span className="text-blue-200/80 text-[10px] md:text-xs font-bold tracking-widest uppercase">Yapay Zeka Destekli Tasarım Asistanı</span>
+                  <Sparkles className="w-4 h-4 text-[#ff4d00]" />
+                  <span className="text-[var(--color-brand-dark)]/70 text-xs font-semibold tracking-wider uppercase">Tasarım Asistanı Hazır</span>
                 </motion.div>
               )}
 
-              <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-4 text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]">
-                Revize<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500">AI</span>
-              </h1>
+              <div className="w-full mb-4 md:mb-8 h-24 md:h-32 flex justify-center mt-2 relative z-50">
+                <TextPressure
+                  text="REVIZE AI"
+                  textColor="var(--color-brand-dark)"
+                  stroke={true}
+                  strokeColor="var(--color-brand-orange)"
+                  minFontSize={60}
+                />
+              </div>
 
               {adim === 1 ? (
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3, duration: 0.7 }}
-                  className="text-white/50 text-sm md:text-base max-w-xl mx-auto leading-relaxed mt-2 font-medium"
+                  className="text-[var(--color-brand-dark)]/60 text-sm md:text-base max-w-xl mx-auto leading-relaxed mt-2 font-medium"
                 >
                   Tasarımlarınızı profesyonel kriterlere göre saniyeler içinde analiz edin.
                   Renk uyumu, tipografi, kompozisyon ve marka bütünlüğü açısından
                   kapsamlı geri bildirim ve gelişim önerileri alın.
                 </motion.p>
               ) : (
-                <p className="text-white/40 text-sm mt-2 font-medium">Profesyonel Tasarım Analizi</p>
+                <p className="text-[var(--color-brand-dark)]/40 text-sm mt-2 font-medium">Profesyonel Tasarım Analizi</p>
               )}
             </motion.div>
           </header>
@@ -619,7 +707,7 @@ export default function App() {
             {kullanici && (
               <button
                 onClick={statsAc}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-white/70 hover:bg-white/[0.09] transition-all text-[11px] font-medium"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-[var(--color-brand-dark)]/10 text-[var(--color-brand-dark)]/50 hover:text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-light)] transition-all text-[11px] font-medium shadow-sm"
               >
                 <BarChart2 className="w-3.5 h-3.5" />
                 <span className="hidden md:inline">Stats</span>
@@ -627,13 +715,13 @@ export default function App() {
             )}
             {kullanici ? (
               <div className="flex items-center gap-2">
-                <span className="text-white/25 text-[10px] hidden md:block max-w-[100px] truncate">{kullanici.email}</span>
-                <button onClick={cikisYap} className="p-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-red-400 transition-colors">
+                <span className="text-[var(--color-brand-dark)]/50 text-[10px] hidden md:block max-w-[100px] truncate">{kullanici.email}</span>
+                <button onClick={cikisYap} className="p-2 rounded-xl bg-white border border-[var(--color-brand-dark)]/10 text-[var(--color-brand-dark)]/50 hover:text-red-500 hover:bg-red-50 transition-colors shadow-sm">
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
               </div>
             ) : (
-              <button onClick={() => setAuthAcik(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-white/70 hover:bg-white/[0.09] transition-all text-[11px] font-medium">
+              <button onClick={() => setAuthAcik(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-[var(--color-brand-dark)]/10 text-[var(--color-brand-dark)]/50 hover:text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-light)] transition-all text-[11px] font-medium shadow-sm">
                 <User className="w-3.5 h-3.5" />
                 <span className="hidden md:inline">Giriş Yap</span>
               </button>
@@ -644,9 +732,9 @@ export default function App() {
           {adim < 3 && (
             <div className="flex items-center justify-center mb-6 md:mb-8">
               <StepIndicator n={1} active={adim === 1} done={adim > 1} />
-              <div className={`w-12 h-[1px] mx-2 ${adim > 1 ? "bg-blue-500" : "bg-white/10"}`} />
+              <div className={`w-12 h-[1px] mx-2 ${adim > 1 ? "bg-[var(--color-brand-orange)]" : "bg-[var(--color-brand-dark)]/10"}`} />
               <StepIndicator n={2} active={adim === 2} done={adim > 2} />
-              <div className={`w-12 h-[1px] mx-2 ${adim > 2 ? "bg-blue-500" : "bg-white/10"}`} />
+              <div className={`w-12 h-[1px] mx-2 ${adim > 2 ? "bg-[var(--color-brand-orange)]" : "bg-[var(--color-brand-dark)]/10"}`} />
               <StepIndicator n={3} active={adim === 3} done={false} />
             </div>
           )}
@@ -666,26 +754,41 @@ export default function App() {
                     onClick={() => fileRef.current?.click()}
                     onDrop={e => { e.preventDefault(); handleDosya(e.dataTransfer.files[0]); }}
                     onDragOver={e => e.preventDefault()}
-                    className={`cursor-pointer flex flex-col items-center justify-center p-6 md:p-8 transition-all duration-300 ${gorsel ? 'p-0 md:p-0' : 'hover:bg-white/5 min-h-[160px] md:min-h-[200px]'}`}
+                    className={`cursor-pointer flex flex-col items-center justify-center p-6 md:p-8 transition-all duration-300 ${gorsel ? 'p-0 md:p-0' : 'hover:bg-[var(--color-brand-light)] bg-white border border-[var(--color-brand-dark)]/5 rounded-2xl min-h-[160px] md:min-h-[200px]'}`}
                   >
                     {gorsel ? (
                       <img src={gorsel} alt="Tasarım" className="w-full max-h-[25vh] md:max-h-[30vh] object-contain block" />
                     ) : (
                       <>
-                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-3 md:mb-4 group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-[var(--color-brand-orange)]/10 border border-[var(--color-brand-orange)]/20 flex items-center justify-center text-[var(--color-brand-orange)] mb-3 md:mb-4 group-hover:scale-110 transition-transform">
                           <Upload className="w-5 h-5 md:w-6 md:h-6" />
                         </div>
-                        <p className="text-white font-semibold text-base md:text-lg">Görsel Yükle</p>
-                        <p className="text-white/30 text-xs md:text-sm mt-1">Sürükle bırak veya tıkla · PNG, JPG</p>
+                        <p className="text-[var(--color-brand-dark)] font-semibold text-base md:text-lg">Görsel Yükle</p>
+                        <p className="text-[var(--color-brand-dark)]/40 text-xs md:text-sm mt-1">Sürükle bırak veya tıkla · PNG, JPG</p>
                       </>
                     )}
                   </div>
                   {gorsel && (
-                    <div
-                      onClick={() => fileRef.current?.click()}
-                      className="py-3 bg-white/5 hover:bg-white/10 transition-colors cursor-pointer text-center border-t border-white/10"
-                    >
-                      <span className="text-blue-400 text-sm font-medium">Görseli Değiştir</span>
+                    <div className="flex border-t border-[var(--color-brand-dark)]/5 overflow-hidden">
+                      <div
+                        onClick={() => fileRef.current?.click()}
+                        className="flex-1 py-3 bg-[var(--color-brand-light)] hover:bg-[var(--color-brand-orange)]/10 transition-colors cursor-pointer text-center border-r border-[var(--color-brand-dark)]/5 flex items-center justify-center gap-2 group"
+                      >
+                        <RotateCcw className="w-4 h-4 text-[var(--color-brand-orange)] group-hover:scale-110 transition-transform" />
+                        <span className="text-[var(--color-brand-orange)] text-sm font-medium">Değiştir</span>
+                      </div>
+                      <div
+                        onClick={() => {
+                          setGorsel(null);
+                          setGorselBase64(null);
+                          setSonuc(null);
+                          if (fileRef.current) fileRef.current.value = "";
+                        }}
+                        className="flex-1 py-3 bg-[var(--color-brand-light)] hover:bg-red-500/10 transition-colors cursor-pointer text-center flex items-center justify-center gap-2 group/remove"
+                      >
+                        <X className="w-4 h-4 text-[var(--color-brand-dark)]/40 group-hover/remove:text-red-500 transition-colors" />
+                        <span className="text-[var(--color-brand-dark)]/50 group-hover/remove:text-red-500 text-sm font-medium transition-colors">Kaldır</span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -700,17 +803,17 @@ export default function App() {
                         key={id}
                         onClick={() => setTasarimTuru(id)}
                         className={`flex items-center gap-3 p-3.5 rounded-2xl border text-left transition-all duration-300 ${tasarimTuru === id
-                          ? "bg-blue-500/15 border-blue-500/40 shadow-[0_0_20px_rgba(59,130,246,0.15)]"
-                          : "bg-white/[0.03] border-white/[0.07] hover:bg-white/[0.06]"
+                          ? "bg-[var(--color-brand-orange)]/10 border-[var(--color-brand-orange)]/30 shadow-sm"
+                          : "bg-white border-[var(--color-brand-dark)]/10 hover:bg-[var(--color-brand-light)]"
                           }`}
                       >
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${tasarimTuru === id ? "bg-blue-500/20 text-blue-300" : "bg-white/[0.05] text-white/30"
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${tasarimTuru === id ? "bg-[var(--color-brand-orange)]/20 text-[var(--color-brand-orange)]" : "bg-[var(--color-brand-light)] text-[var(--color-brand-dark)]/30 border border-[var(--color-brand-dark)]/5"
                           }`}>
                           {icon}
                         </div>
                         <div>
-                          <p className={`text-xs font-semibold transition-colors ${tasarimTuru === id ? "text-white" : "text-white/50"}`}>{id}</p>
-                          <p className="text-[9px] text-white/25 mt-0.5">{desc}</p>
+                          <p className={`text-xs font-semibold transition-colors ${tasarimTuru === id ? "text-[var(--color-brand-dark)]" : "text-[var(--color-brand-dark)]/60"}`}>{id}</p>
+                          <p className={`text-[9px] mt-0.5 ${tasarimTuru === id ? "text-[var(--color-brand-dark)]/60" : "text-[var(--color-brand-dark)]/40"}`}>{desc}</p>
                         </div>
                       </button>
                     ))}
@@ -725,14 +828,14 @@ export default function App() {
                         exit={{ opacity: 0, height: 0 }}
                         className="overflow-hidden"
                       >
-                        <div className="pt-4 mt-4 border-t border-white/[0.05]">
-                          <span className="text-[10px] text-white/30 font-bold uppercase tracking-widest block mb-2.5">Platform</span>
+                        <div className="pt-4 mt-4 border-t border-[var(--color-brand-dark)]/5">
+                          <span className="text-[10px] text-[var(--color-brand-dark)]/40 font-bold uppercase tracking-widest block mb-2.5">Platform</span>
                           <div className="flex flex-wrap gap-2">
                             {sosyalMedyaPlatformlari.map(p => (
                               <button
                                 key={p}
                                 onClick={() => setPlatform(p)}
-                                className={`px-3 py-1.5 rounded-full text-[10px] font-semibold transition-all duration-200 ${platform === p ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" : "bg-white/[0.04] text-white/35 hover:bg-white/[0.08] border border-transparent"
+                                className={`px-3 py-1.5 rounded-full text-[10px] font-semibold transition-all duration-200 ${platform === p ? "bg-[var(--color-brand-dark)] text-white shadow-sm" : "bg-white border border-[var(--color-brand-dark)]/10 text-[var(--color-brand-dark)]/50 hover:bg-[var(--color-brand-light)]"
                                   }`}
                               >
                                 {p}
@@ -756,7 +859,7 @@ export default function App() {
                           onClick={() => setIsletme(t)}
                           className={`
                           px-4 py-2 rounded-full text-xs font-medium transition-all duration-300
-                          ${isletme === t ? "bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]" : "bg-white/5 text-white/50 hover:bg-white/10"}
+                          ${isletme === t ? "bg-[var(--color-brand-dark)] text-white shadow-sm" : "bg-white border border-[var(--color-brand-dark)]/10 text-[var(--color-brand-dark)]/50 hover:bg-[var(--color-brand-light)]"}
                         `}
                         >
                           {t}
@@ -791,7 +894,7 @@ export default function App() {
                   disabled={!gorsel}
                   className={`
                   w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300
-                  ${gorsel ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98]" : "bg-white/5 text-white/20 cursor-not-allowed"}
+                  ${gorsel ? "bg-[var(--color-brand-orange)] text-white shadow-xl shadow-black/10 hover:scale-[1.02] active:scale-[0.98]" : "bg-[var(--color-brand-dark)]/5 text-[var(--color-brand-dark)]/20 cursor-not-allowed"}
                 `}
                 >
                   Devam Et <ChevronRight className="w-5 h-5" />
@@ -809,7 +912,7 @@ export default function App() {
                 className="space-y-6"
               >
                 <div className={`${gc.card} p-8 space-y-6`}>
-                  <p className="text-white/50 text-sm leading-relaxed">Daha isabetli analiz için firmanız hakkında birkaç bilgi verin.</p>
+                  <p className="text-[var(--color-brand-dark)]/60 text-sm leading-relaxed">Daha isabetli analiz için firmanız hakkında birkaç bilgi verin.</p>
                   {[
                     { key: "markaAdi", label: "Marka / Firma Adı", ph: "örn. Brew & Co." },
                     { key: "kurumselRenk", label: "Kurumsal Renk(ler)", ph: "örn. Koyu yeşil, krem beyazı" },
@@ -842,7 +945,7 @@ export default function App() {
                 <div className="flex gap-4">
                   <button
                     onClick={() => setAdim(1)}
-                    className="flex-1 py-4 rounded-2xl bg-white/5 border border-white/10 text-white/60 font-semibold hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 py-4 rounded-2xl bg-white border border-[var(--color-brand-dark)]/10 text-[var(--color-brand-dark)]/70 font-semibold hover:bg-[var(--color-brand-light)] transition-all flex items-center justify-center gap-2"
                   >
                     <ChevronLeft className="w-5 h-5" /> Geri
                   </button>
@@ -851,12 +954,12 @@ export default function App() {
                     disabled={yukleniyor}
                     className={`
                     flex-[2] py-4 rounded-2xl font-bold text-white transition-all duration-300 flex items-center justify-center gap-2
-                    ${yukleniyor ? "bg-white/10 text-white/30 cursor-not-allowed" : "bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98]"}
+                    ${yukleniyor ? "bg-[var(--color-brand-dark)]/10 text-[var(--color-brand-dark)]/30 cursor-not-allowed" : "bg-[var(--color-brand-orange)] shadow-xl shadow-black/10 hover:scale-[1.02] active:scale-[0.98]"}
                   `}
                   >
                     {yukleniyor ? (
                       <>
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <div className="w-5 h-5 border-2 border-[var(--color-brand-dark)]/30 border-t-[var(--color-brand-dark)] rounded-full animate-spin" />
                         Analiz ediliyor...
                       </>
                     ) : (
@@ -886,20 +989,20 @@ export default function App() {
 
                 {/* Hero Feature: Orijinal Tasarım (Tam Genişlik) */}
                 <GlassCard glowColor="cyan" delay={0.1}>
-                  <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+                  <div className="p-4 border-b border-[var(--color-brand-dark)]/5 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-cyan-400" style={{ boxShadow: '0 0 8px rgba(56,189,248,0.6)' }} />
-                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Orijinal Tasarım</span>
+                      <div className="w-2 h-2 rounded-full bg-[var(--color-brand-orange)]" style={{ boxShadow: '0 0 8px rgba(255, 77, 0, 0.4)' }} />
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-brand-dark)]/40">Orijinal Tasarım</span>
                     </div>
-                    <span className="text-[9px] font-semibold text-white/20 bg-white/[0.04] px-3 py-1 rounded-full">{isletme}</span>
+                    <span className="text-[9px] font-semibold text-[var(--color-brand-dark)]/50 bg-[var(--color-brand-dark)]/5 px-3 py-1 rounded-full">{isletme}</span>
                   </div>
                   <div
                     onClick={() => gorsel && setSeciliGorsel(gorsel)}
                     className="cursor-zoom-in group relative"
                   >
-                    <img src={gorsel!} alt="Orijinal" className="w-full max-h-[500px] object-contain bg-[#0a0a0f] transition-all duration-700 group-hover:scale-[1.01]" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-end justify-center pb-6">
-                      <span className="text-white text-xs font-medium bg-white/10 backdrop-blur-xl px-4 py-2 rounded-full border border-white/20">Büyütmek için tıkla</span>
+                    <img src={gorsel!} alt="Orijinal" className="w-full max-h-[500px] object-contain bg-[var(--color-brand-light)] transition-all duration-700 group-hover:scale-[1.01]" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-brand-light)]/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-end justify-center pb-6">
+                      <span className="text-[var(--color-brand-dark)] text-xs font-medium bg-white/50 backdrop-blur-xl px-4 py-2 rounded-full border border-white">Büyütmek için tıkla</span>
                     </div>
                   </div>
                 </GlassCard>
@@ -908,14 +1011,14 @@ export default function App() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <button
                     onClick={sifirla}
-                    className="group relative w-full py-6 px-6 rounded-[24px] font-bold overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] border border-blue-500/20 bg-blue-500/5 shadow-[0_0_30px_rgba(59,130,246,0.05)] hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] flex flex-col items-center justify-center min-h-[180px]"
+                    className="group relative w-full py-6 px-6 rounded-[24px] font-bold overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] border border-[var(--color-brand-dark)]/10 bg-white shadow-sm flex flex-col items-center justify-center min-h-[180px]"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-b from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <span className="relative z-10 flex flex-col items-center justify-center gap-4 text-white">
-                      <div className="w-14 h-14 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/30 group-hover:-rotate-180 transition-transform duration-700">
-                        <RotateCcw className="w-6 h-6 text-blue-400" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-[var(--color-brand-light)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <span className="relative z-10 flex flex-col items-center justify-center gap-4 text-[var(--color-brand-dark)]">
+                      <div className="w-14 h-14 rounded-full bg-[var(--color-brand-light)] flex items-center justify-center border border-[var(--color-brand-dark)]/10 group-hover:-rotate-180 transition-transform duration-700">
+                        <RotateCcw className="w-6 h-6 text-[var(--color-brand-orange)]" />
                       </div>
-                      <span className="text-base tracking-wide font-black text-blue-100">Yeni Analiz Yap</span>
+                      <span className="text-base tracking-wide font-black text-[var(--color-brand-dark)]">Yeni Analiz Yap</span>
                     </span>
                   </button>
 
@@ -928,10 +1031,10 @@ export default function App() {
                         <Sparkles className="w-5 h-5 text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.8)]" />
                       </div>
                       <div className="text-left flex-1">
-                        <h4 className="text-white text-sm font-bold tracking-wide flex items-center gap-2">
+                        <h4 className="text-[var(--color-brand-dark)] text-sm font-bold tracking-wide flex items-center gap-2">
                           Keşfet'te Paylaş
                         </h4>
-                        <p className="text-white/60 text-[12px] mt-1.5 leading-relaxed">
+                        <p className="text-[var(--color-brand-dark)]/60 text-[12px] mt-1.5 leading-relaxed">
                           Tasarımını toplulukla buluştur, puan topla ve keşfet akışında öne çık.
                         </p>
                       </div>
@@ -941,7 +1044,7 @@ export default function App() {
                       {vitrindeYayinlandi ? (
                         <button
                           disabled
-                          className="w-full py-4 rounded-xl bg-emerald-500/10 text-emerald-400 font-bold text-sm border border-emerald-500/30 cursor-default flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.15)]"
+                          className="w-full py-4 rounded-xl bg-emerald-500/10 text-emerald-500 font-bold text-sm border border-emerald-500/30 cursor-default flex items-center justify-center gap-2"
                         >
                           <Check className="w-5 h-5" /> Yayında!
                         </button>
@@ -960,12 +1063,12 @@ export default function App() {
                               setYayinlaniyor(false);
                             }
                           }}
-                          className={`w-full py-4 rounded-xl text-white font-bold text-sm transition-all flex items-center justify-center gap-2 ${yayinlaniyor ? 'bg-white/10 cursor-not-allowed border border-white/20 text-white/50' : 'bg-gradient-to-r from-yellow-500 via-amber-500 to-orange-500 shadow-[0_0_30px_rgba(245,158,11,0.4)] hover:shadow-[0_0_40px_rgba(245,158,11,0.6)] hover:scale-[1.03] active:scale-[0.97]'}`}
+                          className={`w-full py-4 rounded-xl text-white font-bold text-sm transition-all flex items-center justify-center gap-2 ${yayinlaniyor ? 'bg-[var(--color-brand-dark)]/10 cursor-not-allowed border border-[var(--color-brand-dark)]/20 text-[var(--color-brand-dark)]/50' : 'bg-[var(--color-brand-orange)] shadow-xl shadow-black/10 hover:shadow-black/20 hover:scale-[1.02] active:scale-[0.98]'}`}
                         >
                           {yayinlaniyor ? (
                             <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Yayınlanıyor...</>
                           ) : (
-                            <>Evet, Vitrinde Yayınla! <ChevronRight className="w-4 h-4" /></>
+                            <>Evet, Keşfet'te Yayınla! <ChevronRight className="w-4 h-4" /></>
                           )}
                         </button>
                       )}
@@ -981,14 +1084,14 @@ export default function App() {
                     </div>
                     <div className="flex-1 space-y-4">
                       <div className="flex flex-col md:flex-row md:items-center gap-3">
-                        <h3 className="text-2xl font-bold text-white tracking-tight">Analiz Sonucu</h3>
+                        <h3 className="text-2xl font-bold text-[var(--color-brand-dark)] tracking-tight">Analiz Sonucu</h3>
                         {sonuc.genelDegerlendirme && (
-                          <span className="inline-flex w-fit text-[10px] font-bold uppercase tracking-widest text-blue-300 bg-blue-500/10 px-3 py-1.5 rounded-full border border-blue-500/20">
+                          <span className="inline-flex w-fit text-[10px] font-bold uppercase tracking-widest text-[#ff4d00] bg-[#ff4d00]/10 px-3 py-1.5 rounded-full border border-[#ff4d00]/20">
                             {sonuc.genelDegerlendirme}
                           </span>
                         )}
                       </div>
-                      <p className="text-white/70 text-[15px] leading-relaxed text-left">
+                      <p className="text-[var(--color-brand-dark)]/70 text-[15px] leading-relaxed text-left">
                         "{sonuc.genelYorum}"
                       </p>
                     </div>
@@ -1007,10 +1110,10 @@ export default function App() {
                         <div className="p-5">
                           <div className="flex items-center justify-between mb-5">
                             <div className="flex items-center gap-2.5">
-                              <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-white/50">
+                              <div className="w-9 h-9 rounded-xl bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5 flex items-center justify-center text-[var(--color-brand-dark)]/50">
                                 {k.emoji}
                               </div>
-                              <span className="text-white/70 font-semibold text-[13px]">{k.label}</span>
+                              <span className="text-[var(--color-brand-dark)]/70 font-semibold text-[13px]">{k.label}</span>
                             </div>
                           </div>
                           {/* Big score number */}
@@ -1018,24 +1121,23 @@ export default function App() {
                             <motion.span
                               initial={{ opacity: 0, scale: 0.5 }}
                               animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.6, delay: 0.3 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                              className="text-white text-3xl font-extrabold tracking-tight"
-                              style={{ textShadow: `0 0 30px ${color}33` }}
+                              transition={{ duration: 0.6, delay: 0.3 + i * 0.1, ease: "easeOut" }}
+                              className="text-[var(--color-brand-dark)] text-3xl font-extrabold tracking-tight"
                             >
                               {puan}
                             </motion.span>
-                            <span className="text-white/15 text-sm font-semibold">/25</span>
+                            <span className="text-[var(--color-brand-dark)]/30 text-sm font-semibold">/25</span>
                           </div>
                           <ScoreBar puan={puan} />
                           <div className="mt-4">
-                            <p className={`text-white/30 text-[11px] leading-relaxed transition-all duration-300 ${acikKriter === k.key ? '' : 'line-clamp-2'}`}>
+                            <p className={`text-[var(--color-brand-dark)]/60 text-[11px] leading-relaxed transition-all duration-300 ${acikKriter === k.key ? '' : 'line-clamp-2'}`}>
                               {sonuc[k.key]?.aciklama}
                             </p>
                             {sonuc[k.key]?.aciklama && sonuc[k.key].aciklama.length > 80 && (
                               <button
                                 onClick={() => setAcikKriter(acikKriter === k.key ? null : k.key)}
                                 className="mt-1.5 text-[10px] font-semibold tracking-wide transition-colors"
-                                style={{ color }}
+                                style={{ color: "var(--color-brand-orange)" }}
                               >
                                 {acikKriter === k.key ? '↑ Kapat' : '↓ Devamını gör'}
                               </button>
@@ -1056,7 +1158,7 @@ export default function App() {
                       <GlassCard glowColor="blue" delay={0.7}>
                         <div className="p-4 border-b border-white/[0.06] flex items-center gap-2.5">
                           <div className="w-2 h-2 rounded-full bg-blue-400" style={{ boxShadow: '0 0 8px rgba(96,165,250,0.6)' }} />
-                          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Renk Paleti</span>
+                          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-brand-dark)]/40">Renk Paleti</span>
                         </div>
                         <div className="p-5 flex flex-col gap-4">
                           <div className="flex flex-wrap gap-3 items-center">
@@ -1073,15 +1175,15 @@ export default function App() {
                               >
                                 {/* Tooltip */}
                                 {kopyalananRenk === hex && (
-                                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-xl text-white text-[9px] font-semibold px-2 py-1 rounded-md border border-white/10 whitespace-nowrap z-20 animate-fade-in">
+                                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-[var(--color-brand-dark)] text-white text-[9px] font-semibold px-2 py-1 rounded-md border-none whitespace-nowrap z-20 animate-fade-in">
                                     ✓ Kopyalandı
                                   </div>
                                 )}
                                 <div
-                                  className="w-9 h-9 rounded-xl border border-white/[0.12] shadow-lg transition-all duration-200 group-hover:scale-125 group-hover:rounded-2xl"
+                                  className="w-9 h-9 rounded-xl border border-[var(--color-brand-dark)]/10 shadow-sm transition-all duration-200 group-hover:scale-125 group-hover:rounded-2xl"
                                   style={{ backgroundColor: hex, boxShadow: `0 4px 16px ${hex}55` }}
                                 />
-                                <span className="text-[9px] text-white/25 font-mono tracking-wider group-hover:text-white/50 transition-colors">{hex.toUpperCase()}</span>
+                                <span className="text-[9px] text-[var(--color-brand-dark)]/40 font-mono tracking-wider group-hover:text-[var(--color-brand-dark)] transition-colors">{hex.toUpperCase()}</span>
                               </div>
                             ))}
                           </div>
@@ -1090,14 +1192,14 @@ export default function App() {
                             <div className="space-y-2 pt-1 border-t border-white/[0.04]">
                               {sonuc.gucluYon && (
                                 <div className="flex items-start gap-2">
-                                  <span className="text-emerald-400/80 text-[10px] mt-0.5">✦</span>
-                                  <span className="text-white/35 text-[10px] leading-relaxed">{sonuc.gucluYon}</span>
+                                  <span className="text-emerald-500/80 text-[10px] mt-0.5">✦</span>
+                                  <span className="text-[var(--color-brand-dark)]/60 text-[10px] leading-relaxed">{sonuc.gucluYon}</span>
                                 </div>
                               )}
                               {sonuc.zayifYon && (
                                 <div className="flex items-start gap-2">
-                                  <span className="text-amber-400/80 text-[10px] mt-0.5">△</span>
-                                  <span className="text-white/35 text-[10px] leading-relaxed">{sonuc.zayifYon}</span>
+                                  <span className="text-amber-500/80 text-[10px] mt-0.5">△</span>
+                                  <span className="text-[var(--color-brand-dark)]/60 text-[10px] leading-relaxed">{sonuc.zayifYon}</span>
                                 </div>
                               )}
                             </div>
@@ -1112,7 +1214,7 @@ export default function App() {
                         <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
                           <div className="flex items-center gap-2.5">
                             <div className="w-2 h-2 rounded-full bg-purple-400" style={{ boxShadow: '0 0 8px rgba(168,85,247,0.5)' }} />
-                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Teknik Özet</span>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-brand-dark)]/40">Teknik Özet</span>
                           </div>
                         </div>
                         <div className="p-5 space-y-4">
@@ -1139,11 +1241,11 @@ export default function App() {
                           ].map((item) => (
                             <div key={item.label}>
                               <div className="flex items-center justify-between mb-1.5">
-                                <span className="text-white/30 text-[10px]">{item.label}</span>
-                                <span className="text-white/55 text-[10px] font-semibold font-mono">{item.value}</span>
+                                <span className="text-[var(--color-brand-dark)]/40 text-[10px]">{item.label}</span>
+                                <span className="text-[var(--color-brand-dark)]/70 text-[10px] font-semibold font-mono">{item.value}</span>
                               </div>
                               {item.bar && (
-                                <div className="h-[3px] bg-white/[0.05] rounded-full overflow-hidden">
+                                <div className="h-[3px] bg-[var(--color-brand-dark)]/5 rounded-full overflow-hidden">
                                   <motion.div
                                     initial={{ width: 0 }}
                                     animate={{ width: `${item.pct}%` }}
@@ -1165,14 +1267,14 @@ export default function App() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Suggestion Card */}
                   <GlassCard glowColor="green" delay={0.8}>
-                    <div className="p-4 border-b border-white/[0.06]">
+                    <div className="p-4 border-b border-[var(--color-brand-dark)]/10">
                       <div className="flex items-center gap-2.5">
                         <div className="w-2 h-2 rounded-full bg-emerald-400" style={{ boxShadow: '0 0 8px rgba(52,211,153,0.6)' }} />
-                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Gelişim Önerisi</span>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-brand-dark)]/40">Gelişim Önerisi</span>
                       </div>
                     </div>
                     <div className="p-6">
-                      <p className="text-white/70 text-[14px] leading-relaxed">
+                      <p className="text-[var(--color-brand-dark)]/70 text-[14px] leading-relaxed">
                         {sonuc.oneri}
                       </p>
                     </div>
@@ -1195,10 +1297,10 @@ export default function App() {
                             </span>
                           </div>
                         </div>
-                        <h4 className="text-2xl font-black text-white mb-3">AI Tasarım Revizyonu</h4>
-                        <p className="text-white/60 text-[14px] leading-relaxed pr-4">Tasarımınızı yapay zekaya emanet edin. Saniyeler içinde kusurları düzeltsin ve alternatif, mükemmel varyasyonlar üretsin!</p>
+                        <h4 className="text-2xl font-black text-[var(--color-brand-dark)] mb-3">AI Tasarım Revizyonu</h4>
+                        <p className="text-[var(--color-brand-dark)]/60 text-[14px] leading-relaxed pr-4">Tasarımınızı yapay zekaya emanet edin. Saniyeler içinde kusurları düzeltsin ve alternatif, mükemmel varyasyonlar üretsin!</p>
                       </div>
-                      <button className="mt-8 w-full py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/20 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 hover:border-fuchsia-500/50 hover:shadow-[0_0_20px_rgba(217,70,239,0.2)]">
+                      <button className="mt-8 w-full py-4 rounded-xl bg-[var(--color-brand-dark)] text-white font-bold text-sm transition-all flex items-center justify-center gap-2 hover:bg-[var(--color-brand-dark)]/90 shadow-sm">
                         Şimdi PRO'ya Geç <ChevronRight className="w-4 h-4" />
                       </button>
                     </div>
@@ -1218,7 +1320,7 @@ export default function App() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setSeciliGorsel(null)}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-12 bg-[#050508]/95 backdrop-blur-2xl cursor-zoom-out"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-12 bg-white/95 backdrop-blur-xl cursor-zoom-out"
           >
             <motion.div
               initial={{ scale: 0.85, opacity: 0 }}
@@ -1231,11 +1333,11 @@ export default function App() {
               <img
                 src={seciliGorsel}
                 alt="Büyütülmüş Görsel"
-                className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl border border-white/[0.08]"
+                className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-sm border border-[var(--color-brand-dark)]/10"
               />
               <button
                 onClick={() => setSeciliGorsel(null)}
-                className="absolute -top-14 right-0 text-white/40 hover:text-white transition-colors flex items-center gap-2 text-sm font-medium bg-white/[0.04] backdrop-blur-xl px-4 py-2 rounded-full border border-white/[0.08]"
+                className="absolute -top-14 right-0 text-[var(--color-brand-dark)]/50 hover:text-[var(--color-brand-dark)] transition-colors flex items-center gap-2 text-sm font-bold bg-white backdrop-blur-xl px-4 py-2 rounded-full border border-[var(--color-brand-dark)]/10 shadow-sm"
               >
                 Kapat ✕
               </button>
@@ -1251,36 +1353,36 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[70] flex flex-col items-center justify-center p-4 bg-[#050508]/95 backdrop-blur-3xl"
+            className="fixed inset-0 z-[70] flex flex-col items-center justify-center p-4 bg-[var(--color-brand-light)]/95 backdrop-blur-3xl"
           >
             {/* AI Beyin / Tarama Animasyonu */}
             <motion.div
               animate={{
                 scale: [1, 1.1, 1],
                 boxShadow: [
-                  "0 0 0 rgba(59, 130, 246, 0)",
-                  "0 0 60px rgba(59, 130, 246, 0.4)",
-                  "0 0 0 rgba(59, 130, 246, 0)"
+                  "0 0 0 rgba(255, 77, 0, 0)",
+                  "0 0 60px rgba(255, 77, 0, 0.2)",
+                  "0 0 0 rgba(255, 77, 0, 0)"
                 ]
               }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              className="w-32 h-32 rounded-full border border-blue-500/30 flex items-center justify-center bg-blue-500/10 mb-8"
+              className="w-32 h-32 rounded-full border border-[var(--color-brand-orange)]/30 flex items-center justify-center bg-[var(--color-brand-orange)]/10 mb-8"
             >
-              <BrainCircuit className="w-12 h-12 text-blue-400" />
+              <BrainCircuit className="w-12 h-12 text-[var(--color-brand-orange)]" />
             </motion.div>
 
             {/* Başlık */}
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent mb-4 text-center">
+            <h2 className="text-2xl font-bold text-[var(--color-brand-dark)] mb-4 text-center">
               Yapay Zeka Tasarımınızı İnceleyip Ölçüyor
             </h2>
             <div className="flex items-center gap-2 mb-12">
-              <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
-              <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
-              <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '400ms' }} />
+              <span className="w-2 h-2 bg-[var(--color-brand-orange)] rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
+              <span className="w-2 h-2 bg-[var(--color-brand-orange)] rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
+              <span className="w-2 h-2 bg-[var(--color-brand-orange)] rounded-full animate-pulse" style={{ animationDelay: '400ms' }} />
             </div>
 
             {/* Dinamik İpuçları (Karusel) */}
-            <div className="h-24 w-full max-w-lg flex items-center justify-center overflow-hidden relative border border-white/5 bg-white/[0.02] rounded-3xl p-6">
+            <div className="h-24 w-full max-w-lg flex items-center justify-center overflow-hidden relative border border-[var(--color-brand-dark)]/5 bg-white rounded-3xl p-6 shadow-sm">
               <AnimatePresence mode="wait">
                 <motion.p
                   key={loadingTipIndex}
@@ -1288,14 +1390,14 @@ export default function App() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -15 }}
                   transition={{ duration: 0.5 }}
-                  className="text-white/60 text-sm md:text-base text-center leading-relaxed font-medium absolute w-full px-6"
+                  className="text-[var(--color-brand-dark)]/60 text-sm md:text-base text-center leading-relaxed font-medium absolute w-full px-6"
                 >
                   {KARUSEL_IPUCLARI[loadingTipIndex]}
                 </motion.p>
               </AnimatePresence>
             </div>
 
-            <p className="fixed bottom-10 text-white/20 text-xs font-medium tracking-widest uppercase">
+            <p className="fixed bottom-10 text-[var(--color-brand-dark)]/40 text-xs font-bold tracking-widest uppercase">
               Bu işlem birkaç saniye sürebilir
             </p>
           </motion.div>
@@ -1309,19 +1411,19 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl"
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[var(--color-brand-light)]/80 backdrop-blur-xl"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-sm bg-white/5 border border-white/10 p-6 rounded-3xl backdrop-blur-3xl text-center shadow-2xl shadow-blue-500/10"
+              className="w-full max-w-sm bg-white border border-[var(--color-brand-dark)]/10 p-6 rounded-3xl backdrop-blur-3xl text-center shadow-sm"
             >
-              <div className="w-16 h-16 mx-auto mb-4 bg-orange-500/20 text-orange-400 rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-[var(--color-brand-orange)]/10 text-[var(--color-brand-orange)] rounded-full flex items-center justify-center">
                 <AlertCircle className="w-8 h-8" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Giriş Yapmadınız</h3>
-              <p className="text-white/60 text-sm mb-6 leading-relaxed">
+              <h3 className="text-xl font-bold text-[var(--color-brand-dark)] mb-2">Giriş Yapmadınız</h3>
+              <p className="text-[var(--color-brand-dark)]/60 text-sm mb-6 leading-relaxed">
                 Misafir olarak analiz yapabilirsiniz ancak analiziniz <strong>kaydedilmeyecek</strong>, istatistiklerinize yansımayacak ve daha sonra erişilemeyecektir.
               </p>
               <div className="flex flex-col gap-3">
@@ -1331,7 +1433,7 @@ export default function App() {
                     setAuthAcik(true);
                     setAuthMod('kayit');
                   }}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold transition-transform hover:scale-[1.02]"
+                  className="w-full py-3 rounded-xl bg-[var(--color-brand-dark)] text-white font-bold transition-transform hover:scale-[1.02] shadow-sm"
                 >
                   Kayıt Ol / Giriş Yap
                 </button>
@@ -1340,13 +1442,13 @@ export default function App() {
                     setAuthUyariAcik(false);
                     analiziBaslat(true);
                   }}
-                  className="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/50 hover:text-white font-semibold transition-colors border border-white/5"
+                  className="w-full py-3 rounded-xl bg-white hover:bg-[var(--color-brand-light)] text-[var(--color-brand-dark)]/70 hover:text-[var(--color-brand-dark)] font-semibold transition-colors border border-[var(--color-brand-dark)]/10"
                 >
                   Kayıt Olmadan Devam Et
                 </button>
                 <button
                   onClick={() => setAuthUyariAcik(false)}
-                  className="w-full py-2 mt-2 text-white/30 hover:text-white/50 text-xs transition-colors underline decoration-white/20 underline-offset-2"
+                  className="w-full py-2 mt-2 text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-dark)]/70 text-xs transition-colors underline decoration-[var(--color-brand-dark)]/20 underline-offset-2"
                 >
                   İptal Et
                 </button>
@@ -1363,7 +1465,7 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#050508]/90 backdrop-blur-2xl"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--color-brand-light)]/80 backdrop-blur-2xl"
             onClick={() => setStatsAcik(false)}
           >
             <motion.div
@@ -1372,22 +1474,22 @@ export default function App() {
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ ease: [0.22, 1, 0.36, 1] }}
               onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-lg bg-white/[0.05] border border-white/[0.10] rounded-3xl backdrop-blur-2xl overflow-hidden"
+              className="relative w-full max-w-lg bg-white border border-[var(--color-brand-dark)]/10 rounded-3xl shadow-sm overflow-hidden"
             >
-              <div className="p-5 border-b border-white/[0.06] flex items-center justify-between">
+              <div className="p-5 border-b border-[var(--color-brand-dark)]/5 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <BarChart2 className="w-4 h-4 text-blue-400" />
-                  <span className="text-white text-sm font-bold">Benim İstatistiklerim</span>
+                  <BarChart2 className="w-4 h-4 text-[var(--color-brand-orange)]" />
+                  <span className="text-[var(--color-brand-dark)] text-sm font-bold">Benim İstatistiklerim</span>
                 </div>
-                <button onClick={() => setStatsAcik(false)} className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors">
+                <button onClick={() => setStatsAcik(false)} className="p-1.5 rounded-lg hover:bg-[var(--color-brand-light)] text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-dark)] transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               <div className="p-5">
                 {statsYukleniyor ? (
-                  <div className="flex items-center justify-center py-10 gap-3 text-white/30">
-                    <div className="w-5 h-5 border-2 border-white/20 border-t-blue-400 rounded-full animate-spin" />
+                  <div className="flex items-center justify-center py-10 gap-3 text-[var(--color-brand-dark)]/40">
+                    <div className="w-5 h-5 border-2 border-[var(--color-brand-dark)]/20 border-t-[var(--color-brand-orange)] rounded-full animate-spin" />
                     <span className="text-sm">Yükleniyor...</span>
                   </div>
                 ) : statsData ? (
@@ -1397,13 +1499,13 @@ export default function App() {
                     {/* Ana sayılar */}
                     <div className="grid grid-cols-3 gap-3">
                       {[
-                        { label: 'Toplam Analiz', value: statsData.toplamAnaliz, color: 'text-blue-400' },
-                        { label: 'Bu Hafta', value: statsData.buHafta, color: 'text-emerald-400' },
-                        { label: 'Ort. Puan', value: `${statsData.ortalamaGenel}/100`, color: 'text-purple-400' },
+                        { label: 'Toplam Analiz', value: statsData.toplamAnaliz, color: 'text-[var(--color-brand-dark)]' },
+                        { label: 'Bu Hafta', value: statsData.buHafta, color: 'text-emerald-500' },
+                        { label: 'Ort. Puan', value: `${statsData.ortalamaGenel}/100`, color: 'text-[var(--color-brand-orange)]' },
                       ].map(s => (
-                        <div key={s.label} className="bg-white/[0.04] rounded-2xl p-3 text-center border border-white/[0.06]">
+                        <div key={s.label} className="bg-[var(--color-brand-light)] rounded-2xl p-3 text-center border border-[var(--color-brand-dark)]/5 text-[var(--color-brand-dark)]">
                           <div className={`text-2xl font-extrabold ${s.color}`}>{s.value}</div>
-                          <div className="text-white/30 text-[10px] mt-1">{s.label}</div>
+                          <div className="text-[var(--color-brand-dark)]/40 text-[10px] mt-1">{s.label}</div>
                         </div>
                       ))}
                     </div>
@@ -1411,7 +1513,7 @@ export default function App() {
                     {/* Tasarım türü dağılımı */}
                     {Object.keys(statsData.turDagilim || {}).length > 0 && (
                       <div>
-                        <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mb-2.5">Dağılım İstatistikleri</p>
+                        <p className="text-[var(--color-brand-dark)]/40 text-[10px] font-bold uppercase tracking-widest mb-2.5">Dağılım İstatistikleri</p>
                         <div className="space-y-2">
                           {Object.entries(statsData.turDagilim as Record<string, number>)
                             .sort(([, a], [, b]) => b - a)
@@ -1420,10 +1522,10 @@ export default function App() {
                               return (
                                 <div key={tur}>
                                   <div className="flex justify-between mb-1">
-                                    <span className="text-white/50 text-[11px]">{tur}</span>
-                                    <span className="text-white/35 text-[11px] font-mono">{sayi} ({pct}%)</span>
+                                    <span className="text-[var(--color-brand-dark)] text-[11px] font-semibold">{tur}</span>
+                                    <span className="text-[var(--color-brand-dark)]/50 text-[11px] font-mono">{sayi} ({pct}%)</span>
                                   </div>
-                                  <div className="h-[3px] bg-white/[0.05] rounded-full overflow-hidden">
+                                  <div className="h-[3px] bg-[var(--color-brand-dark)]/5 rounded-full overflow-hidden">
                                     <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.8 }}
                                       className="h-full rounded-full bg-blue-500" />
                                   </div>
@@ -1437,11 +1539,11 @@ export default function App() {
                     {/* En popüler sektörler */}
                     {statsData.enPopulerSektor?.length > 0 && (
                       <div>
-                        <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mb-2.5">Popüler Sektörler</p>
+                        <p className="text-[var(--color-brand-dark)]/40 text-[10px] font-bold uppercase tracking-widest mb-2.5">Popüler Sektörler</p>
                         <div className="flex flex-wrap gap-2">
                           {statsData.enPopulerSektor.map((s: any, i: number) => (
-                            <span key={i} className="px-3 py-1.5 rounded-full text-[10px] font-semibold bg-white/[0.05] border border-white/[0.08] text-white/50">
-                              {s.isletme} <span className="text-white/25">({s.sayi})</span>
+                            <span key={i} className="px-3 py-1.5 rounded-full text-[10px] font-semibold bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5 text-[var(--color-brand-dark)] shadow-sm">
+                              {s.isletme} <span className="text-[var(--color-brand-dark)]/40">({s.sayi})</span>
                             </span>
                           ))}
                         </div>
@@ -1451,11 +1553,11 @@ export default function App() {
                     {/* Değerlendirme dağılımı */}
                     {Object.keys(statsData.degDagilim || {}).length > 0 && (
                       <div>
-                        <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mb-2.5">Değerlendirmeler</p>
+                        <p className="text-[var(--color-brand-dark)]/40 text-[10px] font-bold uppercase tracking-widest mb-2.5">Değerlendirmeler</p>
                         <div className="flex flex-wrap gap-2">
                           {Object.entries(statsData.degDagilim as Record<string, number>).map(([deg, sayi]) => (
-                            <span key={deg} className="px-3 py-1.5 rounded-full text-[10px] font-semibold bg-white/[0.05] border border-white/[0.08] text-white/50">
-                              {deg} <span className="text-white/25">× {sayi}</span>
+                            <span key={deg} className="px-3 py-1.5 rounded-full text-[10px] font-semibold bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5 text-[var(--color-brand-dark)] shadow-sm">
+                              {deg} <span className="text-[var(--color-brand-dark)]/40">× {sayi}</span>
                             </span>
                           ))}
                         </div>
@@ -1463,7 +1565,7 @@ export default function App() {
                     )}
                   </div>
                 ) : (
-                  <p className="text-center text-white/30 py-8 text-sm">Veri yüklenemedi.</p>
+                  <p className="text-center text-[var(--color-brand-dark)]/40 py-8 text-sm border border-[var(--color-brand-dark)]/5 rounded-2xl bg-[var(--color-brand-light)]">Veri yüklenemedi.</p>
                 )}
               </div>
             </motion.div>
@@ -1478,7 +1580,7 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#050508]/90 backdrop-blur-2xl"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--color-brand-light)]/90 backdrop-blur-2xl"
             onClick={() => setAuthAcik(false)}
           >
             <motion.div
@@ -1487,41 +1589,41 @@ export default function App() {
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ ease: [0.22, 1, 0.36, 1] }}
               onClick={e => e.stopPropagation()}
-              className="w-full max-w-sm bg-white/[0.05] border border-white/[0.10] rounded-3xl backdrop-blur-2xl overflow-hidden"
+              className="w-full max-w-sm bg-white border border-[var(--color-brand-dark)]/10 rounded-3xl shadow-sm overflow-hidden"
             >
-              <div className="p-5 border-b border-white/[0.06] flex items-center justify-between">
+              <div className="p-5 border-b border-[var(--color-brand-dark)]/5 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <User className="w-4 h-4 text-blue-400" />
-                  <div className="flex gap-1">
+                  <User className="w-4 h-4 text-[var(--color-brand-orange)]" />
+                  <div className="flex gap-1" style={{ position: 'relative', zIndex: 10 }}>
                     {(['giris', 'kayit'] as const).map(m => (
                       <button key={m} onClick={() => setAuthMod(m)}
-                        className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${authMod === m ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 'text-white/30 hover:text-white/50'}`}>
+                        className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${authMod === m ? 'bg-[var(--color-brand-orange)] text-white shadow-sm' : 'text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-light)]'}`}>
                         {m === 'giris' ? 'Giriş Yap' : 'Kayıt Ol'}
                       </button>
                     ))}
                   </div>
                 </div>
-                <button onClick={() => setAuthAcik(false)} className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors">
+                <button onClick={() => setAuthAcik(false)} className="p-1.5 rounded-lg hover:bg-[var(--color-brand-light)] text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-dark)] transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               <form onSubmit={e => { e.preventDefault(); girisYap(); }} className="p-5 space-y-3">
                 <input type="email" placeholder="E-posta" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
-                  className="bg-white/5 border border-white/10 rounded-xl text-white text-sm p-3 w-full outline-none focus:border-blue-500/50 transition-colors placeholder:text-white/20" />
+                  className="bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5 rounded-xl text-[var(--color-brand-dark)] text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-[var(--color-brand-dark)]/30" />
                 <input type="password" placeholder="Şifre" value={authSifre} onChange={e => setAuthSifre(e.target.value)}
-                  className="bg-white/5 border border-white/10 rounded-xl text-white text-sm p-3 w-full outline-none focus:border-blue-500/50 transition-colors placeholder:text-white/20" />
+                  className="bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5 rounded-xl text-[var(--color-brand-dark)] text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-[var(--color-brand-dark)]/30" />
 
-                {authHata && <p className="text-red-400/80 text-[11px] px-1">{authHata}</p>}
+                {authHata && <p className="text-red-500/80 text-[11px] px-1">{authHata}</p>}
 
                 <button type="submit" disabled={authYukleniyor || !authEmail || !authSifre}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                  {authYukleniyor ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
+                  className="w-full py-3 rounded-xl bg-[var(--color-brand-dark)] text-white text-sm font-bold hover:bg-[var(--color-brand-dark)]/90 shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                  {authYukleniyor ? <div className="w-4 h-4 border-2 border-white/30 border-t-[var(--color-brand-orange)] rounded-full animate-spin" /> : null}
                   {authMod === 'giris' ? 'Giriş Yap' : 'Hesap Oluştur'}
                 </button>
 
                 {authMod === 'kayit' && (
-                  <p className="text-white/20 text-[10px] text-center leading-relaxed">
+                  <p className="text-[var(--color-brand-dark)]/40 text-[10px] text-center leading-relaxed">
                     Kayıt olduktan sonra e-postanı doğrulamanı isteyebilir.
                   </p>
                 )}
@@ -1539,28 +1641,15 @@ export default function App() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
             onClick={paylasimLinkiKopyala}
-            className="fixed bottom-8 right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-2xl bg-gradient-to-r from-blue-600/90 to-indigo-600/90 backdrop-blur-xl border border-white/10 text-white text-sm font-semibold shadow-lg shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all"
+            className="fixed bottom-8 right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-2xl bg-[var(--color-brand-dark)] backdrop-blur-xl border border-[var(--color-brand-dark)]/10 text-white text-sm font-semibold shadow-lg hover:scale-105 active:scale-95 transition-all"
           >
-            {paylasimKopyalandi ? <Check className="w-4 h-4 text-emerald-300" /> : <Share2 className="w-4 h-4" />}
+            {paylasimKopyalandi ? <Check className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4 text-[var(--color-brand-orange)]" />}
             {paylasimKopyalandi ? 'Link Kopyalandı!' : 'Paylaş'}
           </motion.button>
         )}
       </AnimatePresence>
 
-      {/* Footer */}
-      <footer className="text-center py-4 md:py-6 border-t border-white/[0.04] mt-auto">
-        <p className="text-white/20 text-[11px] tracking-wider">
-          Designed & Developed by{" "}
-          <a
-            href="https://www.instagram.com/_selmanaydgn/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-white/40 font-medium hover:text-blue-400 transition-colors duration-300"
-          >
-            Selman Aydoğan
-          </a>
-        </p>
-      </footer>
+      <Footer onLogoClick={goHome} />
     </div>
   );
 }
