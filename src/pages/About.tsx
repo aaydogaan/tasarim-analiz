@@ -133,11 +133,48 @@ export default function About() {
                         <h2 className="text-5xl md:text-7xl font-black tracking-tighter mb-8 leading-[1.1]">
                             Selman <br /> Aydoğan
                         </h2>
-                        <p className="text-gray-400 text-lg md:text-xl leading-relaxed mb-10 max-w-lg">
+                        <p className="text-gray-400 text-lg md:text-xl leading-relaxed mb-6 max-w-lg">
                             "Yazılım ve tasarımın sadece bir araç değil; insanların hikayelerini anlatmak, duygularına dokunmak için bir sanat olduğuna inanıyorum."
                             <br /><br />
                             Sıklıkla harika fikirlerle yola çıkıp teknik detaylarda boğulan kreatiflere yardım etmek en büyük motivasyonum.
                         </p>
+
+                        {/* Awards Section */}
+                        <div className="flex flex-wrap gap-8 mb-10 mt-2">
+                            {[2025, 2026].map(year => (
+                                <motion.div
+                                    key={year}
+                                    whileHover={{ y: -5, scale: 1.05 }}
+                                    className="flex items-center gap-3 group cursor-default"
+                                >
+                                    {/* Laurel Wreath Left */}
+                                    <svg width="32" height="48" viewBox="0 0 32 48" fill="none" className="opacity-40 group-hover:opacity-100 transition-opacity">
+                                        <path d="M4 8C4 8 0 16 0 24C0 32 4 40 4 40" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                                        <path d="M4 12L8 10" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                                        <path d="M2.5 18L7 16.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                                        <path d="M2 24L7 24" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                                        <path d="M2.5 30L7 31.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                                        <path d="M4 36L8 38" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                                    </svg>
+
+                                    <div className="flex flex-col items-center">
+                                        <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-500 group-hover:text-[var(--color-brand-orange)] transition-colors">TRT GİY</span>
+                                        <span className="text-lg font-black tracking-tighter text-white">{year}</span>
+                                    </div>
+
+                                    {/* Laurel Wreath Right */}
+                                    <svg width="32" height="48" viewBox="0 0 32 48" fill="none" className="opacity-40 group-hover:opacity-100 transition-opacity scale-x-[-1]">
+                                        <path d="M4 8C4 8 0 16 0 24C0 32 4 40 4 40" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                                        <path d="M4 12L8 10" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                                        <path d="M2.5 18L7 16.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                                        <path d="M2 24L7 24" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                                        <path d="M2.5 30L7 31.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                                        <path d="M4 36L8 38" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                                    </svg>
+                                </motion.div>
+                            ))}
+                        </div>
+
                         <div className="flex gap-4">
                             <a href="https://github.com/aaydogaan" target="_blank" rel="noreferrer" className="bg-white/10 hover:bg-white/20 px-6 py-4 rounded-2xl flex items-center gap-3 transition-colors text-white font-semibold">
                                 <Github className="w-5 h-5" /> GitHub
