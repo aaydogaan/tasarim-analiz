@@ -3,8 +3,8 @@ import { motion } from 'motion/react';
 import { LogOut, BarChart2 } from 'lucide-react';
 
 interface HeaderProps {
-    gorunum: 'landing' | 'app' | 'vitrin' | 'community';
-    setGorunum: (v: 'landing' | 'app' | 'vitrin' | 'community') => void;
+    gorunum: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing';
+    setGorunum: (v: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing') => void;
     kullanici: any;
     onStatsClick: () => void;
     onLogoutClick: () => void;
@@ -22,7 +22,7 @@ export default function Header({
     goHome
 }: HeaderProps) {
 
-    const handleNavClick = (view: 'landing' | 'app' | 'vitrin' | 'community', sectionId?: string) => {
+    const handleNavClick = (view: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing', sectionId?: string) => {
         if (gorunum !== view) {
             setGorunum(view);
             // Wait for render if moving to landing
@@ -72,6 +72,12 @@ export default function Header({
                     className={`transition-colors whitespace-nowrap ${gorunum === 'community' ? 'text-[var(--color-brand-dark)]' : 'hover:text-[var(--color-brand-dark)]'}`}
                 >
                     Topluluk
+                </button>
+                <button
+                    onClick={() => handleNavClick('pricing')}
+                    className={`transition-colors whitespace-nowrap ${gorunum === 'pricing' ? 'text-[var(--color-brand-orange)] font-bold' : 'hover:text-[var(--color-brand-orange)]'}`}
+                >
+                    Planlar
                 </button>
             </div>
 

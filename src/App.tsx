@@ -9,6 +9,7 @@ import LandingPage from "./pages/LandingPage";
 import Footer from "./components/ui/Footer";
 import Community from "./pages/Community";
 import Header from "./components/ui/Header";
+import Pricing from "./pages/Pricing";
 
 declare global {
   interface Window {
@@ -211,7 +212,7 @@ export default function App() {
   }
 
   const [adim, setAdim] = useState(initAdim);
-  const [gorunum, setGorunum] = useState<'landing' | 'app' | 'vitrin' | 'community'>('landing'); // Default to landing page
+  const [gorunum, setGorunum] = useState<'landing' | 'app' | 'vitrin' | 'community' | 'pricing'>('landing'); // Default to landing page
   const [gorsel, setGorsel] = useState<string | null>(initGorsel);
   const [gorselBase64, setGorselBase64] = useState<string | null>(initGorselBase64);
   const [revizeGorsel, setRevizeGorsel] = useState<string | null>(() => getSessionData('ra_revizeGorsel', null));
@@ -588,6 +589,10 @@ export default function App() {
       ) : gorunum === 'community' ? (
         <main className="flex-1 w-full mt-20">
           <Community />
+        </main>
+      ) : gorunum === 'pricing' ? (
+        <main className="flex-1 w-full mt-20">
+          <Pricing />
         </main>
       ) : (
         <>
