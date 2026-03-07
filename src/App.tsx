@@ -73,9 +73,9 @@ const isletmeTurleri = [
 ];
 
 const gc = {
-  card: "bg-white border border-[var(--color-brand-dark)]/10 rounded-3xl shadow-sm",
-  input: "bg-white/50 border border-[var(--color-brand-dark)]/10 rounded-xl text-[var(--color-brand-dark)] text-sm p-3 w-full outline-none focus:border-[#ff4d00]/50 focus:bg-white transition-colors placeholder:text-[var(--color-brand-dark)]/40 hover:bg-white/80",
-  label: "text-[var(--color-brand-dark)]/40 text-[10px] font-bold tracking-widest uppercase mb-2 block",
+  card: "bg-white/80 backdrop-blur-2xl border border-[var(--color-brand-dark)]/10 rounded-[28px] shadow-[0_8px_32px_rgba(0,0,0,0.04)]",
+  label: "text-[10px] font-extrabold uppercase tracking-[0.15em] text-[var(--color-brand-dark)]/30 ml-1 mb-2 block",
+  input: "w-full bg-white/50 border border-[var(--color-brand-dark)]/5 text-[var(--color-brand-dark)] rounded-[20px] px-5 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-orange)]/30 focus:bg-white transition-all placeholder:text-[var(--color-brand-dark)]/20 shadow-inner",
 };
 
 function GlassCard({ children, className = "", glowColor = "blue", delay = 0 }: { children: React.ReactNode; className?: string; glowColor?: string; delay?: number; key?: string }) {
@@ -601,14 +601,14 @@ export default function App() {
           <Community />
         </main>
       ) : (
-        <main className={`flex-1 flex flex-col items-center w-full max-w-screen-xl mx-auto px-4 py-6 md:py-8 mt-16 transition-all duration-500 ${adim === 3 ? 'max-w-6xl' : 'max-w-lg'}`}>
+        <main className={`flex-1 flex flex-col items-center w-full max-w-screen-xl mx-auto px-4 py-4 md:py-6 mt-16 transition-all duration-500 ${adim === 3 ? 'max-w-6xl' : 'max-w-md'}`}>
           {/* Header */}
-          <header className="text-center mb-8 md:mb-12 relative z-10 pt-10">
+          <header className="text-center mb-6 md:mb-8 relative z-10 pt-4">
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: -20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: "easeOut" }}
-              className="inline-flex flex-col items-center w-full max-w-2xl mx-auto"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="flex flex-col items-center w-full"
             >
               {adim === 1 && (
                 <motion.div
@@ -622,14 +622,11 @@ export default function App() {
                 </motion.div>
               )}
 
-              <div className="w-full mb-4 md:mb-8 h-24 md:h-32 flex justify-center mt-2 relative z-50">
-                <TextPressure
-                  text="REVIZE AI"
-                  textColor="var(--color-brand-dark)"
-                  stroke={true}
-                  strokeColor="var(--color-brand-orange)"
-                  minFontSize={60}
-                />
+              <div className="flex flex-col items-center mb-2">
+                <h1 className="text-4xl md:text-5xl font-black text-[var(--color-brand-dark)] tracking-tighter mb-2">
+                  REVIZE<span className="text-[var(--color-brand-orange)]">AI</span>
+                </h1>
+                <div className="w-12 h-1 bg-[var(--color-brand-orange)] rounded-full mb-4" />
               </div>
 
               {adim === 1 ? (
@@ -651,11 +648,11 @@ export default function App() {
 
           {/* Stepper */}
           {adim < 3 && (
-            <div className="flex items-center justify-center mb-6 md:mb-8">
+            <div className="flex items-center justify-center mb-4">
               <StepIndicator n={1} active={adim === 1} done={adim > 1} />
-              <div className={`w-12 h-[1px] mx-2 ${adim > 1 ? "bg-[var(--color-brand-orange)]" : "bg-[var(--color-brand-dark)]/10"}`} />
+              <div className={`w-6 h-[1px] mx-2 ${adim > 1 ? "bg-[var(--color-brand-orange)]" : "bg-[var(--color-brand-dark)]/10"}`} />
               <StepIndicator n={2} active={adim === 2} done={adim > 2} />
-              <div className={`w-12 h-[1px] mx-2 ${adim > 2 ? "bg-[var(--color-brand-orange)]" : "bg-[var(--color-brand-dark)]/10"}`} />
+              <div className={`w-6 h-[1px] mx-2 ${adim > 2 ? "bg-[var(--color-brand-orange)]" : "bg-[var(--color-brand-dark)]/10"}`} />
               <StepIndicator n={3} active={adim === 3} done={false} />
             </div>
           )}
@@ -665,10 +662,10 @@ export default function App() {
             {adim === 1 && (
               <motion.div
                 key="step1"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="space-y-6"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                className="space-y-4 w-full"
               >
                 <div className={`${gc.card} overflow-hidden group`}>
                   <div
@@ -716,25 +713,25 @@ export default function App() {
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => e.target.files && handleDosya(e.target.files[0])} />
 
                 {/* Tasarım Türü Seçimi */}
-                <div className={`${gc.card} p-5`}>
-                  <span className={gc.label}>Tasarım Türü</span>
-                  <div className="grid grid-cols-2 gap-2.5">
+                <div className={`${gc.card} p-4`}>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-brand-dark)]/40 ml-1 mb-3 block">Tasarım Türü</span>
+                  <div className="grid grid-cols-2 gap-2">
                     {tasarimTuruConfig.map(({ id, icon, desc }) => (
                       <button
                         key={id}
                         onClick={() => setTasarimTuru(id)}
-                        className={`flex items-center gap-3 p-3.5 rounded-2xl border text-left transition-all duration-300 ${tasarimTuru === id
+                        className={`flex items-center gap-3 p-3 rounded-2xl border text-left transition-all duration-300 ${tasarimTuru === id
                           ? "bg-[var(--color-brand-orange)]/10 border-[var(--color-brand-orange)]/30 shadow-sm"
-                          : "bg-white border-[var(--color-brand-dark)]/10 hover:bg-[var(--color-brand-light)]"
+                          : "bg-white border-[var(--color-brand-dark)]/5 hover:bg-[var(--color-brand-light)]"
                           }`}
                       >
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${tasarimTuru === id ? "bg-[var(--color-brand-orange)]/20 text-[var(--color-brand-orange)]" : "bg-[var(--color-brand-light)] text-[var(--color-brand-dark)]/30 border border-[var(--color-brand-dark)]/5"
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${tasarimTuru === id ? "bg-[var(--color-brand-orange)]/20 text-[var(--color-brand-orange)]" : "bg-[var(--color-brand-light)] text-[var(--color-brand-dark)]/30 border border-[var(--color-brand-dark)]/5"
                           }`}>
                           {icon}
                         </div>
-                        <div>
-                          <p className={`text-xs font-semibold transition-colors ${tasarimTuru === id ? "text-[var(--color-brand-dark)]" : "text-[var(--color-brand-dark)]/60"}`}>{id}</p>
-                          <p className={`text-[9px] mt-0.5 ${tasarimTuru === id ? "text-[var(--color-brand-dark)]/60" : "text-[var(--color-brand-dark)]/40"}`}>{desc}</p>
+                        <div className="overflow-hidden">
+                          <p className={`text-[11px] font-bold truncate transition-colors ${tasarimTuru === id ? "text-[var(--color-brand-dark)]" : "text-[var(--color-brand-dark)]/60"}`}>{id}</p>
+                          <p className={`text-[9px] truncate ${tasarimTuru === id ? "text-[var(--color-brand-dark)]/60" : "text-[var(--color-brand-dark)]/40"}`}>{desc}</p>
                         </div>
                       </button>
                     ))}
@@ -827,13 +824,15 @@ export default function App() {
             {adim === 2 && (
               <motion.div
                 key="step2"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="space-y-6"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                className="space-y-4 w-full"
               >
-                <div className={`${gc.card} p-8 space-y-6`}>
-                  <p className="text-[var(--color-brand-dark)]/60 text-sm leading-relaxed">Daha isabetli analiz için firmanız hakkında birkaç bilgi verin.</p>
+                <div className={`${gc.card} p-6 space-y-4`}>
+                  <p className="text-[var(--color-brand-dark)]/60 text-xs font-medium bg-[var(--color-brand-dark)]/5 p-3 rounded-xl border border-[var(--color-brand-dark)]/5">
+                    Daha isabetli analiz için firmanız hakkında birkaç bilgi verin.
+                  </p>
                   {[
                     { key: "markaAdi", label: "Marka / Firma Adı", ph: "örn. Brew & Co." },
                     { key: "kurumselRenk", label: "Kurumsal Renk(ler)", ph: "örn. Koyu yeşil, krem beyazı" },
@@ -841,8 +840,8 @@ export default function App() {
                     { key: "hedefKitle", label: "Hedef Kitleniz", ph: "örn. 25-40 yaş, profesyoneller" },
                     { key: "slogan", label: "Slogan / Özel Mesaj (opsiyonel)", ph: "örn. Her yudumda huzur" },
                   ].map(f => (
-                    <div key={f.key}>
-                      <label className={gc.label}>{f.label}</label>
+                    <div key={f.key} className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-brand-dark)]/40 ml-1">{f.label}</label>
                       <input
                         value={(sorular as any)[f.key]}
                         onChange={e => setSorular(p => ({ ...p, [f.key]: e.target.value }))}
@@ -898,7 +897,7 @@ export default function App() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
-                className="space-y-8"
+                className="space-y-4 w-full"
               >
                 {/* Demo Mode Banner */}
                 {sonuc._demo && (
@@ -932,31 +931,31 @@ export default function App() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <button
                     onClick={sifirla}
-                    className="group relative w-full py-6 px-6 rounded-[24px] font-bold overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] border border-[var(--color-brand-dark)]/10 bg-white shadow-sm flex flex-col items-center justify-center min-h-[180px]"
+                    className="group relative w-full py-4 px-6 rounded-[24px] font-bold overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] border border-[var(--color-brand-dark)]/10 bg-white shadow-sm flex flex-col items-center justify-center min-h-[140px]"
                   >
                     <div className="absolute inset-0 bg-gradient-to-b from-[var(--color-brand-light)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <span className="relative z-10 flex flex-col items-center justify-center gap-4 text-[var(--color-brand-dark)]">
-                      <div className="w-14 h-14 rounded-full bg-[var(--color-brand-light)] flex items-center justify-center border border-[var(--color-brand-dark)]/10 group-hover:-rotate-180 transition-transform duration-700">
-                        <RotateCcw className="w-6 h-6 text-[var(--color-brand-orange)]" />
+                    <span className="relative z-10 flex flex-col items-center justify-center gap-3 text-[var(--color-brand-dark)]">
+                      <div className="w-12 h-12 rounded-full bg-[var(--color-brand-light)] flex items-center justify-center border border-[var(--color-brand-dark)]/10 group-hover:-rotate-180 transition-transform duration-700">
+                        <RotateCcw className="w-5 h-5 text-[var(--color-brand-orange)]" />
                       </div>
-                      <span className="text-base tracking-wide font-black text-[var(--color-brand-dark)]">Yeni Analiz Yap</span>
+                      <span className="text-sm tracking-wide font-black text-[var(--color-brand-dark)]">Yeni Analiz Yap</span>
                     </span>
                   </button>
 
-                  <GlassCard className="w-full flex flex-col justify-between p-6 overflow-hidden min-h-[180px] relative group rounded-[24px]" glowColor="yellow" delay={0.2}>
+                  <GlassCard className="w-full flex flex-col justify-between p-5 overflow-hidden min-h-[140px] relative group rounded-[24px]" glowColor="yellow" delay={0.2}>
                     <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 via-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
-                    <div className="relative z-10 flex gap-4 mb-5">
-                      <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center border border-yellow-500/30 flex-shrink-0 relative">
+                    <div className="relative z-10 flex gap-4 mb-4">
+                      <div className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center border border-yellow-500/30 flex-shrink-0 relative">
                         <div className="absolute inset-0 rounded-full border border-yellow-400/20 animate-ping opacity-20" />
-                        <Sparkles className="w-5 h-5 text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.8)]" />
+                        <Sparkles className="w-4 h-4 text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.8)]" />
                       </div>
                       <div className="text-left flex-1">
-                        <h4 className="text-[var(--color-brand-dark)] text-sm font-bold tracking-wide flex items-center gap-2">
+                        <h4 className="text-[var(--color-brand-dark)] text-xs font-bold tracking-wide flex items-center gap-2">
                           Keşfet'te Paylaş
                         </h4>
-                        <p className="text-[var(--color-brand-dark)]/60 text-[12px] mt-1.5 leading-relaxed">
-                          Tasarımını toplulukla buluştur, puan topla ve keşfet akışında öne çık.
+                        <p className="text-[var(--color-brand-dark)]/60 text-[10px] mt-1 leading-relaxed">
+                          Tasarımını toplulukla buluştur, puan topla.
                         </p>
                       </div>
                     </div>
@@ -965,9 +964,9 @@ export default function App() {
                       {vitrindeYayinlandi ? (
                         <button
                           disabled
-                          className="w-full py-4 rounded-xl bg-emerald-500/10 text-emerald-500 font-bold text-sm border border-emerald-500/30 cursor-default flex items-center justify-center gap-2"
+                          className="w-full py-3 rounded-xl bg-emerald-500/10 text-emerald-500 font-bold text-[11px] border border-emerald-500/30 cursor-default flex items-center justify-center gap-2"
                         >
-                          <Check className="w-5 h-5" /> Yayında!
+                          <Check className="w-4 h-4" /> Yayında!
                         </button>
                       ) : (
                         <button
@@ -984,12 +983,12 @@ export default function App() {
                               setYayinlaniyor(false);
                             }
                           }}
-                          className={`w-full py-4 rounded-xl text-white font-bold text-sm transition-all flex items-center justify-center gap-2 ${yayinlaniyor ? 'bg-[var(--color-brand-dark)]/10 cursor-not-allowed border border-[var(--color-brand-dark)]/20 text-[var(--color-brand-dark)]/50' : 'bg-[var(--color-brand-orange)] shadow-xl shadow-black/10 hover:shadow-black/20 hover:scale-[1.02] active:scale-[0.98]'}`}
+                          className={`w-full py-3 rounded-xl text-white font-bold text-[11px] transition-all flex items-center justify-center gap-2 shadow-sm ${yayinlaniyor ? 'bg-[var(--color-brand-dark)]/10 cursor-not-allowed border border-[var(--color-brand-dark)]/20 text-[var(--color-brand-dark)]/50' : 'bg-[var(--color-brand-orange)] hover:scale-[1.02] active:scale-[0.98]'}`}
                         >
                           {yayinlaniyor ? (
-                            <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Yayınlanıyor...</>
+                            <><div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Yayınlanıyor...</>
                           ) : (
-                            <>Evet, Keşfet'te Yayınla! <ChevronRight className="w-4 h-4" /></>
+                            <>Keşfet'te Yayınla! <ChevronRight className="w-3 h-3" /></>
                           )}
                         </button>
                       )}
@@ -999,20 +998,20 @@ export default function App() {
 
                 {/* Score & General Summary Card */}
                 <GlassCard glowColor="blue" delay={0.3}>
-                  <div className="p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 md:gap-10">
-                    <div className="flex-shrink-0 scale-110">
+                  <div className="p-4 md:p-6 flex flex-col md:flex-row items-center gap-4 md:gap-8">
+                    <div className="flex-shrink-0 scale-90 md:scale-100">
                       <ScoreRing score={sonuc.genelPuan} />
                     </div>
-                    <div className="flex-1 space-y-4">
-                      <div className="flex flex-col md:flex-row md:items-center gap-3">
-                        <h3 className="text-2xl font-bold text-[var(--color-brand-dark)] tracking-tight">Analiz Sonucu</h3>
+                    <div className="flex-1 space-y-2">
+                      <div className="flex flex-col md:flex-row md:items-center gap-2">
+                        <h3 className="text-xl font-bold text-[var(--color-brand-dark)] tracking-tight">Analiz Sonucu</h3>
                         {sonuc.genelDegerlendirme && (
-                          <span className="inline-flex w-fit text-[10px] font-bold uppercase tracking-widest text-[#ff4d00] bg-[#ff4d00]/10 px-3 py-1.5 rounded-full border border-[#ff4d00]/20">
+                          <span className="inline-flex w-fit text-[9px] font-bold uppercase tracking-widest text-[#ff4d00] bg-[#ff4d00]/10 px-2 py-1 rounded-full border border-[#ff4d00]/20">
                             {sonuc.genelDegerlendirme}
                           </span>
                         )}
                       </div>
-                      <p className="text-[var(--color-brand-dark)]/70 text-[15px] leading-relaxed text-left">
+                      <p className="text-[var(--color-brand-dark)]/70 text-[13px] leading-relaxed text-left line-clamp-3 hover:line-clamp-none transition-all duration-300">
                         "{sonuc.genelYorum}"
                       </p>
                     </div>
@@ -1277,29 +1276,47 @@ export default function App() {
             className="fixed inset-0 z-[70] flex flex-col items-center justify-center p-4 bg-[var(--color-brand-light)]/95 backdrop-blur-3xl"
           >
             {/* AI Beyin / Tarama Animasyonu */}
-            <motion.div
-              animate={{
-                scale: [1, 1.1, 1],
-                boxShadow: [
-                  "0 0 0 rgba(255, 77, 0, 0)",
-                  "0 0 60px rgba(255, 77, 0, 0.2)",
-                  "0 0 0 rgba(255, 77, 0, 0)"
-                ]
-              }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              className="w-32 h-32 rounded-full border border-[var(--color-brand-orange)]/30 flex items-center justify-center bg-[var(--color-brand-orange)]/10 mb-8"
-            >
-              <BrainCircuit className="w-12 h-12 text-[var(--color-brand-orange)]" />
-            </motion.div>
+            <div className="relative mb-12">
+              <motion.div
+                animate={{
+                  rotate: 360,
+                }}
+                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-[-20px] rounded-full border border-dashed border-[var(--color-brand-orange)]/20"
+              />
+              <motion.div
+                animate={{
+                  scale: [1, 1.05, 1],
+                  boxShadow: [
+                    "0 0 40px rgba(255, 77, 0, 0.1)",
+                    "0 0 80px rgba(255, 77, 0, 0.3)",
+                    "0 0 40px rgba(255, 77, 0, 0.1)"
+                  ]
+                }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                className="w-40 h-40 rounded-full border-2 border-[var(--color-brand-orange)]/40 flex items-center justify-center bg-white shadow-2xl relative z-10"
+              >
+                <div className="absolute inset-2 rounded-full border border-[var(--color-brand-orange)]/10 animate-pulse" />
+                <BrainCircuit className="w-16 h-16 text-[var(--color-brand-orange)]" />
+              </motion.div>
+            </div>
 
             {/* Başlık */}
-            <h2 className="text-2xl font-bold text-[var(--color-brand-dark)] mb-4 text-center">
-              Yapay Zeka Tasarımınızı İnceleyip Ölçüyor
-            </h2>
-            <div className="flex items-center gap-2 mb-12">
-              <span className="w-2 h-2 bg-[var(--color-brand-orange)] rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
-              <span className="w-2 h-2 bg-[var(--color-brand-orange)] rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
-              <span className="w-2 h-2 bg-[var(--color-brand-orange)] rounded-full animate-pulse" style={{ animationDelay: '400ms' }} />
+            <div className="space-y-4 text-center px-6">
+              <h2 className="text-3xl font-black text-[var(--color-brand-dark)] tracking-tight">
+                Zeka <span className="text-[var(--color-brand-orange)]">Taraması Başladı</span>
+              </h2>
+              <p className="text-[var(--color-brand-dark)]/40 text-sm font-medium max-w-xs mx-auto">
+                Tasarımınızın her pikselini profesyonel kriterlere göre analiz ediyoruz.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 my-10">
+              <motion.div
+                animate={{ x: [-10, 10, -10] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="h-1 w-24 bg-gradient-to-r from-transparent via-[var(--color-brand-orange)] to-transparent rounded-full opacity-30"
+              />
             </div>
 
             {/* Dinamik İpuçları (Karusel) */}
