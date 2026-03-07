@@ -16,7 +16,16 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
     const brandOrange = "var(--color-brand-orange, #ff4d00)";
 
     return (
-        <div className="min-h-screen bg-[var(--color-brand-light)] text-[var(--color-brand-dark)] font-sans overflow-x-hidden selection:bg-[#ff4d00] selection:text-white">
+        <div className="relative min-h-screen bg-[var(--color-brand-light)] text-[var(--color-brand-dark)] font-sans overflow-x-hidden selection:bg-[#ff4d00] selection:text-white">
+
+            {/* Subtle Grid Background */}
+            <div
+                className="fixed inset-0 bg-[linear-gradient(to_right,#00000006_1px,transparent_1px),linear-gradient(to_bottom,#00000006_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none z-0"
+                style={{
+                    maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
+                    WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)'
+                }}
+            />
 
             {/* Hero Section */}
             <main className="flex flex-col items-center pt-32 md:pt-48 pb-12 px-6 relative z-10 w-full max-w-6xl mx-auto">
