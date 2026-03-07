@@ -4,10 +4,10 @@ import { Target, Users, Coffee, Github, Linkedin, ExternalLink, Sparkles, Layout
 
 export default function About() {
     return (
-        <div className="w-full bg-[#f8f9fa] min-h-screen font-sans selection:bg-[var(--color-brand-orange)] selection:text-white">
+        <div className="w-full bg-[#f8f9fa] min-h-screen font-sans selection:bg-[var(--color-brand-orange)] selection:text-white pb-20">
 
             {/* 1. HERO SECTION (Framer Like) */}
-            <section className="relative pt-32 pb-40 px-6 overflow-hidden flex flex-col items-center justify-center text-center">
+            <section className="relative pt-24 pb-20 px-6 overflow-hidden flex flex-col items-center justify-center text-center">
                 {/* Subtle Background Glows */}
                 <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-100 rounded-full blur-[100px] opacity-70 pointer-events-none" />
                 <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-orange-100/60 rounded-full blur-[100px] opacity-70 pointer-events-none" />
@@ -33,10 +33,6 @@ export default function About() {
                         Hiçbir tasarım yalnız gelişmez; her zaman bir revizyona ihtiyaç vardır.
                         İçgüdüleriyle tasarım yapanlara akademik ve profesyonel bir göz sağlıyoruz.
                     </p>
-
-                    <button className="bg-[#111111] hover:bg-[#222222] text-white px-8 py-4 rounded-full font-semibold text-lg transition-transform hover:scale-105 inline-flex items-center gap-2 shadow-[0_10px_40px_rgba(0,0,0,0.15)]">
-                        Hikayeyi Keşfet <ArrowRight className="w-5 h-5" />
-                    </button>
                 </motion.div>
 
                 {/* Floating Mockup Element below hero */}
@@ -44,7 +40,7 @@ export default function About() {
                     initial={{ opacity: 0, y: 100 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                    className="relative mt-20 w-full max-w-5xl mx-auto z-20"
+                    className="relative mt-8 w-full max-w-5xl mx-auto z-20"
                 >
                     <div className="absolute inset-0 bg-gradient-to-t from-[#f8f9fa] to-transparent z-10 h-32 bottom-0 w-full" />
 
@@ -84,7 +80,7 @@ export default function About() {
             </section>
 
             {/* 2. TEXT/STORY SECTION (Like "Remember the days...") */}
-            <section className="py-32 px-6 max-w-3xl mx-auto space-y-12 text-center md:text-left">
+            <section className="py-16 px-6 max-w-3xl mx-auto space-y-12 text-center md:text-left">
                 <motion.p
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -124,7 +120,7 @@ export default function About() {
             </section>
 
             {/* 3. DARK SECTION: CREATOR / BEHIND THE SCENES */}
-            <section className="py-32 px-6 bg-[#0f1013] text-white relative overflow-hidden flex flex-col items-center">
+            <section className="my-16 py-20 px-6 bg-[#0f1013] text-white relative overflow-hidden flex flex-col items-center max-w-7xl mx-auto rounded-[40px] shadow-2xl mx-4 lg:mx-auto">
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
 
                 <div className="max-w-7xl mx-auto w-full relative z-10 flex flex-col lg:flex-row items-center lg:items-end justify-between gap-16">
@@ -185,7 +181,6 @@ export default function About() {
                             </div>
                         </div>
                     </div>
-
                 </div>
             </section>
 
