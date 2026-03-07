@@ -644,7 +644,7 @@ export default function App() {
             </>
           )}
 
-          <main className={`flex-1 flex flex-col items-center w-full max-w-screen-xl mx-auto px-4 pt-10 pb-20 mt-4 relative z-10 transition-all duration-700 ${adim === 3 ? 'max-w-6xl' : ''}`}>
+          <main className={`flex-1 flex flex-col items-center w-full max-w-screen-xl mx-auto px-4 pt-24 md:pt-32 pb-20 mt-4 relative z-10 transition-all duration-700 ${adim === 3 ? 'max-w-6xl' : ''}`}>
 
             {/* Minimal Header for App Content */}
             {adim < 3 && (
@@ -1070,21 +1070,33 @@ export default function App() {
                     </div>
 
                     {/* AI Suggestion */}
-                    <div className="bg-white rounded-[24px] border border-[var(--color-brand-dark)]/5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-6 flex flex-col">
-                      <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 text-[#ff4d00]" />
-                          <span className="text-[var(--color-brand-dark)]/80 font-bold text-sm tracking-wide">Yapay Zeka Önerisi</span>
+                    <div className="bg-white rounded-[24px] border border-[var(--color-brand-dark)]/5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-6 md:p-8 flex flex-col relative overflow-hidden group">
+                      {/* Arka plan efektleri (Parallax & Glow) */}
+                      <div className="absolute top-[-50%] right-[-10%] w-[150%] h-[150%] bg-gradient-to-br from-[#ff4d00]/10 via-purple-600/5 to-transparent blur-3xl rounded-full transform rotate-12 group-hover:opacity-100 opacity-60 transition-opacity duration-700 pointer-events-none"></div>
+
+                      <div className="relative z-10 flex items-center justify-between mb-8">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#ff4d00]/20 to-amber-500/20 flex items-center justify-center border border-[#ff4d00]/30 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                            <Sparkles className="w-6 h-6 text-[#ff4d00]" />
+                          </div>
+                          <div>
+                            <span className="text-[var(--color-brand-dark)] font-black text-xl tracking-tight block leading-tight">AI Tasarım Revizyonu</span>
+                            <span className="text-[var(--color-brand-dark)]/40 text-[10px] font-bold uppercase tracking-widest mt-0.5 block">Sizi Bir Üst Seviyeye Taşır</span>
+                          </div>
                         </div>
-                        <span className="bg-[#ff4d00] text-white text-[9px] font-extrabold px-2 py-1 rounded-[6px] uppercase tracking-wider">PRO ÖZELLİK</span>
+                        <span className="bg-gradient-to-r from-[#ff4d00] to-amber-500 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-lg uppercase tracking-widest shadow-[0_0_15px_rgba(255,77,0,0.4)] border border-white/20">PRO</span>
                       </div>
-                      <div className="flex-1 border border-[#ff4d00]/10 bg-gradient-to-br from-[#ff4d00]/[0.02] to-transparent rounded-2xl p-5 mb-4">
-                        <p className="text-[var(--color-brand-dark)]/70 text-[13px] leading-relaxed font-medium">
+
+                      <div className="relative z-10 flex-1 border border-[#ff4d00]/20 bg-gradient-to-br from-[#ff4d00]/[0.05] to-transparent rounded-2xl p-6 mb-6 backdrop-blur-sm group-hover:border-[#ff4d00]/30 transition-colors duration-500">
+                        <p className="text-[var(--color-brand-dark)]/80 text-[14px] leading-relaxed font-semibold">
                           {sonuc.oneri}
                         </p>
                       </div>
-                      <button className="w-full py-4 rounded-xl bg-gradient-to-r from-gray-900 to-[var(--color-brand-dark)] text-white font-bold text-sm transition-transform hover:scale-[1.01] shadow-xl flex items-center justify-center gap-2">
-                        Tasarımı AI İle İyileştir <ChevronRight className="w-4 h-4" />
+
+                      <button className="relative z-10 w-full py-4 rounded-xl bg-[var(--color-brand-dark)] hover:bg-black text-white font-black text-sm transition-all duration-300 hover:shadow-[0_10px_30px_rgba(0,0,0,0.15)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 overflow-hidden">
+                        {/* Shimmer effect inside button */}
+                        <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_2s_infinite]" />
+                        <span className="relative z-10 flex items-center gap-2">Tasarımı AI İle İyileştir <ChevronRight className="w-4 h-4" /></span>
                       </button>
                     </div>
                   </div>
