@@ -1458,21 +1458,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* ── SHARE FLOATING BUTTON (sadece sonuç ekranında) ── */}
-      <AnimatePresence>
-        {adim === 3 && sonuc?._analiz_id && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            onClick={paylasimLinkiKopyala}
-            className="fixed bottom-8 right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-2xl bg-[var(--color-brand-dark)] backdrop-blur-xl border border-[var(--color-brand-dark)]/10 text-white text-sm font-semibold shadow-lg hover:scale-105 active:scale-95 transition-all"
-          >
-            {paylasimKopyalandi ? <Check className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4 text-[var(--color-brand-orange)]" />}
-            {paylasimKopyalandi ? 'Link Kopyalandı!' : 'Paylaş'}
-          </motion.button>
-        )}
-      </AnimatePresence>
 
       <Footer onLogoClick={goHome} />
     </div>

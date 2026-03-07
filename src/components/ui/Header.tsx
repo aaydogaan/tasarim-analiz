@@ -21,8 +21,10 @@ export default function Header({
     onAuthClick,
     goHome
 }: HeaderProps) {
+    const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
 
     const handleNavClick = (view: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about', sectionId?: string) => {
+        setIsDropdownOpen(false); // Close dropdown if it was open
         if (gorunum !== view) {
             setGorunum(view);
             // Wait for render if moving to landing
@@ -77,12 +79,13 @@ export default function Header({
                 {/* Dropdown for Hakkımızda (About + Pricing) */}
                 <div className="relative group">
                     <button
+                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                         className={`flex items-center gap-1 transition-colors whitespace-nowrap ${['about', 'pricing'].includes(gorunum) ? 'text-[var(--color-brand-orange)] font-bold' : 'hover:text-[var(--color-brand-dark)] text-[#666666]'}`}
                     >
-                        Hakkımızda <ChevronDown className="w-3 h-3 opacity-60 group-hover:rotate-180 transition-transform duration-300" />
+                        Hakkımızda <ChevronDown className={`w-3 h-3 opacity-60 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : 'group-hover:rotate-180'}`} />
                     </button>
-                    {/* Hover Dropdown Box */}
-                    <div className="absolute top-full right-0 md:left-1/2 md:-translate-x-1/2 pt-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                    {/* Hover & Click Dropdown Box */}
+                    <div className={`absolute top-full right-0 md:left-1/2 md:-translate-x-1/2 pt-5 transition-all duration-300 ${isDropdownOpen ? 'opacity-100 visible' : 'opacity-0 invisible group-hover:opacity-100 group-hover:visible'}`}>
                         <div className="bg-white rounded-[24px] shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-[var(--color-brand-dark)]/5 p-2 w-56 flex flex-col gap-1 relative before:absolute before:content-[''] before:w-4 before:h-4 before:bg-white before:border-l before:border-t before:border-[var(--color-brand-dark)]/5 before:-top-2 before:left-1/2 before:-translate-x-1/2 before:rotate-45">
                             <div className="relative z-10 bg-white rounded-xl">
                                 <button

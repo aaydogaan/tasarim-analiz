@@ -337,8 +337,6 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                     </div>
                 </div>
             </div>
-
-            <Footer onLogoClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
         </div>
     );
 }
