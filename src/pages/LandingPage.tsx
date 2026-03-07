@@ -18,45 +18,7 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
     return (
         <div className="min-h-screen bg-[var(--color-brand-light)] text-[var(--color-brand-dark)] font-sans overflow-x-hidden selection:bg-[#ff4d00] selection:text-white">
 
-            {/* Navbar (Agero style exact match) */}
-            <nav className="absolute top-0 left-0 w-full z-50 flex items-center justify-between px-6 md:px-16 pt-8 pb-4 bg-transparent">
-                {/* Logo Area */}
-                <div className="flex items-center cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-                    <span className="text-2xl md:text-[32px] font-bold tracking-tight text-[var(--color-brand-orange)] font-display leading-none">Revize.</span>
-                </div>
-
-                {/* Center Links */}
-                <div className="hidden lg:flex items-center gap-10 text-[13px] font-medium text-[#666666]">
-                    <button
-                        onClick={() => document.getElementById('nasil-calisir')?.scrollIntoView({ behavior: 'smooth' })}
-                        className="hover:text-[var(--color-brand-dark)] transition-colors"
-                    >
-                        Nasıl Çalışır
-                    </button>
-                    <a href="#" className="hover:text-[var(--color-brand-dark)] transition-colors">Özellikler</a>
-                    <button
-                        onClick={onVitrinClick}
-                        className="hover:text-[var(--color-brand-dark)] transition-colors"
-                    >
-                        Keşfet
-                    </button>
-                    <button
-                        onClick={onCommunityClick}
-                        className="hover:text-[var(--color-brand-dark)] transition-colors"
-                    >
-                        Topluluk
-                    </button>
-                    <a href="#" className="hover:text-[var(--color-brand-dark)] transition-colors">SSS</a>
-                </div>
-
-                {/* Right Action */}
-                <button
-                    onClick={onStart}
-                    className="px-5 md:px-6 py-2 md:py-2.5 rounded-full text-[#ebebeb] text-[12px] md:text-[13px] font-medium transition-all hover:scale-105 bg-[#4A4A4A] hover:bg-[#333] shadow-sm tracking-wide"
-                >
-                    Hemen Başla
-                </button>
-            </nav>
+            {/* Navbar is now global in App.tsx */}
 
             {/* Hero Section */}
             <main className="flex flex-col items-center pt-32 md:pt-48 pb-12 px-6 relative z-10 w-full max-w-6xl mx-auto">

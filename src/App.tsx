@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import Lenis from 'lenis';
 import { motion, AnimatePresence } from "motion/react";
 import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check, AlertCircle, Globe, BrainCircuit } from "lucide-react";
+import Navbar from './components/ui/Navbar';
 import { supabase } from "./lib/supabase";
 import { Vitrin } from "./pages/Vitrin";
 import TextPressure from "./components/ui/TextPressure";
@@ -584,66 +585,18 @@ export default function App() {
 
 
 
-      {/* Top Navbar */}
-      <nav className="sticky top-0 w-full z-50 flex flex-col md:flex-row items-center justify-between px-6 md:px-16 py-3 md:py-4 bg-[var(--color-brand-light)]/80 backdrop-blur-xl border-b border-[var(--color-brand-dark)]/5 gap-3 md:gap-0 transition-all duration-300">
-        {/* Logo (Left Component) */}
-        <div className="cursor-pointer" onClick={goHome}>
-          <span className="text-2xl md:text-[32px] font-bold tracking-tight text-[var(--color-brand-orange)] font-display leading-none">Revize.</span>
-        </div>
-
-        {/* Center Tabs (Perfect Agero match) */}
-        <div className="flex items-center gap-6 md:gap-10 text-[12px] md:text-[13px] font-medium text-[#666666]">
-          <button
-            onClick={() => setGorunum('app')}
-            className={`transition-colors whitespace-nowrap ${gorunum === 'app' ? 'text-[var(--color-brand-dark)]' : 'hover:text-[var(--color-brand-dark)]'}`}
-          >
-            Yeni Analiz
-          </button>
-          <button
-            onClick={() => {
-              setGorunum('vitrin');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className={`transition-colors whitespace-nowrap ${gorunum === 'vitrin' ? 'text-[var(--color-brand-dark)]' : 'hover:text-[var(--color-brand-dark)]'}`}
-          >
-            Keşfet
-          </button>
-          <button
-            onClick={() => {
-              setGorunum('community');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className={`transition-colors whitespace-nowrap ${gorunum === 'community' ? 'text-[var(--color-brand-dark)]' : 'hover:text-[var(--color-brand-dark)]'}`}
-          >
-            Topluluk
-          </button>
-        </div>
-
-        {/* Right Side Auth/Stats */}
-        <div className="flex items-center gap-3">
-          {kullanici && (
-            <button
-              onClick={statsAc}
-              className="flex items-center gap-1.5 text-[#666666] hover:text-[var(--color-brand-dark)] text-[13px] font-medium transition-colors"
-            >
-              <BarChart2 className="w-4 h-4" />
-              <span className="hidden md:inline">İstatistikler</span>
-            </button>
-          )}
-          {kullanici ? (
-            <div className="flex items-center gap-3 ml-1 md:ml-2 border-l border-[var(--color-brand-dark)]/10 pl-3 md:pl-5">
-              <span className="text-[#666666] text-[12px] hidden lg:block max-w-[100px] truncate">{kullanici.email}</span>
-              <button onClick={cikisYap} className="text-[#666666] hover:text-red-500 transition-colors">
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-          ) : (
-            <button onClick={() => setAuthAcik(true)} className="px-5 md:px-6 py-2 md:py-2.5 rounded-full text-[#ebebeb] text-[12px] md:text-[13px] font-medium transition-all hover:scale-105 bg-[#4A4A4A] hover:bg-[#333] shadow-sm tracking-wide md:ml-4">
-              Giriş Yap
-            </button>
-          )}
-        </div>
-      </nav>
+      <Navbar
+        gorunum={gorunum}
+        setGorunum={setGorunum}
+        kullanici={kullanici}
+        onStart={() => {
+          if (kullanici) setGorunum('app');
+          else setAuthAcik(true);
+        }}
+        onStatsClick={statsAc}
+        onLogout={cikisYap}
+        onAuthClick={() => setAuthAcik(true)}
+      />
 
       {gorunum === 'vitrin' ? (
         <main className="flex-1 w-full max-w-screen-2xl mx-auto px-4">
