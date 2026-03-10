@@ -139,37 +139,53 @@ export default function About() {
                             Sıklıkla harika fikirlerle yola çıkıp teknik detaylarda boğulan kreatiflere yardım etmek en büyük motivasyonum.
                         </p>
 
-                        {/* Awards Section */}
-                        <div className="flex flex-wrap gap-8 mb-10 mt-2">
-                            {[2025, 2026].map(year => (
+                        {/* Awards Section - 4 Specific Awards with Ultra-High Fidelity Hand-Crafted Laurel Wreath */}
+                        <div className="flex flex-wrap gap-x-12 gap-y-12 mb-12 mt-4">
+                            {[
+                                { title: 'TRT GİY', info: 'ÖDÜLÜ 2023' },
+                                { title: 'TRT GİY', info: 'ÖDÜLÜ 2024' },
+                                { title: 'AYDIN DOĞAN GİY', info: 'ÖDÜLÜ 2025' },
+                                { title: 'TRT GİY', info: 'ÖDÜLÜ 2025' }
+                            ].map((award, index) => (
                                 <motion.div
-                                    key={year}
+                                    key={index}
                                     whileHover={{ y: -5, scale: 1.05 }}
-                                    className="flex items-center gap-3 group cursor-default"
+                                    className="flex items-center gap-1 group cursor-default"
                                 >
-                                    {/* Laurel Wreath Left */}
-                                    <svg width="32" height="48" viewBox="0 0 32 48" fill="none" className="opacity-40 group-hover:opacity-100 transition-opacity">
-                                        <path d="M4 8C4 8 0 16 0 24C0 32 4 40 4 40" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                                        <path d="M4 12L8 10" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                                        <path d="M2.5 18L7 16.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                                        <path d="M2 24L7 24" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                                        <path d="M2.5 30L7 31.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                                        <path d="M4 36L8 38" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                                    {/* Ultra-High Fidelity Laurel Wreath Left - Precision Almond Leaves */}
+                                    <svg width="42" height="60" viewBox="0 0 42 60" fill="none" className="opacity-40 group-hover:opacity-100 transition-all duration-500">
+                                        <path d="M38 12C33 18 31 28 31 38C31 48 33 55 38 60" stroke="white" strokeWidth="1" strokeLinecap="round" opacity="0.2" />
+                                        {/* Precision placement of 10 elegant leaves following a professional elliptical path */}
+                                        <path d="M38 14C32 12 26 12 20 15C26 17 32 17 38 14V14Z" fill="white" />
+                                        <path d="M34 19C28 17 22 17 16 20C22 22 28 22 34 19V19Z" fill="white" />
+                                        <path d="M31 25C25 23 19 23 13 26C19 28 25 28 31 25V25Z" fill="white" />
+                                        <path d="M30 31C24 29 18 29 12 32C18 34 24 34 30 31V31Z" fill="white" />
+                                        <path d="M30 37C24 35 18 35 12 38C18 40 24 40 30 37V37Z" fill="white" />
+                                        <path d="M31 43C25 41 19 41 13 44C19 46 25 46 31 43V43Z" fill="white" />
+                                        <path d="M33 49C27 47 21 47 15 50C21 52 27 52 33 49V49Z" fill="white" />
+                                        <path d="M36 55C30 53 24 53 18 56C24 58 30 58 36 55V55Z" fill="white" />
                                     </svg>
 
-                                    <div className="flex flex-col items-center">
-                                        <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-500 group-hover:text-[var(--color-brand-orange)] transition-colors">TRT GİY</span>
-                                        <span className="text-lg font-black tracking-tighter text-white">{year}</span>
+                                    <div className="flex flex-col items-center justify-center text-center px-2">
+                                        <span className="text-[9px] md:text-[10px] text-gray-400 font-bold tracking-[0.2em] mb-1 group-hover:text-[var(--color-brand-orange)] transition-colors uppercase whitespace-nowrap">
+                                            {award.title}
+                                        </span>
+                                        <span className="text-[14px] md:text-[17px] font-black text-white leading-none tracking-tighter whitespace-nowrap uppercase">
+                                            {award.info}
+                                        </span>
                                     </div>
 
-                                    {/* Laurel Wreath Right */}
-                                    <svg width="32" height="48" viewBox="0 0 32 48" fill="none" className="opacity-40 group-hover:opacity-100 transition-opacity scale-x-[-1]">
-                                        <path d="M4 8C4 8 0 16 0 24C0 32 4 40 4 40" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                                        <path d="M4 12L8 10" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                                        <path d="M2.5 18L7 16.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                                        <path d="M2 24L7 24" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                                        <path d="M2.5 30L7 31.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                                        <path d="M4 36L8 38" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                                    {/* Mirrored High-Fidelity Laurel Wreath Right */}
+                                    <svg width="42" height="60" viewBox="0 0 42 60" fill="none" className="opacity-40 group-hover:opacity-100 transition-all duration-500 scale-x-[-1]">
+                                        <path d="M38 12C33 18 31 28 31 38C31 48 33 55 38 60" stroke="white" strokeWidth="1" strokeLinecap="round" opacity="0.2" />
+                                        <path d="M38 14C32 12 26 12 20 15C26 17 32 17 38 14V14Z" fill="white" />
+                                        <path d="M34 19C28 17 22 17 16 20C22 22 28 22 34 19V19Z" fill="white" />
+                                        <path d="M31 25C25 23 19 23 13 26C19 28 25 28 31 25V25Z" fill="white" />
+                                        <path d="M30 31C24 29 18 29 12 32C18 34 24 34 30 31V31Z" fill="white" />
+                                        <path d="M30 37C24 35 18 35 12 38C18 40 24 40 30 37V37Z" fill="white" />
+                                        <path d="M31 43C25 41 19 41 13 44C19 46 25 46 31 43V43Z" fill="white" />
+                                        <path d="M33 49C27 47 21 47 15 50C21 52 27 52 33 49V49Z" fill="white" />
+                                        <path d="M36 55C30 53 24 53 18 56C24 58 30 58 36 55V55Z" fill="white" />
                                     </svg>
                                 </motion.div>
                             ))}

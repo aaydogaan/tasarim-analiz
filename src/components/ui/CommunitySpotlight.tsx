@@ -145,8 +145,17 @@ export default function CommunitySpotlight({ onExploreClick }: { onExploreClick:
     const Row2 = [...vitrinItems].reverse();
 
     return (
-        <section className="w-full py-24 bg-[var(--color-brand-light)] border-t border-[var(--color-brand-dark)]/5 overflow-hidden">
-            <div className="max-w-screen-xl mx-auto px-8 md:px-16 mb-16 text-center">
+        <section className="w-full py-24 bg-[var(--color-brand-light)] border-t border-[var(--color-brand-dark)]/5 overflow-hidden relative">
+            {/* Grid Background */}
+            <div
+                className="absolute inset-0 bg-[linear-gradient(to_right,var(--grid-color)_1px,rgba(0,0,0,0)_1px),linear-gradient(to_bottom,var(--grid-color)_1px,rgba(0,0,0,0)_1px)] bg-[size:32px_32px] pointer-events-none"
+                style={{
+                    maskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%)',
+                    WebkitMaskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%)'
+                }}
+            />
+
+            <div className="max-w-screen-xl mx-auto px-8 md:px-16 mb-16 text-center relative z-10">
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     whileInView={{ opacity: 1, y: 0 }}

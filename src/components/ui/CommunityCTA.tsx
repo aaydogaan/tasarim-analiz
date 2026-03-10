@@ -15,8 +15,16 @@ export default function CommunityCTA() {
     }, []);
 
     return (
-        <section className="w-full px-4 md:px-6 py-20 bg-[var(--color-brand-light)] overflow-hidden">
-            <div className="max-w-[1440px] mx-auto">
+        <section className="w-full px-4 md:px-6 py-20 bg-[var(--color-brand-light)] overflow-hidden relative">
+            {/* Grid Background */}
+            <div
+                className="absolute inset-0 bg-[linear-gradient(to_right,var(--grid-color)_1px,rgba(0,0,0,0)_1px),linear-gradient(to_bottom,var(--grid-color)_1px,rgba(0,0,0,0)_1px)] bg-[size:32px_32px] pointer-events-none"
+                style={{
+                    maskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%)',
+                    WebkitMaskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%)'
+                }}
+            />
+            <div className="max-w-[1440px] mx-auto relative z-10">
                 <motion.div
                     initial={{ opacity: 0, scaleX: 0.95, y: 20 }}
                     whileInView={{ opacity: 1, scaleX: 1, y: 0 }}

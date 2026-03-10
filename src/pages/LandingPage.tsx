@@ -5,6 +5,8 @@ import AnalizEtButton from '../components/ui/AnalizEtButton';
 import NasilCalisir from '../components/ui/NasilCalisir';
 import CommunitySpotlight from '../components/ui/CommunitySpotlight';
 import CommunityCTA from '../components/ui/CommunityCTA';
+import AnimatedCounter from '../components/ui/AnimatedCounter';
+import MagneticWrapper from '../components/ui/MagneticWrapper';
 
 interface LandingPageProps {
     onStart: () => void;
@@ -145,7 +147,35 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
 
                     {/* Action button */}
                     <div className="mt-10 md:mt-12">
-                        <AnalizEtButton onClick={onStart} />
+                        <MagneticWrapper>
+                            <AnalizEtButton onClick={onStart} />
+                        </MagneticWrapper>
+                    </div>
+
+                    {/* Quick Stats Row */}
+                    <div className="mt-20 md:mt-32 w-full grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 border-t border-[var(--color-brand-dark)]/5 pt-12">
+                        {[
+                            { label: "Analiz Edilen Tasarım", value: 1250, suffix: "+", prefix: "" },
+                            { label: "Mutlu Tasarımcı", value: 480, suffix: "+", prefix: "" },
+                            { label: "Revize Önerisi", value: 3400, suffix: "+", prefix: "" },
+                            { label: "Başarı Oranı", value: 98, suffix: "%", prefix: "" },
+                        ].map((stat, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: i * 0.1, duration: 0.5 }}
+                                className="flex flex-col items-center md:items-start"
+                            >
+                                <div className="text-2xl md:text-4xl text-[var(--color-brand-dark)] flex items-center">
+                                    <AnimatedCounter value={stat.value} suffix={stat.suffix} prefix={stat.prefix} />
+                                </div>
+                                <span className="text-[11px] md:text-sm font-medium text-[#7A7A7A] mt-2 uppercase tracking-wider">
+                                    {stat.label}
+                                </span>
+                            </motion.div>
+                        ))}
                     </div>
 
                 </motion.div>
@@ -187,6 +217,14 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
 
             {/* ── Contact Section - Pixel Perfect Match ── */}
             <div className="relative w-full overflow-hidden flex flex-col items-center pt-[80px] md:pt-[160px] pb-[12px] bg-[var(--color-brand-light)]">
+                {/* Grid Background */}
+                <div
+                    className="absolute inset-0 bg-[linear-gradient(to_right,var(--grid-color)_1px,rgba(0,0,0,0)_1px),linear-gradient(to_bottom,var(--grid-color)_1px,rgba(0,0,0,0)_1px)] bg-[size:32px_32px] pointer-events-none"
+                    style={{
+                        maskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%)',
+                        WebkitMaskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%)'
+                    }}
+                />
 
                 {/* Large "Merhaba" Background Heading */}
                 <div className="w-full flex justify-center relative z-0 h-[100px] md:h-[200px]">
