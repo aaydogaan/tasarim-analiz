@@ -682,9 +682,9 @@ export default function App() {
                     animate={{ opacity: 1, x: 0 }}
                     className="flex flex-col"
                   >
-                    <h1 className="text-6xl md:text-8xl font-black text-[var(--color-brand-dark)] tracking-tighter leading-[0.85] mb-2">
+                    <h1 className="text-6xl md:text-8xl font-black text-[var(--color-brand-dark)] tracking-tighter leading-[0.9] mb-4">
                       REVİZE<span className="text-[var(--color-brand-orange)]">AI</span><br />
-                      <span className="text-[var(--color-brand-dark)] text-opacity-10 uppercase text-5xl md:text-6xl">STUDIO</span>
+                      <span className="text-[var(--color-brand-dark)] text-opacity-10 uppercase text-5xl md:text-6xl tracking-tight">STUDIO</span>
                     </h1>
                     <div className="flex items-center gap-3 mt-4">
                       <div className="w-10 h-[2px] bg-[var(--color-brand-orange)]" />
@@ -741,7 +741,7 @@ export default function App() {
               </aside>
 
               {/* Right Column: Interaction Workspace */}
-              <main className="flex-1 flex flex-col gap-8 min-h-[600px]">
+              <main className="flex-1 flex flex-col gap-12 min-h-[600px]">
                 <AnimatePresence mode="wait">
                   {/* ADIM 1 */}
                   {adim === 1 && (
@@ -774,11 +774,11 @@ export default function App() {
                           </div>
 
                           <div className="relative group/zone h-full min-h-[450px]">
-                            {/* Corner Accents - More subtle and professional */}
-                            <div className="absolute -top-2 -left-2 w-16 h-16 border-t-[3px] border-l-[3px] border-[var(--color-brand-orange)]/30 rounded-tl-[54px] z-20 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] group-hover/zone:scale-110 transition-all duration-700" />
-                            <div className="absolute -top-2 -right-2 w-16 h-16 border-t-[3px] border-r-[3px] border-[var(--color-brand-orange)]/30 rounded-tr-[54px] z-20 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] group-hover/zone:scale-110 transition-all duration-700" />
-                            <div className="absolute -bottom-2 -left-2 w-16 h-16 border-b-[3px] border-l-[3px] border-[var(--color-brand-orange)]/30 rounded-bl-[54px] z-20 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] group-hover/zone:scale-110 transition-all duration-700" />
-                            <div className="absolute -bottom-2 -right-2 w-16 h-16 border-b-[3px] border-r-[3px] border-[var(--color-brand-orange)]/30 rounded-br-[54px] z-20 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] group-hover/zone:scale-110 transition-all duration-700" />
+                            {/* Corner Accents - Moved inside and made more subtle to avoid overlap */}
+                            <div className="absolute top-0 left-0 w-16 h-16 border-t-[3px] border-l-[3px] border-[var(--color-brand-orange)]/30 rounded-tl-[54px] z-10 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] transition-all duration-700" />
+                            <div className="absolute top-0 right-0 w-16 h-16 border-t-[3px] border-r-[3px] border-[var(--color-brand-orange)]/30 rounded-tr-[54px] z-10 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] transition-all duration-700" />
+                            <div className="absolute bottom-0 left-0 w-16 h-16 border-b-[3px] border-l-[3px] border-[var(--color-brand-orange)]/30 rounded-bl-[54px] z-10 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] transition-all duration-700" />
+                            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-[3px] border-r-[3px] border-[var(--color-brand-orange)]/30 rounded-br-[54px] z-10 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] transition-all duration-700" />
 
                             <div
                               onClick={() => uploadMod === 'dosya' && fileRef.current?.click()}
@@ -861,8 +861,8 @@ export default function App() {
                         </div>
                       </div>
 
-                      {/* Parameters Below Upload in the right column */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Parameters Below Upload in the right column - Increased spacing to avoid overlap */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
                         {/* Tasarım Türü */}
                         <div className={`${gc.card} p-6 space-y-4 border border-white/60 relative overflow-hidden group/card`}>
                           <span className={gc.label}>Tasarım Formatı</span>
