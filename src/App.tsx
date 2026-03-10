@@ -682,9 +682,11 @@ export default function App() {
                     animate={{ opacity: 1, x: 0 }}
                     className="flex flex-col"
                   >
-                    <h1 className="text-6xl md:text-8xl font-black text-[var(--color-brand-dark)] tracking-tighter leading-[0.9] mb-4">
+                    <h1 className="text-6xl md:text-8xl font-black text-[var(--color-brand-dark)] tracking-tighter leading-none mb-10">
                       REVİZE<span className="text-[var(--color-brand-orange)]">AI</span><br />
-                      <span className="text-[var(--color-brand-dark)] text-opacity-10 uppercase text-5xl md:text-6xl tracking-tight">STUDIO</span>
+                      <div className="mt-4">
+                        <span className="text-[var(--color-brand-dark)] text-opacity-10 uppercase text-5xl md:text-7xl tracking-tighter">STUDIO</span>
+                      </div>
                     </h1>
                     <div className="flex items-center gap-3 mt-4">
                       <div className="w-10 h-[2px] bg-[var(--color-brand-orange)]" />
@@ -774,11 +776,11 @@ export default function App() {
                           </div>
 
                           <div className="relative group/zone h-full min-h-[450px]">
-                            {/* Corner Accents - Moved inside and made more subtle to avoid overlap */}
-                            <div className="absolute top-0 left-0 w-16 h-16 border-t-[3px] border-l-[3px] border-[var(--color-brand-orange)]/30 rounded-tl-[54px] z-10 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] transition-all duration-700" />
-                            <div className="absolute top-0 right-0 w-16 h-16 border-t-[3px] border-r-[3px] border-[var(--color-brand-orange)]/30 rounded-tr-[54px] z-10 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] transition-all duration-700" />
-                            <div className="absolute bottom-0 left-0 w-16 h-16 border-b-[3px] border-l-[3px] border-[var(--color-brand-orange)]/30 rounded-bl-[54px] z-10 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] transition-all duration-700" />
-                            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-[3px] border-r-[3px] border-[var(--color-brand-orange)]/30 rounded-br-[54px] z-10 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] transition-all duration-700" />
+                            {/* Corner Accents - Strictly internal and smaller to avoid any overlap with surrounding elements */}
+                            <div className="absolute top-6 left-6 w-10 h-10 border-t-[3px] border-l-[3px] border-[var(--color-brand-orange)]/40 rounded-tl-[24px] z-20 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] group-hover/zone:scale-105 transition-all duration-700" />
+                            <div className="absolute top-6 right-6 w-10 h-10 border-t-[3px] border-r-[3px] border-[var(--color-brand-orange)]/40 rounded-tr-[24px] z-20 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] group-hover/zone:scale-105 transition-all duration-700" />
+                            <div className="absolute bottom-6 left-6 w-10 h-10 border-b-[3px] border-l-[3px] border-[var(--color-brand-orange)]/40 rounded-bl-[24px] z-20 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] group-hover/zone:scale-105 transition-all duration-700" />
+                            <div className="absolute bottom-6 right-6 w-10 h-10 border-b-[3px] border-r-[3px] border-[var(--color-brand-orange)]/40 rounded-br-[24px] z-20 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] group-hover/zone:scale-105 transition-all duration-700" />
 
                             <div
                               onClick={() => uploadMod === 'dosya' && fileRef.current?.click()}
@@ -861,8 +863,8 @@ export default function App() {
                         </div>
                       </div>
 
-                      {/* Parameters Below Upload in the right column - Increased spacing to avoid overlap */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+                      {/* Parameters Below Upload - Aggressive spacing to ensure no overlap and clear separation */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-24 pb-20 relative z-10">
                         {/* Tasarım Türü */}
                         <div className={`${gc.card} p-6 space-y-4 border border-white/60 relative overflow-hidden group/card`}>
                           <span className={gc.label}>Tasarım Formatı</span>
