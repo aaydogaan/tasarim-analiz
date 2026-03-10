@@ -479,7 +479,7 @@ export default function App() {
   };
 
   const analiz = () => {
-    if (!gorselBase64) return;
+    if (!gorselBase64 && !imageUrl) return;
     if (!kullanici) {
       setAuthUyariAcik(true);
       return;
@@ -670,7 +670,7 @@ export default function App() {
             />
           )}
           {adim < 3 ? (
-            <div className="flex flex-col lg:flex-row w-full max-w-screen-2xl mx-auto px-4 gap-12 lg:gap-20 pt-28 pb-20 relative z-10">
+            <div className="flex flex-col lg:flex-row w-full max-w-7xl mx-auto px-6 md:px-12 gap-16 lg:gap-24 pt-32 pb-20 relative z-10">
 
               {/* Left Column: Branding, Steps & Core OS Status */}
               <aside className="lg:w-[420px] flex flex-col space-y-12 lg:sticky lg:top-32 h-fit">
@@ -682,9 +682,9 @@ export default function App() {
                     animate={{ opacity: 1, x: 0 }}
                     className="flex flex-col"
                   >
-                    <h1 className="text-6xl md:text-7xl font-black text-[var(--color-brand-dark)] tracking-tighter leading-none">
+                    <h1 className="text-6xl md:text-8xl font-black text-[var(--color-brand-dark)] tracking-tighter leading-[0.85] mb-2">
                       REVİZE<span className="text-[var(--color-brand-orange)]">AI</span><br />
-                      <span className="text-[var(--color-brand-dark)]/5 uppercase">STUDIO</span>
+                      <span className="text-[var(--color-brand-dark)] text-opacity-10 uppercase text-5xl md:text-6xl">STUDIO</span>
                     </h1>
                     <div className="flex items-center gap-3 mt-4">
                       <div className="w-10 h-[2px] bg-[var(--color-brand-orange)]" />
@@ -754,83 +754,85 @@ export default function App() {
                     >
                       <div className="flex flex-col xl:grid xl:grid-cols-12 gap-8 items-stretch h-full">
                         {/* Target Interaction: Upload Zone */}
-                        <div className="xl:col-span-12 w-full space-y-4">
-                          {/* Mod Seçimi */}
-                          <div className="flex gap-2 p-1.5 bg-white/40 backdrop-blur-md rounded-2xl border border-[var(--color-brand-dark)]/5 w-fit">
-                            <button
-                              onClick={() => setUploadMod('dosya')}
-                              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${uploadMod === 'dosya' ? 'bg-[var(--color-brand-dark)] text-white shadow-lg' : 'text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-dark)]'}`}
-                            >
-                              Görsel Yükle
-                            </button>
-                            <button
-                              onClick={() => setUploadMod('link')}
-                              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${uploadMod === 'link' ? 'bg-[var(--color-brand-dark)] text-white shadow-lg' : 'text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-dark)]'}`}
-                            >
-                              Link Yapıştır
-                            </button>
+                        <div className="xl:col-span-12 w-full space-y-8">
+                          {/* Mod Seçimi - Centered and more premium */}
+                          <div className="flex justify-center">
+                            <div className="flex gap-1 p-1 bg-white/50 backdrop-blur-xl rounded-2xl border border-[var(--color-brand-dark)]/5 shadow-sm">
+                              <button
+                                onClick={() => { setUploadMod('dosya'); setGorsel(null); setGorselBase64(null); setImageUrl(""); }}
+                                className={`px-8 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${uploadMod === 'dosya' ? 'bg-[var(--color-brand-dark)] text-white shadow-lg scale-105' : 'text-[var(--color-brand-dark)]/30 hover:text-[var(--color-brand-dark)] hover:bg-white/50'}`}
+                              >
+                                Görsel Yükle
+                              </button>
+                              <button
+                                onClick={() => { setUploadMod('link'); setGorsel(null); setGorselBase64(null); setImageUrl(""); }}
+                                className={`px-8 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${uploadMod === 'link' ? 'bg-[var(--color-brand-dark)] text-white shadow-lg scale-105' : 'text-[var(--color-brand-dark)]/30 hover:text-[var(--color-brand-dark)] hover:bg-white/50'}`}
+                              >
+                                Link Yapıştır
+                              </button>
+                            </div>
                           </div>
 
-                          <div className="relative group/zone h-full min-h-[400px]">
-                            {/* Corner Accents */}
-                            <div className="absolute -top-1 -left-1 w-12 h-12 border-t-2 border-l-2 border-[var(--color-brand-orange)] rounded-tl-[40px] z-20 pointer-events-none opacity-40 group-hover/zone:opacity-100 transition-opacity duration-500" />
-                            <div className="absolute -top-1 -right-1 w-12 h-12 border-t-2 border-r-2 border-[var(--color-brand-orange)] rounded-tr-[40px] z-20 pointer-events-none opacity-40 group-hover/zone:opacity-100 transition-opacity duration-500" />
-                            <div className="absolute -bottom-1 -left-1 w-12 h-12 border-b-2 border-l-2 border-[var(--color-brand-orange)] rounded-bl-[40px] z-20 pointer-events-none opacity-40 group-hover/zone:opacity-100 transition-opacity duration-500" />
-                            <div className="absolute -bottom-1 -right-1 w-12 h-12 border-b-2 border-r-2 border-[var(--color-brand-orange)] rounded-br-[40px] z-20 pointer-events-none opacity-40 group-hover/zone:opacity-100 transition-opacity duration-500" />
+                          <div className="relative group/zone h-full min-h-[450px]">
+                            {/* Corner Accents - More subtle and professional */}
+                            <div className="absolute -top-2 -left-2 w-16 h-16 border-t-[3px] border-l-[3px] border-[var(--color-brand-orange)]/30 rounded-tl-[54px] z-20 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] group-hover/zone:scale-110 transition-all duration-700" />
+                            <div className="absolute -top-2 -right-2 w-16 h-16 border-t-[3px] border-r-[3px] border-[var(--color-brand-orange)]/30 rounded-tr-[54px] z-20 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] group-hover/zone:scale-110 transition-all duration-700" />
+                            <div className="absolute -bottom-2 -left-2 w-16 h-16 border-b-[3px] border-l-[3px] border-[var(--color-brand-orange)]/30 rounded-bl-[54px] z-20 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] group-hover/zone:scale-110 transition-all duration-700" />
+                            <div className="absolute -bottom-2 -right-2 w-16 h-16 border-b-[3px] border-r-[3px] border-[var(--color-brand-orange)]/30 rounded-br-[54px] z-20 pointer-events-none group-hover/zone:border-[var(--color-brand-orange)] group-hover/zone:scale-110 transition-all duration-700" />
 
                             <div
                               onClick={() => uploadMod === 'dosya' && fileRef.current?.click()}
                               className={`
-                                relative h-full min-h-[400px] rounded-[48px] overflow-hidden transition-all duration-700
+                                relative h-full min-h-[450px] rounded-[54px] overflow-hidden transition-all duration-700
                                 border-2 border-dashed
                                 ${(gorsel || (uploadMod === 'link' && imageUrl))
-                                  ? 'border-transparent bg-white shadow-[0_32px_64px_rgba(0,0,0,0.06)] scale-[1.01]'
-                                  : 'border-[var(--color-brand-dark)]/5 bg-white/40 backdrop-blur-2xl hover:bg-white hover:border-[var(--color-brand-orange)]/30 hover:shadow-[0_48px_96px_rgba(255,77,0,0.08)]'
+                                  ? 'border-transparent bg-white shadow-[0_40px_80px_rgba(0,0,0,0.08)]'
+                                  : 'border-[var(--color-brand-dark)]/5 bg-white/30 backdrop-blur-3xl hover:bg-white/80 hover:border-[var(--color-brand-orange)]/20 hover:shadow-[0_48px_96px_rgba(255,77,0,0.08)]'
                                 }
                                 ${uploadMod === 'dosya' ? 'cursor-pointer' : 'cursor-default'}
-                                flex flex-col items-center justify-center p-8 group/inner
+                                flex flex-col items-center justify-center p-12 group/inner
                               `}
                             >
                               {/* Scanning Line Effect */}
                               {(!gorsel && !(uploadMod === 'link' && imageUrl)) && (
-                                <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden opacity-0 group-hover/inner:opacity-100 transition-opacity duration-500">
-                                  <div className="w-full h-1/2 bg-gradient-to-b from-[var(--color-brand-orange)]/5 to-transparent absolute top-0 animate-scan" />
+                                <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden opacity-0 group-hover/inner:opacity-100 transition-opacity duration-700">
+                                  <div className="w-full h-1/2 bg-gradient-to-b from-[var(--color-brand-orange)]/[0.08] to-transparent absolute top-0 animate-scan" />
                                 </div>
                               )}
 
                               {uploadMod === 'dosya' && !gorsel && (
-                                <div className="text-center space-y-6 relative z-20">
-                                  <div className="w-24 h-24 rounded-[32px] bg-gradient-to-br from-[var(--color-brand-orange)] to-[#ff8c00] flex items-center justify-center mx-auto group-hover/inner:scale-110 group-hover/inner:rotate-[10deg] transition-all duration-700 shadow-[0_20px_40px_rgba(255,77,0,0.3)]">
-                                    <Upload className="w-10 h-10 text-white" />
+                                <div className="text-center space-y-10 relative z-20">
+                                  <div className="w-28 h-28 rounded-[36px] bg-gradient-to-br from-[var(--color-brand-orange)] to-[#ff8c00] flex items-center justify-center mx-auto group-hover/inner:scale-110 group-hover/inner:rotate-[8deg] transition-all duration-700 shadow-[0_24px_48px_rgba(255,77,0,0.3)]">
+                                    <Upload className="w-12 h-12 text-white" />
                                   </div>
-                                  <div className="space-y-2">
-                                    <p className="text-2xl font-black text-[var(--color-brand-dark)] tracking-tight uppercase">Tasarımı Buraya Bırak</p>
-                                    <p className="text-[var(--color-brand-dark)]/30 text-[10px] font-black uppercase tracking-[0.3em]">Bilgisayarınızdan bir dosya seçin</p>
+                                  <div className="space-y-4">
+                                    <p className="text-3xl font-black text-[var(--color-brand-dark)] tracking-tight uppercase">Tasarımı Buraya Bırak</p>
+                                    <p className="text-[var(--color-brand-dark)]/30 text-xs font-black uppercase tracking-[0.4em]">Sürükle bırak veya tıklayarak seç</p>
                                   </div>
                                 </div>
                               )}
 
                               {uploadMod === 'link' && !gorsel && (
-                                <div className="text-center space-y-8 relative z-20 w-full max-w-md px-6">
-                                  <div className="w-24 h-24 rounded-[32px] bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mx-auto shadow-[0_20px_40px_rgba(59,130,246,0.3)]">
-                                    <LinkIcon className="w-10 h-10 text-white" />
+                                <div className="text-center space-y-10 relative z-20 w-full max-w-lg px-8">
+                                  <div className="w-28 h-28 rounded-[36px] bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mx-auto shadow-[0_24px_48px_rgba(59,130,246,0.3)]">
+                                    <LinkIcon className="w-12 h-12 text-white" />
                                   </div>
-                                  <div className="space-y-6">
-                                    <div className="space-y-2">
-                                      <p className="text-2xl font-black text-[var(--color-brand-dark)] tracking-tight uppercase">Tasarım Linkini Yapıştır</p>
-                                      <p className="text-[var(--color-brand-dark)]/30 text-[10px] font-black uppercase tracking-[0.3em]">Behance, Dribbble veya direkt görsel linki</p>
+                                  <div className="space-y-8">
+                                    <div className="space-y-3">
+                                      <p className="text-3xl font-black text-[var(--color-brand-dark)] tracking-tight uppercase">Tasarım Linkini Yapıştır</p>
+                                      <p className="text-[var(--color-brand-dark)]/30 text-xs font-black uppercase tracking-[0.4em]">Behance, Dribbble veya Portfolyo Linki</p>
                                     </div>
                                     <div className="relative group/link">
                                       <input
                                         type="text"
-                                        placeholder="https://..."
+                                        placeholder="https://behance.net/gallery/..."
                                         value={imageUrl}
                                         onChange={(e) => setImageUrl(e.target.value)}
                                         onClick={(e) => e.stopPropagation()}
-                                        className="w-full bg-white border-2 border-[var(--color-brand-dark)]/5 text-[var(--color-brand-dark)] rounded-2xl px-6 py-4 text-sm focus:outline-none focus:border-blue-500 transition-all font-medium pr-14"
+                                        className="w-full bg-white/80 border-2 border-[var(--color-brand-dark)]/5 text-[var(--color-brand-dark)] rounded-[24px] px-8 py-5 text-base focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-bold pr-16 shadow-inner placeholder:text-[var(--color-brand-dark)]/20"
                                       />
-                                      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-500">
-                                        <ExternalLink className="w-5 h-5" />
+                                      <div className="absolute right-6 top-1/2 -translate-y-1/2 text-blue-500">
+                                        <ExternalLink className="w-6 h-6" />
                                       </div>
                                     </div>
                                   </div>
@@ -839,16 +841,16 @@ export default function App() {
 
                               {(gorsel) && (
                                 <div className="w-full h-full relative group/img p-4 flex items-center justify-center">
-                                  <img src={gorsel} alt="Tasarım" className="max-w-full max-h-full object-contain rounded-[32px] shadow-2xl" />
-                                  <div className="absolute inset-0 bg-[var(--color-brand-dark)]/60 opacity-0 group-hover/img:opacity-100 transition-all duration-500 flex items-center justify-center backdrop-blur-md rounded-[48px]">
-                                    <div className="flex gap-6 scale-90 group-hover/img:scale-100 transition-transform duration-500">
+                                  <img src={gorsel} alt="Tasarım" className="max-w-full max-h-[450px] object-contain rounded-[36px] shadow-2xl" />
+                                  <div className="absolute inset-0 bg-[var(--color-brand-dark)]/70 opacity-0 group-hover/img:opacity-100 transition-all duration-500 flex items-center justify-center backdrop-blur-md rounded-[54px]">
+                                    <div className="flex gap-8 scale-90 group-hover/img:scale-100 transition-transform duration-500">
                                       {uploadMod === 'dosya' && (
-                                        <button onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }} className="w-14 h-14 bg-white rounded-[20px] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-orange)] hover:text-white transition-all shadow-2xl flex items-center justify-center">
-                                          <RotateCcw className="w-6 h-6" />
+                                        <button onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }} className="w-16 h-16 bg-white rounded-[24px] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-orange)] hover:text-white transition-all shadow-2xl flex items-center justify-center">
+                                          <RotateCcw className="w-7 h-7" />
                                         </button>
                                       )}
-                                      <button onClick={(e) => { e.stopPropagation(); setGorsel(null); setGorselBase64(null); setImageUrl(""); }} className="w-14 h-14 bg-white rounded-[20px] text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-2xl flex items-center justify-center">
-                                        <X className="w-6 h-6" />
+                                      <button onClick={(e) => { e.stopPropagation(); setGorsel(null); setGorselBase64(null); setImageUrl(""); }} className="w-16 h-16 bg-white rounded-[24px] text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-2xl flex items-center justify-center">
+                                        <X className="w-7 h-7" />
                                       </button>
                                     </div>
                                   </div>
