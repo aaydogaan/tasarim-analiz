@@ -13,7 +13,8 @@ export const config = {
 type TasarimTuru = "Sosyal Medya" | "Kurumsal" | "E-Ticaret" | "Baskı Materyali";
 
 type AnalyzeRequestBody = {
-  imageBase64: string;
+  imageBase64?: string;
+  imageUrl?: string;
   isletme: string;
   tasarimTuru?: TasarimTuru;
   platform?: string;
@@ -70,11 +71,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body) as AnalyzeRequestBody;
-  if (!body?.imageBase64) {
-    return res.status(400).json({ error: 'Missing imageBase64.' });
+
+  let { imageBase64, imageUrl, isletme, tasarimTuru = "Kurumsal", platform, sorular } = body;
+
+  if (!imageBase64 && imageUrl) {
+    try {
+      const imgResp = await fetch(imageUrl);
+      if (!imgResp.ok) throw new Error("Görsel URL'den indirilemedi.");
+      const buffer = await imgResp.arrayBuffer();
+      imageBase64 = Buffer.from(buffer).toString('base64');
+    } catch (e: any) {
+      return res.status(400).json({ error: "Görsel indirilirken hata oluştu: " + e.message });
+    }
   }
 
-  const { imageBase64, isletme, tasarimTuru = "Kurumsal", platform, sorular } = body;
+  if (!imageBase64) {
+    return res.status(400).json({ error: 'Görsel (base64 veya URL) gerekli.' });
+  }
   const kriterler = kriterBilgisi[tasarimTuru];
   const platformBilgisi = tasarimTuru === "Sosyal Medya" && platform ? `Platform: ${platform}` : "";
 

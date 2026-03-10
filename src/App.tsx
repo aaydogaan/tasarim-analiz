@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import Lenis from 'lenis';
 import { motion, AnimatePresence } from "motion/react";
-import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check, AlertCircle, Globe, BrainCircuit, ArrowUpRight, Layers, Code, Scan, Download, ExternalLink, BookOpen } from "lucide-react";
+import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check, AlertCircle, Globe, BrainCircuit, ArrowUpRight, Layers, Code, Scan, Download, ExternalLink, BookOpen, Link as LinkIcon } from "lucide-react";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { supabase } from "./lib/supabase";
 import { Vitrin } from "./pages/Vitrin";
 import TextPressure from "./components/ui/TextPressure";
@@ -219,6 +221,8 @@ export default function App() {
   const [gorunum, setGorunum] = useState<'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography'>(() => getSessionData('ra_gorunum', 'landing'));
   const [gorsel, setGorsel] = useState<string | null>(initGorsel);
   const [gorselBase64, setGorselBase64] = useState<string | null>(initGorselBase64);
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const [uploadMod, setUploadMod] = useState<'dosya' | 'link'>('dosya');
   const [revizeGorsel, setRevizeGorsel] = useState<string | null>(() => getSessionData('ra_revizeGorsel', null));
   const [tasarimTuru, setTasarimTuru] = useState<TasarimTuru>(() => getSessionData('ra_tasarimTuru', 'Sosyal Medya'));
   const [platform, setPlatform] = useState<string>(() => getSessionData('ra_platform', 'Instagram Post'));
@@ -343,6 +347,40 @@ export default function App() {
     setTimeout(() => setPaylasimKopyalandi(false), 2000);
   };
 
+  const renkKopyala = (hex: string) => {
+    navigator.clipboard.writeText(hex);
+    setKopyalananRenk(hex);
+    setTimeout(() => setKopyalananRenk(null), 2000);
+  };
+
+  const indirPDF = async () => {
+    const element = document.getElementById('analiz-raporu');
+    if (!element) return;
+
+    setYukleniyor(true);
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`revize-ai-analiz-${sonuc?.markaAdi || 'tasarim'}.pdf`);
+    } catch (err) {
+      console.error('PDF Hatası:', err);
+      alert('PDF oluşturulamadı. Lütfen tekrar deneyin.');
+    }
+    setYukleniyor(false);
+  };
+
   const vitrindeYayinla = async () => {
     if (!sonuc?._analiz_id) return false;
 
@@ -461,7 +499,8 @@ export default function App() {
           ...(gecerliToken ? { "Authorization": `Bearer ${gecerliToken}` } : {})
         },
         body: JSON.stringify({
-          imageBase64: gorselBase64,
+          imageBase64: uploadMod === 'dosya' ? gorselBase64 : undefined,
+          imageUrl: uploadMod === 'link' ? imageUrl : undefined,
           isletme: isletme === "Diğer" ? (digerIsletme || "Bilinmiyor") : isletme,
           tasarimTuru,
           platform: tasarimTuru === "Sosyal Medya" ? platform : undefined,
@@ -557,6 +596,7 @@ export default function App() {
     setAdim(1); setGorsel(null); setGorselBase64(null); setRevizeGorsel(null); setSonuc(null); setHata(null);
     setSorular({ markaAdi: "", kurumselRenk: "", isYapisi: "", hedefKitle: "", slogan: "" });
     setDigerIsletme(""); setTasarimTuru("Sosyal Medya"); setPlatform("Instagram Post");
+    setImageUrl(""); setUploadMod('dosya');
   };
 
   const goHome = () => {
@@ -714,7 +754,23 @@ export default function App() {
                     >
                       <div className="flex flex-col xl:grid xl:grid-cols-12 gap-8 items-stretch h-full">
                         {/* Target Interaction: Upload Zone */}
-                        <div className="xl:col-span-12 w-full">
+                        <div className="xl:col-span-12 w-full space-y-4">
+                          {/* Mod Seçimi */}
+                          <div className="flex gap-2 p-1.5 bg-white/40 backdrop-blur-md rounded-2xl border border-[var(--color-brand-dark)]/5 w-fit">
+                            <button
+                              onClick={() => setUploadMod('dosya')}
+                              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${uploadMod === 'dosya' ? 'bg-[var(--color-brand-dark)] text-white shadow-lg' : 'text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-dark)]'}`}
+                            >
+                              Görsel Yükle
+                            </button>
+                            <button
+                              onClick={() => setUploadMod('link')}
+                              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${uploadMod === 'link' ? 'bg-[var(--color-brand-dark)] text-white shadow-lg' : 'text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-dark)]'}`}
+                            >
+                              Link Yapıştır
+                            </button>
+                          </div>
+
                           <div className="relative group/zone h-full min-h-[400px]">
                             {/* Corner Accents */}
                             <div className="absolute -top-1 -left-1 w-12 h-12 border-t-2 border-l-2 border-[var(--color-brand-orange)] rounded-tl-[40px] z-20 pointer-events-none opacity-40 group-hover/zone:opacity-100 transition-opacity duration-500" />
@@ -723,51 +779,75 @@ export default function App() {
                             <div className="absolute -bottom-1 -right-1 w-12 h-12 border-b-2 border-r-2 border-[var(--color-brand-orange)] rounded-br-[40px] z-20 pointer-events-none opacity-40 group-hover/zone:opacity-100 transition-opacity duration-500" />
 
                             <div
-                              onClick={() => fileRef.current?.click()}
+                              onClick={() => uploadMod === 'dosya' && fileRef.current?.click()}
                               className={`
-                                relative h-full min-h-[400px] rounded-[48px] overflow-hidden cursor-pointer transition-all duration-700
+                                relative h-full min-h-[400px] rounded-[48px] overflow-hidden transition-all duration-700
                                 border-2 border-dashed
-                                ${gorsel
+                                ${(gorsel || (uploadMod === 'link' && imageUrl))
                                   ? 'border-transparent bg-white shadow-[0_32px_64px_rgba(0,0,0,0.06)] scale-[1.01]'
                                   : 'border-[var(--color-brand-dark)]/5 bg-white/40 backdrop-blur-2xl hover:bg-white hover:border-[var(--color-brand-orange)]/30 hover:shadow-[0_48px_96px_rgba(255,77,0,0.08)]'
                                 }
+                                ${uploadMod === 'dosya' ? 'cursor-pointer' : 'cursor-default'}
                                 flex flex-col items-center justify-center p-8 group/inner
                               `}
                             >
                               {/* Scanning Line Effect */}
-                              {!gorsel && (
+                              {(!gorsel && !(uploadMod === 'link' && imageUrl)) && (
                                 <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden opacity-0 group-hover/inner:opacity-100 transition-opacity duration-500">
-                                  <div className="w-full h-1/2 bg-gradient-to-b from-[var(--color-brand-orange)]/5 to-transparent absolute top-0 animate-[scan_4s_ease-in-out_infinite]" />
-                                  <style>{`
-                                    @keyframes scan {
-                                      0% { transform: translateY(-100%) }
-                                      100% { transform: translateY(200%) }
-                                    }
-                                  `}</style>
+                                  <div className="w-full h-1/2 bg-gradient-to-b from-[var(--color-brand-orange)]/5 to-transparent absolute top-0 animate-scan" />
                                 </div>
                               )}
 
-                              {!gorsel && (
+                              {uploadMod === 'dosya' && !gorsel && (
                                 <div className="text-center space-y-6 relative z-20">
                                   <div className="w-24 h-24 rounded-[32px] bg-gradient-to-br from-[var(--color-brand-orange)] to-[#ff8c00] flex items-center justify-center mx-auto group-hover/inner:scale-110 group-hover/inner:rotate-[10deg] transition-all duration-700 shadow-[0_20px_40px_rgba(255,77,0,0.3)]">
                                     <Upload className="w-10 h-10 text-white" />
                                   </div>
                                   <div className="space-y-2">
-                                    <p className="text-2xl font-black text-[var(--color-brand-dark)] tracking-tight">TASARIMI BURAYA BIRAK</p>
-                                    <p className="text-[var(--color-brand-dark)]/30 text-[10px] font-black uppercase tracking-[0.3em]">Yapay zeka analizi için görsel seçin</p>
+                                    <p className="text-2xl font-black text-[var(--color-brand-dark)] tracking-tight uppercase">Tasarımı Buraya Bırak</p>
+                                    <p className="text-[var(--color-brand-dark)]/30 text-[10px] font-black uppercase tracking-[0.3em]">Bilgisayarınızdan bir dosya seçin</p>
                                   </div>
                                 </div>
                               )}
 
-                              {gorsel && (
+                              {uploadMod === 'link' && !gorsel && (
+                                <div className="text-center space-y-8 relative z-20 w-full max-w-md px-6">
+                                  <div className="w-24 h-24 rounded-[32px] bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mx-auto shadow-[0_20px_40px_rgba(59,130,246,0.3)]">
+                                    <LinkIcon className="w-10 h-10 text-white" />
+                                  </div>
+                                  <div className="space-y-6">
+                                    <div className="space-y-2">
+                                      <p className="text-2xl font-black text-[var(--color-brand-dark)] tracking-tight uppercase">Tasarım Linkini Yapıştır</p>
+                                      <p className="text-[var(--color-brand-dark)]/30 text-[10px] font-black uppercase tracking-[0.3em]">Behance, Dribbble veya direkt görsel linki</p>
+                                    </div>
+                                    <div className="relative group/link">
+                                      <input
+                                        type="text"
+                                        placeholder="https://..."
+                                        value={imageUrl}
+                                        onChange={(e) => setImageUrl(e.target.value)}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="w-full bg-white border-2 border-[var(--color-brand-dark)]/5 text-[var(--color-brand-dark)] rounded-2xl px-6 py-4 text-sm focus:outline-none focus:border-blue-500 transition-all font-medium pr-14"
+                                      />
+                                      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-500">
+                                        <ExternalLink className="w-5 h-5" />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {(gorsel) && (
                                 <div className="w-full h-full relative group/img p-4 flex items-center justify-center">
                                   <img src={gorsel} alt="Tasarım" className="max-w-full max-h-full object-contain rounded-[32px] shadow-2xl" />
                                   <div className="absolute inset-0 bg-[var(--color-brand-dark)]/60 opacity-0 group-hover/img:opacity-100 transition-all duration-500 flex items-center justify-center backdrop-blur-md rounded-[48px]">
                                     <div className="flex gap-6 scale-90 group-hover/img:scale-100 transition-transform duration-500">
-                                      <button onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }} className="w-14 h-14 bg-white rounded-[20px] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-orange)] hover:text-white transition-all shadow-2xl flex items-center justify-center">
-                                        <RotateCcw className="w-6 h-6" />
-                                      </button>
-                                      <button onClick={(e) => { e.stopPropagation(); setGorsel(null); setGorselBase64(null); }} className="w-14 h-14 bg-white rounded-[20px] text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-2xl flex items-center justify-center">
+                                      {uploadMod === 'dosya' && (
+                                        <button onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }} className="w-14 h-14 bg-white rounded-[20px] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-orange)] hover:text-white transition-all shadow-2xl flex items-center justify-center">
+                                          <RotateCcw className="w-6 h-6" />
+                                        </button>
+                                      )}
+                                      <button onClick={(e) => { e.stopPropagation(); setGorsel(null); setGorselBase64(null); setImageUrl(""); }} className="w-14 h-14 bg-white rounded-[20px] text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-2xl flex items-center justify-center">
                                         <X className="w-6 h-6" />
                                       </button>
                                     </div>
@@ -831,7 +911,7 @@ export default function App() {
                         </div>
                       </div>
 
-                      {gorsel && (
+                      {(gorsel || (uploadMod === 'link' && imageUrl)) && (
                         <motion.button
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -934,6 +1014,7 @@ export default function App() {
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5 }}
                   className="w-full space-y-4 md:space-y-6 max-w-7xl mx-auto"
+                  id="analiz-raporu"
                 >
                   {/* Demo Mode Banner */}
                   {sonuc._demo && (
@@ -960,10 +1041,11 @@ export default function App() {
                         <RotateCcw className="w-4 h-4" /> Yeni Analiz
                       </button>
                       <button
-                        onClick={() => alert('PDF hazırlama özelliği yakında burada olacak!')}
+                        onClick={indirPDF}
+                        disabled={yukleniyor}
                         className="px-4 py-2 rounded-xl text-[var(--color-brand-dark)]/60 hover:bg-[var(--color-brand-light)] font-semibold text-sm transition-colors border border-[var(--color-brand-dark)]/10 flex items-center gap-2"
                       >
-                        <Download className="w-4 h-4" /> PDF İndir
+                        {yukleniyor ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Download className="w-4 h-4" />} PDF İndir
                       </button>
                       <button
                         disabled={yayinlaniyor || vitrindeYayinlandi}
@@ -1085,8 +1167,10 @@ export default function App() {
                           <div className="p-4 border-t border-[var(--color-brand-dark)]/5 bg-white">
                             <div className="flex items-center justify-between gap-1.5 overflow-x-auto pb-1 hide-scrollbar">
                               {sonuc.renkPaleti.slice(0, 5).map((hex: string, i: number) => (
-                                <div key={i} className="flex flex-col items-center gap-1 group">
-                                  <div className="w-8 h-8 rounded-full border border-[var(--color-brand-dark)]/10 shadow-inner" style={{ backgroundColor: hex }} />
+                                <div key={i} className="flex flex-col items-center gap-1 group cursor-pointer" onClick={() => renkKopyala(hex)}>
+                                  <div className="w-8 h-8 rounded-full border border-[var(--color-brand-dark)]/10 shadow-inner group-hover:scale-110 transition-transform relative" style={{ backgroundColor: hex }}>
+                                    {kopyalananRenk === hex && <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-full"><Check className="w-4 h-4 text-white" /></div>}
+                                  </div>
                                   <span className="text-[8px] font-mono font-bold text-[var(--color-brand-dark)]/30 opacity-0 group-hover:opacity-100 transition-opacity">{hex.toUpperCase()}</span>
                                 </div>
                               ))}
@@ -1154,8 +1238,18 @@ export default function App() {
                         <span className="bg-gradient-to-r from-[#ff4d00] to-amber-500 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-lg uppercase tracking-widest shadow-[0_0_15px_rgba(255,77,0,0.4)] border border-white/20">PRO</span>
                       </div>
 
-                      <div className="relative z-10 flex-1 border border-[#ff4d00]/20 bg-gradient-to-br from-[#ff4d00]/[0.05] to-transparent rounded-2xl p-6 mb-6 backdrop-blur-sm group-hover:border-[#ff4d00]/30 transition-colors duration-500">
-                        <p className="text-[var(--color-brand-dark)]/80 text-[14px] leading-relaxed font-semibold">
+                      <div className="relative z-10 flex-1 border border-[#ff4d00]/20 bg-gradient-to-br from-[#ff4d00]/[0.1] to-transparent rounded-2xl p-8 mb-6 backdrop-blur-md group-hover:border-[#ff4d00]/30 transition-all duration-500 flex flex-col items-center justify-center text-center overflow-hidden">
+                        {/* Blur overlay for PRO info */}
+                        <div className="absolute inset-0 bg-white/40 backdrop-blur-md z-10 flex flex-col items-center justify-center p-6">
+                          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
+                            <Sparkles className="w-6 h-6 text-[#ff4d00]" />
+                          </div>
+                          <p className="text-[var(--color-brand-dark)] font-bold text-sm mb-1 uppercase tracking-tight">Revizyon Detayları Kilitli</p>
+                          <p className="text-[var(--color-brand-dark)]/40 text-[10px] uppercase font-black tracking-widest leading-normal">
+                            AI ile tasarımınızı otomatik iyileştirmek ve teknik revizyonları görmek için PRO plana geçin.
+                          </p>
+                        </div>
+                        <p className="text-[var(--color-brand-dark)]/80 text-[14px] opacity-20 select-none blur-[2px]">
                           {sonuc.oneri}
                         </p>
                       </div>
