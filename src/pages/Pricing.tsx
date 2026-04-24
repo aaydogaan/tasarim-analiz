@@ -60,7 +60,7 @@ const plans = [
             'Pro plandaki her şey +',
             'Markaya Özel Tasarım Dili Eğitme (Çok Yakında)',
             'Toplu Klasör & Sayfa Analizi (Çok Yakında)',
-            'RevizeAI Geliştirici API Erişimi (Sınırlandırılmış)',
+            'Revizele Geliştirici API Erişimi (Sınırlandırılmış)',
             'Rakip Tasarım Kıyaslama Raporu (Çok Yakında)',
             '7/24 Öncelikli Kurumsal Destek'
         ],

@@ -142,7 +142,7 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                     </div>
 
                     <p className="mt-8 text-[#7A7A7A] text-[14px] md:text-[17px] max-w-2xl mx-auto leading-relaxed font-medium px-4">
-                        RevizeAI ile tasarımlarınızı analiz edin, eksikleri saniyeler içinde fark edin <br className="hidden md:block" /> ve mükemmel tasarım uyumunu yakalayın.
+                        Revizele ile tasarımlarınızı analiz edin, eksikleri saniyeler içinde fark edin <br className="hidden md:block" /> ve mükemmel tasarım uyumunu yakalayın.
                     </p>
 
                     {/* Action button */}
@@ -286,10 +286,10 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                                         className="text-white font-sans font-medium leading-[1.1] tracking-tight md:tracking-[-1.8px]"
                                         style={{ fontSize: 'clamp(32px, 6vw, 64px)' }}
                                     >
-                                        Got a project in mind?
+                                        Aklınızda bir proje mi var?
                                     </h2>
                                     <p className="text-white/80 text-base md:text-[18px] font-sans">
-                                        Let's make something happen together
+                                        Hadi birlikte harika şeyler yaratalım
                                     </p>
                                 </div>
 
@@ -299,14 +299,14 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
 
                                         <div className="flex flex-col items-start gap-2 w-full">
                                             <label className="text-white font-sans text-[14px] font-medium tracking-[-0.14px]">
-                                                Your Name
+                                                Adınız
                                             </label>
                                             <div className="w-full h-10 border-b border-white/20 relative">
                                                 <input
                                                     type="text"
                                                     required
                                                     name="Name"
-                                                    placeholder="Enter your Name"
+                                                    placeholder="Adınızı girin"
                                                     className="w-full h-full bg-transparent font-sans text-[14px] font-medium tracking-[-0.14px] text-white placeholder:text-white/60 outline-none"
                                                 />
                                             </div>
@@ -314,14 +314,14 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
 
                                         <div className="flex flex-col items-start gap-2 w-full">
                                             <label className="text-white font-sans text-[14px] font-medium tracking-[-0.14px]">
-                                                Your Email
+                                                E-posta Adresiniz
                                             </label>
                                             <div className="w-full h-10 border-b border-white/20 relative">
                                                 <input
                                                     type="email"
                                                     required
                                                     name="Email"
-                                                    placeholder="Enter the Email"
+                                                    placeholder="E-posta adresinizi girin"
                                                     className="w-full h-full bg-transparent font-sans text-[14px] font-medium tracking-[-0.14px] text-white placeholder:text-white/60 outline-none"
                                                 />
                                             </div>
@@ -329,12 +329,12 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
 
                                         <div className="flex flex-col items-start gap-2 w-full">
                                             <label className="text-white font-sans text-[14px] font-medium tracking-[-0.14px]">
-                                                Project Description
+                                                Mesajınız / Proje Detayı
                                             </label>
                                             <div className="w-full min-h-[80px] border-b border-white/20 relative">
                                                 <textarea
                                                     name="Description"
-                                                    placeholder="Type Here..."
+                                                    placeholder="Buraya yazın..."
                                                     className="w-full bg-transparent font-sans text-[14px] font-medium tracking-[-0.14px] text-white placeholder:text-white/60 outline-none resize-y min-h-[40px] pt-1"
                                                 />
                                             </div>
@@ -345,7 +345,7 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                                                 type="submit"
                                                 className="w-full h-full rounded-full bg-[#dcdcdc] text-black font-sans text-[14px] font-medium tracking-[-0.14px] flex items-center justify-center transition-transform hover:scale-[1.02] shadow-[inset_0px_0.5px_0.5px_0px_rgba(255,255,255,0.24),inset_0px_4px_16px_0px_rgba(255,255,255,0.16)] cursor-pointer"
                                             >
-                                                Send Now!
+                                                Hemen Gönder!
                                             </button>
                                         </div>
                                     </form>
@@ -373,7 +373,7 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                                                 />
                                             </div>
                                             <h5 className="font-sans text-[16px] md:text-[24px] font-semibold text-white/90">
-                                                franklin<span className="text-[#FF4D00]">@</span>agero.com
+                                                merhaba<span className="text-[#FF4D00]">@</span>revizele.com
                                             </h5>
                                         </div>
                                     ))}

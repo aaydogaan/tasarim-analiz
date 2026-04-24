@@ -105,7 +105,7 @@ export default function CommunitySpotlight({ onExploreClick }: { onExploreClick:
                 setVitrinItems([
                     {
                         id: 's1',
-                        isletme: 'Sample Design 1',
+                        isletme: 'Örnek Tasarım 1',
                         user_name: 'Arda Yılmaz',
                         user_avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=Arda',
                         gorsel_url: 'https://images.unsplash.com/photo-1616469829581-73993eb86b02?auto=format&fit=crop&q=80&w=600',
@@ -115,7 +115,7 @@ export default function CommunitySpotlight({ onExploreClick }: { onExploreClick:
                     },
                     {
                         id: 's2',
-                        isletme: 'Sample Design 2',
+                        isletme: 'Örnek Tasarım 2',
                         user_name: 'Selin Demir',
                         user_avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=Selin',
                         gorsel_url: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=600',
@@ -125,7 +125,7 @@ export default function CommunitySpotlight({ onExploreClick }: { onExploreClick:
                     },
                     {
                         id: 's3',
-                        isletme: 'Sample Design 3',
+                        isletme: 'Örnek Tasarım 3',
                         user_name: 'Murat Can',
                         user_avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=Murat',
                         gorsel_url: 'https://images.unsplash.com/photo-1551288049-bbbda536339a?auto=format&fit=crop&q=80&w=600',

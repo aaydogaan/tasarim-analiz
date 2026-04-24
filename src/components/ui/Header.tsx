@@ -100,11 +100,11 @@ export default function Header({
             <nav className="w-full flex flex-col md:flex-row items-center justify-between px-6 md:px-16 py-3 md:py-4 gap-3 md:gap-0">
                 {/* Logo */}
                 <div className="cursor-pointer" onClick={goHome}>
-                    <span className="text-2xl md:text-[32px] font-bold tracking-tight text-[var(--color-brand-orange)] font-display leading-none">Revize.</span>
+                    <span className="text-2xl md:text-[32px] font-bold tracking-tight text-[var(--color-brand-orange)] font-display leading-none">Revizele.</span>
                 </div>
 
                 {/* Nav Links */}
-                <div className="flex items-center gap-5 md:gap-10 text-[12px] md:text-[13px] font-medium text-[#666666]">
+                <div className="flex flex-wrap justify-center items-center gap-4 md:gap-10 text-[12px] md:text-[13px] font-medium text-[#666666]">
                     <button
                         onClick={() => handleNavClick('landing')}
                         className={`transition-colors whitespace-nowrap ${gorunum === 'landing' ? 'text-[var(--color-brand-dark)]' : 'hover:text-[var(--color-brand-dark)]'}`}

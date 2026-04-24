@@ -467,7 +467,7 @@ export default function Footer({ onLogoClick }: { onLogoClick?: () => void }) {
                     {/* Content Row */}
                     <div className="footer-content-row">
                         <p className="footer-copyright">
-                            © 2026 Revize. Tüm hakları saklıdır.
+                            © 2026 Revizele. Tüm hakları saklıdır.
                         </p>
 
                         <div className="footer-dev-wrapper">
