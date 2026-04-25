@@ -16,6 +16,7 @@ import About from "./pages/About";
 import Tools from "./pages/Tools";
 import TypographyLab from "./pages/TypographyLab";
 import LiveActivityFeed from "./components/ui/LiveActivityFeed";
+import AnalizEtButton from "./components/ui/AnalizEtButton";
 
 declare global {
   interface Window {
@@ -421,6 +422,15 @@ export default function App() {
     }
   }, [adim, gorsel, gorselBase64, revizeGorsel, tasarimTuru, platform, isletme, digerIsletme, sorular, sonuc, gorunum]);
 
+  const handleLink = (url: string) => {
+    if (!url) return;
+    setSonuc(null); setHata(null); setRevizeGorsel(null);
+    setGorselBase64(null);
+    setGorsel(url);
+    setImageUrl(url);
+    setAdim(2);
+  };
+
   const handleDosya = (f: File) => {
     if (!f) return;
     setSonuc(null); setHata(null); setRevizeGorsel(null);
@@ -465,6 +475,7 @@ export default function App() {
         setGorsel(webpDataUrl);
         setGorselBase64(webpDataUrl.split(",")[1]);
         setYukleniyor(false);
+        setAdim(2);
       };
       img.onerror = () => {
         setHata("Görsel işlenirken bir hata oluştu.");
@@ -867,9 +878,9 @@ export default function App() {
                             ) : (
                               <div className="flex flex-col xl:flex-row gap-10 items-center justify-center">
                                 <div className="w-full xl:w-5/12 aspect-square max-w-sm rounded-[32px] border border-slate-200 overflow-hidden relative shadow-sm bg-slate-50">
-                                  {gorselBase64 ? (
+                                  {gorsel ? (
                                     <>
-                                      <img src={gorselBase64} alt="Yüklenen" className="w-full h-full object-contain p-4" />
+                                      <img src={gorsel} alt="Yüklenen" className="w-full h-full object-contain p-4" />
                                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                                         <button onClick={() => setAdim(1)} className="bg-white text-slate-900 px-6 py-3 rounded-full text-sm font-bold flex items-center gap-2 hover:scale-105 transition-transform shadow-xl">
                                           <RotateCcw className="w-4 h-4" /> Değiştir
@@ -883,6 +894,13 @@ export default function App() {
                                     <h4 className="text-3xl font-black text-slate-900 mb-2">Harika görünüyor! ✨</h4>
                                     <p className="text-slate-500 font-medium">Analiz için son dokunuşları yapalım.</p>
                                   </div>
+                                  
+                                  {hata && (
+                                    <div className="mb-4 p-3 sm:p-4 bg-rose-50 border border-rose-200 text-rose-600 rounded-[16px] text-xs sm:text-sm font-medium flex items-center gap-3">
+                                      <AlertCircle className="w-5 h-5 shrink-0" /> {hata}
+                                    </div>
+                                  )}
+
                                   <div className="space-y-6">
                                     <div>
                                       <label className="text-sm font-bold text-slate-700 mb-3 block uppercase tracking-wide">Hedef Sektör (Opsiyonel)</label>
@@ -895,7 +913,7 @@ export default function App() {
                                       />
                                     </div>
                                     <AnalizEtButton
-                                      onClick={analizEt}
+                                      onClick={analiz}
                                       yukleniyor={yukleniyor}
                                       metin="Yapay Zeka ile Analizi Başlat"
                                       kullanici={kullanici}
