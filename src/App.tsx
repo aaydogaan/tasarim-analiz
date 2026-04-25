@@ -821,9 +821,9 @@ export default function App() {
                         <div className="flex-1 bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-[24px] shadow-sm flex flex-col xl:flex-row overflow-hidden w-full">
                           
                           {/* Left: Upload Action Area */}
-                          <div className="flex-1 p-6 lg:p-8 xl:p-10 relative flex flex-col justify-center items-start">
-                            {/* Wrapper for left alignment with tighter max-width */}
-                            <div className="w-full max-w-3xl xl:ml-4 2xl:ml-8">
+                          <div className="flex-1 p-6 lg:p-10 xl:p-14 relative flex flex-col justify-center items-center">
+                            {/* Wrapper for content with better expansion */}
+                            <div className="w-full max-w-4xl">
                               {/* Header */}
                               <div className="text-center mb-10">
                                 <h3 className="text-3xl font-black text-[var(--text-primary)] tracking-tight flex items-center justify-center gap-3 mb-2">
@@ -834,9 +834,9 @@ export default function App() {
                               </div>
                               
                               {adim === 1 ? (
-                                <div className="flex flex-col md:flex-row items-center justify-center gap-8 lg:gap-10 w-full">
+                                <div className="flex flex-col md:flex-row items-start justify-center gap-10 lg:gap-12 w-full">
                                 {/* Format Selection */}
-                                <div className="w-full md:w-1/2 max-w-[320px] flex flex-col">
+                                <div className="w-full md:w-1/2 max-w-[360px] flex flex-col">
                                   <h4 className="text-xs font-bold text-slate-500 mb-4 uppercase tracking-wider flex items-center gap-2">
                                     <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 shadow-sm">1</div>
                                     Tasarım Formatı
@@ -897,7 +897,7 @@ export default function App() {
                                 </div>
 
                                 {/* Dropzone */}
-                                <div className="w-full md:w-1/2 max-w-[340px] flex flex-col">
+                                <div className="w-full md:w-1/2 max-w-[400px] flex flex-col">
                                   <div className="flex items-center justify-between mb-4">
                                     <h4 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-2">
                                       <div className="w-6 h-6 rounded-full bg-[#FF5500] flex items-center justify-center text-white shadow-sm">2</div>
@@ -939,8 +939,8 @@ export default function App() {
                                   </div>
                                 </div>
                               ) : (
-                                <div className="flex flex-col xl:flex-row items-center justify-center gap-12 lg:gap-16 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                  <div className="w-full xl:w-5/12 aspect-square max-w-sm rounded-[32px] border border-[var(--border-primary)] overflow-hidden relative shadow-sm bg-[var(--bg-primary)] group">
+                                <div className="flex flex-col xl:flex-row items-center justify-center gap-12 lg:gap-20 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                  <div className="w-full xl:w-1/2 aspect-square max-w-md rounded-[32px] border border-[var(--border-primary)] overflow-hidden relative shadow-sm bg-[var(--bg-primary)] group">
                                   {gorsel ? (
                                     <>
                                       <img src={gorsel} alt="Yüklenen" className="w-full h-full object-contain p-4" />
@@ -998,7 +998,7 @@ export default function App() {
                           </div>
 
                           {/* Right: Stepper Sidebar (Inside the Big Card) */}
-                          <div className="w-full xl:w-[300px] border-t xl:border-t-0 xl:border-l border-[var(--border-primary)] p-8 lg:p-10 flex flex-col bg-[var(--bg-primary)]/30 shrink-0">
+                          <div className="w-full xl:w-[260px] border-t xl:border-t-0 xl:border-l border-[var(--border-primary)] p-8 flex flex-col bg-[var(--bg-primary)]/30 shrink-0">
                             <h4 className="text-xs font-bold text-[var(--text-secondary)] mb-8 uppercase tracking-wider flex items-center gap-2">
                               <Check className="w-4 h-4 text-emerald-500" />
                               Süreç Durumu
