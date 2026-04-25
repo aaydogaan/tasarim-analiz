@@ -869,7 +869,7 @@ export default function App() {
                                   </div>
 
                                   </div>
-                                </div>
+
 
                                 {/* Dropzone */}
                                 <div className="w-full md:w-1/2 max-w-[400px] flex flex-col">
