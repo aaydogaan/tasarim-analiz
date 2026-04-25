@@ -1058,58 +1058,97 @@ export default function App() {
                             </div>
                           </div>
 
-                          {/* Meta Ads Preview Card - Professional Sidebar Version */}
-                          <div className="relative group mt-2 overflow-hidden rounded-[24px] cursor-not-allowed">
-                            <div className="absolute inset-0 bg-gradient-to-br from-[#1877F2]/5 to-[#0064E0]/10 opacity-50"></div>
-                            <div className="absolute -right-8 -top-8 w-24 h-24 bg-[#1877F2]/10 blur-2xl rounded-full"></div>
-                            <div className="relative bg-[var(--card-bg)]/40 backdrop-blur-xl border border-[#1877F2]/10 p-6 flex flex-col">
+                          {/* Meta Ads Preview Card - Ultra Premium Sidebar Version */}
+                          <div className="relative group mt-4 overflow-hidden rounded-[24px] cursor-not-allowed transform transition-all duration-500 hover:scale-[1.02]">
+                            {/* Animated Gradient Border */}
+                            <div className="absolute -inset-[2px] bg-gradient-to-r from-[#1877F2] via-[#0064E0] to-[#1877F2] rounded-[26px] opacity-20 group-hover:opacity-100 animate-gradient-x blur-[1px] transition-opacity duration-500"></div>
+                            
+                            {/* Inner Background with strong blur */}
+                            <div className="relative bg-[var(--card-bg)]/80 backdrop-blur-2xl rounded-[24px] p-6 flex flex-col h-full border border-white/20">
+                              
+                              {/* Glossy Streak Animation */}
+                              <motion.div 
+                                animate={{ left: ["-100%", "200%"] }}
+                                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", repeatDelay: 4 }}
+                                className="absolute top-0 bottom-0 w-16 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] pointer-events-none z-20"
+                              />
+
                               <div className="flex items-center justify-between mb-5">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-9 h-9 rounded-xl bg-[#1877F2] flex items-center justify-center shadow-lg shadow-[#1877F2]/20">
-                                    <Globe className="w-5 h-5 text-white" />
+                                  <div className="relative">
+                                    <div className="absolute -inset-2 bg-[#1877F2]/30 blur-xl rounded-full animate-pulse"></div>
+                                    <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-[#1877F2] to-[#0064E0] flex items-center justify-center shadow-lg shadow-[#1877F2]/40 border border-white/20">
+                                      <Globe className="w-5 h-5 text-white animate-spin-slow" />
+                                    </div>
                                   </div>
                                   <div>
                                     <h5 className="text-[var(--text-primary)] font-black text-xs uppercase tracking-wider">Meta Ads AI</h5>
-                                    <p className="text-[9px] text-[#1877F2] font-bold uppercase tracking-[0.1em]">Beta / Preview</p>
+                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-[#1877F2] animate-ping"></span>
+                                      <p className="text-[9px] text-[#1877F2] font-black uppercase tracking-[0.1em]">Özel Model</p>
+                                    </div>
                                   </div>
                                 </div>
-                                <div className="flex flex-col items-end">
-                                  <span className="text-[7px] bg-[#1877F2] text-white px-2 py-0.5 rounded-sm font-black uppercase tracking-widest animate-pulse">Coming Soon</span>
+                                <div className="bg-[#1877F2] text-white text-[8px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest shadow-lg shadow-[#1877F2]/30 animate-bounce">
+                                  Yakında
                                 </div>
                               </div>
                               
-                              <p className="text-[var(--text-secondary)] text-[10px] font-medium leading-relaxed mb-6">
-                                Reklam görsellerinizin <span className="text-[var(--text-primary)] font-bold">satış dönüşümünü</span> yapay zeka ile saniyeler içinde simüle edin.
+                              <p className="text-[var(--text-primary)] text-[11px] font-bold leading-relaxed mb-6">
+                                Reklam görsellerinizin <span className="text-[#1877F2] underline decoration-2 underline-offset-2">satış gücünü</span> saniyeler içinde simüle edin.
                               </p>
 
-                              <div className="space-y-3">
-                                <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/50 border border-[var(--border-primary)] opacity-60">
-                                  <span className="text-[9px] font-bold text-[var(--text-secondary)]">Satış Uygunluk Skoru</span>
-                                  <div className="w-12 h-1 bg-slate-200 rounded-full overflow-hidden">
-                                    <div className="w-0 h-full bg-[#1877F2]"></div>
+                              <div className="space-y-3.5 relative">
+                                <div className="flex items-center justify-between p-3 rounded-2xl bg-white/40 border border-white/40 shadow-sm opacity-60 group-hover:opacity-80 transition-opacity">
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-tighter">Dönüşüm Olasılığı</span>
+                                    <div className="flex items-center gap-1">
+                                      <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                        <motion.div 
+                                          animate={{ width: ["0%", "85%"] }}
+                                          transition={{ duration: 2, repeat: Infinity, repeatDelay: 5 }}
+                                          className="h-full bg-gradient-to-r from-[#1877F2] to-[#0064E0]"
+                                        />
+                                      </div>
+                                      <span className="text-[9px] font-bold text-[#1877F2]">--%</span>
+                                    </div>
                                   </div>
+                                  <Sparkles className="w-4 h-4 text-[#1877F2]/40" />
                                 </div>
-                                <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/50 border border-[var(--border-primary)] opacity-60">
-                                  <span className="text-[9px] font-bold text-[var(--text-secondary)]">CTA (Eylem) Gücü</span>
-                                  <div className="w-12 h-1 bg-slate-200 rounded-full overflow-hidden">
-                                    <div className="w-0 h-full bg-[#1877F2]"></div>
+                                
+                                <div className="flex items-center justify-between p-3 rounded-2xl bg-white/40 border border-white/40 shadow-sm opacity-60 group-hover:opacity-80 transition-opacity">
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-tighter">CTA (Eylem) Etkisi</span>
+                                    <div className="flex items-center gap-1">
+                                      <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                        <motion.div 
+                                          animate={{ width: ["0%", "72%"] }}
+                                          transition={{ duration: 2, repeat: Infinity, repeatDelay: 5, delay: 0.5 }}
+                                          className="h-full bg-gradient-to-r from-[#1877F2] to-[#0064E0]"
+                                        />
+                                      </div>
+                                      <span className="text-[9px] font-bold text-[#1877F2]">--%</span>
+                                    </div>
                                   </div>
-                                </div>
-                                <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/50 border border-[var(--border-primary)] opacity-60">
-                                  <span className="text-[9px] font-bold text-[var(--text-secondary)]">CTR (Tıklama) Tahmini</span>
-                                  <span className="text-[9px] font-black text-slate-400">-%</span>
+                                  <Target className="w-4 h-4 text-[#1877F2]/40" />
                                 </div>
                               </div>
 
-                              <div className="mt-6 pt-5 border-t border-[var(--border-primary)] flex items-center justify-between">
-                                <div className="flex -space-x-2">
-                                  {[1,2,3].map(i => (
-                                    <div key={i} className="w-5 h-5 rounded-full border-2 border-[var(--card-bg)] bg-slate-200 overflow-hidden">
-                                      <img src={`https://i.pravatar.cc/100?u=${i+10}`} className="w-full h-full object-cover grayscale" />
-                                    </div>
-                                  ))}
+                              <div className="mt-8 pt-5 border-t border-[#1877F2]/10 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <div className="flex -space-x-2">
+                                    {[1,2,3,4].map(i => (
+                                      <div key={i} className="w-6 h-6 rounded-full border-2 border-[var(--card-bg)] bg-slate-200 overflow-hidden shadow-sm">
+                                        <img src={`https://i.pravatar.cc/100?u=${i+20}`} className="w-full h-full object-cover" />
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <span className="text-[9px] font-black text-[#1877F2] bg-[#1877F2]/10 px-2 py-0.5 rounded-full">BETA</span>
                                 </div>
-                                <span className="text-[9px] font-bold text-[var(--text-secondary)]">420+ Kişi Bekliyor</span>
+                                <div className="flex flex-col items-end">
+                                  <span className="text-[10px] font-black text-[var(--text-primary)]">420+</span>
+                                  <span className="text-[8px] font-bold text-[var(--text-secondary)]">Kişi Bekliyor</span>
+                                </div>
                               </div>
                             </div>
                           </div>
