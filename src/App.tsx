@@ -836,22 +836,63 @@ export default function App() {
                               {adim === 1 ? (
                                 <div className="flex flex-col md:flex-row items-center justify-center gap-8 lg:gap-10 w-full">
                                 {/* Format Selection */}
-                                <div className="w-full md:w-1/2 max-w-[280px] flex flex-col">
+                                <div className="w-full md:w-1/2 max-w-[320px] flex flex-col">
                                   <h4 className="text-xs font-bold text-slate-500 mb-4 uppercase tracking-wider flex items-center gap-2">
                                     <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 shadow-sm">1</div>
                                     Tasarım Formatı
                                   </h4>
                                   <div className="flex flex-col gap-3">
-                                    {(Object.keys(kriterlerMap) as TasarimTuru[]).map(turu => (
-                                      <button
-                                        key={turu}
-                                        onClick={() => setTasarimTuru(turu)}
-                                        className={`w-full px-5 py-4 rounded-full border text-left flex items-center justify-between transition-all duration-300 font-bold ${tasarimTuru === turu ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)] shadow-md' : 'bg-[var(--card-bg)] border-[var(--border-primary)] text-[var(--text-secondary)] hover:border-[var(--text-secondary)]'}`}
-                                      >
-                                        <span className="text-sm">{turu}</span>
-                                        {tasarimTuru === turu && <Check className="w-5 h-5 text-[#FF5500]" />}
-                                      </button>
-                                    ))}
+                                    {(Object.keys(kriterlerMap) as TasarimTuru[]).map(turu => {
+                                      const isAvailable = turu === "Sosyal Medya";
+                                      return (
+                                        <button
+                                          key={turu}
+                                          disabled={!isAvailable}
+                                          onClick={() => isAvailable && setTasarimTuru(turu)}
+                                          className={`w-full px-5 py-4 rounded-full border text-left flex items-center justify-between transition-all duration-300 font-bold relative overflow-hidden ${
+                                            !isAvailable 
+                                              ? 'bg-slate-50/50 border-slate-100 text-slate-300 cursor-not-allowed opacity-70' 
+                                              : tasarimTuru === turu 
+                                                ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)] shadow-md' 
+                                                : 'bg-[var(--card-bg)] border-[var(--border-primary)] text-[var(--text-secondary)] hover:border-[var(--text-secondary)]'
+                                          }`}
+                                        >
+                                          <span className={`text-sm ${!isAvailable ? 'blur-[0.5px]' : ''}`}>{turu}</span>
+                                          {isAvailable ? (
+                                            tasarimTuru === turu && <Check className="w-5 h-5 text-[#FF5500]" />
+                                          ) : (
+                                            <span className="text-[9px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full font-black tracking-tighter uppercase">Yakında</span>
+                                          )}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+
+                                  {/* Meta Ads Preview Card */}
+                                  <div className="mt-8 pt-8 border-t border-[var(--border-primary)]">
+                                    <h4 className="text-[10px] font-black text-[#FF5500] mb-4 uppercase tracking-[0.2em] flex items-center gap-2 opacity-80">
+                                      <Sparkles className="w-3 h-3" /> Özel AI Modelleri
+                                    </h4>
+                                    <div className="relative group cursor-not-allowed">
+                                      <div className="absolute -inset-1 bg-gradient-to-r from-[#1877F2] to-[#0064E0] rounded-[24px] blur opacity-10 group-hover:opacity-20 transition duration-500"></div>
+                                      <div className="relative bg-[var(--card-bg)] border border-[#1877F2]/10 rounded-[20px] p-5 overflow-hidden">
+                                        <div className="flex items-start justify-between mb-4">
+                                          <div className="w-10 h-10 rounded-xl bg-[#1877F2]/10 flex items-center justify-center border border-[#1877F2]/20">
+                                            <Globe className="w-6 h-6 text-[#1877F2]" />
+                                          </div>
+                                          <span className="text-[8px] bg-[#1877F2] text-white px-2 py-1 rounded-md font-black uppercase tracking-widest animate-pulse">Coming Soon</span>
+                                        </div>
+                                        <h5 className="text-[var(--text-primary)] font-black text-sm mb-1">Meta Ads (Facebook/IG) Analizi</h5>
+                                        <p className="text-[var(--text-secondary)] text-[10px] leading-relaxed mb-4">
+                                          Reklam görsellerinizin dönüşüm oranını (CTR) yapay zeka ile tahmin edin, CTA yerleşimini optimize edin.
+                                        </p>
+                                        <div className="flex flex-wrap gap-2">
+                                          <span className="text-[8px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">Satış Uygunluğu</span>
+                                          <span className="text-[8px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">CTA Skorlama</span>
+                                          <span className="text-[8px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">Kanca (Hook) Analizi</span>
+                                        </div>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
 
