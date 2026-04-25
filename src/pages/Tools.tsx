@@ -119,12 +119,12 @@ export default function Tools() {
     };
 
     return (
-        <div className="w-full bg-[#f8f9fa] min-h-screen font-sans selection:bg-[var(--color-brand-orange)] selection:text-white pb-24">
+        <div className="w-full bg-[var(--bg-primary)] min-h-screen font-sans selection:bg-[var(--color-brand-orange)] selection:text-white pb-24">
 
             {/* HEADER HERO */}
             <section className="relative pt-24 pb-20 px-6 overflow-hidden flex flex-col items-center justify-center text-center">
-                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-blue-100 rounded-full blur-[120px] opacity-60 pointer-events-none" />
-                <div className="absolute top-[10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-40 pointer-events-none" style={{ backgroundColor: baseColor }} />
+                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[120px] opacity-60 pointer-events-none" />
+                <div className="absolute top-[10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-20 pointer-events-none" style={{ backgroundColor: baseColor }} />
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -132,18 +132,18 @@ export default function Tools() {
                     transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                     className="relative z-10 max-w-3xl mx-auto"
                 >
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-gray-200 shadow-sm text-gray-600 text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--card-bg)] border border-[var(--border-primary)] shadow-sm text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
                         <Sparkles className="w-3.5 h-3.5" style={{ color: baseColor }} /> Renk Sentezleyici
                     </div>
 
-                    <h1 className="text-[48px] md:text-[72px] font-black text-[#111111] tracking-tighter leading-[1.05] mb-6">
+                    <h1 className="text-[48px] md:text-[72px] font-black text-[var(--text-primary)] tracking-tighter leading-[1.05] mb-6">
                         Renklerin <br className="hidden md:block" />
                         <span style={{ color: baseColor }} className="transition-colors duration-500">
                             Matematiği.
                         </span>
                     </h1>
 
-                    <p className="text-lg md:text-xl text-gray-500 font-medium max-w-2xl mx-auto leading-relaxed mb-10">
+                    <p className="text-lg md:text-xl text-[var(--text-secondary)] font-medium max-w-2xl mx-auto leading-relaxed mb-10">
                         Ana renginizi seçin, yapay zeka ve renk teorisi destekli algoritmamız projeniz için en kusursuz renk kombinasyonlarını ve UI kurallarını anında üretsin.
                     </p>
                 </motion.div>
@@ -153,10 +153,10 @@ export default function Tools() {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                    className="relative z-20 w-full max-w-xl mx-auto flex items-center bg-white p-2 rounded-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-gray-100"
+                    className="relative z-20 w-full max-w-xl mx-auto flex items-center bg-[var(--card-bg)] p-2 rounded-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-[var(--border-primary)]"
                 >
                     <div
-                        className="w-16 h-16 rounded-[20px] shadow-inner shrink-0 relative overflow-hidden group border border-black/5"
+                        className="w-16 h-16 rounded-[20px] shadow-inner shrink-0 relative overflow-hidden group border border-[var(--border-primary)]"
                         style={{ backgroundColor: baseColor }}
                     >
                         <input
@@ -170,7 +170,7 @@ export default function Tools() {
                         </div>
                     </div>
                     <div className="flex-1 px-4">
-                        <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-1">Temel Renk</p>
+                        <p className="text-[10px] font-bold tracking-widest text-[var(--text-secondary)] uppercase mb-1">Temel Renk</p>
                         <input
                             type="text"
                             value={inputValue}
@@ -179,14 +179,14 @@ export default function Tools() {
                                 if (!val.startsWith('#')) val = '#' + val;
                                 setInputValue(val);
                             }}
-                            className="bg-transparent border-none outline-none text-2xl font-black text-[#111111] w-full font-mono uppercase"
+                            className="bg-transparent border-none outline-none text-2xl font-black text-[var(--text-primary)] w-full font-mono uppercase"
                             placeholder="#FF4D00"
                             maxLength={7}
                         />
                     </div>
                     <button
                         onClick={() => handleCopy(baseColor)}
-                        className="w-14 h-14 bg-gray-50 hover:bg-gray-100 rounded-[20px] flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors shrink-0 shrink-0 border border-gray-200"
+                        className="w-14 h-14 bg-[var(--bg-primary)] hover:bg-[var(--card-bg)] rounded-[20px] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors shrink-0 shrink-0 border border-[var(--border-primary)]"
                     >
                         {copiedColor === baseColor ? <Check className="w-5 h-5 text-emerald-500" /> : <Copy className="w-5 h-5" />}
                     </button>
@@ -201,15 +201,15 @@ export default function Tools() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.8, delay: 0.3 }}
-                    className="md:col-span-12 lg:col-span-5 bg-white rounded-[40px] p-8 shadow-xl border border-gray-100 relative overflow-hidden"
+                    className="md:col-span-12 lg:col-span-5 bg-[var(--card-bg)] rounded-[40px] p-8 shadow-xl border border-[var(--border-primary)] relative overflow-hidden"
                 >
                     <div className="flex items-center gap-3 mb-8">
-                        <div className="p-3 bg-gray-50 rounded-2xl">
-                            <Wand2 className="w-5 h-5 text-gray-600" />
+                        <div className="p-3 bg-[var(--bg-primary)] rounded-2xl">
+                            <Wand2 className="w-5 h-5 text-[var(--text-secondary)]" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-[#111111] text-lg">Arayüz Adaptasyonu</h3>
-                            <p className="text-gray-400 text-sm">Gerçek Dünya Senaryosu</p>
+                            <h3 className="font-bold text-[var(--text-primary)] text-lg">Arayüz Adaptasyonu</h3>
+                            <p className="text-[var(--text-secondary)] text-sm">Gerçek Dünya Senaryosu</p>
                         </div>
                     </div>
 
@@ -273,10 +273,10 @@ export default function Tools() {
 // Subcomponent for Palette Blocks
 function PaletteBlock({ title, desc, colors, copiedColor, handleCopy }: { title: string, desc: string, colors: string[], copiedColor: string | null, handleCopy: (val: string) => void }) {
     return (
-        <div className="bg-white rounded-[32px] p-6 shadow-xl border border-gray-100 flex flex-col justify-between hover:shadow-2xl transition-shadow">
+        <div className="bg-[var(--card-bg)] rounded-[32px] p-6 shadow-xl border border-[var(--border-primary)] flex flex-col justify-between hover:shadow-2xl transition-shadow">
             <div className="mb-6">
-                <h3 className="font-bold text-[#111111] text-lg">{title}</h3>
-                <p className="text-gray-400 text-sm font-medium">{desc}</p>
+                <h3 className="font-bold text-[var(--text-primary)] text-lg">{title}</h3>
+                <p className="text-[var(--text-secondary)] text-sm font-medium">{desc}</p>
             </div>
             <div className="w-full flex h-24 rounded-2xl overflow-hidden shadow-inner border border-black/5">
                 {colors.map((color, idx) => (

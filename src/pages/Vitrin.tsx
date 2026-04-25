@@ -99,22 +99,22 @@ export function Vitrin() {
     return (
         <div className="w-full relative z-10 pt-4 pb-12">
             <div className="text-center mb-10">
-                <h2 className="text-3xl md:text-5xl font-extrabold text-[var(--color-brand-dark)] tracking-tight mb-4 drop-shadow-sm">
+                <h2 className="text-3xl md:text-5xl font-extrabold text-[var(--text-primary)] tracking-tight mb-4 drop-shadow-sm">
                     Tasarım <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-brand-orange)] to-[#ff7b00]">Keşfet</span>
                 </h2>
-                <p className="text-[var(--color-brand-dark)]/60 text-sm md:text-base max-w-2xl mx-auto">
+                <p className="text-[var(--text-secondary)] text-sm md:text-base max-w-2xl mx-auto">
                     Topluluk tarafından analiz edilen en ilham verici tasarımları keşfedin. AI değerlendirmeleri ve kullanıcı oylarıyla en iyileri bulun.
                 </p>
             </div>
 
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4">
-                    <div className="w-8 h-8 border-4 border-[var(--color-brand-dark)]/10 border-t-[var(--color-brand-orange)] rounded-full animate-spin" />
-                    <span className="text-[var(--color-brand-dark)]/40 font-medium">Vitrin yükleniyor...</span>
+                    <div className="w-8 h-8 border-4 border-[var(--border-primary)] border-t-[var(--color-brand-orange)] rounded-full animate-spin" />
+                    <span className="text-[var(--text-secondary)] font-medium">Vitrin yükleniyor...</span>
                 </div>
             ) : items.length === 0 ? (
-                <div className="text-center py-20 bg-white border border-[var(--color-brand-dark)]/5 rounded-3xl shadow-sm">
-                    <p className="text-[var(--color-brand-dark)]/40">Henüz vitrinde sergilenen bir tasarım yok.</p>
+                <div className="text-center py-20 bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-3xl shadow-sm">
+                    <p className="text-[var(--text-secondary)]">Henüz vitrinde sergilenen bir tasarım yok.</p>
                 </div>
             ) : (
                 <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-4 space-y-4">
@@ -127,7 +127,7 @@ export function Vitrin() {
                             className="break-inside-avoid mb-5"
                         >
                             <div
-                                className="relative group rounded-[20px] overflow-hidden bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5 cursor-pointer shadow-sm"
+                                className="relative group rounded-[20px] overflow-hidden bg-[var(--bg-secondary)] border border-[var(--border-primary)] cursor-pointer shadow-sm"
                                 onClick={() => setSeciliGorsel(item)}
                             >
                                 <div className="relative aspect-auto">
@@ -140,7 +140,7 @@ export function Vitrin() {
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                                     <div className="absolute top-4 left-4 pt-1 transition-all duration-300 transform -translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100">
-                                        <span className="inline-block px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-lg text-[10px] font-bold uppercase tracking-wider text-[var(--color-brand-dark)] border border-[var(--color-brand-dark)]/10 shadow-sm">
+                                        <span className="inline-block px-3 py-1.5 bg-[var(--card-bg)]/90 backdrop-blur-md rounded-lg text-[10px] font-bold uppercase tracking-wider text-[var(--text-primary)] border border-[var(--border-primary)] shadow-sm">
                                             {item.tasarim_turu}
                                         </span>
                                     </div>
@@ -163,21 +163,21 @@ export function Vitrin() {
                                     <img
                                         src={item.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${item.id}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`}
                                         alt="Designer"
-                                        className="w-7 h-7 rounded-full bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5 object-cover"
+                                        className="w-7 h-7 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] object-cover"
                                     />
-                                    <span className="text-[var(--color-brand-dark)]/80 hover:text-[var(--color-brand-dark)] cursor-pointer transition-colors text-sm font-medium leading-none">
+                                    <span className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer transition-colors text-sm font-medium leading-none">
                                         {item.user_name || "Gizli Tasarımcı"}
                                     </span>
                                 </div>
 
                                 <div className="flex items-center gap-4">
                                     <div className="flex items-center gap-1.5 group cursor-help" title="AI Puanı">
-                                        <Star className="w-4 h-4 text-[var(--color-brand-dark)]/20 group-hover:text-amber-500 group-hover:fill-amber-500 transition-colors" />
-                                        <span className="text-[var(--color-brand-dark)]/60 text-xs font-semibold tabular-nums">{item.ai_puan}</span>
+                                        <Star className="w-4 h-4 text-[var(--text-secondary)]/20 group-hover:text-amber-500 group-hover:fill-amber-500 transition-colors" />
+                                        <span className="text-[var(--text-secondary)]/60 text-xs font-semibold tabular-nums">{item.ai_puan}</span>
                                     </div>
                                     <div className="flex items-center gap-1.5 group cursor-help" title="Topluluk Puanı">
-                                        <Heart className="w-4 h-4 text-[var(--color-brand-dark)]/20 group-hover:text-emerald-500 group-hover:fill-emerald-500 transition-colors" />
-                                        <span className="text-[var(--color-brand-dark)]/60 text-xs font-semibold tabular-nums tracking-tighter">{item.topluluk_puan || 0}</span>
+                                        <Heart className="w-4 h-4 text-[var(--text-secondary)]/20 group-hover:text-emerald-500 group-hover:fill-emerald-500 transition-colors" />
+                                        <span className="text-[var(--text-secondary)]/60 text-xs font-semibold tabular-nums tracking-tighter">{item.topluluk_puan || 0}</span>
                                     </div>
                                 </div>
                             </div>
@@ -204,7 +204,7 @@ export function Vitrin() {
                         {/* Kapatma Butonu - Z-Index artırıldı */}
                         <button
                             onClick={() => setSeciliGorsel(null)}
-                            className="fixed top-6 right-6 z-[1001] p-4 rounded-full bg-white border border-[var(--color-brand-dark)]/10 hover:bg-[var(--color-brand-light)] text-[var(--color-brand-dark)] shadow-sm backdrop-blur-xl transition-all hover:rotate-90"
+                            className="fixed top-6 right-6 z-[1001] p-4 rounded-full bg-[var(--card-bg)] border border-[var(--border-primary)] hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] shadow-sm backdrop-blur-xl transition-all hover:rotate-90"
                         >
                             <X className="w-8 h-8" />
                         </button>
@@ -219,7 +219,7 @@ export function Vitrin() {
                                     className="max-w-full max-h-full object-contain rounded-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]"
                                 />
                             </div>
-                            <div className="w-full md:w-[400px] p-8 border border-[var(--color-brand-dark)]/5 bg-white backdrop-blur-2xl rounded-[32px] h-fit flex flex-col justify-center relative overflow-hidden shadow-sm pointer-events-auto">
+                            <div className="w-full md:w-[400px] p-8 border border-[var(--border-primary)] bg-[var(--card-bg)] backdrop-blur-2xl rounded-[32px] h-fit flex flex-col justify-center relative overflow-hidden shadow-sm pointer-events-auto">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-brand-orange)]/5 blur-[100px] rounded-full pointer-events-none" />
 
                                 {/* Üst Profil Bölümü */}
@@ -227,46 +227,46 @@ export function Vitrin() {
                                     <img
                                         src={seciliGorsel.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${seciliGorsel.id}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`}
                                         alt="Designer"
-                                        className="w-14 h-14 rounded-full border border-[var(--color-brand-dark)]/5 object-cover bg-[var(--color-brand-light)]"
+                                        className="w-14 h-14 rounded-full border border-[var(--border-primary)] object-cover bg-[var(--bg-secondary)]"
                                     />
                                     <div>
-                                        <h3 className="text-[var(--color-brand-dark)] text-lg font-bold leading-tight mb-1">
+                                        <h3 className="text-[var(--text-primary)] text-lg font-bold leading-tight mb-1">
                                             {seciliGorsel.user_name || "Gizli Tasarımcı"}
                                         </h3>
-                                        <div className="flex items-center gap-2 text-[var(--color-brand-dark)]/50 text-[10px] uppercase font-bold tracking-widest">
+                                        <div className="flex items-center gap-2 text-[var(--text-secondary)] text-[10px] uppercase font-bold tracking-widest">
                                             <span>{seciliGorsel.tasarim_turu}</span>
-                                            <span className="w-1 h-1 rounded-full bg-[var(--color-brand-dark)]/20" />
+                                            <span className="w-1 h-1 rounded-full bg-[var(--text-secondary)]/20" />
                                             <span>{new Date(seciliGorsel.created_at).toLocaleDateString('tr-TR')}</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="relative z-10">
-                                    <h4 className="text-[var(--color-brand-dark)]/40 text-[10px] font-bold uppercase tracking-widest mb-2">Marka / Şirket</h4>
-                                    <h2 className="text-[var(--color-brand-dark)] text-3xl font-black mb-8 leading-tight">{seciliGorsel.isletme}</h2>
+                                    <h4 className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mb-2">Marka / Şirket</h4>
+                                    <h2 className="text-[var(--text-primary)] text-3xl font-black mb-8 leading-tight">{seciliGorsel.isletme}</h2>
 
                                     <div className="flex gap-4 mb-10">
-                                        <div className="flex-1 p-5 rounded-[24px] bg-[var(--color-brand-light)]/50 border border-[var(--color-brand-dark)]/10 flex flex-col items-center text-center shadow-sm relative overflow-hidden group">
+                                        <div className="flex-1 p-5 rounded-[24px] bg-[var(--bg-secondary)] border border-[var(--border-primary)] flex flex-col items-center text-center shadow-sm relative overflow-hidden group">
                                             <div className="absolute inset-0 bg-[var(--color-brand-orange)]/5 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            <span className="text-[var(--color-brand-dark)]/60 text-[10px] uppercase font-black tracking-widest mb-1 relative z-10">Yapay Zeka Puanı</span>
+                                            <span className="text-[var(--text-secondary)] text-[10px] uppercase font-black tracking-widest mb-1 relative z-10">Yapay Zeka Puanı</span>
                                             <span className="text-4xl text-[var(--color-brand-orange)] font-black tracking-tighter relative z-10">{seciliGorsel.ai_puan}</span>
                                         </div>
-                                        <div className="flex-1 p-5 rounded-[24px] bg-[var(--color-brand-light)]/50 border border-[var(--color-brand-dark)]/10 flex flex-col items-center text-center shadow-sm relative overflow-hidden group">
+                                        <div className="flex-1 p-5 rounded-[24px] bg-[var(--bg-secondary)] border border-[var(--border-primary)] flex flex-col items-center text-center shadow-sm relative overflow-hidden group">
                                             <div className="absolute inset-0 bg-[#ff7b00]/5 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            <span className="text-[var(--color-brand-dark)]/60 text-[10px] uppercase font-black tracking-widest mb-1 relative z-10">Topluluk ({seciliGorsel.oy_sayisi} Oy)</span>
+                                            <span className="text-[var(--text-secondary)] text-[10px] uppercase font-black tracking-widest mb-1 relative z-10">Topluluk ({seciliGorsel.oy_sayisi} Oy)</span>
                                             <span className="text-4xl text-[#ff7b00] font-black tracking-tighter relative z-10">{seciliGorsel.topluluk_puan || '-'}</span>
                                         </div>
                                     </div>
 
                                     {/* Oylama Alanı */}
-                                    <div className="space-y-4 bg-[var(--color-brand-light)] p-6 rounded-[24px] border border-[var(--color-brand-dark)]/5">
-                                        <p className="text-[var(--color-brand-dark)]/70 text-sm text-center font-medium">Bu tasarıma siz kaç puan verirsiniz?</p>
+                                    <div className="space-y-4 bg-[var(--bg-secondary)] p-6 rounded-[24px] border border-[var(--border-primary)]">
+                                        <p className="text-[var(--text-secondary)] text-sm text-center font-medium">Bu tasarıma siz kaç puan verirsiniz?</p>
                                         <div className="grid grid-cols-4 gap-2.5">
                                             {[70, 80, 90, 100].map(pt => (
                                                 <button
                                                     key={pt}
                                                     onClick={() => vote(seciliGorsel.id, pt)}
-                                                    className="py-3.5 bg-white hover:bg-[var(--color-brand-dark)] hover:text-white border border-[var(--color-brand-dark)]/10 rounded-xl text-[var(--color-brand-dark)] font-bold transition-all text-base shadow-sm"
+                                                    className="py-3.5 bg-[var(--bg-primary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)] border border-[var(--border-primary)] rounded-xl text-[var(--text-primary)] font-bold transition-all text-base shadow-sm"
                                                 >
                                                     {pt}
                                                 </button>

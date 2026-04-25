@@ -2,14 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MessageCircle, Sparkles, MousePointer2 } from 'lucide-react';
 
-const CHANGING_WORDS = ["Revize", "Analiz", "Tasarım", "Gelişim"];
+const CHANGING_PHRASES = [
+    { text: "Revize", suffix: "Ediyoruz." },
+    { text: "Analiz", suffix: "Ediyoruz." },
+    { text: "Büyüyoruz.", suffix: "" },
+    { text: "Gelişiyoruz.", suffix: "" }
+];
 
 export default function CommunityCTA() {
     const [wordIndex, setWordIndex] = useState(0);
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setWordIndex((prev) => (prev + 1) % CHANGING_WORDS.length);
+            setWordIndex((prev) => (prev + 1) % CHANGING_PHRASES.length);
         }, 3000);
         return () => clearInterval(interval);
     }, []);
@@ -54,8 +59,6 @@ export default function CommunityCTA() {
                         className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-600 blur-[150px] pointer-events-none"
                     />
 
-                    {/* Floating icons removed by user request (they looked like white reflections) */}
-
                     <div className="relative z-10 flex flex-col items-center">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
@@ -69,25 +72,35 @@ export default function CommunityCTA() {
                             Topluluk Gücü
                         </motion.div>
 
-                        <div className="flex flex-col items-center mb-10 h-[64px] md:h-[96px] lg:h-[128px] w-full">
-                            <h2 className="text-[2rem] sm:text-[2.5rem] md:text-7xl lg:text-8xl font-bold text-white leading-[1] max-w-full tracking-tight font-display flex flex-nowrap justify-center gap-x-2 md:gap-x-5">
-                                <span>Birlikte</span>
-                                <span className="relative min-w-[100px] sm:min-w-[140px] md:min-w-[260px] lg:min-w-[340px] text-center inline-flex justify-center">
-                                    <AnimatePresence mode="wait">
-                                        <motion.span
-                                            key={CHANGING_WORDS[wordIndex]}
+                        <div className="flex flex-col items-center mb-10 h-[64px] md:h-[96px] lg:h-[128px] w-full max-w-[1200px] mx-auto">
+                            <motion.h2 
+                                layout 
+                                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                                className="text-[2rem] sm:text-[2.5rem] md:text-7xl lg:text-8xl font-bold text-white leading-[1] max-w-full tracking-tight font-display flex flex-wrap justify-center items-center gap-x-2 md:gap-x-5"
+                            >
+                                <motion.span layout>Birlikte</motion.span>
+                                <motion.span layout className="relative text-center inline-flex justify-center">
+                                    <AnimatePresence mode="popLayout">
+                                        <motion.div
+                                            key={wordIndex}
                                             initial={{ y: 20, opacity: 0, filter: 'blur(8px)' }}
                                             animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
                                             exit={{ y: -20, opacity: 0, filter: 'blur(8px)' }}
                                             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                                            className="text-[var(--color-brand-orange)] italic"
+                                            className="flex flex-nowrap items-center gap-x-2 md:gap-x-5 whitespace-nowrap"
                                         >
-                                            {CHANGING_WORDS[wordIndex]}
-                                        </motion.span>
+                                            <span className="text-[var(--color-brand-orange)] italic">
+                                                {CHANGING_PHRASES[wordIndex].text}
+                                            </span>
+                                            {CHANGING_PHRASES[wordIndex].suffix && (
+                                                <span className="text-white">
+                                                    {CHANGING_PHRASES[wordIndex].suffix}
+                                                </span>
+                                            )}
+                                        </motion.div>
                                     </AnimatePresence>
-                                </span>
-                                <span>Ediyoruz.</span>
-                            </h2>
+                                </motion.span>
+                            </motion.h2>
                         </div>
 
                         <motion.p

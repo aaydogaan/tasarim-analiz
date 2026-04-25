@@ -9,13 +9,13 @@ const steps = [
         description: 'Ekran görüntüsünü sürükle bırak veya seç.',
         icon: Upload,
         mockup: (
-            <div className="relative w-full h-full bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden">
+            <div className="relative w-full h-full bg-[var(--bg-secondary)]/50 rounded-2xl border-2 border-dashed border-[var(--border-primary)] flex items-center justify-center overflow-hidden">
                 <motion.div
                     animate={{ y: [0, -10, 0] }}
                     transition={{ duration: 2, repeat: Infinity }}
                     className="flex flex-col items-center gap-3"
                 >
-                    <div className="p-4 bg-white rounded-2xl shadow-sm border border-slate-100 text-[var(--color-brand-orange)]">
+                    <div className="p-4 bg-[var(--card-bg)] rounded-2xl shadow-sm border border-[var(--border-primary)] text-[var(--color-brand-orange)]">
                         <ImageIcon size={32} />
                     </div>
                 </motion.div>
@@ -28,11 +28,11 @@ const steps = [
         description: 'Tür, platform ve hedef kitleni seç.',
         icon: Sliders,
         mockup: (
-            <div className="w-full h-full bg-slate-50/50 rounded-2xl border border-slate-100 p-6 flex flex-col justify-center gap-4">
+            <div className="w-full h-full bg-[var(--bg-secondary)]/50 rounded-2xl border border-[var(--border-primary)] p-6 flex flex-col justify-center gap-4">
                 {[1, 2].map((i) => (
                     <div key={i} className="space-y-2">
-                        <div className="w-16 h-2 bg-slate-200 rounded" />
-                        <div className="w-full h-10 bg-white border border-slate-200 rounded-xl" />
+                        <div className="w-16 h-2 bg-[var(--text-primary)]/10 rounded" />
+                        <div className="w-full h-10 bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-xl" />
                     </div>
                 ))}
             </div>
@@ -44,7 +44,7 @@ const steps = [
         description: 'AI saniyeler içinde tasarımını inceler.',
         icon: Cpu,
         mockup: (
-            <div className="relative w-full h-full bg-slate-900 rounded-2xl overflow-hidden flex flex-col items-center justify-center gap-6">
+            <div className="relative w-full h-full bg-[var(--bg-secondary)] rounded-2xl overflow-hidden flex flex-col items-center justify-center gap-6 border border-[var(--border-primary)]">
                 <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
@@ -63,27 +63,27 @@ const steps = [
         description: 'Geri bildirimleri al ve tasarımını paylaş.',
         icon: Sparkles,
         mockup: (
-            <div className="w-full h-full bg-white rounded-2xl border border-slate-100 p-6 flex flex-col gap-4 relative overflow-hidden">
+            <div className="w-full h-full bg-[var(--card-bg)] rounded-2xl border border-[var(--border-primary)] p-6 flex flex-col gap-4 relative overflow-hidden">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <CheckCircle2 size={18} className="text-green-500" />
-                        <div className="w-16 h-2 bg-slate-100 rounded" />
+                        <div className="w-16 h-2 bg-[var(--text-primary)]/10 rounded" />
                     </div>
                     <div className="px-2.5 py-1 bg-green-50 text-green-600 text-[9px] font-bold rounded-lg border border-green-100">PUAN: 92</div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 mt-2">
-                    <div className="aspect-square bg-white shadow-md border border-slate-100 rounded-xl flex items-center justify-center text-[var(--color-brand-orange)]">
+                    <div className="aspect-square bg-[var(--card-bg)] shadow-md border border-[var(--border-primary)] rounded-xl flex items-center justify-center text-[var(--color-brand-orange)]">
                         <Download size={20} />
                     </div>
-                    <div className="aspect-square bg-white shadow-md border border-slate-100 rounded-xl flex items-center justify-center text-blue-500">
+                    <div className="aspect-square bg-[var(--card-bg)] shadow-md border border-[var(--border-primary)] rounded-xl flex items-center justify-center text-blue-500">
                         <Share2 size={20} />
                     </div>
                 </div>
 
                 <div className="mt-2 space-y-1.5">
-                    <div className="h-1.5 bg-slate-50 rounded-full w-full" />
-                    <div className="h-1.5 bg-slate-50 rounded-full w-2/3" />
+                    <div className="h-1.5 bg-[var(--text-primary)]/5 rounded-full w-full" />
+                    <div className="h-1.5 bg-[var(--text-primary)]/5 rounded-full w-2/3" />
                 </div>
 
                 <motion.div
@@ -110,7 +110,7 @@ export default function NasilCalisir() {
     }, []);
 
     return (
-        <section id="nasil-calisir" className="w-full bg-[var(--color-brand-light)] py-20 overflow-hidden relative">
+        <section id="nasil-calisir" className="w-full bg-[var(--bg-primary)] py-20 overflow-hidden relative">
             {/* Grid Background */}
             <div
                 className="absolute inset-0 bg-[linear-gradient(to_right,var(--grid-color)_1px,rgba(0,0,0,0)_1px),linear-gradient(to_bottom,var(--grid-color)_1px,rgba(0,0,0,0)_1px)] bg-[size:32px_32px] pointer-events-none"
@@ -145,8 +145,8 @@ export default function NasilCalisir() {
                                     key={index}
                                     onClick={() => setActiveStep(index)}
                                     className={`w-full group text-left p-6 rounded-[24px] transition-all duration-500 border relative overflow-hidden ${activeStep === index
-                                        ? 'bg-white border-[var(--color-brand-dark)]/5 shadow-xl shadow-black/[0.02]'
-                                        : 'bg-transparent border-transparent hover:bg-white/40'
+                                        ? 'bg-[var(--card-bg)] border-[var(--color-brand-dark)]/5 shadow-xl shadow-black/[0.02]'
+                                        : 'bg-transparent border-transparent hover:bg-[var(--card-bg)]/40'
                                         }`}
                                 >
                                     {/* Progress line for active step */}
@@ -171,7 +171,7 @@ export default function NasilCalisir() {
                                                         initial={{ opacity: 0, height: 0 }}
                                                         animate={{ opacity: 1, height: 'auto' }}
                                                         exit={{ opacity: 0, height: 0 }}
-                                                        className="text-[13px] text-[#666] leading-relaxed mt-2"
+                                                        className="text-[13px] text-[var(--text-secondary)] leading-relaxed mt-2"
                                                     >
                                                         {step.description}
                                                     </motion.p>
@@ -188,9 +188,9 @@ export default function NasilCalisir() {
                     <div className="lg:col-span-7 sticky top-32">
                         <div className="relative aspect-[4/3] w-full max-w-[640px] mx-auto">
                             {/* Decorative background cards */}
-                            <div className="absolute inset-0 bg-white/40 blur-3xl scale-95 translate-y-8 rounded-[40px]" />
+                            <div className="absolute inset-0 bg-[var(--card-bg)]/40 blur-3xl scale-95 translate-y-8 rounded-[40px]" />
 
-                            <div className="relative h-full w-full bg-white rounded-[40px] border border-[var(--color-brand-dark)]/5 shadow-2xl overflow-hidden p-10 md:p-16 flex items-center justify-center">
+                            <div className="relative h-full w-full bg-[var(--card-bg)] rounded-[40px] border border-[var(--color-brand-dark)]/5 shadow-2xl overflow-hidden p-10 md:p-16 flex items-center justify-center">
                                 <AnimatePresence mode="wait">
                                     <motion.div
                                         key={activeStep}

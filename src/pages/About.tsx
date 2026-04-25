@@ -15,14 +15,14 @@ export default function About() {
     }, []);
 
     return (
-        <div className="w-full bg-[#f8f9fa] min-h-screen font-sans selection:bg-[var(--color-brand-orange)] selection:text-white pb-32">
+        <div className="w-full bg-[var(--bg-primary)] min-h-screen font-sans selection:bg-[var(--color-brand-orange)] selection:text-white pb-32">
             
             {/* 1. TEAM SECTION */}
             <section className="relative pt-12 md:pt-16 pb-20 px-6 overflow-hidden flex flex-col items-center justify-center text-center">
                 {/* Background Grid & Glows - Lighter Grid for Light Mode */}
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000006_1px,transparent_1px),linear-gradient(to_bottom,#00000006_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
-                <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-orange-100/50 rounded-full blur-[120px] opacity-70 pointer-events-none" />
-                <div className="absolute top-[20%] right-1/4 w-[400px] h-[400px] bg-blue-100/50 rounded-full blur-[120px] opacity-70 pointer-events-none" />
+                <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[120px] opacity-70 pointer-events-none" />
+                <div className="absolute top-[20%] right-1/4 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[120px] opacity-70 pointer-events-none" />
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -39,7 +39,7 @@ export default function About() {
                                     animate={{ y: 0, opacity: 1 }}
                                     exit={{ y: -40, opacity: 0 }}
                                     transition={{ duration: 0.4, ease: "easeInOut" }}
-                                    className="relative inline-block text-[#111111] px-4 md:px-6"
+                                    className="relative inline-block text-[var(--text-primary)] px-4 md:px-6"
                                 >
                                     {/* Highlighter Brush Stroke SVG */}
                                     <svg 
@@ -101,14 +101,14 @@ export default function About() {
                             
                             {/* Outside Badges & Socials */}
                             <div className="flex items-center justify-between px-2 w-full">
-                                <div className="px-5 py-2 rounded-full border border-gray-200 text-[13px] font-black uppercase tracking-wider text-gray-800 bg-white shadow-sm transition-colors hover:border-[var(--color-brand-orange)]">
+                                <div className="px-5 py-2 rounded-full border border-[var(--border-primary)] text-[13px] font-black uppercase tracking-wider text-[var(--text-primary)] bg-[var(--card-bg)] shadow-sm transition-colors hover:border-[var(--color-brand-orange)]">
                                     // Full-Stack Dev
                                 </div>
                                 <div className="flex gap-2">
-                                    <a href="#" className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-900 hover:border-gray-900 transition-all shadow-sm">
+                                    <a href="#" className="w-10 h-10 rounded-full bg-[var(--card-bg)] border border-[var(--border-primary)] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-all shadow-sm">
                                         <Github className="w-4 h-4" />
                                     </a>
-                                    <a href="#" className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-white hover:bg-[#0a66c2] hover:border-[#0a66c2] transition-all shadow-sm">
+                                    <a href="#" className="w-10 h-10 rounded-full bg-[var(--card-bg)] border border-[var(--border-primary)] flex items-center justify-center text-[var(--text-secondary)] hover:text-white hover:bg-[#0a66c2] hover:border-[#0a66c2] transition-all shadow-sm">
                                         <Linkedin className="w-4 h-4" />
                                     </a>
                                 </div>
@@ -200,7 +200,7 @@ export default function About() {
             </section>
 
             {/* 2. VISION / WHY WE BUILT IT SECTION */}
-            <section className="pt-32 pb-24 px-6 relative z-10 border-t border-gray-200/60 mt-12 bg-white">
+            <section className="pt-32 pb-24 px-6 relative z-10 border-t border-[var(--border-primary)] mt-12 bg-[var(--bg-primary)]">
                 <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-16 lg:gap-24 items-start">
                     {/* Left: Big Title */}
                     <motion.div 
@@ -209,7 +209,7 @@ export default function About() {
                         viewport={{ once: true }}
                         className="w-full lg:w-5/12 shrink-0 sticky top-32"
                     >
-                        <h2 className="text-[40px] md:text-[64px] font-black text-[#111111] leading-[1.1] tracking-tighter">
+                        <h2 className="text-[40px] md:text-[64px] font-black text-[var(--text-primary)] leading-[1.1] tracking-tighter">
                             Tasarımcı <br />körlüğüne karşı <br />
                             <span className="text-[var(--color-brand-orange)]">bir silah.</span>
                         </h2>
@@ -220,7 +220,7 @@ export default function About() {
                         initial={{ opacity: 0, x: 30 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
-                        className="w-full lg:w-7/12 flex flex-col gap-8 text-xl md:text-2xl text-gray-500 font-medium leading-relaxed tracking-tight"
+                        className="w-full lg:w-7/12 flex flex-col gap-8 text-xl md:text-2xl text-[var(--text-secondary)] font-medium leading-relaxed tracking-tight"
                     >
                         <p>
                             Çoğu zaman günlerce üzerinde çalışılan tasarımlarda küçük ama kritik hatalar gözden kaçar. Tipografi tutarsızlıkları, kontrast sorunları, hizalama bozuklukları — bunları kendi gözünle görmek zordur. Bunu bizzat yaşadık.
@@ -228,7 +228,7 @@ export default function About() {
                         <p>
                             Revizele'yi yapay zekanın tarafsız gözünü herkesin kullanabileceği bir araca dönüştürmek için geliştirdik. İçgüdüyle tasarım yapanlara akademik ve profesyonel bir perspektif kazandırmak istedik.
                         </p>
-                        <p className="text-gray-900 font-bold border-l-4 border-[var(--color-brand-orange)] pl-6 py-2 bg-[var(--color-brand-orange)]/5 rounded-r-2xl">
+                        <p className="text-[var(--text-primary)] font-bold border-l-4 border-[var(--color-brand-orange)] pl-6 py-2 bg-[var(--color-brand-orange)]/5 rounded-r-2xl">
                             Amatör tasarımcıdan deneyimli profesyonele — estetik kaliteye veriyle ulaşmak isteyen herkes için.
                         </p>
                     </motion.div>

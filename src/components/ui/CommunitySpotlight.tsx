@@ -16,7 +16,7 @@ interface VitrinItem {
 
 const VitrinCard: React.FC<{ item: VitrinItem }> = ({ item }) => (
     <div className="w-[260px] md:w-[300px] flex-shrink-0">
-        <div className="relative group rounded-[20px] overflow-hidden bg-white border border-[var(--color-brand-dark)]/5 cursor-pointer shadow-sm hover:shadow-md transition-all duration-300">
+        <div className="relative group rounded-[20px] overflow-hidden bg-[var(--card-bg)] border border-[var(--color-brand-dark)]/5 cursor-pointer shadow-sm hover:shadow-md transition-all duration-300">
             <div className="relative aspect-[4/3] overflow-hidden">
                 <img
                     src={item.gorsel_url}

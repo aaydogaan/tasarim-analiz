@@ -96,7 +96,7 @@ export default function Header({
     };
 
     return (
-        <header className="absolute top-0 w-full z-[100] bg-[var(--color-brand-light)]/80 backdrop-blur-xl border-b border-[var(--color-brand-dark)]/5 transition-all duration-300">
+        <header className="absolute top-0 w-full z-[100] bg-[var(--bg-primary)]/80 backdrop-blur-xl border-b border-[var(--border-primary)] transition-all duration-300">
             <nav className="w-full flex flex-col md:flex-row items-center justify-between px-6 md:px-16 py-3 md:py-4 gap-3 md:gap-0">
                 {/* Logo */}
                 <div className="cursor-pointer" onClick={goHome}>
@@ -104,10 +104,10 @@ export default function Header({
                 </div>
 
                 {/* Nav Links */}
-                <div className="flex flex-wrap justify-center items-center gap-4 md:gap-10 text-[12px] md:text-[13px] font-medium text-[#666666]">
+                <div className="flex flex-wrap justify-center items-center gap-4 md:gap-10 text-[12px] md:text-[13px] font-medium text-[var(--text-secondary)]">
                     <button
                         onClick={() => handleNavClick('landing')}
-                        className={`transition-colors whitespace-nowrap ${gorunum === 'landing' ? 'text-[var(--color-brand-dark)]' : 'hover:text-[var(--color-brand-dark)]'}`}
+                        className={`transition-colors whitespace-nowrap ${gorunum === 'landing' ? 'text-[var(--text-primary)] font-bold' : 'hover:text-[var(--text-primary)]'}`}
                     >
                         Anasayfa
                     </button>
@@ -119,28 +119,28 @@ export default function Header({
                     >
                         <button
                             onClick={() => setIsToolsDropdownOpen(!isToolsDropdownOpen)}
-                            className={`flex items-center gap-1 transition-colors whitespace-nowrap ${['tools', 'typography'].includes(gorunum) ? 'text-[var(--color-brand-orange)] font-bold' : 'hover:text-[var(--color-brand-dark)] text-[#666666]'}`}
+                            className={`flex items-center gap-1 transition-colors whitespace-nowrap ${['tools', 'typography'].includes(gorunum) ? 'text-[var(--color-brand-orange)] font-bold' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
                         >
                             Araçlar ✨ <ChevronDown className={`w-3 h-3 opacity-60 transition-transform duration-300 ${isToolsDropdownOpen ? 'rotate-180' : ''}`} />
                         </button>
                         {/* Hover & Click Dropdown Box */}
                         <div className={`absolute top-full left-1/2 -translate-x-1/2 pt-3 transition-[opacity,transform] duration-200 ease-out ${isToolsDropdownOpen ? 'opacity-100 visible translate-y-0 pointer-events-auto' : 'opacity-0 invisible translate-y-1 pointer-events-none'}`}>
-                            <div className="bg-white/95 backdrop-blur-xl rounded-[24px] shadow-[0_18px_60px_rgba(0,0,0,0.14)] ring-1 ring-black/5 p-2.5 w-[280px] flex flex-col gap-1 relative before:absolute before:content-[''] before:w-4 before:h-4 before:bg-white before:border-l before:border-t before:border-[var(--color-brand-dark)]/5 before:-top-2 before:left-1/2 before:-translate-x-1/2 before:rotate-45">
-                                <div className="relative z-10 bg-white rounded-xl">
+                            <div className="bg-[var(--card-bg)]/95 backdrop-blur-xl rounded-[24px] shadow-[0_18px_60px_rgba(0,0,0,0.14)] ring-1 ring-black/5 p-2.5 w-[280px] flex flex-col gap-1 relative before:absolute before:content-[''] before:w-4 before:h-4 before:bg-[var(--card-bg)] before:border-l before:border-t before:border-[var(--border-primary)] before:-top-2 before:left-1/2 before:-translate-x-1/2 before:rotate-45">
+                                <div className="relative z-10 bg-[var(--card-bg)] rounded-xl">
                                     <button
                                         onClick={() => handleNavClick('tools')}
-                                        className={`w-full text-left px-5 py-3.5 rounded-2xl hover:bg-[var(--color-brand-light)] text-[13px] font-bold transition-all ${gorunum === 'tools' ? 'text-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]/5' : 'text-[var(--color-brand-dark)]/80 hover:text-[var(--color-brand-dark)]'}`}
+                                        className={`w-full text-left px-5 py-3.5 rounded-2xl hover:bg-[var(--bg-secondary)] text-[13px] font-bold transition-all ${gorunum === 'tools' ? 'text-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]/5' : 'text-[var(--text-primary)]/80 hover:text-[var(--text-primary)]'}`}
                                     >
                                         Renk Atölyesi
-                                        <span className="block text-[10px] text-[var(--color-brand-dark)]/40 font-medium mt-0.5">Palet ve Sentez</span>
+                                        <span className="block text-[10px] text-[var(--text-secondary)] font-medium mt-0.5">Palet ve Sentez</span>
                                     </button>
                                     <button
                                         onClick={() => handleNavClick('typography')}
-                                        className={`w-full text-left px-5 py-3.5 rounded-2xl hover:bg-[var(--color-brand-orange)]/10 text-[13px] font-bold transition-all flex justify-between items-center ${gorunum === 'typography' ? 'text-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]/5' : 'text-[var(--color-brand-dark)]/80 hover:text-[var(--color-brand-orange)]'}`}
+                                        className={`w-full text-left px-5 py-3.5 rounded-2xl hover:bg-[var(--color-brand-orange)]/10 text-[13px] font-bold transition-all flex justify-between items-center ${gorunum === 'typography' ? 'text-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]/5' : 'text-[var(--text-primary)]/80 hover:text-[var(--color-brand-orange)]'}`}
                                     >
                                         <div>
                                             Tipografi Lab.
-                                            <span className="block text-[10px] text-[var(--color-brand-dark)]/40 font-medium mt-0.5">Yazı Tipi Uyumları</span>
+                                            <span className="block text-[10px] text-[var(--text-secondary)] font-medium mt-0.5">Yazı Tipi Uyumları</span>
                                         </div>
                                         <span className="text-[9px] bg-[var(--color-brand-orange)] text-white px-2 py-0.5 rounded-md font-black tracking-wider uppercase">YENİ</span>
                                     </button>
@@ -150,13 +150,13 @@ export default function Header({
                     </div>
                     <button
                         onClick={() => handleNavClick('vitrin')}
-                        className={`transition-colors whitespace-nowrap ${gorunum === 'vitrin' ? 'text-[var(--color-brand-dark)]' : 'hover:text-[var(--color-brand-dark)]'}`}
+                        className={`transition-colors whitespace-nowrap ${gorunum === 'vitrin' ? 'text-[var(--text-primary)] font-bold' : 'hover:text-[var(--text-primary)]'}`}
                     >
                         Keşfet
                     </button>
                     <button
                         onClick={() => handleNavClick('community')}
-                        className={`flex items-center gap-1.5 transition-colors whitespace-nowrap ${gorunum === 'community' ? 'text-[var(--color-brand-dark)] font-bold' : 'hover:text-[var(--color-brand-dark)]'}`}
+                        className={`flex items-center gap-1.5 transition-colors whitespace-nowrap ${gorunum === 'community' ? 'text-[var(--text-primary)] font-bold' : 'hover:text-[var(--text-primary)]'}`}
                     >
                         Topluluk
                         <span className="relative flex h-1.5 w-1.5">
@@ -173,28 +173,28 @@ export default function Header({
                     >
                         <button
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className={`flex items-center gap-1 transition-colors whitespace-nowrap ${['about', 'pricing'].includes(gorunum) ? 'text-[var(--color-brand-orange)] font-bold' : 'hover:text-[var(--color-brand-dark)] text-[#666666]'}`}
+                            className={`flex items-center gap-1 transition-colors whitespace-nowrap ${['about', 'pricing'].includes(gorunum) ? 'text-[var(--color-brand-orange)] font-bold' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
                         >
                             Hakkımızda <ChevronDown className={`w-3 h-3 opacity-60 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                         </button>
                         {/* Hover & Click Dropdown Box */}
                         <div className={`absolute top-full left-1/2 -translate-x-1/2 pt-3 transition-[opacity,transform] duration-200 ease-out ${isDropdownOpen ? 'opacity-100 visible translate-y-0 pointer-events-auto' : 'opacity-0 invisible translate-y-1 pointer-events-none'}`}>
-                            <div className="bg-white/95 backdrop-blur-xl rounded-[24px] shadow-[0_18px_60px_rgba(0,0,0,0.14)] ring-1 ring-black/5 p-2.5 w-[280px] flex flex-col gap-1 relative before:absolute before:content-[''] before:w-4 before:h-4 before:bg-white before:border-l before:border-t before:border-[var(--color-brand-dark)]/5 before:-top-2 before:left-1/2 before:-translate-x-1/2 before:rotate-45">
-                                <div className="relative z-10 bg-white rounded-xl">
+                            <div className="bg-[var(--card-bg)]/95 backdrop-blur-xl rounded-[24px] shadow-[0_18px_60px_rgba(0,0,0,0.14)] ring-1 ring-black/5 p-2.5 w-[280px] flex flex-col gap-1 relative before:absolute before:content-[''] before:w-4 before:h-4 before:bg-[var(--card-bg)] before:border-l before:border-t before:border-[var(--border-primary)] before:-top-2 before:left-1/2 before:-translate-x-1/2 before:rotate-45">
+                                <div className="relative z-10 bg-[var(--card-bg)] rounded-xl">
                                     <button
                                         onClick={() => handleNavClick('about')}
-                                        className={`w-full text-left px-5 py-3.5 rounded-2xl hover:bg-[var(--color-brand-light)] text-[13px] font-bold transition-all ${gorunum === 'about' ? 'text-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]/5' : 'text-[var(--color-brand-dark)]/80 hover:text-[var(--color-brand-dark)]'}`}
+                                        className={`w-full text-left px-5 py-3.5 rounded-2xl hover:bg-[var(--bg-secondary)] text-[13px] font-bold transition-all ${gorunum === 'about' ? 'text-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]/5' : 'text-[var(--text-primary)]/80 hover:text-[var(--text-primary)]'}`}
                                     >
                                         Proje Hakkında
-                                        <span className="block text-[10px] text-[var(--color-brand-dark)]/40 font-medium mt-0.5">Motivasyon ve Amaç</span>
+                                        <span className="block text-[10px] text-[var(--text-secondary)] font-medium mt-0.5">Motivasyon ve Amaç</span>
                                     </button>
                                     <button
                                         onClick={() => handleNavClick('pricing')}
-                                        className={`w-full text-left px-5 py-3.5 rounded-2xl hover:bg-[var(--color-brand-orange)]/10 text-[13px] font-bold transition-all flex justify-between items-center ${gorunum === 'pricing' ? 'text-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]/5' : 'text-[var(--color-brand-dark)]/80 hover:text-[var(--color-brand-orange)]'}`}
+                                        className={`w-full text-left px-5 py-3.5 rounded-2xl hover:bg-[var(--color-brand-orange)]/10 text-[13px] font-bold transition-all flex justify-between items-center ${gorunum === 'pricing' ? 'text-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]/5' : 'text-[var(--text-primary)]/80 hover:text-[var(--color-brand-orange)]'}`}
                                     >
                                         <div>
                                             Planlar
-                                            <span className="block text-[10px] text-[var(--color-brand-dark)]/40 font-medium mt-0.5">Abonelik & Özellikler</span>
+                                            <span className="block text-[10px] text-[var(--text-secondary)] font-medium mt-0.5">Abonelik & Özellikler</span>
                                         </div>
                                         <span className="text-[9px] bg-[var(--color-brand-orange)] text-white px-2 py-0.5 rounded-md font-black tracking-wider uppercase">Pro</span>
                                     </button>
@@ -209,7 +209,7 @@ export default function Header({
                     {/* Dark Mode Toggle */}
                     <button
                         onClick={() => setDarkMode(!darkMode)}
-                        className="p-2 rounded-xl hover:bg-[var(--color-brand-dark)]/5 transition-all active:scale-95 group relative mb-0.5"
+                        className="p-2 rounded-xl hover:bg-[var(--bg-secondary)] transition-all active:scale-95 group relative mb-0.5"
                         aria-label="Karanlık Modu Değiştir"
                     >
                         <motion.div
@@ -242,7 +242,7 @@ export default function Header({
                     {kullanici && (
                         <button
                             onClick={onStatsClick}
-                            className="flex items-center gap-1.5 text-[#666666] hover:text-[var(--color-brand-dark)] text-[13px] font-medium transition-colors"
+                            className="flex items-center gap-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-[13px] font-medium transition-colors"
                         >
                             <BarChart2 className="w-4 h-4" />
                             <span className="hidden md:inline">İstatistikler</span>
@@ -250,9 +250,9 @@ export default function Header({
                     )}
 
                     {kullanici ? (
-                        <div className="flex items-center gap-3 ml-1 md:ml-2 border-l border-[var(--color-brand-dark)]/10 pl-3 md:pl-5">
-                            <span className="text-[#666666] text-[12px] hidden lg:block max-w-[100px] truncate">{kullanici.email}</span>
-                            <button onClick={onLogoutClick} className="text-[#666666] hover:text-red-500 transition-colors">
+                        <div className="flex items-center gap-3 ml-1 md:ml-2 border-l border-[var(--border-primary)] pl-3 md:pl-5">
+                            <span className="text-[var(--text-secondary)] text-[12px] hidden lg:block max-w-[100px] truncate">{kullanici.email}</span>
+                            <button onClick={onLogoutClick} className="text-[var(--text-secondary)] hover:text-red-500 transition-colors">
                                 <LogOut className="w-4 h-4" />
                             </button>
                         </div>

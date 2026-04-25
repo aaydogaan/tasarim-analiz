@@ -22,7 +22,7 @@ export default function Community() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-[var(--color-brand-light)] text-[var(--color-brand-dark)]">
+        <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
             {/* Dispersed Hero Section */}
             <section className="relative w-full bg-[#050505] pt-16 md:pt-12 pb-24 md:pb-48 overflow-hidden">
                 {/* Background Decor */}
@@ -139,8 +139,8 @@ export default function Community() {
                         <div className="flex items-center justify-between mb-8">
                             <h2 className="text-3xl font-bold tracking-tight">Topluluk Akışı</h2>
                             <div className="flex gap-2">
-                                <span className="px-4 py-2 bg-[var(--color-brand-dark)] text-white text-xs font-bold rounded-full">En Yeni</span>
-                                <span className="px-4 py-2 bg-white text-[var(--color-brand-dark)]/40 text-xs font-bold rounded-full border border-[var(--color-brand-dark)]/5">Popüler</span>
+                                <span className="px-4 py-2 bg-[var(--text-primary)] text-[var(--bg-primary)] text-xs font-bold rounded-full">En Yeni</span>
+                                <span className="px-4 py-2 bg-[var(--card-bg)] text-[var(--text-secondary)] text-xs font-bold rounded-full border border-[var(--border-primary)]">Popüler</span>
                             </div>
                         </div>
 
@@ -149,23 +149,23 @@ export default function Community() {
                                 key={post}
                                 initial={{ opacity: 0, x: -20 }}
                                 whileInView={{ opacity: 1, x: 0 }}
-                                className="bg-white p-6 md:p-8 rounded-[40px] border border-[var(--color-brand-dark)]/5 shadow-sm hover:shadow-md transition-all group cursor-pointer"
+                                className="bg-[var(--card-bg)] p-6 md:p-8 rounded-[40px] border border-[var(--border-primary)] shadow-sm hover:shadow-md transition-all group cursor-pointer"
                             >
                                 <div className="flex items-start gap-5">
                                     <img
                                         src={`https://api.dicebear.com/7.x/notionists/svg?seed=User${post + 10}&backgroundColor=b6e3f4,c0aede`}
-                                        className="w-14 h-14 rounded-full bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5"
+                                        className="w-14 h-14 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)]"
                                         alt="Avatar"
                                     />
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className="font-bold text-lg">Selman A.</span>
-                                            <span className="text-[var(--color-brand-dark)]/30 text-xs">• 2 saat önce</span>
+                                            <span className="font-bold text-lg text-[var(--text-primary)]">Selman A.</span>
+                                            <span className="text-[var(--text-secondary)] text-xs">• 2 saat önce</span>
                                         </div>
-                                        <p className="text-[var(--color-brand-dark)]/70 leading-relaxed mb-6">
+                                        <p className="text-[var(--text-secondary)] leading-relaxed mb-6">
                                             Yeni mobil uygulama tasarımım için renk paleti önerisi olan var mı? AI analizi 85 puan verdi ama hala bir şeyler eksik gibi geliyor... 🤔
                                         </p>
-                                        <div className="relative aspect-video rounded-3xl overflow-hidden mb-6 bg-[var(--color-brand-light)]">
+                                        <div className="relative aspect-video rounded-3xl overflow-hidden mb-6 bg-[var(--bg-secondary)]">
                                             <img
                                                 src={`https://images.unsplash.com/photo-1616469829581-73993eb86b02?auto=format&fit=crop&q=80&w=800&seed=${post}`}
                                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
@@ -173,13 +173,13 @@ export default function Community() {
                                             />
                                         </div>
                                         <div className="flex items-center gap-6">
-                                            <button className="flex items-center gap-2 text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-orange)] transition-colors text-sm font-bold">
+                                            <button className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] transition-colors text-sm font-bold">
                                                 <Heart size={18} /> 42 Beğeni
                                             </button>
-                                            <button className="flex items-center gap-2 text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-dark)] transition-colors text-sm font-bold">
+                                            <button className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm font-bold">
                                                 <MessageCircle size={18} /> 12 Cevap
                                             </button>
-                                            <button className="flex items-center gap-2 text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-dark)] transition-colors text-sm font-bold ml-auto">
+                                            <button className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm font-bold ml-auto">
                                                 <Share2 size={18} />
                                             </button>
                                         </div>
@@ -188,7 +188,7 @@ export default function Community() {
                             </motion.div>
                         ))}
 
-                        <button className="w-full py-6 rounded-[32px] border-2 border-dashed border-[var(--color-brand-dark)]/10 text-[var(--color-brand-dark)]/40 font-bold hover:border-[var(--color-brand-orange)] hover:text-[var(--color-brand-orange)] transition-all">
+                        <button className="w-full py-6 rounded-[32px] border-2 border-dashed border-[var(--border-primary)] text-[var(--text-secondary)] font-bold hover:border-[var(--color-brand-orange)] hover:text-[var(--color-brand-orange)] transition-all">
                             Daha Fazla Göster
                         </button>
                     </div>
@@ -197,10 +197,10 @@ export default function Community() {
                     <div className="space-y-12">
 
                         {/* Leaderboard */}
-                        <div className="bg-white p-8 rounded-[40px] border border-[var(--color-brand-dark)]/5 shadow-sm">
+                        <div className="bg-[var(--card-bg)] p-8 rounded-[40px] border border-[var(--border-primary)] shadow-sm">
                             <div className="flex items-center gap-3 mb-8">
                                 <Trophy className="text-amber-500 w-6 h-6" />
-                                <h3 className="font-bold text-xl tracking-tight">Liderlik Tablosu</h3>
+                                <h3 className="font-bold text-xl tracking-tight text-[var(--text-primary)]">Liderlik Tablosu</h3>
                             </div>
                             <div className="space-y-6">
                                 {[
@@ -213,7 +213,7 @@ export default function Community() {
                                         <div className="relative">
                                             <img
                                                 src={`https://api.dicebear.com/7.x/notionists/svg?seed=User${i + 50}`}
-                                                className="w-12 h-12 rounded-full border border-[var(--color-brand-dark)]/5 bg-[var(--color-brand-light)]"
+                                                className="w-12 h-12 rounded-full border border-[var(--border-primary)] bg-[var(--bg-secondary)]"
                                                 alt="Avatar"
                                             />
                                             {user.crown && (
@@ -221,12 +221,12 @@ export default function Community() {
                                             )}
                                         </div>
                                         <div className="flex-1">
-                                            <p className="font-bold text-sm tracking-tight leading-none mb-1 group-hover:text-[var(--color-brand-orange)] transition-colors">
+                                            <p className="font-bold text-sm tracking-tight leading-none mb-1 text-[var(--text-primary)] group-hover:text-[var(--color-brand-orange)] transition-colors">
                                                 {user.name}
                                             </p>
-                                            <p className="text-[10px] uppercase font-black text-[var(--color-brand-dark)]/20 tracking-widest">{user.points} PUAN</p>
+                                            <p className="text-[10px] uppercase font-black text-[var(--text-secondary)] tracking-widest">{user.points} PUAN</p>
                                         </div>
-                                        <span className="text-lg font-black text-[var(--color-brand-dark)]/10 italic">#{i + 1}</span>
+                                        <span className="text-lg font-black text-[var(--text-secondary)] italic">#{i + 1}</span>
                                     </div>
                                 ))}
                             </div>
@@ -257,15 +257,15 @@ export default function Community() {
 
                         {/* Quick Tips */}
                         <div className="space-y-4">
-                            <h3 className="font-bold text-lg px-4">Küçük İpuçları</h3>
+                            <h3 className="font-bold text-lg px-4 text-[var(--text-primary)]">Küçük İpuçları</h3>
                             {[
                                 'Beyaz alanı (white space) korkmadan kullanın.',
                                 'Tipografide hiyerarşi her şeydir.',
                                 'Kısıtlı renk paleti her zaman daha lükstür.'
                             ].map((tip, i) => (
-                                <div key={i} className="p-4 bg-[var(--color-brand-dark)]/5 rounded-2xl border border-[var(--color-brand-dark)]/5 flex gap-3">
+                                <div key={i} className="p-4 bg-[var(--bg-secondary)] rounded-2xl border border-[var(--border-primary)] flex gap-3">
                                     <Star className="w-5 h-5 text-[var(--color-brand-orange)] flex-shrink-0" />
-                                    <p className="text-sm font-medium leading-relaxed italic text-[var(--color-brand-dark)]/60">"{tip}"</p>
+                                    <p className="text-sm font-medium leading-relaxed italic text-[var(--text-secondary)]">"{tip}"</p>
                                 </div>
                             ))}
                         </div>

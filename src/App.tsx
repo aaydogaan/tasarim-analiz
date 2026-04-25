@@ -17,6 +17,7 @@ import Tools from "./pages/Tools";
 import TypographyLab from "./pages/TypographyLab";
 import LiveActivityFeed from "./components/ui/LiveActivityFeed";
 import AnalizEtButton from "./components/ui/AnalizEtButton";
+import ScanningOverlay from "./components/ui/ScanningOverlay";
 
 declare global {
   interface Window {
@@ -281,6 +282,24 @@ export default function App() {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  // Clipboard Paste Support
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      if (gorunum !== 'app' || adim !== 1) return;
+      const items = e.clipboardData?.items;
+      if (items) {
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.indexOf("image") !== -1) {
+            const blob = items[i].getAsFile();
+            if (blob) handleDosya(blob);
+          }
+        }
+      }
+    };
+    window.addEventListener('paste', handlePaste);
+    return () => window.removeEventListener('paste', handlePaste);
+  }, [gorunum, adim]);
 
   // Modal Escape Key & Scroll Lock for seciliGorsel
   useEffect(() => {
@@ -677,49 +696,52 @@ export default function App() {
       ) : (
         <>
           {gorunum === 'app' && (
-            <div className="relative min-h-screen bg-[#FAFAFA] flex text-slate-800 font-sans z-10 w-full items-start">
+            <div className="relative min-h-screen bg-[var(--bg-primary)] flex text-[var(--text-primary)] font-sans z-10 w-full items-start">
               {/* Sidebar */}
-              <aside className="w-[260px] hidden lg:flex flex-col bg-white border-r border-slate-200 sticky top-0 h-screen">
+              <aside className="w-[260px] hidden lg:flex flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-primary)] sticky top-0 h-screen">
                 <div className="p-6 pb-2">
                   <div onClick={goHome} className="flex items-center gap-2 cursor-pointer mb-8">
                     <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FF5500] to-[#FF8800] flex items-center justify-center shadow-lg shadow-[#FF5500]/20">
                       <Sparkles className="w-4 h-4 text-white" />
                     </div>
-                    <span className="text-xl font-bold tracking-tight text-slate-900">Revizele</span>
+                    <span className="text-xl font-bold tracking-tight text-[var(--text-primary)]">Revizele</span>
                   </div>
                 </div>
 
                 <nav className="flex-1 px-4 space-y-1">
-                  <p className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 mt-4">Analiz</p>
-                  <button onClick={() => setDashboardTab('genel')} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${dashboardTab === 'genel' ? 'bg-[#FF5500]/10 text-[#FF5500] font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>
+                  <p className="px-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-2 mt-4">Analiz</p>
+                  <button onClick={() => setDashboardTab('genel')} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${dashboardTab === 'genel' ? 'bg-[#FF5500]/10 text-[#FF5500] font-medium' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]'}`}>
                     <div className="flex items-center gap-3">
                       <Home className="w-4 h-4" />
                       <span className="text-sm">Genel Bakış</span>
                     </div>
                     {kullanici ? <span className="bg-[#FF5500] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">3</span> : null}
                   </button>
-                  <button onClick={() => setDashboardTab('analizlerim')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${dashboardTab === 'analizlerim' ? 'bg-[#FF5500]/10 text-[#FF5500] font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>
+                  <button onClick={() => setDashboardTab('analizlerim')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${dashboardTab === 'analizlerim' ? 'bg-[#FF5500]/10 text-[#FF5500] font-medium' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]'}`}>
                     <Layers className="w-4 h-4" />
                     <span className="text-sm">Analizlerim</span>
                   </button>
-                  <button onClick={() => setDashboardTab('raporlar')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${dashboardTab === 'raporlar' ? 'bg-[#FF5500]/10 text-[#FF5500] font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>
+                  <button onClick={() => setDashboardTab('raporlar')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${dashboardTab === 'raporlar' ? 'bg-[#FF5500]/10 text-[#FF5500] font-medium' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]'}`}>
                     <FileText className="w-4 h-4" />
                     <span className="text-sm">Raporlar</span>
                   </button>
-                  <button onClick={() => setDashboardTab('gecmis')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${dashboardTab === 'gecmis' ? 'bg-[#FF5500]/10 text-[#FF5500] font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>
+                  <button onClick={() => setDashboardTab('gecmis')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${dashboardTab === 'gecmis' ? 'bg-[#FF5500]/10 text-[#FF5500] font-medium' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]'}`}>
                     <Clock className="w-4 h-4" />
                     <span className="text-sm">Geçmiş</span>
                   </button>
 
-                  <p className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 mt-8">Ayarlar</p>
-                  <button onClick={() => setDashboardTab('tercihler')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${dashboardTab === 'tercihler' ? 'bg-[#FF5500]/10 text-[#FF5500] font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>
+                  <p className="px-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-2 mt-8">Ayarlar</p>
+                  <button onClick={() => setDashboardTab('tercihler')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${dashboardTab === 'tercihler' ? 'bg-[#FF5500]/10 text-[#FF5500] font-medium' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]'}`}>
                     <Settings className="w-4 h-4" />
                     <span className="text-sm">Tercihler</span>
                   </button>
                 </nav>
 
                 <div className="p-4 mt-auto">
-                  <div className="bg-gradient-to-br from-[#FF5500] to-[#FF8800] rounded-xl p-4 text-white shadow-lg shadow-[#FF5500]/20 relative overflow-hidden group">
+                  <div 
+                    onClick={() => setGorunum('pricing')}
+                    className="bg-gradient-to-br from-[#FF5500] to-[#FF8800] rounded-xl p-4 text-white shadow-lg shadow-[#FF5500]/20 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
+                  >
                     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none"></div>
                     <div className="relative z-10">
                       <div className="flex items-center gap-2 mb-1">
@@ -727,22 +749,22 @@ export default function App() {
                         <h4 className="font-bold text-sm">Pro'ya Geç</h4>
                       </div>
                       <p className="text-xs text-white/80 mb-3">Sınırsız analiz ve PDF raporları için yükseltin.</p>
-                      <button className="w-full bg-white text-[#FF5500] hover:bg-slate-50 text-xs font-bold py-2 rounded-lg transition-colors shadow-sm">
+                      <div className="w-full bg-white text-[#FF5500] text-center text-xs font-bold py-2 rounded-lg shadow-sm">
                         Planları İncele
-                      </button>
+                      </div>
                     </div>
                   </div>
                   <div className="mt-4 flex items-center gap-3 px-2">
-                    <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center border border-slate-300">
+                    <div className="w-8 h-8 rounded-full bg-[var(--bg-primary)] flex items-center justify-center border border-[var(--border-primary)]">
                       {kullanici ? (
-                        <span className="font-bold text-slate-600 text-xs">{kullanici.email?.charAt(0).toUpperCase()}</span>
+                        <span className="font-bold text-[var(--text-secondary)] text-xs">{kullanici.email?.charAt(0).toUpperCase()}</span>
                       ) : (
-                        <User className="w-4 h-4 text-slate-500" />
+                        <User className="w-4 h-4 text-[var(--text-secondary)]" />
                       )}
                     </div>
                     <div className="flex-1 truncate">
-                      <p className="text-xs font-bold text-slate-800 truncate">{kullanici ? kullanici.email : 'Misafir Kullanıcı'}</p>
-                      <p className="text-[10px] text-slate-500">Ücretsiz Plan</p>
+                      <p className="text-xs font-bold text-[var(--text-primary)] truncate">{kullanici ? kullanici.email : 'Misafir Kullanıcı'}</p>
+                      <p className="text-[10px] text-[var(--text-secondary)]">Ücretsiz Plan</p>
                     </div>
                   </div>
                 </div>
@@ -751,7 +773,7 @@ export default function App() {
               {/* Main Content Area */}
               <main className="flex-1 flex flex-col min-w-0 w-full min-h-screen">
                 {/* Topbar */}
-                <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 px-6 flex items-center justify-between">
+                <header className="h-20 bg-[var(--bg-secondary)]/80 backdrop-blur-md border-b border-[var(--border-primary)] sticky top-0 z-40 px-6 flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <button className="lg:hidden p-2 text-slate-500 hover:text-slate-900">
                       <div className="w-5 h-0.5 bg-current mb-1.5" />
@@ -759,15 +781,15 @@ export default function App() {
                       <div className="w-5 h-0.5 bg-current" />
                     </button>
                     <div>
-                      <h1 className="text-xl font-bold text-slate-900 tracking-tight hidden sm:block">
+                      <h1 className="text-xl font-bold text-[var(--text-primary)] tracking-tight hidden sm:block">
                         Merhaba, {kullanici ? kullanici.email?.split('@')[0] : 'Tasarımcı'} 👋
                       </h1>
-                      <p className="text-sm text-slate-500 font-medium hidden sm:block">Bugün ne analiz edelim?</p>
-                      <h2 className="text-lg font-bold sm:hidden cursor-pointer text-slate-900" onClick={goHome}>RevizeAI.</h2>
+                      <p className="text-sm text-[var(--text-secondary)] font-medium hidden sm:block">Bugün ne analiz edelim?</p>
+                      <h2 className="text-lg font-bold sm:hidden cursor-pointer text-[var(--text-primary)]" onClick={goHome}>RevizeAI.</h2>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button onClick={() => setDashboardTab('gecmis')} className="hidden sm:flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg transition-colors border border-slate-200">
+                    <button onClick={() => setDashboardTab('gecmis')} className="hidden sm:flex items-center gap-2 px-4 py-2 bg-[var(--bg-primary)] hover:bg-[var(--border-primary)] text-[var(--text-primary)] text-sm font-semibold rounded-lg transition-colors border border-[var(--border-primary)]">
                       <Clock className="w-4 h-4" />
                       <span>Geçmişim</span>
                     </button>
@@ -781,12 +803,12 @@ export default function App() {
                 {/* Dashboard Scrollable Content */}
                 <div className="flex-1 p-6 md:p-8 lg:p-10 space-y-6 max-w-[1600px] w-full mx-auto pb-24">
                   {dashboardTab !== 'genel' ? (
-                    <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
-                      <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                        <Sparkles className="w-8 h-8 text-slate-400" />
+                    <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center bg-[var(--card-bg)] rounded-2xl border border-[var(--border-primary)] shadow-sm p-8">
+                      <div className="w-16 h-16 bg-[var(--bg-primary)] rounded-full flex items-center justify-center mb-4">
+                        <Sparkles className="w-8 h-8 text-[var(--text-secondary)]" />
                       </div>
-                      <h2 className="text-xl font-bold text-slate-800 mb-2">Bu bölüm henüz hazır değil</h2>
-                      <p className="text-slate-500 max-w-md">Çok yakında "{dashboardTab.charAt(0).toUpperCase() + dashboardTab.slice(1)}" özelliği burada olacak. Lütfen şimdilik "Genel Bakış" sekmesinden analizlerinize devam edin.</p>
+                      <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">Bu bölüm henüz hazır değil</h2>
+                      <p className="text-[var(--text-secondary)] max-w-md">Çok yakında "{dashboardTab.charAt(0).toUpperCase() + dashboardTab.slice(1)}" özelliği burada olacak. Lütfen şimdilik "Genel Bakış" sekmesinden analizlerinize devam edin.</p>
                       <button onClick={() => setDashboardTab('genel')} className="mt-6 px-6 py-2.5 bg-[#FF5500] text-white rounded-lg font-semibold hover:bg-[#e64d00] transition-colors shadow-md shadow-[#FF5500]/20">
                         Genel Bakış'a Dön
                       </button>
@@ -796,7 +818,7 @@ export default function App() {
                       <div className="flex flex-col xl:flex-row gap-6 items-start w-full">
                         
                         {/* MAIN BIG CARD (Upload + Stepper) */}
-                        <div className="flex-1 bg-white border border-slate-200 rounded-[24px] shadow-sm flex flex-col xl:flex-row overflow-hidden w-full">
+                        <div className="flex-1 bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-[24px] shadow-sm flex flex-col xl:flex-row overflow-hidden w-full">
                           
                           {/* Left: Upload Action Area */}
                           <div className="flex-1 p-6 lg:p-8 xl:p-10 relative flex flex-col justify-center items-start">
@@ -804,11 +826,11 @@ export default function App() {
                             <div className="w-full max-w-3xl xl:ml-4 2xl:ml-8">
                               {/* Header */}
                               <div className="text-center mb-10">
-                                <h3 className="text-3xl font-black text-slate-900 tracking-tight flex items-center justify-center gap-3 mb-2">
+                                <h3 className="text-3xl font-black text-[var(--text-primary)] tracking-tight flex items-center justify-center gap-3 mb-2">
                                   <Sparkles className="w-8 h-8 text-[#FF5500]" />
                                   Tasarımınızı Analiz Edin
                                 </h3>
-                                <p className="text-slate-500 font-medium text-base">Saniyeler içinde UI/UX hatalarını bulun ve yapay zeka ile mükemmelleştirin.</p>
+                                <p className="text-[var(--text-secondary)] font-medium text-base">Saniyeler içinde UI/UX hatalarını bulun ve yapay zeka ile mükemmelleştirin.</p>
                               </div>
                               
                               {adim === 1 ? (
@@ -824,7 +846,7 @@ export default function App() {
                                       <button
                                         key={turu}
                                         onClick={() => setTasarimTuru(turu)}
-                                        className={`w-full px-5 py-4 rounded-full border text-left flex items-center justify-between transition-all duration-300 font-bold ${tasarimTuru === turu ? 'bg-slate-900 border-slate-900 text-white shadow-md' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}
+                                        className={`w-full px-5 py-4 rounded-full border text-left flex items-center justify-between transition-all duration-300 font-bold ${tasarimTuru === turu ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)] shadow-md' : 'bg-[var(--card-bg)] border-[var(--border-primary)] text-[var(--text-secondary)] hover:border-[var(--text-secondary)]'}`}
                                       >
                                         <span className="text-sm">{turu}</span>
                                         {tasarimTuru === turu && <Check className="w-5 h-5 text-[#FF5500]" />}
@@ -836,23 +858,23 @@ export default function App() {
                                 {/* Dropzone */}
                                 <div className="w-full md:w-1/2 max-w-[340px] flex flex-col">
                                   <div className="flex items-center justify-between mb-4">
-                                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                                    <h4 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-2">
                                       <div className="w-6 h-6 rounded-full bg-[#FF5500] flex items-center justify-center text-white shadow-sm">2</div>
                                       Dosya veya Link
                                     </h4>
-                                    <div className="flex bg-slate-100 p-1 rounded-full">
-                                      <button onClick={() => setUploadMod('dosya')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all ${uploadMod === 'dosya' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}><Upload className="w-3.5 h-3.5" /> Dosya</button>
-                                      <button onClick={() => setUploadMod('link')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all ${uploadMod === 'link' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}><LinkIcon className="w-3.5 h-3.5" /> URL</button>
+                                    <div className="flex bg-[var(--bg-primary)] p-1 rounded-full">
+                                      <button onClick={() => setUploadMod('dosya')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all ${uploadMod === 'dosya' ? 'bg-[var(--card-bg)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}><Upload className="w-3.5 h-3.5" /> Dosya</button>
+                                      <button onClick={() => setUploadMod('link')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all ${uploadMod === 'link' ? 'bg-[var(--card-bg)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}><LinkIcon className="w-3.5 h-3.5" /> URL</button>
                                     </div>
                                   </div>
                                   
                                   {uploadMod === 'link' ? (
-                                    <div className="w-full aspect-square bg-white border-2 border-[#FF5500]/20 rounded-[32px] flex flex-col items-center justify-center p-8 text-center shadow-sm relative overflow-hidden">
+                                    <div className="w-full aspect-square bg-[var(--card-bg)] border-2 border-[#FF5500]/20 rounded-[32px] flex flex-col items-center justify-center p-8 text-center shadow-sm relative overflow-hidden">
                                       <div className="w-16 h-16 mb-4 rounded-full bg-[#FF5500]/10 flex items-center justify-center border border-[#FF5500]/20 text-[#FF5500]">
                                         <LinkIcon className="w-6 h-6" />
                                       </div>
-                                      <h4 className="text-slate-900 text-xl font-bold mb-4">Bağlantıdan Yükle</h4>
-                                      <input type="url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://.../gorsel.png" className="w-full bg-slate-50 border border-slate-200 rounded-full px-5 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#FF5500] transition-all mb-4 text-center font-medium" />
+                                      <h4 className="text-[var(--text-primary)] text-xl font-bold mb-4">Bağlantıdan Yükle</h4>
+                                      <input type="url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://.../gorsel.png" className="w-full bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-full px-5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[#FF5500] transition-all mb-4 text-center font-medium" />
                                       <button onClick={() => handleLink(imageUrl)} className="w-full bg-[#FF5500] hover:bg-[#e64d00] text-white py-3.5 rounded-full text-sm font-bold transition-colors shadow-md shadow-[#FF5500]/20">Tasarımı Getir</button>
                                     </div>
                                   ) : (
@@ -862,27 +884,28 @@ export default function App() {
                                       onClick={() => fileRef.current?.click()}
                                       className="w-full aspect-square border-2 border-dashed border-[#FF5500]/20 hover:border-[#FF5500]/50 bg-[#FF5500]/[0.02] rounded-[32px] flex flex-col items-center justify-center cursor-pointer transition-all duration-300 group shadow-sm relative overflow-hidden p-6"
                                     >
-                                      <div className="w-16 h-16 mb-4 rounded-2xl bg-white flex items-center justify-center shadow-md border border-[#FF5500]/10 group-hover:scale-105 transition-transform duration-300 relative z-10 text-[#FF5500]">
+                                      <div className="w-16 h-16 mb-4 rounded-2xl bg-[var(--card-bg)] flex items-center justify-center shadow-md border border-[#FF5500]/10 group-hover:scale-105 transition-transform duration-300 relative z-10 text-[#FF5500]">
                                         <Upload className="w-8 h-8" />
                                       </div>
-                                      <p className="text-slate-900 text-xl font-bold mb-1 text-center relative z-10">Sürükle veya Seç</p>
-                                      <p className="text-slate-400 text-xs font-medium relative z-10 mb-6">PNG, JPG, WEBP (Maks 10MB)</p>
+                                      <p className="text-[var(--text-primary)] text-xl font-bold mb-1 text-center relative z-10">Sürükle veya Seç</p>
+                                      <p className="text-[var(--text-secondary)] text-xs font-medium relative z-10 mb-6">PNG, JPG, WEBP (Maks 10MB)</p>
                                       
-                                      <div className="px-5 py-2.5 bg-white border border-slate-200 rounded-full text-slate-600 font-bold text-xs shadow-sm hover:bg-slate-50 transition-colors relative z-10 flex items-center gap-2">
+                                      <div className="px-5 py-2.5 bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-full text-[var(--text-secondary)] font-bold text-xs shadow-sm hover:bg-[var(--bg-primary)] transition-colors relative z-10 flex items-center gap-2">
                                         <Upload className="w-3.5 h-3.5" /> Dosyalara Göz At
                                       </div>
                                     </div>
                                   )}
+                                  </div>
                                 </div>
-                              </div>
-                            ) : (
-                              <div className="flex flex-col xl:flex-row gap-10 items-center justify-center">
-                                <div className="w-full xl:w-5/12 aspect-square max-w-sm rounded-[32px] border border-slate-200 overflow-hidden relative shadow-sm bg-slate-50">
+                              ) : (
+                                <div className="flex flex-col xl:flex-row items-center justify-center gap-12 lg:gap-16 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                  <div className="w-full xl:w-5/12 aspect-square max-w-sm rounded-[32px] border border-[var(--border-primary)] overflow-hidden relative shadow-sm bg-[var(--bg-primary)] group">
                                   {gorsel ? (
                                     <>
                                       <img src={gorsel} alt="Yüklenen" className="w-full h-full object-contain p-4" />
-                                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                        <button onClick={() => setAdim(1)} className="bg-white text-slate-900 px-6 py-3 rounded-full text-sm font-bold flex items-center gap-2 hover:scale-105 transition-transform shadow-xl">
+                                      {yukleniyor && <ScanningOverlay />}
+                                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10">
+                                        <button onClick={() => setAdim(1)} className="bg-[var(--card-bg)] text-[var(--text-primary)] px-6 py-3 rounded-full text-sm font-bold flex items-center gap-2 hover:scale-105 transition-transform shadow-xl">
                                           <RotateCcw className="w-4 h-4" /> Değiştir
                                         </button>
                                       </div>
@@ -890,9 +913,16 @@ export default function App() {
                                   ) : null}
                                 </div>
                                 <div className="flex-1 flex flex-col justify-center space-y-8 max-w-md">
+                                   {/* Geri Butonu - Adım 2 */}
+                                  <button 
+                                    onClick={() => { setAdim(1); setGorsel(null); setGorselBase64(null); setImageUrl(''); }} 
+                                    className="self-start flex items-center gap-2 px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-full text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] hover:border-[var(--color-brand-orange)]/30 transition-all text-xs font-bold shadow-sm"
+                                  >
+                                    <ChevronLeft className="w-3.5 h-3.5" /> Tasarım Seçimine Dön
+                                  </button>
                                   <div>
-                                    <h4 className="text-3xl font-black text-slate-900 mb-2">Harika görünüyor! ✨</h4>
-                                    <p className="text-slate-500 font-medium">Analiz için son dokunuşları yapalım.</p>
+                                    <h4 className="text-3xl font-black text-[var(--text-primary)] mb-2">Harika görünüyor! ✨</h4>
+                                    <p className="text-[var(--text-secondary)] font-medium">Analiz için son dokunuşları yapalım.</p>
                                   </div>
                                   
                                   {hata && (
@@ -903,12 +933,12 @@ export default function App() {
 
                                   <div className="space-y-6">
                                     <div>
-                                      <label className="text-sm font-bold text-slate-700 mb-3 block uppercase tracking-wide">Hedef Sektör (Opsiyonel)</label>
+                                      <label className="text-sm font-bold text-[var(--text-secondary)] mb-3 block uppercase tracking-wide">Hedef Sektör (Opsiyonel)</label>
                                       <input
                                         type="text"
                                         value={isletme}
                                         onChange={(e) => setIsletme(e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-full px-6 py-4 text-sm text-slate-900 focus:outline-none focus:border-[#FF5500] transition-all shadow-sm"
+                                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-full px-6 py-4 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#FF5500] transition-all shadow-sm"
                                         placeholder="Örn: E-Ticaret, Yazılım, Tekstil"
                                       />
                                     </div>
@@ -927,21 +957,21 @@ export default function App() {
                           </div>
 
                           {/* Right: Stepper Sidebar (Inside the Big Card) */}
-                          <div className="w-full xl:w-[300px] border-t xl:border-t-0 xl:border-l border-slate-200 p-8 lg:p-10 flex flex-col bg-slate-50/30 shrink-0">
-                            <h4 className="text-xs font-bold text-slate-500 mb-8 uppercase tracking-wider flex items-center gap-2">
+                          <div className="w-full xl:w-[300px] border-t xl:border-t-0 xl:border-l border-[var(--border-primary)] p-8 lg:p-10 flex flex-col bg-[var(--bg-primary)]/30 shrink-0">
+                            <h4 className="text-xs font-bold text-[var(--text-secondary)] mb-8 uppercase tracking-wider flex items-center gap-2">
                               <Check className="w-4 h-4 text-emerald-500" />
                               Süreç Durumu
                             </h4>
                             <div className="space-y-8 relative flex-1">
-                              <div className="absolute left-4 top-4 bottom-4 w-[1px] bg-slate-200" />
+                              <div className="absolute left-4 top-4 bottom-4 w-[1px] bg-[var(--border-primary)]" />
                               
                               <div className="flex gap-4 relative z-10">
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 transition-colors ${adim > 1 ? 'bg-emerald-50 text-emerald-500 border border-emerald-200' : 'bg-[#FF5500] text-white shadow-md shadow-[#FF5500]/20'}`}>
                                   {adim > 1 ? <Check className="w-4 h-4" /> : "1"}
                                 </div>
                                 <div>
-                                  <h5 className={`font-bold text-sm ${adim >= 1 ? 'text-slate-900' : 'text-slate-400'}`}>Tasarım Formatı</h5>
-                                  <p className="text-[11px] text-slate-500 mt-1">{adim > 1 ? 'Format ve görsel seçildi' : 'Tasarımın türünü belirleyin'}</p>
+                                  <h5 className={`font-bold text-sm ${adim >= 1 ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>Tasarım Formatı</h5>
+                                  <p className="text-[11px] text-[var(--text-secondary)] mt-1">{adim > 1 ? 'Format ve görsel seçildi' : 'Tasarımın türünü belirleyin'}</p>
                                 </div>
                               </div>
                               
@@ -950,8 +980,8 @@ export default function App() {
                                   {adim > 2 ? <Check className="w-4 h-4" /> : "2"}
                                 </div>
                                 <div>
-                                  <h5 className={`font-bold text-sm ${adim >= 2 ? 'text-slate-900' : 'text-slate-400'}`}>Derinlemesine Analiz</h5>
-                                  <p className="text-[11px] text-slate-500 mt-1">{adim > 2 ? 'Analiz tamamlandı' : adim === 2 ? 'Hedef kitle parametreleri' : 'Bekleniyor...'}</p>
+                                  <h5 className={`font-bold text-sm ${adim >= 2 ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>Derinlemesine Analiz</h5>
+                                  <p className="text-[11px] text-[var(--text-secondary)] mt-1">{adim > 2 ? 'Analiz tamamlandı' : adim === 2 ? 'Hedef kitle parametreleri' : 'Bekleniyor...'}</p>
                                 </div>
                               </div>
                               
@@ -960,8 +990,8 @@ export default function App() {
                                   3
                                 </div>
                                 <div>
-                                  <h5 className={`font-bold text-sm ${adim === 3 ? 'text-slate-900' : 'text-slate-400'}`}>Sonuç ve Rapor</h5>
-                                  <p className="text-[11px] text-slate-500 mt-1">{adim === 3 ? 'Rapor hazırlandı' : 'Bekleniyor...'}</p>
+                                  <h5 className={`font-bold text-sm ${adim === 3 ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>Sonuç ve Rapor</h5>
+                                  <p className="text-[11px] text-[var(--text-secondary)] mt-1">{adim === 3 ? 'Rapor hazırlandı' : 'Bekleniyor...'}</p>
                                 </div>
                               </div>
                             </div>
@@ -971,11 +1001,11 @@ export default function App() {
                         {/* RIGHT SIDEBAR: 3 STAT CARDS */}
                         <div className="w-full xl:w-[320px] shrink-0 flex flex-col gap-4">
                           {/* Stat 1 */}
-                          <div className="bg-white border border-slate-200 rounded-[20px] p-6 flex items-center justify-between shadow-sm">
+                          <div className="bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-[20px] p-6 flex items-center justify-between shadow-sm">
                             <div>
-                              <h3 className="text-slate-500 text-[11px] font-bold uppercase tracking-wider mb-2">Tespit Edilen Hata</h3>
+                              <h3 className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider mb-2">Tespit Edilen Hata</h3>
                               <div className="flex items-end gap-2">
-                                <p className="text-3xl font-black text-slate-900 tracking-tight leading-none">84</p>
+                                <p className="text-3xl font-black text-[var(--text-primary)] tracking-tight leading-none">84</p>
                                 <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md mb-1">Bu Ay</span>
                               </div>
                             </div>
@@ -985,11 +1015,11 @@ export default function App() {
                           </div>
 
                           {/* Stat 2 */}
-                          <div className="bg-white border border-slate-200 rounded-[20px] p-6 flex items-center justify-between shadow-sm">
+                          <div className="bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-[20px] p-6 flex items-center justify-between shadow-sm">
                             <div>
-                              <h3 className="text-slate-500 text-[11px] font-bold uppercase tracking-wider mb-2">Toplam Analiz</h3>
+                              <h3 className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider mb-2">Toplam Analiz</h3>
                               <div className="flex items-end gap-2">
-                                <p className="text-3xl font-black text-slate-900 tracking-tight leading-none">142</p>
+                                <p className="text-3xl font-black text-[var(--text-primary)] tracking-tight leading-none">142</p>
                                 <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100/50 px-2 py-0.5 rounded-md mb-1">+12%</span>
                               </div>
                             </div>
@@ -999,11 +1029,11 @@ export default function App() {
                           </div>
 
                           {/* Stat 3 */}
-                          <div className="bg-white border border-slate-200 rounded-[20px] p-6 flex items-center justify-between shadow-sm">
+                          <div className="bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-[20px] p-6 flex items-center justify-between shadow-sm">
                             <div>
-                              <h3 className="text-slate-500 text-[11px] font-bold uppercase tracking-wider mb-2">Ort. Kalite Skoru</h3>
+                              <h3 className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider mb-2">Ort. Kalite Skoru</h3>
                               <div className="flex items-end gap-2">
-                                <p className="text-3xl font-black text-slate-900 tracking-tight leading-none">82.4</p>
+                                <p className="text-3xl font-black text-[var(--text-primary)] tracking-tight leading-none">82.4</p>
                                 <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100/50 px-2 py-0.5 rounded-md mb-1">+5.2</span>
                               </div>
                             </div>
@@ -1059,25 +1089,32 @@ export default function App() {
                   )}
 
                   {/* Header Row (User / Restart / Share) */}
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-[24px] border border-slate-200 shadow-sm">
+                  {/* Geri Butonu - Adım 3 */}
+                  <button 
+                    onClick={() => { setAdim(1); setSonuc(null); setGorsel(null); setGorselBase64(null); setImageUrl(''); }} 
+                    className="self-start flex items-center gap-2 px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-full text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] hover:border-[var(--color-brand-orange)]/30 transition-all text-xs font-bold shadow-sm mb-4"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" /> Yeni Analiz Başlat
+                  </button>
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[var(--card-bg)] p-5 rounded-[24px] border border-[var(--border-primary)] shadow-sm">
                     <div className="flex items-center gap-4 pl-2">
                       <div className="w-12 h-12 rounded-full bg-[#FF5500]/10 flex items-center justify-center relative">
                         <div className="absolute top-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></div>
-                        <span className="text-xl font-black text-slate-900">{isletme.charAt(0)}</span>
+                        <span className="text-xl font-black text-[var(--text-primary)]">{isletme.charAt(0)}</span>
                       </div>
                       <div>
-                        <h3 className="text-slate-900 font-bold text-base leading-tight">Analiz Raporu</h3>
-                        <p className="text-slate-500 text-xs font-medium">Hoş geldin, projen hazır 👋</p>
+                        <h3 className="text-[var(--text-primary)] font-bold text-base leading-tight">Analiz Raporu</h3>
+                        <p className="text-[var(--text-secondary)] text-xs font-medium">Hoş geldin, projen hazır 👋</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 md:gap-3 flex-wrap">
-                      <button onClick={sifirla} className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-50 font-semibold text-sm transition-colors border border-transparent hover:border-slate-200 flex items-center gap-2">
+                      <button onClick={sifirla} className="px-4 py-2 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] font-semibold text-sm transition-colors border border-transparent hover:border-[var(--border-primary)] flex items-center gap-2">
                         <RotateCcw className="w-4 h-4" /> Yeni Analiz
                       </button>
                       <button
                         onClick={indirPDF}
                         disabled={yukleniyor}
-                        className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-50 font-semibold text-sm transition-colors border border-slate-200 flex items-center gap-2"
+                        className="px-4 py-2 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] font-semibold text-sm transition-colors border border-[var(--border-primary)] flex items-center gap-2"
                       >
                         {yukleniyor ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Download className="w-4 h-4" />} PDF İndir
                       </button>
@@ -1112,16 +1149,16 @@ export default function App() {
                           { label: "Görsel Düzen", value: `%${sonuc.teknikOzet?.detayYogunlugu || 45}`, sub: "doluluk oranı", icon: <Grid />, color: "text-sky-500", bg: "bg-sky-50" },
                           { label: "Okunabilirlik", value: sonuc.teknikOzet?.kontrastDegeri || 'Yüksek', sub: "metin netliği", icon: <TypeIcon />, color: "text-purple-500", bg: "bg-purple-50" }
                         ].map((m, i) => (
-                          <div key={i} className="bg-white rounded-[24px] border border-slate-200 shadow-sm p-6">
+                          <div key={i} className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6">
                             <div className="flex flex-col items-center">
                               <div className={`w-12 h-12 rounded-full ${m.bg} ${m.color} flex items-center justify-center mb-4`}>
                                 {React.cloneElement(m.icon as any, { className: "w-6 h-6" })}
                               </div>
-                              <p className="text-slate-400 text-[10px] uppercase font-bold tracking-widest text-center">{m.label}</p>
+                              <p className="text-[var(--text-secondary)] text-[10px] uppercase font-bold tracking-widest text-center">{m.label}</p>
                               <div className="flex items-baseline gap-1 mt-1">
-                                <span className="text-3xl font-black text-slate-900 tracking-tight">{m.value}</span>
+                                <span className="text-3xl font-black text-[var(--text-primary)] tracking-tight">{m.value}</span>
                               </div>
-                              <span className="text-slate-500 text-xs font-semibold bg-slate-50 border border-slate-100 px-3 py-1 rounded-full mt-3">{m.sub}</span>
+                              <span className="text-[var(--text-secondary)] text-xs font-semibold bg-[var(--bg-primary)] border border-[var(--border-primary)] px-3 py-1 rounded-full mt-3">{m.sub}</span>
                             </div>
                           </div>
                         ))}
@@ -1130,43 +1167,43 @@ export default function App() {
                       {/* Middle Gauge & Summary */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         {/* Gauge Card */}
-                        <div className="bg-white rounded-[24px] border border-slate-200 shadow-sm p-6 flex flex-col justify-between">
+                        <div className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6 flex flex-col justify-between">
                           <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-2">
-                              <Check className="w-4 h-4 text-slate-400" />
-                              <span className="text-slate-800 font-bold text-sm tracking-wide">Tasarım Puanı</span>
+                              <Check className="w-4 h-4 text-[var(--text-secondary)]" />
+                              <span className="text-[var(--text-primary)] font-bold text-sm tracking-wide">Tasarım Puanı</span>
                             </div>
-                            <button className="text-[10px] font-bold uppercase tracking-wider text-slate-400 border border-slate-200 px-3 py-1 rounded-full hover:bg-slate-50 transition-colors">Detaylar</button>
+                            <button className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)] border border-[var(--border-primary)] px-3 py-1 rounded-full hover:bg-[var(--bg-primary)] transition-colors">Detaylar</button>
                           </div>
                           <ScoreRing score={sonuc.genelPuan} />
-                          <div className="mt-8 pt-4 border-t border-slate-100 flex items-center gap-3">
+                          <div className="mt-8 pt-4 border-t border-[var(--border-primary)] flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center">
                               <span className="text-emerald-500 text-sm font-bold">+</span>
                             </div>
                             <div>
-                              <p className="text-slate-900 text-sm font-bold">Harika!</p>
-                              <p className="text-slate-500 text-[10px]">Genel kalite standartını yakaladınız.</p>
+                              <p className="text-[var(--text-primary)] text-sm font-bold">Harika!</p>
+                              <p className="text-[var(--text-secondary)] text-[10px]">Genel kalite standartını yakaladınız.</p>
                             </div>
-                            <ChevronRight className="w-4 h-4 ml-auto text-slate-300" />
+                            <ChevronRight className="w-4 h-4 ml-auto text-[var(--text-secondary)]" />
                           </div>
                         </div>
 
                         {/* Summary / Productivity Card */}
-                        <div className="bg-white rounded-[24px] border border-slate-200 shadow-sm p-6 flex flex-col">
+                        <div className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6 flex flex-col">
                           <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-2">
-                              <BarChart2 className="w-4 h-4 text-slate-400" />
-                              <span className="text-slate-800 font-bold text-sm tracking-wide">Detaylı Analiz</span>
+                              <BarChart2 className="w-4 h-4 text-[var(--text-secondary)]" />
+                              <span className="text-[var(--text-primary)] font-bold text-sm tracking-wide">Detaylı Analiz</span>
                             </div>
                           </div>
                           <div className="space-y-4 flex-1 flex flex-col justify-center">
                             {kriterler.slice(0, 4).map((k) => (
                               <div key={k.key}>
                                 <div className="flex justify-between items-end mb-1.5">
-                                  <span className="text-slate-600 text-[11px] font-bold">{k.label}</span>
-                                  <span className="text-slate-900 text-sm font-black">{sonuc[k.key]?.puan}/25</span>
+                                  <span className="text-[var(--text-secondary)] text-[11px] font-bold">{k.label}</span>
+                                  <span className="text-[var(--text-primary)] text-sm font-black">{sonuc[k.key]?.puan}/25</span>
                                 </div>
-                                <div className="h-[6px] w-full bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-[6px] w-full bg-[var(--text-primary)]/10 rounded-full overflow-hidden">
                                   <motion.div
                                     initial={{ width: 0 }}
                                     animate={{ width: `${(sonuc[k.key]?.puan / 25) * 100}%` }}
@@ -1184,28 +1221,28 @@ export default function App() {
                     {/* RIGHT STACK - Image & Colors */}
                     <div className="col-span-1 md:col-span-4 space-y-4 md:space-y-6">
                       {/* Image Preview (Like Crops Stocked) */}
-                      <div className="bg-white rounded-[24px] border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
-                        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+                      <div className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm overflow-hidden flex flex-col h-full">
+                        <div className="p-5 border-b border-[var(--border-primary)] flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <Layers className="w-4 h-4 text-slate-400" />
-                            <span className="text-slate-800 font-bold text-sm tracking-wide">Yüklediğiniz Tasarım</span>
+                            <Layers className="w-4 h-4 text-[var(--text-secondary)]" />
+                            <span className="text-[var(--text-primary)] font-bold text-sm tracking-wide">Yüklediğiniz Tasarım</span>
                           </div>
-                          <button className="text-[10px] font-bold uppercase tracking-wider text-slate-400 border border-slate-200 px-3 py-1 rounded-full hover:bg-slate-50 transition-colors">Büyüt</button>
+                          <button className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)] border border-[var(--border-primary)] px-3 py-1 rounded-full hover:bg-[var(--bg-primary)] transition-colors">Büyüt</button>
                         </div>
-                        <div className="p-4 flex-1 flex flex-col justify-center items-center bg-slate-50/50 group cursor-zoom-in min-h-[220px]" onClick={() => gorsel && setSeciliGorsel(gorsel)}>
+                        <div className="p-4 flex-1 flex flex-col justify-center items-center bg-[var(--bg-primary)]/50 group cursor-zoom-in min-h-[220px]" onClick={() => gorsel && setSeciliGorsel(gorsel)}>
                           <img src={gorsel!} alt="Orijinal" className="max-w-full max-h-[250px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform duration-500 shadow-sm" />
                         </div>
 
                         {/* Sub Colors */}
                         {sonuc.renkPaleti?.length > 0 && (
-                          <div className="p-4 border-t border-slate-100 bg-white">
+                          <div className="p-4 border-t border-[var(--border-primary)] bg-[var(--card-bg)]">
                             <div className="flex items-center justify-between gap-1.5 overflow-x-auto pb-1 hide-scrollbar">
                               {sonuc.renkPaleti.slice(0, 5).map((hex: string, i: number) => (
                                 <div key={i} className="flex flex-col items-center gap-1 group cursor-pointer" onClick={() => renkKopyala(hex)}>
-                                  <div className="w-8 h-8 rounded-full border border-slate-200 shadow-inner group-hover:scale-110 transition-transform relative" style={{ backgroundColor: hex }}>
+                                  <div className="w-8 h-8 rounded-full border border-[var(--border-primary)] shadow-inner group-hover:scale-110 transition-transform relative" style={{ backgroundColor: hex }}>
                                     {kopyalananRenk === hex && <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-full"><Check className="w-4 h-4 text-white" /></div>}
                                   </div>
-                                  <span className="text-[8px] font-mono font-bold text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">{hex.toUpperCase()}</span>
+                                  <span className="text-[8px] font-mono font-bold text-[var(--text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity">{hex.toUpperCase()}</span>
                                 </div>
                               ))}
                             </div>
@@ -1218,36 +1255,36 @@ export default function App() {
                   {/* BOTTOM ROW - Feedback & AI Pro */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-4 md:mt-6">
                     {/* Detailed Feedback (Like Weather/Tasks) */}
-                    <div className="bg-white rounded-[24px] border border-slate-200 shadow-sm p-6">
+                    <div className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6">
                       <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-2">
-                          <AlertCircle className="w-4 h-4 text-slate-400" />
-                          <span className="text-slate-800 font-bold text-sm tracking-wide">Geri Bildirimler</span>
+                          <AlertCircle className="w-4 h-4 text-[var(--text-secondary)]" />
+                          <span className="text-[var(--text-primary)] font-bold text-sm tracking-wide">Geri Bildirimler</span>
                         </div>
                       </div>
                       <div className="space-y-4">
-                        <div className="bg-slate-50 border border-slate-100 p-5 rounded-xl">
-                          <p className="text-slate-800 text-[13px] font-semibold leading-relaxed">"{sonuc.genelYorum}"</p>
+                        <div className="bg-[var(--bg-primary)] border border-[var(--border-primary)] p-5 rounded-xl">
+                          <p className="text-[var(--text-primary)] text-[13px] font-semibold leading-relaxed">"{sonuc.genelYorum}"</p>
                         </div>
                         {sonuc.gucluYon && (
-                          <div className="flex items-start gap-3 border border-slate-100 rounded-xl p-4 bg-white">
+                          <div className="flex items-start gap-3 border border-[var(--border-primary)] rounded-xl p-4 bg-[var(--card-bg)]">
                             <div className="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
                               <Check className="w-3 h-3 text-emerald-500" />
                             </div>
                             <div>
-                              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Güçlü Yön</p>
-                              <p className="text-slate-700 text-xs leading-relaxed">{sonuc.gucluYon}</p>
+                              <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mb-1">Güçlü Yön</p>
+                              <p className="text-[var(--text-primary)] text-xs leading-relaxed">{sonuc.gucluYon}</p>
                             </div>
                           </div>
                         )}
                         {sonuc.zayifYon && (
-                          <div className="flex items-start gap-3 border border-slate-100 rounded-xl p-4 bg-white">
+                          <div className="flex items-start gap-3 border border-[var(--border-primary)] rounded-xl p-4 bg-[var(--card-bg)]">
                             <div className="w-6 h-6 rounded-full bg-rose-50 flex items-center justify-center shrink-0">
                               <AlertCircle className="w-3 h-3 text-rose-500" />
                             </div>
                             <div>
-                              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Geliştirilebilir</p>
-                              <p className="text-slate-700 text-xs leading-relaxed">{sonuc.zayifYon}</p>
+                              <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mb-1">Geliştirilebilir</p>
+                              <p className="text-[var(--text-primary)] text-xs leading-relaxed">{sonuc.zayifYon}</p>
                             </div>
                           </div>
                         )}
@@ -1255,7 +1292,7 @@ export default function App() {
                     </div>
 
                     {/* AI Suggestion */}
-                    <div className="bg-white rounded-[24px] border border-slate-200 shadow-sm p-6 md:p-8 flex flex-col relative overflow-hidden group">
+                    <div className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6 md:p-8 flex flex-col relative overflow-hidden group">
                       {/* Arka plan efektleri (Parallax & Glow) */}
                       <div className="absolute top-[-50%] right-[-10%] w-[150%] h-[150%] bg-gradient-to-br from-[#FF5500]/10 via-purple-600/5 to-transparent blur-3xl rounded-full transform rotate-12 group-hover:opacity-100 opacity-60 transition-opacity duration-700 pointer-events-none"></div>
 
@@ -1265,8 +1302,8 @@ export default function App() {
                             <Sparkles className="w-6 h-6 text-[#FF5500]" />
                           </div>
                           <div>
-                            <span className="text-slate-900 font-black text-xl tracking-tight block leading-tight">AI Tasarım Revizyonu</span>
-                            <span className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-0.5 block">Sizi Bir Üst Seviyeye Taşır</span>
+                            <span className="text-[var(--text-primary)] font-black text-xl tracking-tight block leading-tight">AI Tasarım Revizyonu</span>
+                            <span className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mt-0.5 block">Sizi Bir Üst Seviyeye Taşır</span>
                           </div>
                         </div>
                         <span className="bg-gradient-to-r from-[#FF5500] to-amber-500 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-lg uppercase tracking-widest shadow-md shadow-[#FF5500]/30 border border-white/20">PRO</span>
@@ -1274,21 +1311,24 @@ export default function App() {
 
                       <div className="relative z-10 flex-1 border border-[#FF5500]/20 bg-gradient-to-br from-[#FF5500]/[0.05] to-transparent rounded-2xl p-8 mb-6 backdrop-blur-md group-hover:border-[#FF5500]/30 transition-all duration-500 flex flex-col items-center justify-center text-center overflow-hidden">
                         {/* Blur overlay for PRO info */}
-                        <div className="absolute inset-0 bg-white/40 backdrop-blur-md z-10 flex flex-col items-center justify-center p-6">
-                          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
+                        <div className="absolute inset-0 bg-[var(--card-bg)]/40 backdrop-blur-md z-10 flex flex-col items-center justify-center p-6">
+                          <div className="w-12 h-12 bg-[var(--card-bg)] rounded-full flex items-center justify-center mb-4 shadow-sm">
                             <Sparkles className="w-6 h-6 text-[#FF5500]" />
                           </div>
-                          <p className="text-slate-900 font-bold text-sm mb-1 uppercase tracking-tight">Revizyon Detayları Kilitli</p>
-                          <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest leading-normal">
+                          <p className="text-[var(--text-primary)] font-bold text-sm mb-1 uppercase tracking-tight">Revizyon Detayları Kilitli</p>
+                          <p className="text-[var(--text-secondary)] text-[10px] uppercase font-black tracking-widest leading-normal">
                             AI ile tasarımınızı otomatik iyileştirmek ve teknik revizyonları görmek için PRO plana geçin.
                           </p>
                         </div>
-                        <p className="text-slate-800 text-[14px] opacity-20 select-none blur-[2px]">
+                        <p className="text-[var(--text-primary)] text-[14px] opacity-20 select-none blur-[2px]">
                           {sonuc.oneri}
                         </p>
                       </div>
 
-                      <button className="relative z-10 w-full py-4 rounded-xl bg-slate-900 hover:bg-black text-white font-black text-sm transition-all duration-300 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 overflow-hidden">
+                      <button 
+                        onClick={() => setGorunum('pricing')}
+                        className="relative z-10 w-full py-4 rounded-xl bg-slate-900 hover:bg-black text-white font-black text-sm transition-all duration-300 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 overflow-hidden"
+                      >
                         {/* Shimmer effect inside button */}
                         <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_2s_infinite]" />
                         <span className="relative z-10 flex items-center gap-2">Tasarımı AI İle İyileştir <ChevronRight className="w-4 h-4" /></span>
@@ -1299,10 +1339,10 @@ export default function App() {
                   {/* RESOURCES & DISCLAIMER */}
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-8">
                     {/* Educational Resources */}
-                    <div className="col-span-1 md:col-span-8 bg-white rounded-[24px] border border-slate-200 shadow-sm p-6">
+                    <div className="col-span-1 md:col-span-8 bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6">
                       <div className="flex items-center gap-2 mb-4">
                         <BookOpen className="w-4 h-4 text-[#FF5500]" />
-                        <h4 className="font-bold text-slate-800 text-sm uppercase tracking-wider">Tasarımını Geliştirmen İçin Kaynaklar</h4>
+                        <h4 className="font-bold text-[var(--text-primary)] text-sm uppercase tracking-wider">Tasarımını Geliştirmen İçin Kaynaklar</h4>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {[
@@ -1311,24 +1351,24 @@ export default function App() {
                           { title: "Color Contrast Guide (WCAG)", desc: "Erişilebilir renk kullanımı kuralları.", url: "https://webaim.org/resources/contrastchecker/" },
                           { title: "Laws of UX", desc: "Kullanıcı psikolojisi ve tasarım kural seti.", url: "https://lawsofux.com/" }
                         ].map((source, i) => (
-                          <a target="_blank" rel="noopener noreferrer" key={i} href={source.url} className="group block p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-[#FF5500]/30 transition-all hover:shadow-sm">
+                          <a target="_blank" rel="noopener noreferrer" key={i} href={source.url} className="group block p-4 bg-[var(--bg-primary)] rounded-xl border border-[var(--border-primary)] hover:border-[#FF5500]/30 transition-all hover:shadow-sm">
                             <div className="flex items-center justify-between mb-1">
-                              <span className="font-bold text-slate-800 text-xs">{source.title}</span>
-                              <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-[#FF5500] transition-colors" />
+                              <span className="font-bold text-[var(--text-primary)] text-xs">{source.title}</span>
+                              <ExternalLink className="w-3 h-3 text-[var(--text-secondary)] group-hover:text-[#FF5500] transition-colors" />
                             </div>
-                            <p className="text-slate-500 text-[10px] leading-relaxed">{source.desc}</p>
+                            <p className="text-[var(--text-secondary)] text-[10px] leading-relaxed">{source.desc}</p>
                           </a>
                         ))}
                       </div>
                     </div>
 
                     {/* Disclaimer */}
-                    <div className="col-span-1 md:col-span-4 bg-white rounded-[24px] border border-slate-200 shadow-sm p-6 flex flex-col justify-center">
+                    <div className="col-span-1 md:col-span-4 bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6 flex flex-col justify-center">
                       <div className="flex items-center gap-2 mb-3">
                         <AlertCircle className="w-4 h-4 text-amber-500" />
-                        <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Önemli Not</h4>
+                        <h4 className="font-bold text-[var(--text-primary)] text-xs uppercase tracking-wider">Önemli Not</h4>
                       </div>
-                      <p className="text-slate-500 text-[11px] leading-relaxed italic">
+                      <p className="text-[var(--text-secondary)] text-[11px] leading-relaxed italic">
                         "Feragatname: Bu eleştiri yapay zeka teknolojisi kullanılarak oluşturulur ve yalnızca bir rehberlik aracı olarak kullanılmalıdır. Doğruluk için çaba gösterirken, nihai tasarım kararlarında insan yargısı ve profesyonel uzmanlık dikkate alınmalıdır."
                       </p>
                     </div>
@@ -1685,7 +1725,7 @@ export default function App() {
       )}
 
       <LiveActivityFeed />
-      <Footer onLogoClick={goHome} />
+      <Footer onLogoClick={goHome} onNavClick={setGorunum} />
     </div>
   );
 }

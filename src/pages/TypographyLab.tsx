@@ -79,12 +79,12 @@ body, p, span, a {
     };
 
     return (
-        <div className="w-full bg-[#f8f9fa] min-h-screen font-sans selection:bg-[var(--color-brand-orange)] selection:text-white pb-24">
+        <div className="w-full bg-[var(--bg-primary)] min-h-screen font-sans selection:bg-[var(--color-brand-orange)] selection:text-white pb-24">
 
             {/* HEADER HERO */}
             <section className="relative pt-24 pb-20 px-6 overflow-hidden flex flex-col items-center justify-center text-center">
-                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-indigo-100 rounded-full blur-[120px] opacity-60 pointer-events-none" />
-                <div className="absolute top-[10%] right-[-10%] w-[500px] h-[500px] bg-orange-100 rounded-full blur-[120px] opacity-40 pointer-events-none" />
+                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-[120px] opacity-60 pointer-events-none" />
+                <div className="absolute top-[10%] right-[-10%] w-[500px] h-[500px] bg-orange-500/5 rounded-full blur-[120px] opacity-40 pointer-events-none" />
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -92,18 +92,18 @@ body, p, span, a {
                     transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                     className="relative z-10 max-w-3xl mx-auto"
                 >
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-gray-200 shadow-sm text-gray-600 text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--card-bg)] border border-[var(--border-primary)] shadow-sm text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
                         <Type className="w-3.5 h-3.5 text-indigo-500" /> Tipografi Laboratuvarı
                     </div>
 
-                    <h1 className="text-[48px] md:text-[72px] font-black text-[#111111] tracking-tighter leading-[1.05] mb-6">
+                    <h1 className="text-[48px] md:text-[72px] font-black text-[var(--text-primary)] tracking-tighter leading-[1.05] mb-6">
                         Metinlerin <br className="hidden md:block" />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
                             Uyumu.
                         </span>
                     </h1>
 
-                    <p className="text-lg md:text-xl text-gray-500 font-medium max-w-2xl mx-auto leading-relaxed mb-10">
+                    <p className="text-lg md:text-xl text-[var(--text-secondary)] font-medium max-w-2xl mx-auto leading-relaxed mb-10">
                         Başlık ve gövde metinleri arasındaki o kusursuz dengeyi yakalayın. Projenizin kimliğini belirleyen en estetik Google Fonts kombinasyonları.
                     </p>
                 </motion.div>
@@ -121,7 +121,7 @@ body, p, span, a {
                 >
                     <div className="flex items-center gap-3 mb-6 px-2">
                         <Wand2 className="w-5 h-5 text-[var(--color-brand-orange)]" />
-                        <h3 className="font-bold text-[#111111] text-lg">Özel Kombinasyonlar</h3>
+                        <h3 className="font-bold text-[var(--text-primary)] text-lg">Özel Kombinasyonlar</h3>
                     </div>
 
                     {FONT_PAIRINGS.map((pair) => (
@@ -129,14 +129,14 @@ body, p, span, a {
                             key={pair.id}
                             onClick={() => setSelectedPair(pair)}
                             className={`cursor-pointer group p-5 rounded-[24px] border-2 transition-all duration-300 ${selectedPair.id === pair.id
-                                    ? 'bg-white border-indigo-500 shadow-lg scale-[1.02]'
-                                    : 'bg-white/60 border-transparent hover:bg-white hover:border-indigo-200 hover:shadow-md'
+                                    ? 'bg-[var(--card-bg)] border-indigo-500 shadow-lg scale-[1.02]'
+                                    : 'bg-[var(--card-bg)]/60 border-transparent hover:bg-[var(--card-bg)] hover:border-indigo-200 hover:shadow-md'
                                 }`}
                         >
                             <div className="flex justify-between items-start mb-3">
                                 <div>
-                                    <h4 className="font-bold text-[#111111]">{pair.name}</h4>
-                                    <p className="text-xs text-gray-400 font-medium mt-0.5">{pair.desc}</p>
+                                    <h4 className="font-bold text-[var(--text-primary)]">{pair.name}</h4>
+                                    <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">{pair.desc}</p>
                                 </div>
                                 {selectedPair.id === pair.id && (
                                     <div className="w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center">
@@ -148,7 +148,7 @@ body, p, span, a {
                             {/* Tags */}
                             <div className="flex gap-2 mt-4">
                                 {pair.tags.map(tag => (
-                                    <span key={tag} className="text-[9px] font-bold tracking-wider uppercase px-2 py-1 rounded-md bg-gray-100 text-gray-500">
+                                    <span key={tag} className="text-[9px] font-bold tracking-wider uppercase px-2 py-1 rounded-md bg-[var(--bg-primary)] text-[var(--text-secondary)]">
                                         {tag}
                                     </span>
                                 ))}
@@ -165,14 +165,14 @@ body, p, span, a {
                     className="lg:col-span-8 flex flex-col gap-8"
                 >
                     {/* Live Preview Canvas */}
-                    <div className="bg-white rounded-[40px] p-8 md:p-12 shadow-xl border border-gray-100 flex flex-col relative overflow-hidden min-h-[500px]">
+                    <div className="bg-[var(--card-bg)] rounded-[40px] p-8 md:p-12 shadow-xl border border-[var(--border-primary)] flex flex-col relative overflow-hidden min-h-[500px]">
                         {/* Decorative Background grid */}
                         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(rgba(0,0,0,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,.1) 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
 
-                        <div className="relative z-10 flex items-center justify-between mb-12 border-b border-gray-100 pb-6">
+                        <div className="relative z-10 flex items-center justify-between mb-12 border-b border-[var(--border-primary)] pb-6">
                             <div className="flex items-center gap-3">
                                 <LayoutTemplate className="w-5 h-5 text-gray-400" />
-                                <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">Canlı Önizleme</span>
+                                <span className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-widest">Canlı Önizleme</span>
                             </div>
                         </div>
 
@@ -186,14 +186,14 @@ body, p, span, a {
                             </p>
 
                             <h2
-                                className="text-4xl md:text-6xl text-[#111111] mb-8 transition-all duration-700 leading-[1.1]"
+                                className="text-4xl md:text-6xl text-[var(--text-primary)] mb-8 transition-all duration-700 leading-[1.1]"
                                 style={{ fontFamily: selectedPair.heading.css, fontWeight: selectedPair.heading.weight }}
                             >
                                 Tasarım, sessiz konuşan mükemmel bir hikayedir.
                             </h2>
 
                             <p
-                                className="text-lg md:text-xl text-gray-500 leading-relaxed max-w-xl transition-all duration-700"
+                                className="text-lg md:text-xl text-[var(--text-secondary)] leading-relaxed max-w-xl transition-all duration-700"
                                 style={{ fontFamily: selectedPair.body.css, fontWeight: selectedPair.body.weight }}
                             >
                                 Kullanıcılar içeriğinizi okumadan önce, onu <b>hissederler</b>. Doğru seçilmiş bir tipografi hiyerarşisi, vermek istediğiniz mesajı iki kat daha güçlü kılar. Bu örnek metin, iki font arasındaki o kusursuz dengeyi test etmeniz için var.
@@ -207,7 +207,7 @@ body, p, span, a {
                                     Hemen Keşfet
                                 </button>
                                 <button
-                                    className="px-8 py-4 rounded-xl text-gray-600 font-bold border-2 border-gray-200 hover:border-gray-300 transition-all bg-white"
+                                    className="px-8 py-4 rounded-xl text-[var(--text-primary)] font-bold border-2 border-[var(--border-primary)] hover:border-[var(--text-secondary)] transition-all bg-[var(--card-bg)]"
                                     style={{ fontFamily: selectedPair.body.css }}
                                 >
                                     Dokümantasyon

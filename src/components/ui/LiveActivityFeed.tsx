@@ -12,7 +12,7 @@ const ACTIVITIES = [
 
 export default function LiveActivityFeed() {
     const [index, setIndex] = useState(0);
-    const [isVisible, setIsVisible] = useState(true);
+    const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
         if (!isVisible) return;
@@ -34,17 +34,17 @@ export default function LiveActivityFeed() {
                         animate={{ opacity: 1, x: 0, scale: 1 }}
                         exit={{ opacity: 0, x: -10, scale: 0.95 }}
                         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                        className="group flex items-center gap-3 bg-white/90 backdrop-blur-xl border border-[var(--color-brand-dark)]/5 px-4 py-3 rounded-2xl shadow-2xl shadow-black/10 max-w-[280px] md:max-w-md relative"
+                        className="group flex items-center gap-3 bg-[var(--card-bg)]/90 backdrop-blur-xl border border-[var(--color-brand-dark)]/5 px-4 py-3 rounded-2xl shadow-2xl shadow-black/10 max-w-[280px] md:max-w-md relative"
                     >
                         {/* Close Button - Visible on hover */}
                         <button
                             onClick={() => setIsVisible(false)}
-                            className="absolute -top-2 -right-2 w-6 h-6 bg-white border border-[var(--color-brand-dark)]/5 rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-slate-50 text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-dark)]"
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-[var(--card-bg)] border border-[var(--color-brand-dark)]/5 rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[var(--bg-primary)] text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-dark)]"
                         >
                             <X size={12} />
                         </button>
 
-                        <div className={`flex-shrink-0 p-2 rounded-xl bg-slate-50 ${current.color}`}>
+                        <div className={`flex-shrink-0 p-2 rounded-xl bg-[var(--bg-primary)] ${current.color}`}>
                             <current.icon size={16} />
                         </div>
 
@@ -70,11 +70,11 @@ export default function LiveActivityFeed() {
                         animate={{ opacity: 1, scale: 1, rotate: 0 }}
                         exit={{ opacity: 0, scale: 0.5, rotate: 45 }}
                         onClick={() => setIsVisible(true)}
-                        className="w-12 h-12 bg-white/90 backdrop-blur-xl border border-[var(--color-brand-dark)]/5 rounded-2xl flex items-center justify-center shadow-xl shadow-black/5 text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-orange)] transition-all hover:scale-105 active:scale-95 group"
+                        className="w-12 h-12 bg-[var(--card-bg)]/90 backdrop-blur-xl border border-[var(--color-brand-dark)]/5 rounded-2xl flex items-center justify-center shadow-xl shadow-black/5 text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-orange)] transition-all hover:scale-105 active:scale-95 group"
                     >
                         <Bell size={20} className="group-hover:animate-bounce" />
                         {/* Small activity dot for reopen button */}
-                        <div className="absolute top-3 right-3 w-2 h-2 bg-emerald-500 rounded-full border-2 border-white"></div>
+                        <div className="absolute top-3 right-3 w-2 h-2 bg-emerald-500 rounded-full border-2 border-[var(--card-bg)]"></div>
                     </motion.button>
                 )}
             </AnimatePresence>

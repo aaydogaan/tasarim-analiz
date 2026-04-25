@@ -30,14 +30,14 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
             />
 
             {/* Hero Section */}
-            <main className="flex flex-col items-center pt-32 md:pt-48 pb-12 px-6 relative z-10 w-full max-w-6xl mx-auto">
+            <main className="flex flex-col items-center pt-32 md:pt-40 pb-12 px-6 relative z-10 w-full max-w-6xl mx-auto">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
                     className="flex flex-col items-center text-center w-full"
                 >
-                    <div className="relative mt-8 md:mt-16 group w-full">
+                    <div className="relative mt-2 md:mt-4 group w-full">
                         {/* Moving Glossy Blur Effect - Wandering Blobs */}
                         <div className="absolute -inset-4 md:-inset-10 pointer-events-none z-20 overflow-hidden select-none">
                             {/* Blob 1: Large wandering blur */}
