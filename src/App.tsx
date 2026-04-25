@@ -868,31 +868,6 @@ export default function App() {
                                     })}
                                   </div>
 
-                                  {/* Meta Ads Preview Card */}
-                                  <div className="mt-8 pt-8 border-t border-[var(--border-primary)]">
-                                    <h4 className="text-[10px] font-black text-[#FF5500] mb-4 uppercase tracking-[0.2em] flex items-center gap-2 opacity-80">
-                                      <Sparkles className="w-3 h-3" /> Özel AI Modelleri
-                                    </h4>
-                                    <div className="relative group cursor-not-allowed">
-                                      <div className="absolute -inset-1 bg-gradient-to-r from-[#1877F2] to-[#0064E0] rounded-[24px] blur opacity-10 group-hover:opacity-20 transition duration-500"></div>
-                                      <div className="relative bg-[var(--card-bg)] border border-[#1877F2]/10 rounded-[20px] p-5 overflow-hidden">
-                                        <div className="flex items-start justify-between mb-4">
-                                          <div className="w-10 h-10 rounded-xl bg-[#1877F2]/10 flex items-center justify-center border border-[#1877F2]/20">
-                                            <Globe className="w-6 h-6 text-[#1877F2]" />
-                                          </div>
-                                          <span className="text-[8px] bg-[#1877F2] text-white px-2 py-1 rounded-md font-black uppercase tracking-widest animate-pulse">Coming Soon</span>
-                                        </div>
-                                        <h5 className="text-[var(--text-primary)] font-black text-sm mb-1">Meta Ads (Facebook/IG) Analizi</h5>
-                                        <p className="text-[var(--text-secondary)] text-[10px] leading-relaxed mb-4">
-                                          Reklam görsellerinizin dönüşüm oranını (CTR) yapay zeka ile tahmin edin, CTA yerleşimini optimize edin.
-                                        </p>
-                                        <div className="flex flex-wrap gap-2">
-                                          <span className="text-[8px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">Satış Uygunluğu</span>
-                                          <span className="text-[8px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">CTA Skorlama</span>
-                                          <span className="text-[8px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">Kanca (Hook) Analizi</span>
-                                        </div>
-                                      </div>
-                                    </div>
                                   </div>
                                 </div>
 
@@ -1080,6 +1055,62 @@ export default function App() {
                             </div>
                             <div className="w-10 h-10 rounded-full bg-[#FF5500]/10 flex items-center justify-center text-[#FF5500]">
                               <Check className="w-5 h-5" />
+                            </div>
+                          </div>
+
+                          {/* Meta Ads Preview Card - Professional Sidebar Version */}
+                          <div className="relative group mt-2 overflow-hidden rounded-[24px] cursor-not-allowed">
+                            <div className="absolute inset-0 bg-gradient-to-br from-[#1877F2]/5 to-[#0064E0]/10 opacity-50"></div>
+                            <div className="absolute -right-8 -top-8 w-24 h-24 bg-[#1877F2]/10 blur-2xl rounded-full"></div>
+                            <div className="relative bg-[var(--card-bg)]/40 backdrop-blur-xl border border-[#1877F2]/10 p-6 flex flex-col">
+                              <div className="flex items-center justify-between mb-5">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-9 h-9 rounded-xl bg-[#1877F2] flex items-center justify-center shadow-lg shadow-[#1877F2]/20">
+                                    <Globe className="w-5 h-5 text-white" />
+                                  </div>
+                                  <div>
+                                    <h5 className="text-[var(--text-primary)] font-black text-xs uppercase tracking-wider">Meta Ads AI</h5>
+                                    <p className="text-[9px] text-[#1877F2] font-bold uppercase tracking-[0.1em]">Beta / Preview</p>
+                                  </div>
+                                </div>
+                                <div className="flex flex-col items-end">
+                                  <span className="text-[7px] bg-[#1877F2] text-white px-2 py-0.5 rounded-sm font-black uppercase tracking-widest animate-pulse">Coming Soon</span>
+                                </div>
+                              </div>
+                              
+                              <p className="text-[var(--text-secondary)] text-[10px] font-medium leading-relaxed mb-6">
+                                Reklam görsellerinizin <span className="text-[var(--text-primary)] font-bold">satış dönüşümünü</span> yapay zeka ile saniyeler içinde simüle edin.
+                              </p>
+
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/50 border border-[var(--border-primary)] opacity-60">
+                                  <span className="text-[9px] font-bold text-[var(--text-secondary)]">Satış Uygunluk Skoru</span>
+                                  <div className="w-12 h-1 bg-slate-200 rounded-full overflow-hidden">
+                                    <div className="w-0 h-full bg-[#1877F2]"></div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/50 border border-[var(--border-primary)] opacity-60">
+                                  <span className="text-[9px] font-bold text-[var(--text-secondary)]">CTA (Eylem) Gücü</span>
+                                  <div className="w-12 h-1 bg-slate-200 rounded-full overflow-hidden">
+                                    <div className="w-0 h-full bg-[#1877F2]"></div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/50 border border-[var(--border-primary)] opacity-60">
+                                  <span className="text-[9px] font-bold text-[var(--text-secondary)]">CTR (Tıklama) Tahmini</span>
+                                  <span className="text-[9px] font-black text-slate-400">-%</span>
+                                </div>
+                              </div>
+
+                              <div className="mt-6 pt-5 border-t border-[var(--border-primary)] flex items-center justify-between">
+                                <div className="flex -space-x-2">
+                                  {[1,2,3].map(i => (
+                                    <div key={i} className="w-5 h-5 rounded-full border-2 border-[var(--card-bg)] bg-slate-200 overflow-hidden">
+                                      <img src={`https://i.pravatar.cc/100?u=${i+10}`} className="w-full h-full object-cover grayscale" />
+                                    </div>
+                                  ))}
+                                </div>
+                                <span className="text-[9px] font-bold text-[var(--text-secondary)]">420+ Kişi Bekliyor</span>
+                              </div>
                             </div>
                           </div>
                         </div>
