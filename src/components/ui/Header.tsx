@@ -323,8 +323,13 @@ export default function Header({
                         </div>
                     ) : (
                         <button
-                            onClick={onAuthClick}
-                            className="ml-1 md:ml-4 px-4 md:px-6 py-1.5 md:py-2.5 rounded-full text-[#ebebeb] text-[12px] md:text-[13px] font-medium transition-all hover:scale-105 bg-[#4A4A4A] hover:bg-[#333] shadow-sm tracking-wide"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                console.log("Kayıt Ol Butonuna Tıklandı!");
+                                onAuthClick();
+                            }}
+                            className="ml-1 md:ml-4 px-4 md:px-6 py-1.5 md:py-2.5 rounded-full text-white text-[12px] md:text-[13px] font-medium bg-[#4A4A4A]"
                         >
                             Kayıt Ol
                         </button>
