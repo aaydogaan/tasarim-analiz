@@ -1886,119 +1886,119 @@ export default function App() {
             )}
           </AnimatePresence>
 
-          {/* ── AUTH MODAL ── */}
-          <AnimatePresence>
-            {authAcik && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
-                onClick={() => setAuthAcik(false)}
-              >
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{ scale: 0.9, opacity: 0 }}
-                  transition={{ ease: [0.22, 1, 0.36, 1] }}
-                  onClick={e => e.stopPropagation()}
-                  className="w-full max-w-sm bg-white border border-[var(--color-brand-dark)]/10 rounded-3xl shadow-sm overflow-hidden"
-                >
-                  <div className="p-5 border-b border-[var(--color-brand-dark)]/5 flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <User className="w-4 h-4 text-[var(--color-brand-orange)]" />
-                      <div className="flex gap-1" style={{ position: 'relative', zIndex: 10 }}>
-                        {authAdim === 1 ? (
-                          (['giris', 'kayit'] as const).map(m => (
-                            <button key={m} onClick={() => setAuthMod(m)}
-                              className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${authMod === m ? 'bg-[var(--color-brand-orange)] text-white shadow-sm' : 'text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-light)]'}`}>
-                              {m === 'giris' ? 'Giriş Yap' : 'Kayıt Ol'}
-                            </button>
-                          ))
+
+        </>
+      )}
+
+      {/* ── AUTH MODAL - Tüm sayfalardan erişilebilir ── */}
+      <AnimatePresence>
+        {authAcik && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+            onClick={() => setAuthAcik(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ ease: [0.22, 1, 0.36, 1] }}
+              onClick={e => e.stopPropagation()}
+              className="w-full max-w-sm bg-white border border-gray-200 rounded-3xl shadow-2xl overflow-hidden"
+            >
+              <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <User className="w-4 h-4 text-[var(--color-brand-orange)]" />
+                  <div className="flex gap-1">
+                    {authAdim === 1 ? (
+                      (['giris', 'kayit'] as const).map(m => (
+                        <button key={m} onClick={() => setAuthMod(m)}
+                          className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${authMod === m ? 'bg-[var(--color-brand-orange)] text-white shadow-sm' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}>
+                          {m === 'giris' ? 'Giriş Yap' : 'Kayıt Ol'}
+                        </button>
+                      ))
+                    ) : (
+                      <span className="text-[13px] font-bold text-gray-900">Profilini Tamamla</span>
+                    )}
+                  </div>
+                </div>
+                <button onClick={() => setAuthAcik(false)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-5 space-y-3">
+                {authAdim === 1 ? (
+                  <form onSubmit={girisYap} className="space-y-3">
+                    <input type="email" placeholder="E-posta" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
+                      className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
+                    
+                    {authMod === 'kayit' && (
+                      <input type="text" placeholder="Ad Soyad" value={authAdSoyad} onChange={e => setAuthAdSoyad(e.target.value)}
+                        className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
+                    )}
+
+                    <input type="password" placeholder="Şifre" value={authSifre} onChange={e => setAuthSifre(e.target.value)}
+                      className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
+
+                    {authMod === 'kayit' && (
+                      <input type="password" placeholder="Şifre (Tekrar)" value={authSifreTekrar} onChange={e => setAuthSifreTekrar(e.target.value)}
+                        className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
+                    )}
+
+                    {authHata && <p className="text-red-500 text-[11px] px-1">{authHata}</p>}
+
+                    <button type="submit" disabled={authYukleniyor || !authEmail || !authSifre}
+                      className="w-full py-3 rounded-xl bg-gray-900 text-white text-sm font-bold hover:bg-black shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                      {authYukleniyor ? <div className="w-4 h-4 border-2 border-white/30 border-t-[var(--color-brand-orange)] rounded-full animate-spin" /> : null}
+                      {authMod === 'giris' ? 'Giriş Yap' : 'Hesap Oluştur'}
+                    </button>
+                  </form>
+                ) : (
+                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center">
+                    <h2 className="text-xl font-bold text-gray-900 tracking-tight mb-2 text-center">
+                      Hoş Geldin, {authAdSoyad.split(' ')[0]}!
+                    </h2>
+                    <p className="text-xs text-gray-500 mb-6 text-center">
+                      Profilini tamamlamak için harika bir avatar seç veya kendi fotoğrafını yükle.
+                    </p>
+
+                    <div className="relative w-28 h-28 mb-6">
+                      <div className="w-full h-full rounded-full border-4 border-white shadow-xl overflow-hidden bg-white">
+                        {avatarYukleniyor ? (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                            <div className="w-8 h-8 border-4 border-orange-200 border-t-[var(--color-brand-orange)] rounded-full animate-spin" />
+                          </div>
                         ) : (
-                          <span className="text-[13px] font-bold text-gray-900">Profilini Tamamla</span>
+                          <img src={seciliAvatar} alt="Profil Avatar" className="w-full h-full object-cover" />
                         )}
                       </div>
                     </div>
-                    <button onClick={() => setAuthAcik(false)} className="p-1.5 rounded-lg hover:bg-[var(--color-brand-light)] text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-dark)] transition-colors">
-                      <X className="w-4 h-4" />
+
+                    <div className="flex gap-3 w-full mb-6">
+                      <button onClick={rastgeleAvatarUret} disabled={avatarYukleniyor}
+                        className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                        <Sparkles className="w-4 h-4" /> Zar At
+                      </button>
+                      <label className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                        <Upload className="w-4 h-4" /> Yükle
+                        <input type="file" accept="image/*" className="hidden" onChange={avatarYukle} disabled={avatarYukleniyor} />
+                      </label>
+                    </div>
+
+                    <button onClick={avatarTamamla} disabled={avatarYukleniyor}
+                      className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[var(--color-brand-orange)] to-orange-500 text-white text-sm font-bold transition-all flex items-center justify-center gap-2">
+                      <Check className="w-5 h-5" /> Harika Görünüyor, Tamamla
                     </button>
-                  </div>
-
-                  <div className="p-5 space-y-3">
-                    {authAdim === 1 ? (
-                      <form onSubmit={girisYap} className="space-y-3">
-                        <input type="email" placeholder="E-posta" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
-                          className="bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5 rounded-xl text-[var(--color-brand-dark)] text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-[var(--color-brand-dark)]/30" />
-                        
-                        {authMod === 'kayit' && (
-                          <input type="text" placeholder="Ad Soyad" value={authAdSoyad} onChange={e => setAuthAdSoyad(e.target.value)}
-                            className="bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5 rounded-xl text-[var(--color-brand-dark)] text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-[var(--color-brand-dark)]/30" />
-                        )}
-
-                        <input type="password" placeholder="Şifre" value={authSifre} onChange={e => setAuthSifre(e.target.value)}
-                          className="bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5 rounded-xl text-[var(--color-brand-dark)] text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-[var(--color-brand-dark)]/30" />
-
-                        {authMod === 'kayit' && (
-                          <input type="password" placeholder="Şifre (Tekrar)" value={authSifreTekrar} onChange={e => setAuthSifreTekrar(e.target.value)}
-                            className="bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5 rounded-xl text-[var(--color-brand-dark)] text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-[var(--color-brand-dark)]/30" />
-                        )}
-
-                        {authHata && <p className="text-red-500/80 text-[11px] px-1">{authHata}</p>}
-
-                        <button type="submit" disabled={authYukleniyor || !authEmail || !authSifre}
-                          className="w-full py-3 rounded-xl bg-[var(--color-brand-dark)] text-white text-sm font-bold hover:bg-[var(--color-brand-dark)]/90 shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                          {authYukleniyor ? <div className="w-4 h-4 border-2 border-white/30 border-t-[var(--color-brand-orange)] rounded-full animate-spin" /> : null}
-                          {authMod === 'giris' ? 'Giriş Yap' : 'Hesap Oluştur'}
-                        </button>
-                      </form>
-                    ) : (
-                      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="relative z-10 flex flex-col items-center">
-                        <h2 className="text-xl font-bold text-gray-900 tracking-tight mb-2 text-center">
-                          Hoş Geldin, {authAdSoyad.split(' ')[0]}!
-                        </h2>
-                        <p className="text-xs text-gray-500 mb-6 text-center">
-                          Profilini tamamlamak için harika bir avatar seç veya kendi fotoğrafını yükle.
-                        </p>
-
-                        <div className="relative w-28 h-28 mb-6 group">
-                          <div className="absolute inset-0 bg-gradient-to-tr from-[var(--color-brand-orange)] to-orange-300 rounded-full blur-xl opacity-30 group-hover:opacity-50 transition-opacity" />
-                          <div className="relative w-full h-full rounded-full border-4 border-white shadow-xl overflow-hidden bg-white">
-                            {avatarYukleniyor ? (
-                              <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                                <div className="w-8 h-8 border-4 border-[var(--color-brand-orange)]/30 border-t-[var(--color-brand-orange)] rounded-full animate-spin" />
-                              </div>
-                            ) : (
-                              <img src={seciliAvatar} alt="Profil Avatar" className="w-full h-full object-cover" />
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex gap-3 w-full mb-6">
-                          <button onClick={rastgeleAvatarUret} disabled={avatarYukleniyor}
-                            className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-                            <Sparkles className="w-4 h-4" /> Zar At
-                          </button>
-                          
-                          <label className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer">
-                            <Upload className="w-4 h-4" /> Yükle
-                            <input type="file" accept="image/*" className="hidden" onChange={avatarYukle} disabled={avatarYukleniyor} />
-                          </label>
-                        </div>
-
-                        <button onClick={avatarTamamla} disabled={avatarYukleniyor}
-                          className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[var(--color-brand-orange)] to-orange-500 text-white text-sm font-bold shadow-[0_8px_16px_-6px_rgba(255,77,0,0.4)] hover:shadow-[0_12px_20px_-6px_rgba(255,77,0,0.5)] transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5 active:translate-y-0">
-                          <Check className="w-5 h-5" /> Harika Görünüyor, Tamamla
-                        </button>
-                      </motion.div>
-                    )}
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </>
-      )}
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <LiveActivityFeed />
       <Footer onLogoClick={goHome} onNavClick={setGorunum} />
