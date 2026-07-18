@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Groq from 'groq-sdk';
 import { createClient } from '@supabase/supabase-js';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 export const config = {
   api: {
@@ -220,17 +221,27 @@ JSON Formatı Şablonu:
           try {
             const fileName = `${userId || 'anon'}_${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
             const imageBuffer = Buffer.from(imageBase64, 'base64');
-            const { data: uploadData, error: uploadError } = await supabase.storage
-              .from('tasarim-gorseller')
-              .upload(fileName, imageBuffer, { contentType: 'image/jpeg', upsert: false });
-            if (!uploadError && uploadData) {
-              const { data: urlData } = supabase.storage
-                .from('tasarim-gorseller')
-                .getPublicUrl(uploadData.path);
-              gorselUrl = urlData?.publicUrl || null;
-            }
+            
+            const s3Client = new S3Client({
+              region: 'auto',
+              endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+              credentials: {
+                accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+                secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+              },
+            });
+
+            await s3Client.send(new PutObjectCommand({
+              Bucket: process.env.R2_BUCKET_NAME,
+              Key: fileName,
+              Body: imageBuffer,
+              ContentType: 'image/jpeg',
+            }));
+
+            const r2PublicUrl = process.env.R2_PUBLIC_URL?.replace(/\/$/, "");
+            gorselUrl = `${r2PublicUrl}/${fileName}`;
           } catch (storageErr) {
-            console.warn('Storage yükleme atlandı:', storageErr);
+            console.warn('R2 Storage yükleme atlandı:', storageErr);
           }
 
           // DB'ye kaydetmek için doğru yetkilere sahip client oluşturalım (SELECT RLS için)

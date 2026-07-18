@@ -1,7 +1,12 @@
--- Analiz sonuçlarını kaydeden tablo
-create table if not exists analizler (
-  id uuid default gen_random_uuid() primary key,
-  created_at timestamptz default now(),
+-- 1. Analiz sonuçlarını kaydeden tablo
+CREATE TABLE IF NOT EXISTS analizler (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  created_at timestamptz DEFAULT now(),
+
+  -- Kullanıcı bilgileri
+  user_id uuid,
+  user_name text,
+  user_avatar text,
 
   -- Tasarım bilgileri
   tasarim_turu text,             -- Sosyal Medya / Kurumsal / E-Ticaret / Baskı Materyali
@@ -23,10 +28,39 @@ create table if not exists analizler (
   guclu_yon text,
   zayif_yon text,
 
-  -- Teknik özet (JSON olarak sakla)
+  -- Teknik özet
   teknik_ozet jsonb,
-  renk_paleti text[]             -- hex kodları dizisi
+  renk_paleti text[],             -- hex kodları dizisi
+  
+  -- Ekstra alanlar
+  gorsel_url text,
+  paylasim_aktif boolean DEFAULT false
 );
 
--- Row Level Security (RLS) — isteğe bağlı olarak aktif et
--- alter table analizler enable row level security;
+-- 2. Vitrin oylama (beğeni) tablosu
+CREATE TABLE IF NOT EXISTS begeniler (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  created_at timestamptz DEFAULT now(),
+  analiz_id uuid REFERENCES analizler(id) ON DELETE CASCADE,
+  user_id uuid,
+  puan int
+);
+
+-- 3. Vitrin için verileri hazırlayan View (Görünüm)
+CREATE OR REPLACE VIEW vitrin_view AS
+SELECT 
+  a.id,
+  a.tasarim_turu,
+  a.platform,
+  a.isletme,
+  a.gorsel_url,
+  a.genel_puan as ai_puan,
+  COALESCE(AVG(b.puan), 0)::int as topluluk_puan,
+  COUNT(b.id)::int as oy_sayisi,
+  a.created_at,
+  a.user_name,
+  a.user_avatar
+FROM analizler a
+LEFT JOIN begeniler b ON a.id = b.analiz_id
+WHERE a.paylasim_aktif = true
+GROUP BY a.id;
