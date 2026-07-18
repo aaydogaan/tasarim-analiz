@@ -1,6 +1,6 @@
 import React from 'react';
-import { motion } from 'motion/react';
-import { LogOut, BarChart2, ChevronDown, Sun, Moon } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { LogOut, BarChart2, ChevronDown, Sun, Moon, User } from 'lucide-react';
 import LiveActivityFeed from './LiveActivityFeed';
 import MagneticWrapper from './MagneticWrapper';
 
@@ -11,6 +11,7 @@ interface HeaderProps {
     onStatsClick: () => void;
     onLogoutClick: () => void;
     onAuthClick: () => void;
+    onProfileClick: () => void;
     goHome: () => void;
     darkMode: boolean;
     setDarkMode: (d: boolean) => void;
@@ -23,15 +24,18 @@ export default function Header({
     onStatsClick,
     onLogoutClick,
     onAuthClick,
+    onProfileClick,
     goHome,
     darkMode,
     setDarkMode
 }: HeaderProps) {
     const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+    const [isProfileDropdownOpen, setIsProfileDropdownOpen] = React.useState(false);
     const [isToolsDropdownOpen, setIsToolsDropdownOpen] = React.useState(false);
     const [supportsHover, setSupportsHover] = React.useState(false);
     const dropdownCloseTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
     const toolsCloseTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+    const profileCloseTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
     React.useEffect(() => {
         if (typeof window === 'undefined' || !window.matchMedia) return;
@@ -42,6 +46,7 @@ export default function Header({
         return () => {
             if (dropdownCloseTimeoutRef.current) clearTimeout(dropdownCloseTimeoutRef.current);
             if (toolsCloseTimeoutRef.current) clearTimeout(toolsCloseTimeoutRef.current);
+            if (profileCloseTimeoutRef.current) clearTimeout(profileCloseTimeoutRef.current);
         };
     }, []);
 
@@ -72,6 +77,21 @@ export default function Header({
         if (dropdownCloseTimeoutRef.current) clearTimeout(dropdownCloseTimeoutRef.current);
         dropdownCloseTimeoutRef.current = setTimeout(() => {
             setIsDropdownOpen(false);
+        }, 160);
+    }, []);
+
+    const openProfileDropdown = React.useCallback(() => {
+        if (profileCloseTimeoutRef.current) {
+            clearTimeout(profileCloseTimeoutRef.current);
+            profileCloseTimeoutRef.current = null;
+        }
+        setIsProfileDropdownOpen(true);
+    }, []);
+
+    const scheduleCloseProfileDropdown = React.useCallback(() => {
+        if (profileCloseTimeoutRef.current) clearTimeout(profileCloseTimeoutRef.current);
+        profileCloseTimeoutRef.current = setTimeout(() => {
+            setIsProfileDropdownOpen(false);
         }, 160);
     }, []);
 
@@ -239,22 +259,65 @@ export default function Header({
                         </MagneticWrapper>
                     )}
 
-                    {kullanici && (
-                        <button
-                            onClick={onStatsClick}
-                            className="flex items-center gap-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-[13px] font-medium transition-colors"
-                        >
-                            <BarChart2 className="w-4 h-4" />
-                            <span className="hidden md:inline">İstatistikler</span>
-                        </button>
-                    )}
-
                     {kullanici ? (
-                        <div className="flex items-center gap-3 ml-1 md:ml-2 border-l border-[var(--border-primary)] pl-3 md:pl-5">
-                            <span className="text-[var(--text-secondary)] text-[12px] hidden lg:block max-w-[100px] truncate">{kullanici.email}</span>
-                            <button onClick={onLogoutClick} className="text-[var(--text-secondary)] hover:text-red-500 transition-colors">
-                                <LogOut className="w-4 h-4" />
+                        <div
+                            className="relative ml-1 md:ml-2 border-l border-[var(--border-primary)] pl-3 md:pl-5 flex items-center"
+                            onMouseEnter={supportsHover ? openProfileDropdown : undefined}
+                            onMouseLeave={supportsHover ? scheduleCloseProfileDropdown : undefined}
+                        >
+                            <button
+                                onClick={() => supportsHover ? null : setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                                className="flex items-center gap-2 outline-none group"
+                            >
+                                <div className="w-8 h-8 md:w-9 md:h-9 rounded-full border-2 border-[var(--color-brand-orange)]/30 overflow-hidden bg-gray-50 group-hover:border-[var(--color-brand-orange)] transition-colors">
+                                    <img src={kullanici.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici.id}`} alt="Profil" className="w-full h-full object-cover" />
+                                </div>
+                                <ChevronDown className={`w-3.5 h-3.5 text-[var(--text-secondary)] transition-transform duration-200 ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
                             </button>
+
+                            <AnimatePresence>
+                                {isProfileDropdownOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                                        className="absolute top-full right-0 mt-3 w-48 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-2xl shadow-xl overflow-hidden py-1 z-50"
+                                    >
+                                        <div className="px-4 py-3 border-b border-[var(--border-primary)] mb-1">
+                                            <p className="text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-bold mb-0.5">Oturum Açık</p>
+                                            <p className="text-[13px] text-[var(--text-primary)] font-medium truncate">{kullanici.email}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                setIsProfileDropdownOpen(false);
+                                                onProfileClick();
+                                            }}
+                                            className="w-full text-left px-4 py-2 text-[13px] font-medium text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] hover:bg-[var(--bg-secondary)] transition-colors flex items-center gap-2"
+                                        >
+                                            <User className="w-4 h-4" /> Profilim
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setIsProfileDropdownOpen(false);
+                                                onStatsClick();
+                                            }}
+                                            className="w-full text-left px-4 py-2 text-[13px] font-medium text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] hover:bg-[var(--bg-secondary)] transition-colors flex items-center gap-2"
+                                        >
+                                            <BarChart2 className="w-4 h-4" /> İstatistikler
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setIsProfileDropdownOpen(false);
+                                                onLogoutClick();
+                                            }}
+                                            className="w-full text-left px-4 py-2 text-[13px] font-medium text-red-500 hover:bg-red-50/10 transition-colors flex items-center gap-2"
+                                        >
+                                            <LogOut className="w-4 h-4" /> Çıkış Yap
+                                        </button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     ) : (
                         <MagneticWrapper strength={20} className="md:ml-4">
@@ -262,7 +325,7 @@ export default function Header({
                                 onClick={onAuthClick}
                                 className="px-5 md:px-6 py-2 md:py-2.5 rounded-full text-[#ebebeb] text-[12px] md:text-[13px] font-medium transition-all hover:scale-105 bg-[#4A4A4A] hover:bg-[#333] shadow-sm tracking-wide"
                             >
-                                Giriş Yap
+                                Kayıt Ol
                             </button>
                         </MagneticWrapper>
                     )}

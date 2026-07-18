@@ -224,21 +224,21 @@ JSON Formatı Şablonu:
             
             const s3Client = new S3Client({
               region: 'auto',
-              endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+              endpoint: `https://${process.env.VITE_R2_ACCOUNT_ID || process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
               credentials: {
-                accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-                secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+                accessKeyId: (process.env.VITE_R2_ACCESS_KEY_ID || process.env.R2_ACCESS_KEY_ID)!,
+                secretAccessKey: (process.env.VITE_R2_SECRET_ACCESS_KEY || process.env.R2_SECRET_ACCESS_KEY)!,
               },
             });
 
             await s3Client.send(new PutObjectCommand({
-              Bucket: process.env.R2_BUCKET_NAME,
+              Bucket: process.env.VITE_R2_BUCKET_NAME || process.env.R2_BUCKET_NAME,
               Key: fileName,
               Body: imageBuffer,
               ContentType: 'image/jpeg',
             }));
 
-            const r2PublicUrl = process.env.R2_PUBLIC_URL?.replace(/\/$/, "");
+            const r2PublicUrl = (process.env.VITE_R2_PUBLIC_URL || process.env.R2_PUBLIC_URL)?.replace(/\/$/, "");
             gorselUrl = `${r2PublicUrl}/${fileName}`;
           } catch (storageErr) {
             console.warn('R2 Storage yükleme atlandı:', storageErr);

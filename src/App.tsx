@@ -11,6 +11,8 @@ import LandingPage from "./pages/LandingPage";
 import Footer from "./components/ui/Footer";
 import Community from "./pages/Community";
 import Header from "./components/ui/Header";
+import ProfilePage from "./pages/ProfilePage";
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import Pricing from "./pages/Pricing";
 import About from "./pages/About";
 import Tools from "./pages/Tools";
@@ -220,7 +222,7 @@ export default function App() {
   }
 
   const [adim, setAdim] = useState(initAdim);
-  const [gorunum, setGorunum] = useState<'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography'>(() => getSessionData('ra_gorunum', 'landing'));
+  const [gorunum, setGorunum] = useState<'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography' | 'profile'>(() => getSessionData('ra_gorunum', 'landing'));
   const [gorsel, setGorsel] = useState<string | null>(initGorsel);
   const [gorselBase64, setGorselBase64] = useState<string | null>(initGorselBase64);
   const [imageUrl, setImageUrl] = useState<string>("");
@@ -267,6 +269,15 @@ export default function App() {
   const [authMod, setAuthMod] = useState<'giris' | 'kayit'>('giris');
   const [authEmail, setAuthEmail] = useState('');
   const [authSifre, setAuthSifre] = useState('');
+  const [authAdSoyad, setAuthAdSoyad] = useState('');
+  const [authSifreTekrar, setAuthSifreTekrar] = useState('');
+  // Auth Adım 2 (Avatar)
+  const [authAdim, setAuthAdim] = useState<1 | 2>(1);
+  const [seciliAvatar, setSeciliAvatar] = useState<string>('');
+  const [avatarYukleniyor, setAvatarYukleniyor] = useState(false);
+  
+  // Profile Modal (Kaldırıldı)
+
   const [authYukleniyor, setAuthYukleniyor] = useState(false);
   const [authHata, setAuthHata] = useState<string | null>(null);
   const [kullanici, setKullanici] = useState<any>(null);
@@ -335,14 +346,90 @@ export default function App() {
     return () => clearInterval(interval);
   }, [yukleniyor]);
 
-  const girisYap = async () => {
+  const girisYap = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setAuthYukleniyor(true); setAuthHata(null);
-    const { error } = authMod === 'giris'
-      ? await supabase.auth.signInWithPassword({ email: authEmail, password: authSifre })
-      : await supabase.auth.signUp({ email: authEmail, password: authSifre });
-    if (error) setAuthHata(error.message);
-    else setAuthAcik(false);
-    setAuthYukleniyor(false);
+    try {
+      if (authMod === 'giris') {
+        const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authSifre });
+        if (error) throw error;
+        setAuthAcik(false);
+      } else {
+        if (authSifre !== authSifreTekrar) {
+          throw new Error('Şifreler uyuşmuyor.');
+        }
+        const { data, error } = await supabase.auth.signUp({
+          email: authEmail,
+          password: authSifre,
+          options: {
+            data: { full_name: authAdSoyad }
+          }
+        });
+        if (error) throw error;
+        
+        // Step 1 done, move to Step 2
+        setAuthAdim(2);
+        setSeciliAvatar(`https://api.dicebear.com/7.x/avataaars/svg?seed=${Date.now()}`);
+      }
+    } catch (error: any) {
+      setAuthHata(error.message);
+    } finally {
+      setAuthYukleniyor(false);
+    }
+  };
+
+  const rastgeleAvatarUret = () => {
+    setSeciliAvatar(`https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.random().toString(36).substring(7)}`);
+  };
+
+  const avatarYukle = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarYukleniyor(true);
+    try {
+      const s3Client = new S3Client({
+        region: 'auto',
+        endpoint: `https://${import.meta.env.VITE_R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+        credentials: {
+          accessKeyId: import.meta.env.VITE_R2_ACCESS_KEY_ID,
+          secretAccessKey: import.meta.env.VITE_R2_SECRET_ACCESS_KEY,
+        },
+      });
+
+      const fileName = `avatars/${kullanici?.id || Date.now()}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+
+      const fileBuffer = await file.arrayBuffer();
+
+      await s3Client.send(new PutObjectCommand({
+        Bucket: import.meta.env.VITE_R2_BUCKET_NAME,
+        Key: fileName,
+        Body: new Uint8Array(fileBuffer),
+        ContentType: file.type,
+      }));
+
+      const r2PublicUrl = import.meta.env.VITE_R2_PUBLIC_URL.replace(/\/$/, "");
+      const avatarUrl = `${r2PublicUrl}/${fileName}`;
+      setSeciliAvatar(avatarUrl);
+    } catch (err: any) {
+      console.error('Yükleme hatası:', err);
+      alert('Avatar yüklenirken bir hata oluştu: ' + err.message);
+    } finally {
+      setAvatarYukleniyor(false);
+    }
+  };
+
+  const avatarTamamla = async () => {
+    setAvatarYukleniyor(true);
+    try {
+      await supabase.auth.updateUser({
+        data: { avatar_url: seciliAvatar }
+      });
+      setAuthAcik(false);
+    } catch (err: any) {
+      alert('Avatar kaydedilirken hata: ' + err.message);
+    } finally {
+      setAvatarYukleniyor(false);
+    }
   };
 
   const cikisYap = async () => { await supabase.auth.signOut(); };
@@ -439,7 +526,27 @@ export default function App() {
     } catch (e) {
       console.warn("SessionStorage aşıldı.", e);
     }
+    
+    // Sync URL with gorunum
+    if (gorunum === 'landing') {
+      window.history.replaceState({}, '', '/');
+    } else {
+      window.history.replaceState({}, '', `/${gorunum === 'profile' ? 'profilim' : gorunum}`);
+    }
   }, [adim, gorsel, gorselBase64, revizeGorsel, tasarimTuru, platform, isletme, digerIsletme, sorular, sonuc, gorunum]);
+
+  // Handle Initial Route from URL
+  useEffect(() => {
+    const path = window.location.pathname.replace(/^\//, '');
+    if (path === 'profilim') setGorunum('profile');
+    else if (path === 'vitrin') setGorunum('vitrin');
+    else if (path === 'topluluk' || path === 'community') setGorunum('community');
+    else if (path === 'fiyatlandirma' || path === 'pricing') setGorunum('pricing');
+    else if (path === 'hakkimizda' || path === 'about') setGorunum('about');
+    else if (path === 'araclar' || path === 'tools') setGorunum('tools');
+    else if (path === 'tipografi' || path === 'typography') setGorunum('typography');
+    else if (path === 'app') setGorunum('app');
+  }, []);
 
   const handleLink = (url: string) => {
     if (!url) return;
@@ -652,6 +759,7 @@ export default function App() {
         onStatsClick={statsAc}
         onLogoutClick={cikisYap}
         onAuthClick={() => setAuthAcik(true)}
+        onProfileClick={() => setGorunum('profile')}
         goHome={goHome}
         darkMode={darkMode}
         setDarkMode={setDarkMode}
@@ -692,6 +800,10 @@ export default function App() {
       ) : gorunum === 'typography' ? (
         <main className="flex-1 w-full mt-20">
           <TypographyLab />
+        </main>
+      ) : gorunum === 'profile' ? (
+        <main className="flex-1 w-full mt-20 flex items-center justify-center">
+          <ProfilePage kullanici={kullanici} supabase={supabase} goHome={goHome} />
         </main>
       ) : (
         <>
@@ -958,13 +1070,14 @@ export default function App() {
                                         placeholder="Örn: E-Ticaret, Yazılım, Tekstil"
                                       />
                                     </div>
-                                    <AnalizEtButton
-                                      onClick={analiz}
-                                      yukleniyor={yukleniyor}
-                                      metin="Yapay Zeka ile Analizi Başlat"
-                                      kullanici={kullanici}
-                                      authAc={() => setAuthAcik(true)}
-                                    />
+                                      <AnalizEtButton
+                                        onClick={analiz}
+                                        yukleniyor={yukleniyor}
+                                        metin="Yapay Zeka ile Analizi Başlat"
+                                        kullanici={kullanici}
+                                        authAc={() => setAuthAcik(true)}
+                                        disabled={!gorselBase64 || !tasarimTuru || !platform}
+                                      />
                                   </div>
                                 </div>
                               </div>
@@ -1795,12 +1908,16 @@ export default function App() {
                     <div className="flex items-center gap-2.5">
                       <User className="w-4 h-4 text-[var(--color-brand-orange)]" />
                       <div className="flex gap-1" style={{ position: 'relative', zIndex: 10 }}>
-                        {(['giris', 'kayit'] as const).map(m => (
-                          <button key={m} onClick={() => setAuthMod(m)}
-                            className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${authMod === m ? 'bg-[var(--color-brand-orange)] text-white shadow-sm' : 'text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-light)]'}`}>
-                            {m === 'giris' ? 'Giriş Yap' : 'Kayıt Ol'}
-                          </button>
-                        ))}
+                        {authAdim === 1 ? (
+                          (['giris', 'kayit'] as const).map(m => (
+                            <button key={m} onClick={() => setAuthMod(m)}
+                              className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${authMod === m ? 'bg-[var(--color-brand-orange)] text-white shadow-sm' : 'text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-light)]'}`}>
+                              {m === 'giris' ? 'Giriş Yap' : 'Kayıt Ol'}
+                            </button>
+                          ))
+                        ) : (
+                          <span className="text-[13px] font-bold text-gray-900">Profilini Tamamla</span>
+                        )}
                       </div>
                     </div>
                     <button onClick={() => setAuthAcik(false)} className="p-1.5 rounded-lg hover:bg-[var(--color-brand-light)] text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-dark)] transition-colors">
@@ -1808,26 +1925,74 @@ export default function App() {
                     </button>
                   </div>
 
-                  <form onSubmit={e => { e.preventDefault(); girisYap(); }} className="p-5 space-y-3">
-                    <input type="email" placeholder="E-posta" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
-                      className="bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5 rounded-xl text-[var(--color-brand-dark)] text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-[var(--color-brand-dark)]/30" />
-                    <input type="password" placeholder="Şifre" value={authSifre} onChange={e => setAuthSifre(e.target.value)}
-                      className="bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5 rounded-xl text-[var(--color-brand-dark)] text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-[var(--color-brand-dark)]/30" />
+                  <div className="p-5 space-y-3">
+                    {authAdim === 1 ? (
+                      <form onSubmit={girisYap} className="space-y-3">
+                        <input type="email" placeholder="E-posta" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
+                          className="bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5 rounded-xl text-[var(--color-brand-dark)] text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-[var(--color-brand-dark)]/30" />
+                        
+                        {authMod === 'kayit' && (
+                          <input type="text" placeholder="Ad Soyad" value={authAdSoyad} onChange={e => setAuthAdSoyad(e.target.value)}
+                            className="bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5 rounded-xl text-[var(--color-brand-dark)] text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-[var(--color-brand-dark)]/30" />
+                        )}
 
-                    {authHata && <p className="text-red-500/80 text-[11px] px-1">{authHata}</p>}
+                        <input type="password" placeholder="Şifre" value={authSifre} onChange={e => setAuthSifre(e.target.value)}
+                          className="bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5 rounded-xl text-[var(--color-brand-dark)] text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-[var(--color-brand-dark)]/30" />
 
-                    <button type="submit" disabled={authYukleniyor || !authEmail || !authSifre}
-                      className="w-full py-3 rounded-xl bg-[var(--color-brand-dark)] text-white text-sm font-bold hover:bg-[var(--color-brand-dark)]/90 shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                      {authYukleniyor ? <div className="w-4 h-4 border-2 border-white/30 border-t-[var(--color-brand-orange)] rounded-full animate-spin" /> : null}
-                      {authMod === 'giris' ? 'Giriş Yap' : 'Hesap Oluştur'}
-                    </button>
+                        {authMod === 'kayit' && (
+                          <input type="password" placeholder="Şifre (Tekrar)" value={authSifreTekrar} onChange={e => setAuthSifreTekrar(e.target.value)}
+                            className="bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5 rounded-xl text-[var(--color-brand-dark)] text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-[var(--color-brand-dark)]/30" />
+                        )}
 
-                    {authMod === 'kayit' && (
-                      <p className="text-[var(--color-brand-dark)]/40 text-[10px] text-center leading-relaxed">
-                        Kayıt olduktan sonra e-postanı doğrulamanı isteyebilir.
-                      </p>
+                        {authHata && <p className="text-red-500/80 text-[11px] px-1">{authHata}</p>}
+
+                        <button type="submit" disabled={authYukleniyor || !authEmail || !authSifre}
+                          className="w-full py-3 rounded-xl bg-[var(--color-brand-dark)] text-white text-sm font-bold hover:bg-[var(--color-brand-dark)]/90 shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                          {authYukleniyor ? <div className="w-4 h-4 border-2 border-white/30 border-t-[var(--color-brand-orange)] rounded-full animate-spin" /> : null}
+                          {authMod === 'giris' ? 'Giriş Yap' : 'Hesap Oluştur'}
+                        </button>
+                      </form>
+                    ) : (
+                      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="relative z-10 flex flex-col items-center">
+                        <h2 className="text-xl font-bold text-gray-900 tracking-tight mb-2 text-center">
+                          Hoş Geldin, {authAdSoyad.split(' ')[0]}!
+                        </h2>
+                        <p className="text-xs text-gray-500 mb-6 text-center">
+                          Profilini tamamlamak için harika bir avatar seç veya kendi fotoğrafını yükle.
+                        </p>
+
+                        <div className="relative w-28 h-28 mb-6 group">
+                          <div className="absolute inset-0 bg-gradient-to-tr from-[var(--color-brand-orange)] to-orange-300 rounded-full blur-xl opacity-30 group-hover:opacity-50 transition-opacity" />
+                          <div className="relative w-full h-full rounded-full border-4 border-white shadow-xl overflow-hidden bg-white">
+                            {avatarYukleniyor ? (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                                <div className="w-8 h-8 border-4 border-[var(--color-brand-orange)]/30 border-t-[var(--color-brand-orange)] rounded-full animate-spin" />
+                              </div>
+                            ) : (
+                              <img src={seciliAvatar} alt="Profil Avatar" className="w-full h-full object-cover" />
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3 w-full mb-6">
+                          <button onClick={rastgeleAvatarUret} disabled={avatarYukleniyor}
+                            className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                            <Sparkles className="w-4 h-4" /> Zar At
+                          </button>
+                          
+                          <label className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                            <Upload className="w-4 h-4" /> Yükle
+                            <input type="file" accept="image/*" className="hidden" onChange={avatarYukle} disabled={avatarYukleniyor} />
+                          </label>
+                        </div>
+
+                        <button onClick={avatarTamamla} disabled={avatarYukleniyor}
+                          className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[var(--color-brand-orange)] to-orange-500 text-white text-sm font-bold shadow-[0_8px_16px_-6px_rgba(255,77,0,0.4)] hover:shadow-[0_12px_20px_-6px_rgba(255,77,0,0.5)] transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5 active:translate-y-0">
+                          <Check className="w-5 h-5" /> Harika Görünüyor, Tamamla
+                        </button>
+                      </motion.div>
                     )}
-                  </form>
+                  </div>
                 </motion.div>
               </motion.div>
             )}

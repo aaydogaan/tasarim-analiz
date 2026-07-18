@@ -5,9 +5,14 @@ import { ArrowUpRight } from 'lucide-react';
 interface AnalizEtButtonProps {
     onClick: () => void;
     className?: string;
+    yukleniyor?: boolean;
+    metin?: string;
+    kullanici?: any;
+    authAc?: () => void;
+    disabled?: boolean;
 }
 
-export default function AnalizEtButton({ onClick, className = "" }: AnalizEtButtonProps) {
+export default function AnalizEtButton({ onClick, className = "", yukleniyor, metin, kullanici, authAc, disabled }: AnalizEtButtonProps) {
     const buttonRef = useRef<HTMLButtonElement>(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [isHovered, setIsHovered] = useState(false);
@@ -39,8 +44,10 @@ export default function AnalizEtButton({ onClick, className = "" }: AnalizEtButt
                 shadow-[0_20px_50px_rgba(255,77,0,0.3)]
                 transition-shadow duration-300 hover:shadow-[0_25px_60px_rgba(255,77,0,0.4)]
                 flex items-center gap-3 group
+                disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-[0_20px_50px_rgba(255,77,0,0.3)]
                 ${className}
             `}
+            disabled={disabled || yukleniyor}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ scale: 1.02 }}
@@ -70,16 +77,25 @@ export default function AnalizEtButton({ onClick, className = "" }: AnalizEtButt
                 }}
                 transition={{ type: "spring", stiffness: 150, damping: 15, mass: 0.1 }}
             >
-                <span>Analiz Et</span>
-                <motion.div
-                    animate={{
-                        rotate: isHovered ? 45 : 0,
-                        x: isHovered ? 2 : 0,
-                        y: isHovered ? -2 : 0
-                    }}
-                >
-                    <ArrowUpRight className="w-5 h-5" />
-                </motion.div>
+                {yukleniyor ? (
+                    <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Analiz Ediliyor...</span>
+                    </div>
+                ) : (
+                    <>
+                        <span>{metin || "Analiz Et"}</span>
+                        <motion.div
+                            animate={{
+                                rotate: isHovered ? 45 : 0,
+                                x: isHovered ? 2 : 0,
+                                y: isHovered ? -2 : 0
+                            }}
+                        >
+                            <ArrowUpRight className="w-5 h-5" />
+                        </motion.div>
+                    </>
+                )}
             </motion.div>
 
             {/* Shine Effect on Hover */}
