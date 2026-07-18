@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { LogOut, BarChart2, ChevronDown, Sun, Moon, User } from 'lucide-react';
+import { LogOut, BarChart2, ChevronDown, Sun, Moon, User, Menu, X } from 'lucide-react';
 import LiveActivityFeed from './LiveActivityFeed';
 import MagneticWrapper from './MagneticWrapper';
 
@@ -32,10 +32,21 @@ export default function Header({
     const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = React.useState(false);
     const [isToolsDropdownOpen, setIsToolsDropdownOpen] = React.useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
     const [supportsHover, setSupportsHover] = React.useState(false);
     const dropdownCloseTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
     const toolsCloseTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
     const profileCloseTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Prevent body scroll when mobile menu is open
+    React.useEffect(() => {
+        if (isMobileMenuOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => { document.body.style.overflow = 'unset'; }
+    }, [isMobileMenuOpen]);
 
     React.useEffect(() => {
         if (typeof window === 'undefined' || !window.matchMedia) return;
@@ -98,6 +109,7 @@ export default function Header({
     const handleNavClick = (view: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography', sectionId?: string) => {
         setIsDropdownOpen(false); // Close dropdown if it was open
         setIsToolsDropdownOpen(false); // Close tools dropdown
+        setIsMobileMenuOpen(false); // Close mobile menu
         if (gorunum !== view) {
             setGorunum(view);
             // Wait for render if moving to landing
@@ -117,14 +129,14 @@ export default function Header({
 
     return (
         <header className="absolute top-0 w-full z-[100] bg-[var(--bg-primary)]/80 backdrop-blur-xl border-b border-[var(--border-primary)] transition-all duration-300">
-            <nav className="w-full flex flex-col md:flex-row items-center justify-between px-6 md:px-16 py-3 md:py-4 gap-3 md:gap-0">
+            <nav className="w-full flex items-center justify-between px-5 md:px-16 py-3 md:py-4">
                 {/* Logo */}
-                <div className="cursor-pointer" onClick={goHome}>
+                <div className="cursor-pointer flex-shrink-0" onClick={goHome}>
                     <span className="text-2xl md:text-[32px] font-bold tracking-tight text-[var(--color-brand-orange)] font-display leading-none">Revizele.</span>
                 </div>
 
-                {/* Nav Links */}
-                <div className="flex flex-wrap justify-center items-center gap-4 md:gap-10 text-[12px] md:text-[13px] font-medium text-[var(--text-secondary)]">
+                {/* Desktop Nav Links */}
+                <div className="hidden md:flex flex-wrap justify-center items-center gap-4 md:gap-10 text-[12px] md:text-[13px] font-medium text-[var(--text-secondary)]">
                     <button
                         onClick={() => handleNavClick('landing')}
                         className={`transition-colors whitespace-nowrap ${gorunum === 'landing' ? 'text-[var(--text-primary)] font-bold' : 'hover:text-[var(--text-primary)]'}`}
@@ -248,16 +260,6 @@ export default function Header({
                         </motion.div>
                     </button>
 
-                    {gorunum !== 'app' && (
-                        <MagneticWrapper strength={25}>
-                            <button
-                                onClick={() => setGorunum('app')}
-                                className="hidden sm:block text-[var(--color-brand-orange)] font-bold text-[13px] hover:scale-105 transition-transform mr-2"
-                            >
-                                Yeni Analiz
-                            </button>
-                        </MagneticWrapper>
-                    )}
 
                     {kullanici ? (
                         <div
@@ -272,7 +274,7 @@ export default function Header({
                                 <div className="w-8 h-8 md:w-9 md:h-9 rounded-full border-2 border-[var(--color-brand-orange)]/30 overflow-hidden bg-gray-50 group-hover:border-[var(--color-brand-orange)] transition-colors">
                                     <img src={kullanici.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici.id}`} alt="Profil" className="w-full h-full object-cover" />
                                 </div>
-                                <ChevronDown className={`w-3.5 h-3.5 text-[var(--text-secondary)] transition-transform duration-200 ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
+                                <ChevronDown className={`hidden md:block w-3.5 h-3.5 text-[var(--text-secondary)] transition-transform duration-200 ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
                             </button>
 
                             <AnimatePresence>
@@ -320,17 +322,99 @@ export default function Header({
                             </AnimatePresence>
                         </div>
                     ) : (
-                        <MagneticWrapper strength={20} className="md:ml-4">
-                            <button
-                                onClick={onAuthClick}
-                                className="px-5 md:px-6 py-2 md:py-2.5 rounded-full text-[#ebebeb] text-[12px] md:text-[13px] font-medium transition-all hover:scale-105 bg-[#4A4A4A] hover:bg-[#333] shadow-sm tracking-wide"
-                            >
-                                Kayıt Ol
-                            </button>
-                        </MagneticWrapper>
+                        <button
+                            onClick={onAuthClick}
+                            className="ml-1 md:ml-4 px-4 md:px-6 py-1.5 md:py-2.5 rounded-full text-[#ebebeb] text-[12px] md:text-[13px] font-medium transition-all hover:scale-105 bg-[#4A4A4A] hover:bg-[#333] shadow-sm tracking-wide"
+                        >
+                            Kayıt Ol
+                        </button>
                     )}
+
+                    {/* Mobile Menu Toggle Button */}
+                    <button
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        className="md:hidden ml-2 p-1.5 rounded-xl text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-colors"
+                    >
+                        {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                    </button>
                 </div>
             </nav>
+
+            {/* Mobile Menu Overlay */}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: '100vh' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="md:hidden fixed inset-x-0 top-[60px] bg-[var(--bg-primary)] border-t border-[var(--border-primary)] overflow-y-auto"
+                    >
+                        <div className="flex flex-col px-6 py-8 gap-6 text-[15px] font-medium">
+                            <button
+                                onClick={() => handleNavClick('landing')}
+                                className={`text-left transition-colors ${gorunum === 'landing' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                            >
+                                Anasayfa
+                            </button>
+                            
+                            <div className="flex flex-col gap-3">
+                                <span className="text-[12px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Araçlar ✨</span>
+                                <button
+                                    onClick={() => handleNavClick('tools')}
+                                    className={`text-left pl-4 transition-colors ${gorunum === 'tools' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                                >
+                                    Renk Atölyesi
+                                </button>
+                                <button
+                                    onClick={() => handleNavClick('typography')}
+                                    className={`text-left pl-4 transition-colors ${gorunum === 'typography' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                                >
+                                    Tipografi Lab.
+                                </button>
+                            </div>
+
+                            <button
+                                onClick={() => handleNavClick('vitrin')}
+                                className={`text-left transition-colors ${gorunum === 'vitrin' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                            >
+                                Keşfet
+                            </button>
+
+                            <button
+                                onClick={() => handleNavClick('community')}
+                                className={`text-left transition-colors ${gorunum === 'community' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                            >
+                                Topluluk
+                            </button>
+
+                            <div className="flex flex-col gap-3">
+                                <span className="text-[12px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Hakkımızda</span>
+                                <button
+                                    onClick={() => handleNavClick('about')}
+                                    className={`text-left pl-4 transition-colors ${gorunum === 'about' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                                >
+                                    Proje Hakkında
+                                </button>
+                                <button
+                                    onClick={() => handleNavClick('pricing')}
+                                    className={`text-left pl-4 transition-colors ${gorunum === 'pricing' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                                >
+                                    Planlar (Pro)
+                                </button>
+                            </div>
+
+                            {gorunum !== 'app' && (
+                                <button
+                                    onClick={() => setGorunum('app')}
+                                    className="mt-4 w-full bg-[var(--color-brand-orange)] text-white py-3 rounded-2xl font-bold text-center"
+                                >
+                                    Yeni Analiz Başlat
+                                </button>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </header>
     );
 
