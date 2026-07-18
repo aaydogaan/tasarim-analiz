@@ -5,8 +5,8 @@ import LiveActivityFeed from './LiveActivityFeed';
 import MagneticWrapper from './MagneticWrapper';
 
 interface HeaderProps {
-    gorunum: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography';
-    setGorunum: (v: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography') => void;
+    gorunum: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography' | 'profile';
+    setGorunum: (v: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography' | 'profile') => void;
     kullanici: any;
     onStatsClick: () => void;
     onLogoutClick: () => void;
@@ -128,7 +128,7 @@ export default function Header({
     };
 
     return (
-        <header className="absolute top-0 w-full z-[100] bg-[var(--bg-primary)]/80 backdrop-blur-xl border-b border-[var(--border-primary)] transition-all duration-300">
+        <header className="fixed top-0 w-full z-[200] bg-[var(--bg-primary)]/80 backdrop-blur-xl border-b border-[var(--border-primary)] transition-all duration-300">
             <nav className="w-full flex items-center justify-between px-5 md:px-16 py-3 md:py-4">
                 {/* Logo */}
                 <div className="cursor-pointer flex-shrink-0" onClick={goHome}>
