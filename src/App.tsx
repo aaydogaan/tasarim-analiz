@@ -893,16 +893,113 @@ export default function App() {
 
                 {/* Dashboard Scrollable Content */}
                 <div className="flex-1 p-6 md:p-8 lg:p-10 space-y-6 max-w-[1600px] w-full mx-auto pb-24">
-                  {dashboardTab !== 'genel' ? (
-                    <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center bg-[var(--card-bg)] rounded-2xl border border-[var(--border-primary)] shadow-sm p-8">
-                      <div className="w-16 h-16 bg-[var(--bg-primary)] rounded-full flex items-center justify-center mb-4">
-                        <Sparkles className="w-8 h-8 text-[var(--text-secondary)]" />
+                  {dashboardTab === 'analizlerim' ? (
+                    <div className="flex flex-col h-full min-h-[400px] bg-[var(--card-bg)] rounded-2xl border border-[var(--border-primary)] shadow-sm overflow-hidden">
+                      <div className="p-6 border-b border-[var(--border-primary)] flex items-center justify-between">
+                        <div>
+                          <h2 className="text-xl font-bold text-[var(--text-primary)]">Analizlerim</h2>
+                          <p className="text-sm text-[var(--text-secondary)]">Geçmişte yaptığınız tüm tasarım analizleri.</p>
+                        </div>
                       </div>
-                      <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">Bu bölüm henüz hazır değil</h2>
-                      <p className="text-[var(--text-secondary)] max-w-md">Çok yakında "{dashboardTab.charAt(0).toUpperCase() + dashboardTab.slice(1)}" özelliği burada olacak. Lütfen şimdilik "Genel Bakış" sekmesinden analizlerinize devam edin.</p>
-                      <button onClick={() => setDashboardTab('genel')} className="mt-6 px-6 py-2.5 bg-[#FF5500] text-white rounded-lg font-semibold hover:bg-[#e64d00] transition-colors shadow-md shadow-[#FF5500]/20">
-                        Genel Bakış'a Dön
-                      </button>
+                      <div className="p-8 flex flex-col items-center justify-center flex-1 text-center bg-slate-50/50">
+                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 border border-slate-200 shadow-sm">
+                          <Layers className="w-8 h-8 text-slate-400" />
+                        </div>
+                        <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2">Henüz analiz bulunmuyor</h3>
+                        <p className="text-[var(--text-secondary)] max-w-md mb-6">İlk tasarımınızı analiz ederek burayı doldurmaya başlayabilirsiniz. Yaptığınız tüm analizler burada listelenecektir.</p>
+                        <button onClick={() => setDashboardTab('genel')} className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-colors shadow-md shadow-slate-900/10 flex items-center gap-2">
+                          <Plus className="w-4 h-4" /> Yeni Analiz Başlat
+                        </button>
+                      </div>
+                    </div>
+                  ) : dashboardTab === 'raporlar' ? (
+                    <div className="flex flex-col h-full min-h-[400px] bg-[var(--card-bg)] rounded-2xl border border-[var(--border-primary)] shadow-sm overflow-hidden">
+                      <div className="p-6 border-b border-[var(--border-primary)] flex items-center justify-between">
+                        <div>
+                          <h2 className="text-xl font-bold text-[var(--text-primary)]">Raporlar</h2>
+                          <p className="text-sm text-[var(--text-secondary)]">PDF formatında dışa aktardığınız profesyonel raporlar.</p>
+                        </div>
+                      </div>
+                      <div className="p-8 flex flex-col items-center justify-center flex-1 text-center bg-slate-50/50">
+                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 border border-slate-200 shadow-sm">
+                          <FileText className="w-8 h-8 text-slate-400" />
+                        </div>
+                        <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2">PDF Raporu Bulunamadı</h3>
+                        <p className="text-[var(--text-secondary)] max-w-md mb-6">Bir analizi tamamladıktan sonra "PDF İndir" butonuna tıklayarak ilk profesyonel raporunuzu oluşturabilirsiniz.</p>
+                        <button onClick={() => setDashboardTab('genel')} className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-colors shadow-md shadow-slate-900/10 flex items-center gap-2">
+                           Analiz Sayfasına Git <ArrowUpRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : dashboardTab === 'gecmis' ? (
+                    <div className="flex flex-col h-full min-h-[400px] bg-[var(--card-bg)] rounded-2xl border border-[var(--border-primary)] shadow-sm overflow-hidden">
+                      <div className="p-6 border-b border-[var(--border-primary)] flex items-center justify-between">
+                        <div>
+                          <h2 className="text-xl font-bold text-[var(--text-primary)]">Hareket Geçmişi</h2>
+                          <p className="text-sm text-[var(--text-secondary)]">Hesabınızdaki tüm aktiviteler ve kredi kullanımları.</p>
+                        </div>
+                      </div>
+                      <div className="p-8 flex flex-col items-center justify-center flex-1 text-center bg-slate-50/50">
+                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 border border-slate-200 shadow-sm">
+                          <Clock className="w-8 h-8 text-slate-400" />
+                        </div>
+                        <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2">Aktivite Yok</h3>
+                        <p className="text-[var(--text-secondary)] max-w-md">Şu an için gösterilecek bir hesap aktivitesi bulunmuyor.</p>
+                      </div>
+                    </div>
+                  ) : dashboardTab === 'tercihler' ? (
+                    <div className="flex flex-col h-full min-h-[400px] bg-[var(--card-bg)] rounded-2xl border border-[var(--border-primary)] shadow-sm overflow-hidden">
+                      <div className="p-6 border-b border-[var(--border-primary)] flex items-center justify-between">
+                        <div>
+                          <h2 className="text-xl font-bold text-[var(--text-primary)]">Tercihler</h2>
+                          <p className="text-sm text-[var(--text-secondary)]">Hesap ve uygulama ayarlarınızı yönetin.</p>
+                        </div>
+                      </div>
+                      <div className="p-8 max-w-2xl">
+                        <div className="space-y-6">
+                          <div>
+                            <h3 className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider">Profil Ayarları</h3>
+                            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                  <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center border border-slate-200">
+                                    <User className="w-6 h-6 text-slate-400" />
+                                  </div>
+                                  <div>
+                                    <p className="font-bold text-[var(--text-primary)] text-lg">{kullanici ? kullanici.email : 'Misafir Kullanıcı'}</p>
+                                    <p className="text-sm text-emerald-600 font-medium">Ücretsiz Plan</p>
+                                  </div>
+                                </div>
+                                <button className="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors">Düzenle</button>
+                              </div>
+                            </div>
+                          </div>
+                          <div>
+                            <h3 className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider">Bildirimler</h3>
+                            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="font-bold text-[var(--text-primary)]">E-posta Bildirimleri</p>
+                                  <p className="text-sm text-[var(--text-secondary)]">Yeni özellikler ve güncellemeler hakkında e-posta alın.</p>
+                                </div>
+                                <div className="w-12 h-7 bg-[#FF5500] rounded-full relative cursor-pointer shadow-inner">
+                                  <div className="absolute right-1 top-1 bottom-1 w-5 bg-white rounded-full shadow-sm" />
+                                </div>
+                              </div>
+                              <div className="h-px w-full bg-slate-100" />
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="font-bold text-[var(--text-primary)]">Haftalık Rapor</p>
+                                  <p className="text-sm text-[var(--text-secondary)]">Analiz istatistiklerinizin haftalık özetini alın.</p>
+                                </div>
+                                <div className="w-12 h-7 bg-slate-200 rounded-full relative cursor-pointer shadow-inner">
+                                  <div className="absolute left-1 top-1 bottom-1 w-5 bg-white rounded-full shadow-sm" />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ) : adim < 3 ? (
                     <>
@@ -1150,99 +1247,6 @@ export default function App() {
                             </div>
                           </div>
 
-                          {/* Meta Ads Preview Card - Ultra Premium Sidebar Version */}
-                          <div className="relative group mt-4 overflow-hidden rounded-[24px] cursor-not-allowed transform transition-all duration-500 hover:scale-[1.02]">
-                            {/* Animated Gradient Border */}
-                            <div className="absolute -inset-[2px] bg-gradient-to-r from-[#1877F2] via-[#0064E0] to-[#1877F2] rounded-[26px] opacity-20 group-hover:opacity-100 animate-gradient-x blur-[1px] transition-opacity duration-500"></div>
-                            
-                            {/* Inner Background with strong blur */}
-                            <div className="relative bg-[var(--card-bg)]/80 backdrop-blur-2xl rounded-[24px] p-6 flex flex-col h-full border border-white/20">
-                              
-                              {/* Glossy Streak Animation */}
-                              <motion.div 
-                                animate={{ left: ["-100%", "200%"] }}
-                                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", repeatDelay: 4 }}
-                                className="absolute top-0 bottom-0 w-16 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] pointer-events-none z-20"
-                              />
-
-                              <div className="flex items-center justify-between mb-5">
-                                <div className="flex items-center gap-3">
-                                  <div className="relative">
-                                    <div className="absolute -inset-2 bg-[#1877F2]/30 blur-xl rounded-full animate-pulse"></div>
-                                    <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-[#1877F2] to-[#0064E0] flex items-center justify-center shadow-lg shadow-[#1877F2]/40 border border-white/20">
-                                      <Globe className="w-5 h-5 text-white animate-spin-slow" />
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <h5 className="text-[var(--text-primary)] font-black text-xs uppercase tracking-wider">Meta Ads AI</h5>
-                                    <div className="flex items-center gap-1.5 mt-0.5">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-[#1877F2] animate-ping"></span>
-                                      <p className="text-[9px] text-[#1877F2] font-black uppercase tracking-[0.1em]">Özel Model</p>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="bg-[#1877F2] text-white text-[8px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest shadow-lg shadow-[#1877F2]/30 animate-bounce">
-                                  Yakında
-                                </div>
-                              </div>
-                              
-                              <p className="text-[var(--text-primary)] text-[11px] font-bold leading-relaxed mb-6">
-                                Reklam görsellerinizin <span className="text-[#1877F2] underline decoration-2 underline-offset-2">satış gücünü</span> saniyeler içinde simüle edin.
-                              </p>
-
-                              <div className="space-y-3.5 relative">
-                                <div className="flex items-center justify-between p-3 rounded-2xl bg-white/40 border border-white/40 shadow-sm opacity-60 group-hover:opacity-80 transition-opacity">
-                                  <div className="flex flex-col gap-1">
-                                    <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-tighter">Dönüşüm Olasılığı</span>
-                                    <div className="flex items-center gap-1">
-                                      <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                        <motion.div 
-                                          animate={{ width: ["0%", "85%"] }}
-                                          transition={{ duration: 2, repeat: Infinity, repeatDelay: 5 }}
-                                          className="h-full bg-gradient-to-r from-[#1877F2] to-[#0064E0]"
-                                        />
-                                      </div>
-                                      <span className="text-[9px] font-bold text-[#1877F2]">--%</span>
-                                    </div>
-                                  </div>
-                                  <Sparkles className="w-4 h-4 text-[#1877F2]/40" />
-                                </div>
-                                
-                                <div className="flex items-center justify-between p-3 rounded-2xl bg-white/40 border border-white/40 shadow-sm opacity-60 group-hover:opacity-80 transition-opacity">
-                                  <div className="flex flex-col gap-1">
-                                    <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-tighter">CTA (Eylem) Etkisi</span>
-                                    <div className="flex items-center gap-1">
-                                      <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                        <motion.div 
-                                          animate={{ width: ["0%", "72%"] }}
-                                          transition={{ duration: 2, repeat: Infinity, repeatDelay: 5, delay: 0.5 }}
-                                          className="h-full bg-gradient-to-r from-[#1877F2] to-[#0064E0]"
-                                        />
-                                      </div>
-                                      <span className="text-[9px] font-bold text-[#1877F2]">--%</span>
-                                    </div>
-                                  </div>
-                                  <Target className="w-4 h-4 text-[#1877F2]/40" />
-                                </div>
-                              </div>
-
-                              <div className="mt-8 pt-5 border-t border-[#1877F2]/10 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <div className="flex -space-x-2">
-                                    {[1,2,3,4].map(i => (
-                                      <div key={i} className="w-6 h-6 rounded-full border-2 border-[var(--card-bg)] bg-slate-200 overflow-hidden shadow-sm">
-                                        <img src={`https://i.pravatar.cc/100?u=${i+20}`} className="w-full h-full object-cover" />
-                                      </div>
-                                    ))}
-                                  </div>
-                                  <span className="text-[9px] font-black text-[#1877F2] bg-[#1877F2]/10 px-2 py-0.5 rounded-full">BETA</span>
-                                </div>
-                                <div className="flex flex-col items-end">
-                                  <span className="text-[10px] font-black text-[var(--text-primary)]">420+</span>
-                                  <span className="text-[8px] font-bold text-[var(--text-secondary)]">Kişi Bekliyor</span>
-                                </div>
-                              </div>
-                            </div>
                           </div>
                         </div>
                       </div>
