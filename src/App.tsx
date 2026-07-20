@@ -1627,71 +1627,49 @@ export default function App() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[70] flex flex-col items-center justify-center p-4 bg-slate-900/90 backdrop-blur-md"
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="fixed inset-0 z-[70] flex flex-col items-center justify-center p-4 bg-[#0a0a0a]/85 backdrop-blur-2xl"
               >
-                {/* AI Beyin / Tarama Animasyonu */}
-                <div className="relative mb-12">
+                {/* Sleek Minimalist Spinner */}
+                <div className="relative flex items-center justify-center mb-8">
                   <motion.div
-                    animate={{
-                      rotate: 360,
-                    }}
-                    transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-[-20px] rounded-full border border-dashed border-[#FF5500]/30"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+                    className="w-14 h-14 rounded-full border-[2px] border-white/10 border-t-white"
                   />
+                  {/* Subtle inner pulse to make it feel premium */}
                   <motion.div
-                    animate={{
-                      scale: [1, 1.05, 1],
-                      boxShadow: [
-                        "0 0 40px rgba(255, 85, 0, 0.2)",
-                        "0 0 80px rgba(255, 85, 0, 0.4)",
-                        "0 0 40px rgba(255, 85, 0, 0.2)"
-                      ]
-                    }}
+                    animate={{ scale: [0.8, 1.2, 0.8], opacity: [0.3, 0.8, 0.3] }}
                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    className="w-40 h-40 rounded-full border border-[#FF5500]/50 flex items-center justify-center bg-slate-800 shadow-2xl relative z-10"
-                  >
-                    <div className="absolute inset-2 rounded-full border border-[#FF5500]/20 animate-pulse" />
-                    <BrainCircuit className="w-16 h-16 text-[#FF5500]" />
-                  </motion.div>
+                    className="absolute w-4 h-4 bg-white/20 rounded-full blur-sm"
+                  />
                 </div>
 
-                {/* Başlık */}
-                <div className="space-y-4 text-center px-6">
-                  <h2 className="text-3xl font-black text-white tracking-tight">
-                    Zeka <span className="text-[#FF5500]">Taraması Başladı</span>
+                {/* Başlık ve Açıklama */}
+                <div className="space-y-3 text-center px-6">
+                  <h2 className="text-2xl md:text-3xl font-medium text-white tracking-tight">
+                    Tasarımınız İnceleniyor
                   </h2>
-                  <p className="text-slate-300 text-sm font-medium max-w-xs mx-auto">
-                    Tasarımınızın her pikselini profesyonel kriterlere göre analiz ediyoruz.
+                  <p className="text-white/50 text-sm md:text-base max-w-sm mx-auto font-light leading-relaxed">
+                    Renk hiyerarşisi, tipografi seçimleri, kompozisyon ve marka bütünlüğü profesyonel kriterlere göre değerlendiriliyor.
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3 my-10">
-                  <motion.div
-                    animate={{ x: [-10, 10, -10] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="h-1 w-24 bg-gradient-to-r from-transparent via-[#FF5500] to-transparent rounded-full opacity-50"
-                  />
-                </div>
-
-                {/* Dinamik İpuçları (Karusel) */}
-                <div className="h-24 w-full max-w-lg flex items-center justify-center overflow-hidden relative border border-[var(--color-brand-dark)]/5 bg-white rounded-3xl p-6 shadow-sm">
+                {/* Dinamik İpuçları (Sleek Carousel) */}
+                <div className="mt-16 h-12 w-full max-w-md overflow-hidden relative flex items-center justify-center">
                   <AnimatePresence mode="wait">
                     <motion.p
                       key={loadingTipIndex}
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -15 }}
-                      transition={{ duration: 0.5 }}
-                      className="text-[var(--color-brand-dark)]/60 text-sm md:text-base text-center leading-relaxed font-medium absolute w-full px-6"
+                      transition={{ duration: 0.5, ease: "easeInOut" }}
+                      className="text-white/40 text-xs md:text-sm text-center font-normal absolute w-full px-6"
                     >
                       {KARUSEL_IPUCLARI[loadingTipIndex]}
                     </motion.p>
                   </AnimatePresence>
                 </div>
-
-                <p className="fixed bottom-10 text-[var(--color-brand-dark)]/40 text-xs font-bold tracking-widest uppercase">
-                  Bu işlem birkaç saniye sürebilir
-                </p>
               </motion.div>
             )}
           </AnimatePresence>
