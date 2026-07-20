@@ -133,7 +133,7 @@ JSON Formatı Şablonu:
 
   try {
     let rawText = '';
-    let secilenModel = 'gemini-3.5-flash';
+    let secilenModel = 'gemini-1.5-flash';
 
     try {
       const response = await ai.models.generateContent({
@@ -156,8 +156,8 @@ JSON Formatı Şablonu:
 
       rawText = response.text || '';
     } catch (modErr: any) {
-      console.warn(`Model [${secilenModel}] hatası:`, modErr?.message);
-      throw new Error("Sunucularımız (Yapay Zeka) şu anda aşırı yoğun. Lütfen 1 dakika sonra tekrar deneyin.");
+      console.error(`Model [${secilenModel}] hatası:`, modErr);
+      return res.status(500).json({ error: `Yapay Zeka API Hatası: ${modErr?.message || 'Bilinmeyen hata'}` });
     }
 
     if (!rawText.trim()) {
