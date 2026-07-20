@@ -11,6 +11,8 @@ export const config = {
   },
 };
 
+export const maxDuration = 60; // Vercel hobby plan maximum timeout
+
 type TasarimTuru = "Sosyal Medya" | "Kurumsal" | "E-Ticaret" | "Baskı Materyali";
 
 type AnalyzeRequestBody = {
