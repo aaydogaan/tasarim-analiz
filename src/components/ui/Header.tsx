@@ -1,34 +1,27 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { LogOut, BarChart2, ChevronDown, Sun, Moon, User, Menu, X } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import LiveActivityFeed from './LiveActivityFeed';
 import MagneticWrapper from './MagneticWrapper';
 
 interface HeaderProps {
-    gorunum: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography' | 'profile';
-    setGorunum: (v: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography' | 'profile') => void;
     kullanici: any;
     onStatsClick: () => void;
     onLogoutClick: () => void;
     onAuthClick: () => void;
-    onProfileClick: () => void;
-    goHome: () => void;
-    darkMode: boolean;
-    setDarkMode: (d: boolean) => void;
 }
 
 export default function Header({
-    gorunum,
-    setGorunum,
     kullanici,
     onStatsClick,
     onLogoutClick,
-    onAuthClick,
-    onProfileClick,
-    goHome,
-    darkMode,
-    setDarkMode
+    onAuthClick
 }: HeaderProps) {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const gorunum = location.pathname.substring(1) || 'landing';
     const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = React.useState(false);
     const [isToolsDropdownOpen, setIsToolsDropdownOpen] = React.useState(false);
@@ -106,25 +99,22 @@ export default function Header({
         }, 160);
     }, []);
 
-    const handleNavClick = (view: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography', sectionId?: string) => {
-        setIsDropdownOpen(false); // Close dropdown if it was open
-        setIsToolsDropdownOpen(false); // Close tools dropdown
-        setIsMobileMenuOpen(false); // Close mobile menu
+    const handleNavClick = (view: string) => {
         if (gorunum !== view) {
-            setGorunum(view);
-            // Wait for render if moving to landing
-            if (sectionId) {
-                setTimeout(() => {
-                    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
-                }, 100);
-            } else {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        } else if (sectionId) {
-            document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+            setIsMobileMenuOpen(false);
+            setIsToolsDropdownOpen(false);
+            setIsDropdownOpen(false);
+            const path = view === 'landing' ? '/' : `/${view}`;
+            navigate(path);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+    };
+
+    const goHome = () => {
+        navigate('/');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     return (
@@ -132,7 +122,11 @@ export default function Header({
             <nav className="w-full flex items-center justify-between px-5 md:px-16 py-3 md:py-4">
                 {/* Logo */}
                 <div className="cursor-pointer flex-shrink-0" onClick={goHome}>
-                    <span className="text-2xl md:text-[32px] font-bold tracking-tight text-[var(--color-brand-orange)] font-display leading-none">Revizele.</span>
+                    <img
+                        src="/Revizelesene-logo.png"
+                        alt="Revizele"
+                        className="h-8 md:h-9 w-auto object-contain"
+                    />
                 </div>
 
                 {/* Desktop Nav Links */}
@@ -239,27 +233,6 @@ export default function Header({
                 {/* Right Side Actions */}
                 <div className="flex items-center gap-3">
                     {/* Dark Mode Toggle */}
-                    <button
-                        onClick={() => setDarkMode(!darkMode)}
-                        className="p-2 rounded-xl hover:bg-[var(--bg-secondary)] transition-all active:scale-95 group relative mb-0.5"
-                        aria-label="Karanlık Modu Değiştir"
-                    >
-                        <motion.div
-                            animate={{ rotate: darkMode ? 0 : 90, scale: darkMode ? 0 : 1 }}
-                            className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                            transition={{ duration: 0.3 }}
-                        >
-                            <Sun className="w-[18px] h-[18px] text-amber-500" />
-                        </motion.div>
-                        <motion.div
-                            animate={{ rotate: darkMode ? 0 : -90, scale: darkMode ? 1 : 0 }}
-                            className="flex items-center justify-center p-0.5"
-                            transition={{ duration: 0.3 }}
-                        >
-                            <Moon className="w-[18px] h-[18px] text-[var(--color-brand-orange)]" />
-                        </motion.div>
-                    </button>
-
 
                     {kullanici ? (
                         <div
@@ -292,8 +265,8 @@ export default function Header({
                                         </div>
                                         <button
                                             onClick={() => {
-                                                setIsProfileDropdownOpen(false);
-                                                onProfileClick();
+                                            setIsProfileDropdownOpen(false);
+                                                handleNavClick('profile');
                                             }}
                                             className="w-full text-left px-4 py-2 text-[13px] font-medium text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] hover:bg-[var(--bg-secondary)] transition-colors flex items-center gap-2"
                                         >
@@ -329,7 +302,7 @@ export default function Header({
                                 console.log("Kayıt Ol Butonuna Tıklandı!");
                                 onAuthClick();
                             }}
-                            className="ml-1 md:ml-4 px-4 md:px-6 py-1.5 md:py-2.5 rounded-full text-white text-[12px] md:text-[13px] font-medium bg-[#4A4A4A]"
+                            className="ml-1 md:ml-4 px-4 md:px-6 py-1.5 md:py-2.5 rounded-full text-white text-[12px] md:text-[13px] font-medium bg-[#4A4A4A] whitespace-nowrap flex-shrink-0"
                         >
                             Kayıt Ol
                         </button>
@@ -350,7 +323,7 @@ export default function Header({
                 {isMobileMenuOpen && (
                     <motion.div
                         initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: '100vh' }}
+                        animate={{ opacity: 1, height: 'calc(100vh - 60px)' }}
                         exit={{ opacity: 0, height: 0 }}
                         className="md:hidden fixed inset-x-0 top-[60px] bg-[var(--bg-primary)] border-t border-[var(--border-primary)] overflow-y-auto"
                     >
@@ -410,7 +383,7 @@ export default function Header({
 
                             {gorunum !== 'app' && (
                                 <button
-                                    onClick={() => setGorunum('app')}
+                                    onClick={() => handleNavClick('app')}
                                     className="mt-4 w-full bg-[var(--color-brand-orange)] text-white py-3 rounded-2xl font-bold text-center"
                                 >
                                     Yeni Analiz Başlat

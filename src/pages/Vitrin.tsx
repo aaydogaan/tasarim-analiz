@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { supabase } from "../lib/supabase";
 import { Heart, Maximize2, X, Star } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface VitrinItem {
     id: string;
@@ -62,7 +63,7 @@ export function Vitrin() {
     };
 
     const vote = async (analiz_id: string, puan: number) => {
-        if (!user) return alert("Puan vermek için giriş yapmalısınız.");
+        if (!user) return toast.error("Puan vermek için giriş yapmalısınız.");
 
         // Check if voted already
         const { data: existing } = await supabase
@@ -73,7 +74,7 @@ export function Vitrin() {
             .single();
 
         if (existing) {
-            alert("Bu tasarıma zaten puan verdiniz.");
+            toast.error("Bu tasarıma zaten puan verdiniz.");
             return;
         }
 

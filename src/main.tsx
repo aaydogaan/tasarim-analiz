@@ -1,12 +1,19 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import App from './App.tsx';
 import './styles/index.css';
 
+import { ErrorBoundary } from './components/ErrorBoundary.tsx';
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
-    <Analytics />
+    <ErrorBoundary>
+      <BrowserRouter>
+        <App />
+        <Analytics />
+      </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>,
 );

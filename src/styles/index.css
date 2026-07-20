@@ -19,16 +19,7 @@
   --grid-color: rgba(0, 0, 0, 0.04);
 }
 
-[data-theme='dark'] {
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #111111;
-  --text-primary: #ffffff;
-  --text-secondary: #999999;
-  --border-primary: rgba(255, 255, 255, 0.1);
-  --header-bg: rgba(10, 10, 10, 0.8);
-  --card-bg: #161616;
-  --grid-color: rgba(255, 255, 255, 0.05);
-}
+
 
 @theme {
   --color-brand-orange: #ff4d00;

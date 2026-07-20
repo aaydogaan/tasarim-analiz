@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import Lenis from 'lenis';
 import { motion, AnimatePresence } from "motion/react";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import toast, { Toaster } from "react-hot-toast";
 import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check, AlertCircle, Globe, BrainCircuit, ArrowUpRight, Layers, Code, Scan, Download, ExternalLink, BookOpen, Link as LinkIcon, FileText, Clock, Settings, Home, Plus, Target } from "lucide-react";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -222,7 +224,9 @@ export default function App() {
   }
 
   const [adim, setAdim] = useState(initAdim);
-  const [gorunum, setGorunum] = useState<'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography' | 'profile'>(() => getSessionData('ra_gorunum', 'landing'));
+  const navigate = useNavigate();
+  const location = useLocation();
+  const gorunum = location.pathname.substring(1) || 'landing';
   const [gorsel, setGorsel] = useState<string | null>(initGorsel);
   const [gorselBase64, setGorselBase64] = useState<string | null>(initGorselBase64);
   const [imageUrl, setImageUrl] = useState<string>("");
@@ -236,15 +240,7 @@ export default function App() {
   const [yukleniyor, setYukleniyor] = useState(false);
   const [revizeYukleniyor, setRevizeYukleniyor] = useState(false);
   const [sonuc, setSonuc] = useState<any>(() => getSessionData('ra_sonuc', null));
-  const [darkMode, setDarkMode] = useState<boolean>(() => {
-    const saved = localStorage.getItem('ra_darkMode');
-    return saved ? saved === 'true' : false;
-  });
-
-  useEffect(() => {
-    localStorage.setItem('ra_darkMode', darkMode.toString());
-    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
-  }, [darkMode]);
+  // Dark mode kaldırıldı
 
   const kriterler = kriterlerMap[tasarimTuru];
   const [hata, setHata] = useState<string | null>(null);
@@ -412,7 +408,7 @@ export default function App() {
       setSeciliAvatar(avatarUrl);
     } catch (err: any) {
       console.error('Yükleme hatası:', err);
-      alert('Avatar yüklenirken bir hata oluştu: ' + err.message);
+      toast.error('Avatar yüklenirken bir hata oluştu: ' + err.message);
     } finally {
       setAvatarYukleniyor(false);
     }
@@ -426,7 +422,7 @@ export default function App() {
       });
       setAuthAcik(false);
     } catch (err: any) {
-      alert('Avatar kaydedilirken hata: ' + err.message);
+      toast.error('Avatar kaydedilirken hata: ' + err.message);
     } finally {
       setAvatarYukleniyor(false);
     }
@@ -484,7 +480,7 @@ export default function App() {
       pdf.save(`revize-ai-analiz-${sonuc?.markaAdi || 'tasarim'}.pdf`);
     } catch (err) {
       console.error('PDF Hatası:', err);
-      alert('PDF oluşturulamadı. Lütfen tekrar deneyin.');
+      toast.error('PDF oluşturulamadı. Lütfen tekrar deneyin.');
     }
     setYukleniyor(false);
   };
@@ -504,7 +500,7 @@ export default function App() {
       return true;
     } else {
       console.error(error);
-      alert('Yayınlanırken bir hata oluştu: ' + error.message);
+      toast.error('Yayınlanırken bir hata oluştu: ' + error.message);
       return false;
     }
   };
@@ -513,40 +509,20 @@ export default function App() {
   useEffect(() => {
     try {
       sessionStorage.setItem('ra_adim', JSON.stringify(adim));
-      sessionStorage.setItem('ra_gorsel', JSON.stringify(gorsel));
-      sessionStorage.setItem('ra_gorselBase64', JSON.stringify(gorselBase64));
-      sessionStorage.setItem('ra_revizeGorsel', JSON.stringify(revizeGorsel));
+      if (gorsel) sessionStorage.setItem('ra_gorsel', JSON.stringify(gorsel));
+      if (gorselBase64) sessionStorage.setItem('ra_gorselBase64', JSON.stringify(gorselBase64));
+      if (revizeGorsel) sessionStorage.setItem('ra_revizeGorsel', JSON.stringify(revizeGorsel));
       sessionStorage.setItem('ra_tasarimTuru', JSON.stringify(tasarimTuru));
       sessionStorage.setItem('ra_platform', JSON.stringify(platform));
       sessionStorage.setItem('ra_isletme', JSON.stringify(isletme));
       sessionStorage.setItem('ra_digerIsletme', JSON.stringify(digerIsletme));
       sessionStorage.setItem('ra_sorular', JSON.stringify(sorular));
-      sessionStorage.setItem('ra_sonuc', JSON.stringify(sonuc));
-      sessionStorage.setItem('ra_gorunum', JSON.stringify(gorunum));
+      if (sonuc) sessionStorage.setItem('ra_sonuc', JSON.stringify(sonuc));
+      if (gorunum) sessionStorage.setItem('ra_gorunum', JSON.stringify(gorunum));
     } catch (e) {
       console.warn("SessionStorage aşıldı.", e);
     }
-    
-    // Sync URL with gorunum
-    if (gorunum === 'landing') {
-      window.history.replaceState({}, '', '/');
-    } else {
-      window.history.replaceState({}, '', `/${gorunum === 'profile' ? 'profilim' : gorunum}`);
-    }
   }, [adim, gorsel, gorselBase64, revizeGorsel, tasarimTuru, platform, isletme, digerIsletme, sorular, sonuc, gorunum]);
-
-  // Handle Initial Route from URL
-  useEffect(() => {
-    const path = window.location.pathname.replace(/^\//, '');
-    if (path === 'profilim') setGorunum('profile');
-    else if (path === 'vitrin') setGorunum('vitrin');
-    else if (path === 'topluluk' || path === 'community') setGorunum('community');
-    else if (path === 'fiyatlandirma' || path === 'pricing') setGorunum('pricing');
-    else if (path === 'hakkimizda' || path === 'about') setGorunum('about');
-    else if (path === 'araclar' || path === 'tools') setGorunum('tools');
-    else if (path === 'tipografi' || path === 'typography') setGorunum('typography');
-    else if (path === 'app') setGorunum('app');
-  }, []);
 
   const handleLink = (url: string) => {
     if (!url) return;
@@ -595,11 +571,9 @@ export default function App() {
         const ctx = canvas.getContext("2d");
         ctx?.drawImage(img, 0, 0, width, height);
 
-        // %80 kalite ile WebP'ye dönüştür, devasa yer tasarrufu sağlar
-        const webpDataUrl = canvas.toDataURL("image/webp", 0.85);
-
-        setGorsel(webpDataUrl);
-        setGorselBase64(webpDataUrl.split(",")[1]);
+        const jpegDataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        setGorsel(jpegDataUrl);
+        setGorselBase64(jpegDataUrl.split(",")[1]);
         setYukleniyor(false);
         setAdim(2);
       };
@@ -617,7 +591,7 @@ export default function App() {
   };
 
   const analiz = () => {
-    if (!gorselBase64 && !imageUrl) return;
+    if (!gorsel && !imageUrl && !gorselBase64) return;
     if (!kullanici) {
       setAuthUyariAcik(true);
       return;
@@ -637,8 +611,8 @@ export default function App() {
           ...(gecerliToken ? { "Authorization": `Bearer ${gecerliToken}` } : {})
         },
         body: JSON.stringify({
-          imageBase64: uploadMod === 'dosya' ? gorselBase64 : undefined,
-          imageUrl: uploadMod === 'link' ? imageUrl : undefined,
+          imageBase64: gorselBase64 || undefined,
+          imageUrl: imageUrl || gorsel || undefined,
           isletme: isletme === "Diğer" ? (digerIsletme || "Bilinmiyor") : isletme,
           tasarimTuru,
           platform: tasarimTuru === "Sosyal Medya" ? platform : undefined,
@@ -738,7 +712,7 @@ export default function App() {
   };
 
   const goHome = () => {
-    setGorunum('landing');
+    navigate('/');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -753,61 +727,66 @@ export default function App() {
       )}
 
       <Header
-        gorunum={gorunum}
-        setGorunum={setGorunum}
         kullanici={kullanici}
         onStatsClick={statsAc}
         onLogoutClick={cikisYap}
         onAuthClick={() => setAuthAcik(true)}
-        onProfileClick={() => setGorunum('profile')}
-        goHome={goHome}
-        darkMode={darkMode}
-        setDarkMode={setDarkMode}
       />
 
-      {gorunum === 'landing' ? (
-        <LandingPage
-          onStart={() => setGorunum('app')}
-          onVitrinClick={() => {
-            setGorunum('vitrin');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-          onCommunityClick={() => {
-            setGorunum('community');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-        />
-      ) : gorunum === 'vitrin' ? (
-        <main className="flex-1 w-full max-w-screen-2xl mx-auto px-4 mt-20">
-          <Vitrin />
-        </main>
-      ) : gorunum === 'community' ? (
-        <main className="flex-1 w-full mt-20">
-          <Community />
-        </main>
-      ) : gorunum === 'pricing' ? (
-        <main className="flex-1 w-full mt-20">
-          <Pricing />
-        </main>
-      ) : gorunum === 'about' ? (
-        <main className="flex-1 w-full mt-20">
-          <About />
-        </main>
-      ) : gorunum === 'tools' ? (
-        <main className="flex-1 w-full mt-20">
-          <Tools />
-        </main>
-      ) : gorunum === 'typography' ? (
-        <main className="flex-1 w-full mt-20">
-          <TypographyLab />
-        </main>
-      ) : gorunum === 'profile' ? (
-        <main className="flex-1 w-full mt-20 flex items-center justify-center">
-          <ProfilePage kullanici={kullanici} supabase={supabase} goHome={goHome} />
-        </main>
-      ) : (
-        <>
-          {gorunum === 'app' && (
+      <Routes>
+        <Route path="/" element={
+          <LandingPage
+            onStart={() => {
+              navigate('/app');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onVitrinClick={() => {
+              navigate('/vitrin');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onCommunityClick={() => {
+              navigate('/community');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+        } />
+        <Route path="/vitrin" element={
+          <main className="flex-1 w-full max-w-screen-2xl mx-auto px-4 mt-20">
+            <Vitrin />
+          </main>
+        } />
+        <Route path="/community" element={
+          <main className="flex-1 w-full mt-20">
+            <Community />
+          </main>
+        } />
+        <Route path="/pricing" element={
+          <main className="flex-1 w-full mt-20">
+            <Pricing />
+          </main>
+        } />
+        <Route path="/about" element={
+          <main className="flex-1 w-full mt-20">
+            <About />
+          </main>
+        } />
+        <Route path="/tools" element={
+          <main className="flex-1 w-full mt-20">
+            <Tools />
+          </main>
+        } />
+        <Route path="/typography" element={
+          <main className="flex-1 w-full mt-20">
+            <TypographyLab />
+          </main>
+        } />
+        <Route path="/profile" element={
+          <main className="flex-1 w-full mt-20 flex items-center justify-center">
+            <ProfilePage kullanici={kullanici} supabase={supabase} goHome={goHome} />
+          </main>
+        } />
+        <Route path="/app" element={
+          <>
             <div className="relative min-h-screen bg-[var(--bg-primary)] flex text-[var(--text-primary)] font-sans z-10 w-full items-start">
               {/* Sidebar */}
               <aside className="w-[260px] hidden lg:flex flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-primary)] sticky top-0 h-screen">
@@ -851,7 +830,7 @@ export default function App() {
 
                 <div className="p-4 mt-auto">
                   <div 
-                    onClick={() => setGorunum('pricing')}
+                    onClick={() => navigate('/pricing')}
                     className="bg-gradient-to-br from-[#FF5500] to-[#FF8800] rounded-xl p-4 text-white shadow-lg shadow-[#FF5500]/20 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
                   >
                     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none"></div>
@@ -1076,7 +1055,7 @@ export default function App() {
                                         metin="Yapay Zeka ile Analizi Başlat"
                                         kullanici={kullanici}
                                         authAc={() => setAuthAcik(true)}
-                                        disabled={!gorselBase64 || !tasarimTuru || !platform}
+                                        disabled={!(gorsel || gorselBase64 || imageUrl) || !tasarimTuru || !platform}
                                       />
                                   </div>
                                 </div>
@@ -1349,7 +1328,7 @@ export default function App() {
                           setYayinlaniyor(true);
                           const basarili = await vitrindeYayinla();
                           setTimeout(() => {
-                            if (basarili) setGorunum('vitrin');
+                            if (basarili) navigate('/vitrin');
                             setYayinlaniyor(false);
                           }, 1500);
                         }}
@@ -1550,7 +1529,7 @@ export default function App() {
                       </div>
 
                       <button 
-                        onClick={() => setGorunum('pricing')}
+                        onClick={() => navigate('/pricing')}
                         className="relative z-10 w-full py-4 rounded-xl bg-slate-900 hover:bg-black text-white font-black text-sm transition-all duration-300 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 overflow-hidden"
                       >
                         {/* Shimmer effect inside button */}
@@ -1607,7 +1586,6 @@ export default function App() {
                 </div>
               </main>
             </div>
-          )}
           {/* Image Modal */}
           <AnimatePresence>
             {seciliGorsel && (
@@ -1736,9 +1714,9 @@ export default function App() {
                   <div className="w-16 h-16 mx-auto mb-4 bg-[var(--color-brand-orange)]/10 text-[var(--color-brand-orange)] rounded-full flex items-center justify-center">
                     <AlertCircle className="w-8 h-8" />
                   </div>
-                  <h3 className="text-xl font-bold text-[var(--color-brand-dark)] mb-2">Giriş Yapmadınız</h3>
+                  <h3 className="text-xl font-bold text-[var(--color-brand-dark)] mb-2">Analiz İçin Giriş Yapın</h3>
                   <p className="text-[var(--color-brand-dark)]/60 text-sm mb-6 leading-relaxed">
-                    Misafir olarak analiz yapabilirsiniz ancak analiziniz <strong>kaydedilmeyecek</strong>, istatistiklerinize yansımayacak ve daha sonra erişilemeyecektir.
+                    Yapay zeka ile analiz yapabilmek ve sonuçlarınızı kaydedebilmek için <strong>ücretsiz bir hesap oluşturmanız</strong> veya giriş yapmanız gerekmektedir.
                   </p>
                   <div className="flex flex-col gap-3">
                     <button
@@ -1747,18 +1725,9 @@ export default function App() {
                         setAuthAcik(true);
                         setAuthMod('kayit');
                       }}
-                      className="w-full py-3 rounded-xl bg-[var(--color-brand-dark)] text-white font-bold transition-transform hover:scale-[1.02] shadow-sm"
+                      className="w-full py-3 rounded-xl bg-[#FF5500] hover:bg-[#e64d00] text-white font-bold transition-colors shadow-md shadow-[#FF5500]/20"
                     >
-                      Kayıt Ol / Giriş Yap
-                    </button>
-                    <button
-                      onClick={() => {
-                        setAuthUyariAcik(false);
-                        analiziBaslat(true);
-                      }}
-                      className="w-full py-3 rounded-xl bg-white hover:bg-[var(--color-brand-light)] text-[var(--color-brand-dark)]/70 hover:text-[var(--color-brand-dark)] font-semibold transition-colors border border-[var(--color-brand-dark)]/10"
-                    >
-                      Kayıt Olmadan Devam Et
+                      Hemen Kayıt Ol / Giriş Yap
                     </button>
                     <button
                       onClick={() => setAuthUyariAcik(false)}
@@ -1886,10 +1855,10 @@ export default function App() {
             )}
           </AnimatePresence>
 
-
-        </>
-      )}
-
+          </>
+        } />
+      </Routes>
+      
       {/* ── AUTH MODAL - Tüm sayfalardan erişilebilir ── */}
       <AnimatePresence>
         {authAcik && (
@@ -2001,7 +1970,8 @@ export default function App() {
       </AnimatePresence>
 
       <LiveActivityFeed />
-      <Footer onLogoClick={goHome} onNavClick={setGorunum} />
+      <Footer onLogoClick={goHome} onNavClick={(v: string) => navigate(`/${v}`)} />
+      <Toaster position="bottom-right" toastOptions={{ duration: 4000, style: { borderRadius: '16px', background: '#333', color: '#fff' } }} />
     </div>
   );
 }
