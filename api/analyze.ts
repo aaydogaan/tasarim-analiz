@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import Groq from 'groq-sdk';
+import { GoogleGenAI } from '@google/genai';
 import { createClient } from '@supabase/supabase-js';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
@@ -66,9 +66,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const apiKey = process.env.GROQ_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'Missing GROQ_API_KEY on server.' });
+    return res.status(500).json({ error: 'Missing GEMINI_API_KEY on server.' });
   }
 
   const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body) as AnalyzeRequestBody;
@@ -92,7 +92,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const kriterler = kriterBilgisi[tasarimTuru];
   const platformBilgisi = tasarimTuru === "Sosyal Medya" && platform ? `Platform: ${platform}` : "";
 
-  const groq = new Groq({ apiKey });
+  const ai = new GoogleGenAI({ apiKey });
 
   const prompt = `Sen dünya çapında ödüllü, son derece detaycı ve profesyonel bir Grafik Tasarım Analiz Yapay Zekasısın. Gönderilen görseli derinlemesine, akademik ve teknik bir dille analiz edeceksin. Lütfen cevaplarını çok detaylı, uzun ve açıklayıcı tut. Kısa ve yüzeysel yorumlardan kesinlikle kaçın! Analizlerinde font seçimlerinin psikolojik etkileri, renk teorisi, kompozisyon kuralları (altın oran, gestalt prensipleri) gibi profesyonel kavramları kullan.
 
@@ -130,44 +130,31 @@ JSON Formatı Şablonu:
 }`;
 
   try {
-    const models = ['llama-3.2-90b-vision-preview', 'llama-3.2-11b-vision-preview'];
     let rawText = '';
-    let secilenModel = '';
+    let secilenModel = 'gemini-3.5-flash';
 
-    for (const mod of models) {
-      try {
-        const response = await groq.chat.completions.create({
-          model: mod,
-          messages: [
-            {
-              role: 'user',
-              content: [
-                { type: 'text', text: prompt },
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: `data:image/jpeg;base64,${imageBase64}`,
-                  },
-                },
-              ],
-            },
-          ],
+    try {
+      const response = await ai.models.generateContent({
+        model: secilenModel,
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { text: prompt },
+              { inlineData: { data: imageBase64, mimeType: 'image/jpeg' } }
+            ]
+          }
+        ],
+        config: {
           temperature: 0.25,
-          max_tokens: 4000,
-        });
+          maxOutputTokens: 4000,
+        }
+      });
 
-        rawText = response.choices[0]?.message?.content || '';
-        if (rawText.trim()) {
-          secilenModel = mod;
-          break; // Başarılı, döngüyü kır
-        }
-      } catch (modErr: any) {
-        console.warn(`Model [${mod}] hatası:`, modErr?.message);
-        // Eğer denediğimiz son model de hata verdiyse fırlat
-        if (mod === models[models.length - 1]) {
-          throw new Error("Sunucularımız (Yapay Zeka) şu anda aşırı yoğun. Lütfen 1 dakika sonra tekrar deneyin.");
-        }
-      }
+      rawText = response.text || '';
+    } catch (modErr: any) {
+      console.warn(`Model [${secilenModel}] hatası:`, modErr?.message);
+      throw new Error("Sunucularımız (Yapay Zeka) şu anda aşırı yoğun. Lütfen 1 dakika sonra tekrar deneyin.");
     }
 
     if (!rawText.trim()) {
