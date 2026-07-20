@@ -133,7 +133,7 @@ JSON Formatı Şablonu:
 
   try {
     let rawText = '';
-    let secilenModel = 'gemini-1.5-flash';
+    let secilenModel = 'gemini-3.5-flash';
 
     try {
       const response = await ai.models.generateContent({
