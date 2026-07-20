@@ -1246,8 +1246,6 @@ export default function App() {
                               <Check className="w-5 h-5" />
                             </div>
                           </div>
-
-                          </div>
                         </div>
                       </div>
 
