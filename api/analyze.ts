@@ -132,36 +132,46 @@ JSON Formatı Şablonu:
 }`;
 
   try {
+    const modelsToTry = ['gemini-3.5-flash', 'gemini-flash-latest', 'gemini-2.0-flash', 'gemini-pro-latest'];
     let rawText = '';
-    let secilenModel = 'gemini-3.5-flash';
+    let secilenModel = '';
+    let lastError = null;
 
-    try {
-      const response = await ai.models.generateContent({
-        model: secilenModel,
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              { text: prompt },
-              { inlineData: { data: imageBase64, mimeType: 'image/jpeg' } }
-            ]
+    for (const mod of modelsToTry) {
+      try {
+        secilenModel = mod;
+        const response = await ai.models.generateContent({
+          model: mod,
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                { text: prompt },
+                { inlineData: { data: imageBase64, mimeType: 'image/jpeg' } }
+              ]
+            }
+          ],
+          config: {
+            temperature: 0.25,
+            maxOutputTokens: 4000,
+            responseMimeType: 'application/json',
           }
-        ],
-        config: {
-          temperature: 0.25,
-          maxOutputTokens: 4000,
-          responseMimeType: 'application/json',
-        }
-      });
+        });
 
-      rawText = response.text || '';
-    } catch (modErr: any) {
-      console.error(`Model [${secilenModel}] hatası:`, modErr);
-      return res.status(500).json({ error: `Yapay Zeka API Hatası: ${modErr?.message || 'Bilinmeyen hata'}` });
+        rawText = response.text || '';
+        if (rawText.trim()) {
+          break; // Başarılı, döngüden çık
+        }
+      } catch (modErr: any) {
+        console.warn(`Model [${mod}] hatası:`, modErr?.message);
+        lastError = modErr;
+        // Hata durumunda döngü devam edecek ve sonraki modele geçecek
+      }
     }
 
     if (!rawText.trim()) {
-      return res.status(502).json({ error: 'Yapay zeka analiz üretemedi. Lütfen tekrar deneyin.' });
+      console.error('Tüm modeller denendi ancak başarısız oldu. Son hata:', lastError);
+      return res.status(503).json({ error: `Yapay Zeka API Hatası: Sunucular çok yoğun veya yanıt alınamadı. (Son hata: ${lastError?.message || 'Bilinmiyor'})` });
     }
 
     // JSON'u ayıkla — model bazen açıklama metni de ekleyebilir
