@@ -763,36 +763,71 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                 )}
                             </AnimatePresence>
 
-                            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                                 {BADGE_DEFINITIONS.map((badge) => {
                                     const isActive = badge.checkFn(userBadges, normalizedProfile.isCoreFounder, normalizedProfile.founderNumber);
                                     const isFeatured = featuredBadge === badge.id;
+                                    
+                                    const badgeAny = badge as any;
+                                    const rarity = badgeAny.rarity || 'Common';
+                                    const xp = badgeAny.xp || 0;
+                                    
+                                    const rarityColors: Record<string, string> = {
+                                        Common: 'bg-slate-500/10 text-slate-500 border-slate-500/20',
+                                        Rare: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+                                        Epic: 'bg-purple-500/10 text-purple-500 border-purple-500/20',
+                                        Legendary: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+                                        Mythic: 'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                                    };
+                                    const rarityBadgeColor = rarityColors[rarity] || rarityColors.Common;
+
                                     return (
                                         <motion.div
                                             key={badge.id}
-                                            whileHover={isActive ? { y: -2 } : {}}
-                                            title={(badge as any).description}
-                                            className={`relative rounded-xl border p-3 text-center transition-all ${
-                                                isFeatured
-                                                    ? `${badge.bg} ${badge.border} ring-2 ring-[var(--color-brand-orange)]/30`
-                                                    : isActive
-                                                        ? (badge as any).special
-                                                            ? 'border-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]/10'
-                                                            : 'border-[var(--border-primary)] bg-[var(--bg-secondary)]'
-                                                        : 'border-dashed border-[var(--border-primary)] opacity-40 hover:opacity-100 hover:border-solid hover:bg-[var(--bg-secondary)] cursor-help'
+                                            whileHover={{ y: -2 }}
+                                            className={`relative overflow-hidden rounded-2xl border p-4 transition-all duration-300 ${
+                                                isActive
+                                                    ? isFeatured 
+                                                        ? 'border-[var(--color-brand-orange)] bg-[var(--bg-secondary)] shadow-sm shadow-[var(--color-brand-orange)]/10 ring-1 ring-[var(--color-brand-orange)]/50'
+                                                        : 'border-[var(--border-primary)] bg-[var(--card-bg)] hover:border-[var(--border-hover)]'
+                                                    : 'border-dashed border-[var(--border-primary)] bg-[var(--bg-secondary)]/30 opacity-60 grayscale hover:opacity-100 hover:grayscale-0'
                                             }`}
                                         >
+                                            <div className="mb-3 flex items-start justify-between relative z-10">
+                                                <div className={`flex items-center justify-center h-10 w-10 rounded-xl ${isActive ? badge.bg : 'bg-gray-500/10'} ${isActive ? badge.color : 'text-gray-400'}`}>
+                                                     {renderBadgeIcon(badge.emoji, "w-5 h-5")}
+                                                </div>
+                                                <div className="flex flex-col items-end gap-1.5">
+                                                    <span className={`rounded px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest border ${isActive ? rarityBadgeColor : 'bg-gray-500/10 text-gray-400 border-gray-500/20'}`}>
+                                                        {rarity}
+                                                    </span>
+                                                    {xp > 0 && (
+                                                        <span className={`text-[10px] font-black ${isActive ? 'text-emerald-500' : 'text-gray-400'}`}>
+                                                            +{xp} XP
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="relative z-10">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h4 className={`text-sm font-black ${isActive ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
+                                                        {badge.label}
+                                                    </h4>
+                                                    {isFeatured && (
+                                                        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-brand-orange)] text-[8px] text-white shadow" title="Öne Çıkan Rozet">
+                                                            ★
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs leading-5 text-[var(--text-secondary)] font-medium">
+                                                    {badgeAny.description}
+                                                </p>
+                                            </div>
+                                            
                                             {isFeatured && (
-                                                <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-brand-orange)] text-[8px] text-white shadow">
-                                                    ★
-                                                </span>
+                                                <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-[var(--color-brand-orange)]/10 blur-2xl z-0" />
                                             )}
-                                            <span className={`mx-auto mb-2 flex h-8 w-8 items-center justify-center ${isActive ? badge.color : 'text-[var(--text-secondary)]'}`}>
-                                                {renderBadgeIcon(badge.emoji, "w-6 h-6")}
-                                            </span>
-                                            <span className={`block text-[9px] font-black uppercase tracking-widest leading-4 ${isActive ? badge.color : 'text-[var(--text-secondary)]'}`}>
-                                                {badge.label}
-                                            </span>
                                         </motion.div>
                                     );
                                 })}

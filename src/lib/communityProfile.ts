@@ -72,6 +72,7 @@ export const BADGE_DEFINITIONS = [
         description: 'Tasarım dünyasına ilk adımı attın. Profilini başarıyla oluşturdun.',
         emoji: 'UserPlus', 
         bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        rarity: 'Common', xp: 100,
         checkFn: () => true // Everyone gets this
     },
     { 
@@ -80,6 +81,7 @@ export const BADGE_DEFINITIONS = [
         description: 'Revizelesene platformunda ilk tasarımını paylaştın.',
         emoji: 'UploadCloud', 
         bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        rarity: 'Common', xp: 150,
         checkFn: (badges: string[]) => badges.includes('ilk-kivilcim') 
     },
     { 
@@ -88,6 +90,7 @@ export const BADGE_DEFINITIONS = [
         description: 'İlk kez bir tasarıma yapay zeka (AI) analizi aldın.',
         emoji: 'Bot', 
         bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        rarity: 'Common', xp: 200,
         checkFn: (badges: string[]) => badges.includes('ai-ile-tanisma') 
     },
     { 
@@ -96,6 +99,7 @@ export const BADGE_DEFINITIONS = [
         description: 'Topluluğa ilk yorumunu bıraktın.',
         emoji: 'MessageCircle', 
         bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        rarity: 'Common', xp: 100,
         checkFn: (badges: string[]) => badges.includes('ilk-ses') 
     },
     { 
@@ -104,6 +108,7 @@ export const BADGE_DEFINITIONS = [
         description: 'İyi tasarımı ilk görüşte anlarsın. Bir tasarıma ilk beğenini bıraktın.',
         emoji: 'Heart', 
         bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        rarity: 'Common', xp: 50,
         checkFn: (badges: string[]) => badges.includes('takdir-eden') 
     },
     // Topluluk (Community)
@@ -113,6 +118,7 @@ export const BADGE_DEFINITIONS = [
         description: 'Topluluğun her zaman yanında. 50 farklı gönderiyi beğendin.',
         emoji: 'ThumbsUp', 
         bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        rarity: 'Rare', xp: 300,
         checkFn: (badges: string[]) => badges.includes('destekci') 
     },
     { 
@@ -121,6 +127,7 @@ export const BADGE_DEFINITIONS = [
         description: 'Analitik düşünceni paylaşıyorsun. 100 yapıcı yorum yaptın.',
         emoji: 'MessageSquare', 
         bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        rarity: 'Epic', xp: 500,
         checkFn: (badges: string[]) => badges.includes('yorum-ustasi') 
     },
     { 
@@ -129,7 +136,7 @@ export const BADGE_DEFINITIONS = [
         description: 'Keskin gözlerin detayları kaçırmıyor. Yorumların diğer kullanıcılardan 500 Faydalı oyu aldı.',
         emoji: 'Eye', 
         bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
-        special: true,
+        special: true, rarity: 'Legendary', xp: 1000,
         checkFn: (badges: string[]) => badges.includes('elestirmen') 
     },
     { 
@@ -138,7 +145,7 @@ export const BADGE_DEFINITIONS = [
         description: 'Herkes seni takip ediyor. 1.000 takipçiye ulaştın.',
         emoji: 'Crown', 
         bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
-        special: true,
+        special: true, rarity: 'Epic', xp: 800,
         checkFn: (badges: string[]) => badges.includes('topluluk-lideri') 
     },
     { 
@@ -147,6 +154,7 @@ export const BADGE_DEFINITIONS = [
         description: 'Geleceği bugünden görüyorsun. Popüler olmadan önce 10 farklı Trend gönderiyi ilk beğenenlerden oldun.',
         emoji: 'TrendingUp', 
         bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        rarity: 'Epic', xp: 600,
         checkFn: (badges: string[]) => badges.includes('trend-avcisi') 
     },
     // Yapay Zeka (AI)
@@ -156,6 +164,7 @@ export const BADGE_DEFINITIONS = [
         description: 'Yapay zekayı bir araç olarak mükemmel kullanıyorsun. 50 farklı tasarıma AI analizi istedin.',
         emoji: 'Scan', 
         bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        rarity: 'Rare', xp: 400,
         checkFn: (badges: string[]) => badges.includes('analiz-ustasi') 
     },
     { 
@@ -164,7 +173,7 @@ export const BADGE_DEFINITIONS = [
         description: '%100\'ün peşinde. İlk denemede AI\'dan genel skorda 95 ve üzeri puan aldın.',
         emoji: 'Target', 
         bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
-        special: true,
+        special: true, rarity: 'Legendary', xp: 1000,
         checkFn: (badges: string[]) => badges.includes('mukemmeliyetci') 
     },
     // Gizli ve Kurucu
@@ -174,7 +183,7 @@ export const BADGE_DEFINITIONS = [
         description: 'Tam saat 03:33\'te bir tasarım paylaştın. Sen hiç uyumaz mısın?',
         emoji: 'Ghost', 
         bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
-        special: true,
+        special: true, rarity: 'Epic', xp: 777,
         checkFn: (badges: string[]) => badges.includes('baykusun-sirri') 
     },
     { 
@@ -183,7 +192,7 @@ export const BADGE_DEFINITIONS = [
         description: 'Revizelesene platformunun ilk üyelerinden biri (Kurucu).',
         emoji: 'Rocket', 
         bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
-        special: true,
+        special: true, rarity: 'Mythic', xp: 0,
         checkFn: (_: string[], isCore: boolean, founderNumber: number) => isCore || (founderNumber > 0 && founderNumber <= FOUNDER_LIMIT) 
     }
 ];
