@@ -133,7 +133,7 @@ JSON Formatı Şablonu:
 }`;
 
   try {
-    const modelsToTry = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-3.5-flash'];
+    const modelsToTry = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-exp', 'gemini-1.5-flash-latest'];
     let rawText = '';
     let secilenModel = '';
     let firstError = null;
@@ -187,13 +187,13 @@ JSON Formatı Şablonu:
                 ],
               },
             ],
-            model: 'llama-3.2-90b-vision-preview',
+            model: 'llama-3.2-11b-vision-preview',
             temperature: 0.25,
             max_tokens: 4000
           });
           
           rawText = chatCompletion.choices[0]?.message?.content || '';
-          secilenModel = 'llama-3.2-90b-vision-preview (Groq)';
+          secilenModel = 'llama-3.2-11b-vision-preview (Groq)';
           console.log('Groq API başarıyla yanıt verdi.');
         } else {
           console.error('Groq API anahtarı bulunamadı.');
