@@ -20,6 +20,7 @@ export default function ProfilePage({ kullanici, supabase, goHome }: ProfilePage
   
   const [yukleniyor, setYukleniyor] = useState(false);
   const [avatarYukleniyor, setAvatarYukleniyor] = useState(false);
+  const [avatarOnayAcik, setAvatarOnayAcik] = useState(false);
   const [hata, setHata] = useState<string | null>(null);
   const [basari, setBasari] = useState<string | null>(null);
 
@@ -43,9 +44,14 @@ export default function ProfilePage({ kullanici, supabase, goHome }: ProfilePage
 
   const rastgeleAvatarUret = async () => {
     if (seciliAvatar && !seciliAvatar.includes('dicebear.com')) {
-      const onay = window.confirm("Şu anda özel bir profil fotoğrafınız var. Onay verirseniz rastgele bir avatar ile değiştirilecektir. Devam etmek istiyor musunuz?");
-      if (!onay) return;
+      setAvatarOnayAcik(true);
+      return;
     }
+    await rastgeleAvatarUygula();
+  };
+
+  const rastgeleAvatarUygula = async () => {
+    setAvatarOnayAcik(false);
     const yeniAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.random().toString(36).substring(7)}`;
     setSeciliAvatar(yeniAvatar);
     
@@ -280,6 +286,56 @@ export default function ProfilePage({ kullanici, supabase, goHome }: ProfilePage
           )}
         </div>
       </motion.div>
+
+      {/* Avatar Onay Modalı */}
+      <AnimatePresence>
+        {avatarOnayAcik && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-3xl p-6 md:p-8 max-w-sm w-full shadow-2xl relative"
+            >
+              <button
+                onClick={() => setAvatarOnayAcik(false)}
+                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              <div className="flex flex-col items-center text-center mt-2">
+                <div className="w-16 h-16 bg-orange-100 text-[var(--color-brand-orange)] rounded-full flex items-center justify-center mb-4">
+                  <AlertCircle className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Emin misiniz?</h3>
+                <p className="text-gray-500 text-sm mb-6 leading-relaxed">
+                  Şu anda özel olarak yüklediğiniz bir profil fotoğrafınız var. Onay verirseniz bu fotoğraf silinecek ve rastgele bir avatar ile değiştirilecektir.
+                </p>
+                <div className="flex w-full gap-3">
+                  <button
+                    onClick={() => setAvatarOnayAcik(false)}
+                    className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-colors"
+                  >
+                    Vazgeç
+                  </button>
+                  <button
+                    onClick={rastgeleAvatarUygula}
+                    className="flex-1 py-3 px-4 bg-[var(--color-brand-orange)] hover:bg-orange-600 text-white rounded-xl font-semibold transition-colors shadow-sm"
+                  >
+                    Değiştir
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
