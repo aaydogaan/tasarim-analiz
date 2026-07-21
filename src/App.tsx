@@ -3,7 +3,7 @@ import Lenis from 'lenis';
 import { motion, AnimatePresence } from "motion/react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
-import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check, AlertCircle, Globe, ArrowUpRight, Layers, Code, Scan, Download, ExternalLink, BookOpen, Link as LinkIcon, FileText, Clock, Settings, Home, Plus, Target } from "lucide-react";
+import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check, AlertCircle, Globe, ArrowUpRight, Layers, Code, Scan, Download, ExternalLink, BookOpen, Link as LinkIcon, FileText, Clock, Settings, Home, Plus, Target, Star } from "lucide-react";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { supabase } from "./lib/supabase";
@@ -259,6 +259,9 @@ export default function App() {
   const [paylasimKopyalandi, setPaylasimKopyalandi] = useState(false);
   const [vitrindeYayinlandi, setVitrindeYayinlandi] = useState(false);
   const [yayinlaniyor, setYayinlaniyor] = useState(false);
+  const [shareModalAcik, setShareModalAcik] = useState(false);
+  const [shareTitle, setShareTitle] = useState('');
+  const [shareContent, setShareContent] = useState('');
 
   // Auth
   const [authAcik, setAuthAcik] = useState(false);
@@ -278,6 +281,8 @@ export default function App() {
   const [authHata, setAuthHata] = useState<string | null>(null);
   const [kullanici, setKullanici] = useState<any>(null);
   const [authUyariAcik, setAuthUyariAcik] = useState(false);
+  const [pastAnalyses, setPastAnalyses] = useState<any[]>([]);
+  const [analysesLoading, setAnalysesLoading] = useState(false);
 
   // Auth session listener
   useEffect(() => {
@@ -289,6 +294,24 @@ export default function App() {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  // Fetch Past Analyses
+  useEffect(() => {
+    if (dashboardTab === 'analizlerim' && kullanici) {
+      setAnalysesLoading(true);
+      supabase
+        .from('analizler')
+        .select('*')
+        .eq('user_id', kullanici.id)
+        .order('created_at', { ascending: false })
+        .then(({ data, error }) => {
+          if (!error && data) {
+            setPastAnalyses(data);
+          }
+          setAnalysesLoading(false);
+        });
+    }
+  }, [dashboardTab, kullanici]);
 
   // Clipboard Paste Support
   useEffect(() => {
@@ -486,23 +509,34 @@ export default function App() {
   };
 
   const vitrindeYayinla = async () => {
-    if (!sonuc?._analiz_id) return false;
+    setShareModalAcik(true);
+  };
 
-    // Güvenlik: Eğer guest iseler veya login olmadan yapmışlarsa _analiz_id olmayabilir veya supabase izin vermeyebilir,
-    // Ancak zaten guestMode false olduğunda ekleniyor.
-    const { error } = await supabase
-      .from('analizler')
-      .update({ paylasim_aktif: true })
-      .eq('id', sonuc._analiz_id);
+  const submitCommunityPost = async () => {
+    if (!sonuc?._analiz_id || !kullanici) return;
+    setYayinlaniyor(true);
+    
+    // Update analizler just in case other things depend on it
+    await supabase.from('analizler').update({ paylasim_aktif: true }).eq('id', sonuc._analiz_id);
+    
+    // Insert into community_posts
+    const { error } = await supabase.from('community_posts').insert({
+      user_id: kullanici.id,
+      analiz_id: sonuc._analiz_id,
+      title: shareTitle || null,
+      content: shareContent || null
+    });
 
     if (!error) {
       setVitrindeYayinlandi(true);
-      return true;
+      setShareModalAcik(false);
+      toast.success('Başarıyla keşfete gönderildi!');
+      setTimeout(() => navigate('/community'), 1500);
     } else {
       console.error(error);
       toast.error('Yayınlanırken bir hata oluştu: ' + error.message);
-      return false;
     }
+    setYayinlaniyor(false);
   };
 
 
@@ -901,16 +935,61 @@ export default function App() {
                           <p className="text-sm text-[var(--text-secondary)]">Geçmişte yaptığınız tüm tasarım analizleri.</p>
                         </div>
                       </div>
-                      <div className="p-8 flex flex-col items-center justify-center flex-1 text-center bg-slate-50/50">
-                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 border border-slate-200 shadow-sm">
-                          <Layers className="w-8 h-8 text-slate-400" />
+                      
+                      {analysesLoading ? (
+                        <div className="p-8 flex flex-col items-center justify-center flex-1 text-center bg-slate-50/50">
+                           <div className="w-8 h-8 border-4 border-[#FF5500]/30 border-t-[#FF5500] rounded-full animate-spin mb-4" />
+                           <p className="text-[var(--text-secondary)]">Analizleriniz yükleniyor...</p>
                         </div>
-                        <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2">Henüz analiz bulunmuyor</h3>
-                        <p className="text-[var(--text-secondary)] max-w-md mb-6">İlk tasarımınızı analiz ederek burayı doldurmaya başlayabilirsiniz. Yaptığınız tüm analizler burada listelenecektir.</p>
-                        <button onClick={() => setDashboardTab('genel')} className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-colors shadow-md shadow-slate-900/10 flex items-center gap-2">
-                          <Plus className="w-4 h-4" /> Yeni Analiz Başlat
-                        </button>
-                      </div>
+                      ) : pastAnalyses.length > 0 ? (
+                        <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-slate-50/50 flex-1 content-start">
+                           {pastAnalyses.map((analiz, idx) => (
+                             <div key={idx} className="bg-white rounded-xl border border-[var(--border-primary)] overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                                <div className="aspect-video bg-slate-100 relative overflow-hidden group">
+                                   <img src={analiz.gorsel_url} alt="Tasarım" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                   <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-bold border border-white/10 flex items-center gap-1">
+                                      <Star className="w-3 h-3 text-amber-400 fill-amber-400" /> {analiz.genel_puan}
+                                   </div>
+                                </div>
+                                <div className="p-4 flex flex-col flex-1">
+                                   <div className="flex items-center justify-between mb-3">
+                                      <span className="text-[10px] font-bold uppercase tracking-widest text-[#FF5500] bg-[#FF5500]/10 px-2 py-1 rounded-md">
+                                        {analiz.tasarim_turu}
+                                      </span>
+                                      <span className="text-[10px] text-[var(--text-secondary)] font-medium">
+                                        {new Date(analiz.created_at).toLocaleDateString('tr-TR')}
+                                      </span>
+                                   </div>
+                                   <h3 className="font-bold text-sm text-[var(--text-primary)] mb-4 flex-1 line-clamp-2">
+                                      {analiz.isletme} - {analiz.marka_adi || 'Ads'}
+                                   </h3>
+                                   <button 
+                                      onClick={() => {
+                                         // Show report logic can be expanded later
+                                         setSonuc(analiz);
+                                         setAdim(3); // Result view
+                                         setDashboardTab('genel');
+                                      }}
+                                      className="w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-lg border border-slate-200 transition-colors"
+                                   >
+                                      Raporu Görüntüle
+                                   </button>
+                                </div>
+                             </div>
+                           ))}
+                        </div>
+                      ) : (
+                        <div className="p-8 flex flex-col items-center justify-center flex-1 text-center bg-slate-50/50">
+                          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 border border-slate-200 shadow-sm">
+                            <Layers className="w-8 h-8 text-slate-400" />
+                          </div>
+                          <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2">Henüz analiz bulunmuyor</h3>
+                          <p className="text-[var(--text-secondary)] max-w-md mb-6">İlk tasarımınızı analiz ederek burayı doldurmaya başlayabilirsiniz. Yaptığınız tüm analizler burada listelenecektir.</p>
+                          <button onClick={() => setDashboardTab('genel')} className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-colors shadow-md shadow-slate-900/10 flex items-center gap-2">
+                            <Plus className="w-4 h-4" /> Yeni Analiz Başlat
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ) : dashboardTab === 'raporlar' ? (
                     <div className="flex flex-col h-full min-h-[400px] bg-[var(--card-bg)] rounded-2xl border border-[var(--border-primary)] shadow-sm overflow-hidden">
@@ -1324,16 +1403,8 @@ export default function App() {
                         {yukleniyor ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Download className="w-4 h-4" />} PDF İndir
                       </button>
                       <button
-                        disabled={yayinlaniyor || vitrindeYayinlandi}
-                        onClick={async () => {
-                          if (vitrindeYayinlandi) return;
-                          setYayinlaniyor(true);
-                          const basarili = await vitrindeYayinla();
-                          setTimeout(() => {
-                            if (basarili) navigate('/vitrin');
-                            setYayinlaniyor(false);
-                          }, 1500);
-                        }}
+                        disabled={vitrindeYayinlandi}
+                        onClick={vitrindeYayinla}
                         className="px-5 py-2 rounded-xl bg-[#FF5500] text-white font-bold text-sm shadow-md shadow-[#FF5500]/20 hover:bg-[#e64d00] transition-colors flex items-center gap-2 disabled:opacity-50"
                       >
                         {vitrindeYayinlandi ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
@@ -1951,6 +2022,70 @@ export default function App() {
 
       <LiveActivityFeed />
       <Footer onLogoClick={goHome} onNavClick={(v: string) => navigate(`/${v}`)} />
+      {/* Share Modal */}
+      <AnimatePresence>
+        {shareModalAcik && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setShareModalAcik(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-[32px] overflow-hidden shadow-2xl z-10"
+            >
+              <div className="px-8 pt-8 pb-6 border-b border-[var(--border-primary)]">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-[#FF5500]/10 rounded-full flex items-center justify-center text-[#FF5500]">
+                    <Share2 className="w-6 h-6" />
+                  </div>
+                  <button onClick={() => setShareModalAcik(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--bg-secondary)] text-[var(--text-secondary)] transition-colors">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <h3 className="text-2xl font-black text-[var(--text-primary)]">Keşfette Paylaş</h3>
+                <p className="text-[var(--text-secondary)] mt-1">Tasarımınızı ve AI skorunu diğer tasarımcılarla paylaşın.</p>
+              </div>
+              <div className="p-8 space-y-6">
+                <div>
+                  <label className="block text-sm font-bold text-[var(--text-primary)] mb-2">Başlık (Opsiyonel)</label>
+                  <input
+                    type="text"
+                    value={shareTitle}
+                    onChange={(e) => setShareTitle(e.target.value)}
+                    placeholder="Örn: Yeni mobil uygulama tasarımım"
+                    className="w-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] px-4 py-3 rounded-xl focus:outline-none focus:border-[#FF5500] transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-[var(--text-primary)] mb-2">Açıklama / Soru</label>
+                  <textarea
+                    value={shareContent}
+                    onChange={(e) => setShareContent(e.target.value)}
+                    placeholder="Örn: Bu logodaki renkler sizce nasıl olmuş? Önerilerinizi bekliyorum."
+                    rows={4}
+                    className="w-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] px-4 py-3 rounded-xl focus:outline-none focus:border-[#FF5500] transition-colors resize-none"
+                  />
+                </div>
+                <button
+                  onClick={submitCommunityPost}
+                  disabled={yayinlaniyor}
+                  className="w-full py-4 bg-[#FF5500] text-white font-bold rounded-xl shadow-md shadow-[#FF5500]/20 hover:bg-[#e64d00] transition-colors flex items-center justify-center gap-2"
+                >
+                  {yayinlaniyor ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Share2 className="w-5 h-5" />}
+                  {yayinlaniyor ? 'Gönderiliyor...' : 'Topluluğa Gönder'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <Toaster position="bottom-right" toastOptions={{ duration: 4000, style: { borderRadius: '16px', background: '#333', color: '#fff' } }} />
     </div>
   );
