@@ -872,7 +872,7 @@ export default function App() {
                     <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FF5500] to-[#FF8800] flex items-center justify-center shadow-lg shadow-[#FF5500]/20">
                       <Sparkles className="w-4 h-4 text-white" />
                     </div>
-                    <span className="text-xl font-bold tracking-tight text-[var(--text-primary)]">Revizele</span>
+                    <span className="text-xl font-bold tracking-tight text-[var(--text-primary)]">Revizelesene</span>
                   </div>
                 </div>
 

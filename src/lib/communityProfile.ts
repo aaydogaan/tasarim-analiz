@@ -1,4 +1,4 @@
-export const CORE_FOUNDER_COUNT = 24;
+export const CORE_FOUNDER_COUNT = 0;
 export const FOUNDER_LIMIT = 100;
 export const MEMBER_FOUNDER_LIMIT = FOUNDER_LIMIT - CORE_FOUNDER_COUNT;
 
@@ -16,12 +16,7 @@ export type NormalizedCommunityProfile = {
     createdAt?: string;
 };
 
-export const CORE_FOUNDERS: NormalizedCommunityProfile[] = Array.from({ length: CORE_FOUNDER_COUNT }).map((_, i) => ({
-    id: `core-founder-${i}`,
-    displayName: `Kurucu ${i + 1}`,
-    avatarUrl: `https://api.dicebear.com/7.x/notionists/svg?seed=Founder${i}`,
-    founderNumber: i + 1,
-}));
+export const CORE_FOUNDERS: NormalizedCommunityProfile[] = [];
 
 export const DESIGN_RANKS = {};
 

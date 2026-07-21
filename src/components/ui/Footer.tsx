@@ -273,7 +273,7 @@ export default function Footer({
                 <div className="footer-bottom">
                     <div className="footer-content-row">
                         <p className="footer-copyright">
-                            © 2026 Revizele. Tüm hakları saklıdır.
+                            © 2026 Revizelesene. Tüm hakları saklıdır.
                         </p>
                         <button
                             className="footer-backtotop"

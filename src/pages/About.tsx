@@ -58,7 +58,7 @@ export default function About() {
                         <span>Arkasındakiler.</span>
                     </h1>
                     <p className="text-xl md:text-2xl text-gray-500 font-medium max-w-2xl mx-auto leading-relaxed">
-                        Revizele'yi tasarlayan, kodlayan ve hayata geçiren ekip.
+                        Revizelesene'yi tasarlayan, kodlayan ve hayata geçiren ekip.
                     </p>
                 </motion.div>
 
@@ -94,7 +94,7 @@ export default function About() {
                                         Recep <br/><span className="text-[var(--color-brand-orange)]">Aydoğan</span>
                                     </h3>
                                     <p className="text-gray-300 text-[13px] md:text-sm font-medium leading-relaxed line-clamp-3">
-                                        Revizele'nin sinir sistemini yazdı. Piksel tarama algoritmalarından kullanıcı akışına kadar tüm teknik katmanı sıfırdan kurdu.
+                                        Revizelesene'nin sinir sistemini yazdı. Piksel tarama algoritmalarından kullanıcı akışına kadar tüm teknik katmanı sıfırdan kurdu.
                                     </p>
                                 </div>
                             </div>
@@ -174,7 +174,7 @@ export default function About() {
                                         Enes Umut <br/><span className="text-[var(--color-brand-orange)]">Parlak</span>
                                     </h3>
                                     <p className="text-gray-300 text-[13px] md:text-sm font-medium leading-relaxed line-clamp-3">
-                                        Kullanıcının platformda kaybolmaması için her tıklamayı, her geçişi düşündü. Revizele'yi ilk kez açan birinin ne hissedeceğini tasarladı.
+                                        Kullanıcının platformda kaybolmaması için her tıklamayı, her geçişi düşündü. Revizelesene'yi ilk kez açan birinin ne hissedeceğini tasarladı.
                                     </p>
                                 </div>
                             </div>
@@ -226,7 +226,7 @@ export default function About() {
                             Çoğu zaman günlerce üzerinde çalışılan tasarımlarda küçük ama kritik hatalar gözden kaçar. Tipografi tutarsızlıkları, kontrast sorunları, hizalama bozuklukları — bunları kendi gözünle görmek zordur. Bunu bizzat yaşadık.
                         </p>
                         <p>
-                            Revizele'yi yapay zekanın tarafsız gözünü herkesin kullanabileceği bir araca dönüştürmek için geliştirdik. İçgüdüyle tasarım yapanlara akademik ve profesyonel bir perspektif kazandırmak istedik.
+                            Revizelesene'yi yapay zekanın tarafsız gözünü herkesin kullanabileceği bir araca dönüştürmek için geliştirdik. İçgüdüyle tasarım yapanlara akademik ve profesyonel bir perspektif kazandırmak istedik.
                         </p>
                         <p className="text-[var(--text-primary)] font-bold border-l-4 border-[var(--color-brand-orange)] pl-6 py-2 bg-[var(--color-brand-orange)]/5 rounded-r-2xl">
                             Amatör tasarımcıdan deneyimli profesyonele — estetik kaliteye veriyle ulaşmak isteyen herkes için.

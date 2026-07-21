@@ -332,14 +332,13 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                 animate={{ opacity: 1, x: 0 }}
                                 className="inline-flex items-center gap-2 px-5 md:px-6 py-2 rounded-full bg-white/5 border border-white/10 text-[var(--color-brand-orange)] text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] md:tracking-[0.3em] mb-6 md:mb-8"
                             >
-                                <Sparkles size={12} />
                                 Topluluk Duvarı
                             </motion.div>
                             <h1 className="text-4xl md:text-7xl font-black text-[var(--text-primary)] tracking-tight mb-6">
                                 İlk {FOUNDER_LIMIT} Destekçimiz
                             </h1>
                             <p className="text-[var(--text-secondary)] text-base md:text-lg font-medium max-w-2xl leading-relaxed">
-                                Revizele'nin temellerine en başında inanan ilk {FOUNDER_LIMIT} yol arkadaşımız, bu duvarda kalıcı olarak yer alacak. Bu sadece bir isim listesi değil; geleceğin tasarım standartlarını birlikte belirleyeceğimiz bu serüvenin ölümsüz bir parçası olma fırsatı. Senin de izin burada sonsuza dek parlamalı.
+                                Revizelesene'nin temellerine en başında inanan ilk {FOUNDER_LIMIT} yol arkadaşımız, bu duvarda kalıcı olarak yer alacak. Bu sadece bir isim listesi değil; geleceğin tasarım standartlarını birlikte belirleyeceğimiz bu serüvenin ölümsüz bir parçası olma fırsatı. Senin de izin burada sonsuza dek parlamalı.
                             </p>
                         </div>
 
@@ -453,7 +452,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                         <p className="text-base font-medium text-[var(--text-secondary)] max-w-2xl">
                             {kullanici
                                 ? 'Profilini tamamladığında duvarda daha gerçek bir yüz ve hikaye ile görünürsün.'
-                                : 'Revizele\'nin temellerine katkıda bulun. İlk 100 üye arasında yer alarak bu duvarda ismini ölümsüzleştir.'}
+                                : 'Revizelesene\'nin temellerine katkıda bulun. İlk 100 üye arasında yer alarak bu duvarda ismini ölümsüzleştir.'}
                         </p>
                         <button
                             onClick={kullanici ? onProfileClick : onAuthClick}

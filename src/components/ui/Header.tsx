@@ -124,7 +124,7 @@ export default function Header({
                 <div className="cursor-pointer flex-shrink-0" onClick={goHome}>
                     <img
                         src="/Revizelesene-logo.png"
-                        alt="Revizele"
+                        alt="Revizelesene"
                         className="h-8 md:h-9 w-auto object-contain"
                     />
                 </div>

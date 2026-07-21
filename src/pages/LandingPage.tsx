@@ -142,7 +142,7 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                     </div>
 
                     <p className="mt-8 text-[#7A7A7A] text-[14px] md:text-[17px] max-w-2xl mx-auto leading-relaxed font-medium px-4">
-                        Revizele ile tasarımlarınızı analiz edin, eksikleri saniyeler içinde fark edin <br className="hidden md:block" /> ve mükemmel tasarım uyumunu yakalayın.
+                        Revizelesene ile tasarımlarınızı analiz edin, eksikleri saniyeler içinde fark edin <br className="hidden md:block" /> ve mükemmel tasarım uyumunu yakalayın.
                     </p>
 
                     {/* Action button */}
@@ -373,7 +373,7 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                                                 />
                                             </div>
                                             <h5 className="font-sans text-[16px] md:text-[24px] font-semibold text-white/90">
-                                                merhaba<span className="text-[#FF4D00]">@</span>revizele.com
+                                                merhaba<span className="text-[#FF4D00]">@</span>revizelesene.com
                                             </h5>
                                         </div>
                                     ))}
