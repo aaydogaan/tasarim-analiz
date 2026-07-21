@@ -227,6 +227,10 @@ export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const gorunum = location.pathname.substring(1) || 'landing';
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [location.pathname]);
   const [gorsel, setGorsel] = useState<string | null>(initGorsel);
   const [gorselBase64, setGorselBase64] = useState<string | null>(initGorselBase64);
   const [imageUrl, setImageUrl] = useState<string>("");

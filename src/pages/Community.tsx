@@ -327,13 +327,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                 <div className="max-w-screen-xl mx-auto px-6 relative z-10">
                     <div className="grid gap-12 lg:grid-cols-[1fr_320px] lg:items-start mb-16">
                         <div>
-                            <motion.div
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                className="inline-flex items-center gap-2 px-5 md:px-6 py-2 rounded-full bg-white/5 border border-white/10 text-[var(--color-brand-orange)] text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] md:tracking-[0.3em] mb-6 md:mb-8"
-                            >
-                                Topluluk Duvarı
-                            </motion.div>
+
                             <h1 className="text-4xl md:text-7xl font-black text-[var(--text-primary)] tracking-tight mb-6">
                                 İlk {FOUNDER_LIMIT} Destekçimiz
                             </h1>
