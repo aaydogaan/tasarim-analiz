@@ -184,13 +184,9 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
             {/* Wall of Fame / Kurucu Üyeler Hero Section */}
             <section className="relative w-full bg-[var(--bg-secondary)] pt-24 pb-32 md:pb-40 overflow-hidden border-b border-[var(--border-primary)]">
                 {/* Background Decor */}
-                <motion.div
-                    animate={{
-                        opacity: [0.03, 0.08, 0.03],
-                        scale: [1, 1.1, 1]
-                    }}
-                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-0 right-0 w-2/3 h-full bg-orange-600 blur-[80px] md:blur-[140px] pointer-events-none"
+                <div
+                    className="absolute top-0 right-0 w-2/3 h-full bg-orange-600/5 blur-[80px] md:blur-[140px] pointer-events-none"
+                    style={{ transform: "translate3d(0,0,0)" }}
                 />
 
                 <div className="max-w-screen-xl mx-auto px-6 relative z-10">
@@ -215,7 +211,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                         <motion.div 
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="rounded-3xl border border-[var(--border-primary)] bg-[var(--card-bg)] backdrop-blur-xl p-6 md:p-8 shadow-xl shadow-black/5"
+                            className="rounded-3xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-6 md:p-8 shadow-xl shadow-black/5"
                         >
                             <div className="flex items-end justify-between gap-4">
                                 <div>
@@ -242,11 +238,10 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
 
                     <div className="flex flex-wrap justify-center gap-4 md:gap-6">
                         {CORE_FOUNDERS.map((founder) => (
-                            <motion.div
+                            <div
                                 key={founder.id}
-                                whileHover={{ scale: 1.16, zIndex: 60 }}
                                 onClick={() => onProfileOpen?.(founder)}
-                                className="relative group cursor-pointer"
+                                className="relative group cursor-pointer hover:scale-110 hover:z-50 transition-transform duration-300"
                                 role="button"
                                 tabIndex={0}
                             >
@@ -256,6 +251,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                         src={founder.avatarUrl}
                                         className="w-full h-full rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--bg-primary)] object-cover"
                                         alt=""
+                                        loading="lazy"
                                     />
                                 </div>
                                 <div className="absolute -top-20 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none w-max bg-[#111] border border-white/10 rounded-2xl px-4 py-3 shadow-2xl flex flex-col items-center z-50">
@@ -265,18 +261,17 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                     </span>
                                     <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#111] border-r border-b border-white/10 rotate-45" />
                                 </div>
-                            </motion.div>
+                            </div>
                         ))}
 
                         {visibleFounders.map((founder) => {
                             const rank = getMemberFounderDisplayNumber(founder.founderNumber) || 0;
 
                             return (
-                                <motion.div
+                                <div
                                     key={founder.id}
-                                    whileHover={{ scale: 1.18, zIndex: 50 }}
                                     onClick={() => onProfileOpen?.(founder)}
-                                    className="relative group cursor-pointer"
+                                    className="relative group cursor-pointer hover:scale-[1.18] hover:z-50 transition-transform duration-300"
                                     role="button"
                                     tabIndex={0}
                                 >
@@ -285,6 +280,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                             src={founder.avatarUrl}
                                             className={`w-full h-full rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--bg-primary)] object-cover ${founderSource === 'preview' ? 'saturate-0 opacity-40' : ''}`}
                                             alt=""
+                                            loading="lazy"
                                         />
                                     </div>
                                     <div className="absolute -top-16 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none w-max bg-[#111] border border-white/10 rounded-2xl px-4 py-3 shadow-2xl flex flex-col items-center z-50">
@@ -296,7 +292,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                         </span>
                                         <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#111] border-r border-b border-white/10 rotate-45" />
                                     </div>
-                                </motion.div>
+                                </div>
                             );
                         })}
 
@@ -317,7 +313,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                     <motion.div 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mt-16 flex flex-col items-center justify-between gap-6 rounded-[32px] border border-[var(--border-primary)] bg-[var(--card-bg)] backdrop-blur-md px-8 py-6 text-center md:flex-row md:text-left shadow-lg"
+                        className="mt-16 flex flex-col items-center justify-between gap-6 rounded-[32px] border border-[var(--border-primary)] bg-[var(--card-bg)] px-8 py-6 text-center md:flex-row md:text-left shadow-lg"
                     >
                         <p className="text-base font-medium text-[var(--text-secondary)] max-w-2xl">
                             {kullanici
