@@ -192,7 +192,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         const loadFounders = async () => {
             const { data, error } = await supabase
                 .from('profiles')
-                .select('id, display_name, bio, avatar_url, website, social_handle, design_rank, specialty, experience_level, created_at')
+                .select('id, display_name, bio, avatar_url, website, social_handle, design_rank, specialty, experience_level, created_at, founder_number')
                 .order('created_at', { ascending: true })
                 .limit(100);
 
@@ -399,7 +399,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                 <div
                                     key={founder.id}
                                     onClick={() => onProfileOpen?.(founder)}
-                                    className="relative group cursor-pointer hover:scale-110 hover:z-50 transition-transform duration-300"
+                                    className="relative group cursor-pointer hover:scale-110 hover:z-50 transition-transform duration-300 transform-gpu will-change-transform"
                                     role="button"
                                     tabIndex={0}
                                 >
@@ -407,7 +407,8 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                     <div className="relative w-16 h-16 md:w-[84px] md:h-[84px] rounded-full p-[3px] bg-gradient-to-br from-orange-300 via-[var(--color-brand-orange)] to-amber-600 shadow-[0_12px_28px_rgba(255,77,0,0.2)] group-hover:shadow-[0_12px_40px_rgba(255,77,0,0.4)] transition-all">
                                         <img
                                             src={founder.avatarUrl}
-                                            className={`w-full h-full rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--bg-primary)] object-cover ${founderSource === 'preview' ? 'saturate-0 opacity-40' : ''}`}
+                                            style={{ backfaceVisibility: 'hidden', transform: 'translateZ(0)' }}
+                                            className={`w-full h-full rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--bg-primary)] object-cover transform-gpu ${founderSource === 'preview' ? 'saturate-0 opacity-40' : ''}`}
                                             alt=""
                                         />
                                     </div>
