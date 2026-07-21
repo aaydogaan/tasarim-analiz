@@ -14,11 +14,18 @@ import {
     Star,
     User,
     X,
-    Zap,
     Rocket,
     Lightbulb,
     Trophy,
-    Eye
+    Eye,
+    Twitter,
+    Dribbble,
+    Link,
+    Palette,
+    RefreshCw,
+    Heart,
+    MessageSquare,
+    Crown
 } from 'lucide-react';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { supabase } from '../lib/supabase';
@@ -240,7 +247,8 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
         const newVal = badgeId === featuredBadge ? null : badgeId; // toggle off
         const { error } = await supabase
             .from('profiles')
-            .upsert({ id: kullanici.id, featured_badge: newVal }, { onConflict: 'id' });
+            .update({ featured_badge: newVal })
+            .eq('id', kullanici.id);
         if (!error) setFeaturedBadge(newVal);
         setSavingBadge(false);
         setShowBadgePicker(false);
@@ -391,6 +399,9 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
             case 'Lightbulb': return <Lightbulb className={className} />;
             case 'Trophy': return <Trophy className={className} />;
             case 'Eye': return <Eye className={className} />;
+            case 'Heart': return <Heart className={className} />;
+            case 'MessageSquare': return <MessageSquare className={className} />;
+            case 'Crown': return <Crown className={className} />;
             default: return <Star className={className} />;
         }
     };
@@ -455,15 +466,37 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                             </div>
                         </div>
 
-                        <div className="mt-4 space-y-2 text-sm">
-                            <div className="flex items-center gap-2 text-[var(--text-secondary)]">
-                                <Mail className="h-4 w-4" />
-                                <span className="truncate">{isPublicProfile ? selectedExperience.label : kullanici?.email}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-[var(--text-secondary)]">
-                                <Globe className="h-4 w-4" />
-                                <span className="truncate">{profileData.website || profileData.socialHandle || selectedExperience.label}</span>
-                            </div>
+                        <div className="mt-4 flex flex-wrap gap-3 text-[var(--text-secondary)]">
+                            {(!isPublicProfile && kullanici?.email) && (
+                                <a href={`mailto:${kullanici.email}`} className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors" title={kullanici.email}>
+                                    <Mail className="h-4 w-4" />
+                                </a>
+                            )}
+                            {profileData.website && (
+                                <a href={profileData.website.startsWith('http') ? profileData.website : `https://${profileData.website}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors" title={profileData.website}>
+                                    <Globe className="h-4 w-4" />
+                                </a>
+                            )}
+                            {profileData.twitterUrl && (
+                                <a href={profileData.twitterUrl.startsWith('http') ? profileData.twitterUrl : `https://${profileData.twitterUrl}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors" title="Twitter / X">
+                                    <Twitter className="h-4 w-4" />
+                                </a>
+                            )}
+                            {profileData.behanceUrl && (
+                                <a href={profileData.behanceUrl.startsWith('http') ? profileData.behanceUrl : `https://${profileData.behanceUrl}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors" title="Behance">
+                                    <Palette className="h-4 w-4" />
+                                </a>
+                            )}
+                            {profileData.dribbbleUrl && (
+                                <a href={profileData.dribbbleUrl.startsWith('http') ? profileData.dribbbleUrl : `https://${profileData.dribbbleUrl}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors" title="Dribbble">
+                                    <Dribbble className="h-4 w-4" />
+                                </a>
+                            )}
+                            {profileData.socialHandle && (
+                                <a href={profileData.socialHandle.startsWith('http') ? profileData.socialHandle : `https://${profileData.socialHandle}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors" title="Sosyal Medya">
+                                    <Link className="h-4 w-4" />
+                                </a>
+                            )}
                         </div>
 
                         {isOwnProfile && (
@@ -512,8 +545,8 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                                     onChange={(e) => setProfileData({ ...profileData, avatarUrl: e.target.value })}
                                                     className="min-w-0 flex-1 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-xs outline-none focus:border-[var(--color-brand-orange)]"
                                                 />
-                                                <button type="button" onClick={handleAvatarRefresh} className="rounded-xl border border-[var(--border-primary)] px-3 text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)]">
-                                                    <Camera className="h-4 w-4" />
+                                                <button type="button" onClick={handleAvatarRefresh} className="rounded-xl border border-[var(--border-primary)] px-3 text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)]" title="Rastgele Avatar Üret">
+                                                    <RefreshCw className="h-4 w-4" />
                                                 </button>
                                                 <label className="rounded-xl border border-[var(--border-primary)] px-3 flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] cursor-pointer">
                                                     Yükle
@@ -586,36 +619,33 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     </span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-3 mb-2 flex-1">
-                                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-xl flex flex-col justify-between">
-                                        <div className="flex items-center gap-2 mb-2 text-[var(--text-secondary)]">
+                                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-xl flex flex-col justify-center text-center">
+                                        <div className="flex items-center justify-center gap-2 mb-2 text-[var(--text-secondary)]">
                                             <User className="w-4 h-4 text-[var(--color-brand-orange)]" />
-                                            <span className="text-[10px] font-black uppercase tracking-widest">Kayıt Bonusu</span>
                                         </div>
-                                        <p className="font-bold text-[var(--text-primary)] text-base">+100 <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] mb-1">Kayıt Bonusu</span>
+                                        <p className="font-bold text-[var(--text-primary)] text-xl">+100 <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
                                     </div>
-                                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-xl flex flex-col justify-between">
-                                        <div className="flex items-center gap-2 mb-2 text-[var(--text-secondary)]">
+                                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-xl flex flex-col justify-center text-center">
+                                        <div className="flex items-center justify-center gap-2 mb-2 text-[var(--text-secondary)]">
                                             <CheckCircle2 className="w-4 h-4 text-[var(--color-brand-orange)]" />
-                                            <span className="text-[10px] font-black uppercase tracking-widest">Gönderiler</span>
                                         </div>
-                                        <p className="font-bold text-[var(--text-primary)] text-base">+{xpData.posts * 200} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
-                                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.posts} Kez (<span className="text-[var(--color-brand-orange)]">200x</span>)</p>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] mb-1">Gönderiler</span>
+                                        <p className="font-bold text-[var(--text-primary)] text-xl">+{xpData.posts * 200} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
                                     </div>
-                                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-xl flex flex-col justify-between">
-                                        <div className="flex items-center gap-2 mb-2 text-[var(--text-secondary)]">
+                                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-xl flex flex-col justify-center text-center">
+                                        <div className="flex items-center justify-center gap-2 mb-2 text-[var(--text-secondary)]">
                                             <MessageCircle className="w-4 h-4 text-[var(--color-brand-orange)]" />
-                                            <span className="text-[10px] font-black uppercase tracking-widest">Yorumlar</span>
                                         </div>
-                                        <p className="font-bold text-[var(--text-primary)] text-base">+{xpData.comments * 50} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
-                                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.comments} Kez (<span className="text-[var(--color-brand-orange)]">50x</span>)</p>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] mb-1">Yorumlar</span>
+                                        <p className="font-bold text-[var(--text-primary)] text-xl">+{xpData.comments * 50} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
                                     </div>
-                                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-xl flex flex-col justify-between">
-                                        <div className="flex items-center gap-2 mb-2 text-[var(--text-secondary)]">
+                                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-xl flex flex-col justify-center text-center">
+                                        <div className="flex items-center justify-center gap-2 mb-2 text-[var(--text-secondary)]">
                                             <Zap className="w-4 h-4 text-[var(--color-brand-orange)]" />
-                                            <span className="text-[10px] font-black uppercase tracking-widest">Analizler</span>
                                         </div>
-                                        <p className="font-bold text-[var(--text-primary)] text-base">+{xpData.analizler * 150} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
-                                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.analizler} Kez (<span className="text-[var(--color-brand-orange)]">150x</span>)</p>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] mb-1">Analizler</span>
+                                        <p className="font-bold text-[var(--text-primary)] text-xl">+{xpData.analizler * 150} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
                                     </div>
                                 </div>
                             </div>
@@ -686,6 +716,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                                             key={badge.id}
                                                             disabled={savingBadge}
                                                             onClick={() => handleSelectFeaturedBadge(badge.id)}
+                                                            title={(badge as any).description}
                                                             className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-black transition-all ${
                                                                 isSelected
                                                                     ? `${badge.bg} ${badge.border} ${badge.color} ring-2 ring-offset-1 ring-[var(--color-brand-orange)]/40`
@@ -722,6 +753,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                         <motion.div
                                             key={badge.id}
                                             whileHover={isActive ? { y: -2 } : {}}
+                                            title={(badge as any).description}
                                             className={`relative rounded-xl border p-3 text-center transition-all ${
                                                 isFeatured
                                                     ? `${badge.bg} ${badge.border} ring-2 ring-[var(--color-brand-orange)]/30`
@@ -729,7 +761,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                                         ? (badge as any).special
                                                             ? 'border-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]/10'
                                                             : 'border-[var(--border-primary)] bg-[var(--bg-secondary)]'
-                                                        : 'border-dashed border-[var(--border-primary)] opacity-40'
+                                                        : 'border-dashed border-[var(--border-primary)] opacity-40 hover:opacity-100 hover:border-solid hover:bg-[var(--bg-secondary)] cursor-help'
                                             }`}
                                         >
                                             {isFeatured && (

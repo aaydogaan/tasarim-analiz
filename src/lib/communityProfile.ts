@@ -68,6 +68,7 @@ export const BADGE_DEFINITIONS = [
     { 
         id: 'ilk-destekci', 
         label: 'İlk Destekçi', 
+        description: 'Revizelesene platformunun ilk 100 üyesinden biri.',
         emoji: 'Rocket', 
         bg: 'bg-[#FF5500]/10', 
         border: 'border-[#FF5500]/30', 
@@ -78,6 +79,7 @@ export const BADGE_DEFINITIONS = [
     { 
         id: 'topluluk-katkicisi', 
         label: 'Aktif Katkıcı', 
+        description: 'Toplulukta düzenli olarak içerik paylaşıp yorum yapan aktif üyeler.',
         emoji: 'Lightbulb', 
         bg: 'bg-[#FF5500]/10', 
         border: 'border-[#FF5500]/30', 
@@ -87,6 +89,7 @@ export const BADGE_DEFINITIONS = [
     { 
         id: 'yarisma-birincisi', 
         label: 'Haftanın Galibi', 
+        description: 'Haftalık tasarım yarışmalarında birinci olan yetenekli tasarımcı.',
         emoji: 'Trophy', 
         bg: 'bg-[#FF5500]/10', 
         border: 'border-[#FF5500]/30', 
@@ -97,11 +100,52 @@ export const BADGE_DEFINITIONS = [
     { 
         id: 'analiz-ustasi', 
         label: 'Analiz Ustası', 
+        description: 'Gönderilen tasarımlara derinlemesine yapay zeka analizleri sağlayan üye.',
         emoji: 'Eye', 
         bg: 'bg-[#FF5500]/10', 
         border: 'border-[#FF5500]/30', 
         color: 'text-[#FF5500]', 
         checkFn: (badges: string[]) => badges.includes('analiz-ustasi') 
+    },
+    { 
+        id: 'populer-tasarim', 
+        label: 'Popüler Tasarım', 
+        description: 'Paylaştığı bir tasarım toplulukta 50\'den fazla beğeni alan üye.',
+        emoji: 'Heart', 
+        bg: 'bg-[#FF5500]/10', 
+        border: 'border-[#FF5500]/30', 
+        color: 'text-[#FF5500]', 
+        checkFn: (badges: string[]) => badges.includes('populer-tasarim') 
+    },
+    { 
+        id: 'seri-yorumcu', 
+        label: 'Seri Yorumcu', 
+        description: 'Tasarım analizlerine veya gönderilere 100\'den fazla yorum yapan katılımcı.',
+        emoji: 'MessageSquare', 
+        bg: 'bg-[#FF5500]/10', 
+        border: 'border-[#FF5500]/30', 
+        color: 'text-[#FF5500]', 
+        checkFn: (badges: string[]) => badges.includes('seri-yorumcu') 
+    },
+    { 
+        id: 'tasarim-elcisi', 
+        label: 'Tasarım Elçisi', 
+        description: 'Siteye referans linki ile en az 5 yeni tasarımcı kazandıran öncü.',
+        emoji: 'Crown', 
+        bg: 'bg-[#FF5500]/10', 
+        border: 'border-[#FF5500]/30', 
+        color: 'text-[#FF5500]', 
+        checkFn: (badges: string[]) => badges.includes('tasarim-elcisi') 
+    },
+    { 
+        id: 'mukemmeliyetci', 
+        label: 'Mükemmeliyetçi', 
+        description: 'Yapay zeka analizlerinden arka arkaya 5 kez %90 ve üzeri puan alan yetenek.',
+        emoji: 'Star', 
+        bg: 'bg-[#FF5500]/10', 
+        border: 'border-[#FF5500]/30', 
+        color: 'text-[#FF5500]', 
+        checkFn: (badges: string[]) => badges.includes('mukemmeliyetci') 
     },
 ];
 
