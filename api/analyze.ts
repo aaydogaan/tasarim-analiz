@@ -132,10 +132,10 @@ JSON Formatı Şablonu:
 }`;
 
   try {
-    const modelsToTry = ['gemini-3.5-flash', 'gemini-flash-latest', 'gemini-2.0-flash', 'gemini-pro-latest'];
+    const modelsToTry = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-3.5-flash'];
     let rawText = '';
     let secilenModel = '';
-    let lastError = null;
+    let firstError = null;
 
     for (const mod of modelsToTry) {
       try {
@@ -164,14 +164,14 @@ JSON Formatı Şablonu:
         }
       } catch (modErr: any) {
         console.warn(`Model [${mod}] hatası:`, modErr?.message);
-        lastError = modErr;
+        if (!firstError) firstError = modErr;
         // Hata durumunda döngü devam edecek ve sonraki modele geçecek
       }
     }
 
     if (!rawText.trim()) {
-      console.error('Tüm modeller denendi ancak başarısız oldu. Son hata:', lastError);
-      return res.status(503).json({ error: `Yapay Zeka API Hatası: Sunucular çok yoğun veya yanıt alınamadı. (Son hata: ${lastError?.message || 'Bilinmiyor'})` });
+      console.error('Tüm modeller denendi ancak başarısız oldu. İlk hata:', firstError);
+      return res.status(503).json({ error: `Yapay Zeka Hatası: Lütfen 1-2 dakika bekleyip tekrar deneyin. (Sistem çok yoğun)` });
     }
 
     // JSON'u ayıkla — model bazen açıklama metni de ekleyebilir
