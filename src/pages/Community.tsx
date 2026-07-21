@@ -346,7 +346,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                     <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Doluluk</p>
                                     <p className="mt-1 text-4xl font-black text-[var(--text-primary)]">{wallCount}<span className="text-lg text-[var(--text-secondary)]">/{FOUNDER_LIMIT}</span></p>
                                 </div>
-                                <Crown className="h-10 w-10 text-amber-500" />
+                                <img src="/Revizelesene-Favicon.png" alt="Favicon" className="h-10 w-10 object-contain drop-shadow-md" />
                             </div>
                             <div className="mt-6 h-3 overflow-hidden rounded-full bg-[var(--bg-primary)] border border-[var(--border-primary)]">
                                 <motion.div 
@@ -399,16 +399,16 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                 <div
                                     key={founder.id}
                                     onClick={() => onProfileOpen?.(founder)}
-                                    className="relative group cursor-pointer hover:scale-[1.18] hover:z-50 transition-transform duration-300"
+                                    className="relative group cursor-pointer hover:scale-110 hover:z-50 transition-transform duration-300"
                                     role="button"
                                     tabIndex={0}
                                 >
-                                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-full p-[2px] bg-white/10 group-hover:bg-gradient-to-br group-hover:from-[var(--color-brand-orange)] group-hover:to-orange-600 transition-all duration-300">
+                                    <div className="absolute -inset-2 rounded-full bg-[var(--color-brand-orange)]/30 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <div className="relative w-16 h-16 md:w-[84px] md:h-[84px] rounded-full p-[3px] bg-gradient-to-br from-orange-300 via-[var(--color-brand-orange)] to-amber-600 shadow-[0_12px_28px_rgba(255,77,0,0.2)] group-hover:shadow-[0_12px_40px_rgba(255,77,0,0.4)] transition-all">
                                         <img
                                             src={founder.avatarUrl}
                                             className={`w-full h-full rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--bg-primary)] object-cover ${founderSource === 'preview' ? 'saturate-0 opacity-40' : ''}`}
                                             alt=""
-                                            loading="lazy"
                                         />
                                     </div>
                                     <div className="absolute -top-16 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none w-max bg-[#111] border border-white/10 rounded-2xl px-4 py-3 shadow-2xl flex flex-col items-center z-50">
@@ -416,7 +416,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                             {founder.displayName || 'Gizli Tasarımcı'}
                                         </span>
                                         <span className="text-[10px] uppercase font-bold tracking-widest mt-1 text-[var(--color-brand-orange)]">
-                                            İlk 100 Destekçi
+                                            {rank}. Destekçi
                                         </span>
                                         <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#111] border-r border-b border-white/10 rotate-45" />
                                     </div>
@@ -427,7 +427,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                         {Array.from({ length: placeholderCount }).map((_, i) => (
                             <div
                                 key={`empty-founder-${i}`}
-                                className="group relative flex w-12 h-12 md:w-16 md:h-16 items-center justify-center rounded-full border-2 border-dashed border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-secondary)]/30"
+                                className="group relative flex w-16 h-16 md:w-[84px] md:h-[84px] items-center justify-center rounded-full border-2 border-dashed border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-secondary)]/30"
                             >
                                 <span className="text-sm font-black">+</span>
                                 <div className="absolute -top-14 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none w-max bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-2xl px-4 py-3 shadow-2xl z-50">
@@ -438,23 +438,23 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                         ))}
                     </div>
 
-                    <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mt-16 flex flex-col items-center justify-between gap-6 rounded-[32px] border border-[var(--border-primary)] bg-[var(--card-bg)] px-8 py-6 text-center md:flex-row md:text-left shadow-lg"
-                    >
-                        <p className="text-base font-medium text-[var(--text-secondary)] max-w-2xl">
-                            {kullanici
-                                ? 'Profilini tamamladığında duvarda daha gerçek bir yüz ve hikaye ile görünürsün.'
-                                : 'Revizelesene\'nin temellerine katkıda bulun. İlk 100 üye arasında yer alarak bu duvarda ismini ölümsüzleştir.'}
-                        </p>
-                        <button
-                            onClick={kullanici ? onProfileClick : onAuthClick}
-                            className="shrink-0 rounded-full bg-[var(--text-primary)] px-8 py-4 text-sm font-black text-[var(--bg-primary)] transition-all hover:scale-105 hover:shadow-xl"
+                    {!kullanici && (
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-16 flex flex-col items-center justify-between gap-6 rounded-[32px] border border-[var(--border-primary)] bg-[var(--card-bg)] px-8 py-6 text-center md:flex-row md:text-left shadow-lg"
                         >
-                            {kullanici ? 'Profilimi Tamamla' : 'Hemen Destekçi Ol'}
-                        </button>
-                    </motion.div>
+                            <p className="text-base font-medium text-[var(--text-secondary)] max-w-2xl">
+                                Revizelesene'nin temellerine katkıda bulun. İlk 100 üye arasında yer alarak bu duvarda ismini ölümsüzleştir.
+                            </p>
+                            <button
+                                onClick={onAuthClick}
+                                className="shrink-0 rounded-full bg-[var(--text-primary)] px-8 py-4 text-sm font-black text-[var(--bg-primary)] transition-all hover:scale-105 hover:shadow-xl"
+                            >
+                                Hemen Destekçi Ol
+                            </button>
+                        </motion.div>
+                    )}
                 </div>
             </section>
 
