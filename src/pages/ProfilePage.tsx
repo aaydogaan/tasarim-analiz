@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, User, Shield, LogOut, Check, Upload, Shuffle, Lock, AlertCircle, X } from 'lucide-react';
+import { ArrowLeft, User, Shield, LogOut, Check, Upload, Shuffle, Lock, AlertCircle, X, Trophy, MessageCircle, Zap } from 'lucide-react';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 interface ProfilePageProps {
@@ -10,7 +10,9 @@ interface ProfilePageProps {
 }
 
 export default function ProfilePage({ kullanici, supabase, goHome }: ProfilePageProps) {
-  const [tab, setTab] = useState<'hesap' | 'guvenlik'>('hesap');
+  const [tab, setTab] = useState<'hesap' | 'guvenlik' | 'basarimlar'>('hesap');
+  const [xpData, setXpData] = useState({ posts: 0, comments: 0, analizler: 0, challenges: 0, total: 100 });
+  const [xpLoading, setXpLoading] = useState(false);
   
   const [adSoyad, setAdSoyad] = useState(kullanici?.user_metadata?.full_name || '');
   const [seciliAvatar, setSeciliAvatar] = useState(kullanici?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici?.id}`);
@@ -39,6 +41,41 @@ export default function ProfilePage({ kullanici, supabase, goHome }: ProfilePage
       }
     }
   }, [kullanici]);
+
+  // Fetch XP Data
+  useEffect(() => {
+    if (tab === 'basarimlar' && kullanici?.id) {
+      const fetchXp = async () => {
+        setXpLoading(true);
+        try {
+          const [postsRes, commentsRes, analizRes, challengeRes] = await Promise.all([
+            supabase.from('community_posts').select('*', { count: 'exact', head: true }).eq('user_id', kullanici.id),
+            supabase.from('post_comments').select('*', { count: 'exact', head: true }).eq('user_id', kullanici.id),
+            supabase.from('analizler').select('*', { count: 'exact', head: true }).eq('user_id', kullanici.id),
+            supabase.from('challenge_entries').select('*', { count: 'exact', head: true }).eq('user_id', kullanici.id),
+          ]);
+          
+          const posts = postsRes.count || 0;
+          const comments = commentsRes.count || 0;
+          const analizler = analizRes.count || 0;
+          const challenges = challengeRes.count || 0;
+          
+          setXpData({
+            posts,
+            comments,
+            analizler,
+            challenges,
+            total: 100 + (posts * 200) + (comments * 50) + (analizler * 150) + (challenges * 300)
+          });
+        } catch (error) {
+          console.error("XP Fetch Error:", error);
+        } finally {
+          setXpLoading(false);
+        }
+      };
+      fetchXp();
+    }
+  }, [tab, kullanici]);
 
   if (!kullanici) return null;
 
@@ -170,25 +207,25 @@ export default function ProfilePage({ kullanici, supabase, goHome }: ProfilePage
         <div className="flex items-center justify-between p-6 border-b border-[var(--border-primary)] bg-[var(--bg-primary)]/50">
           <div>
             <h3 className="text-xl font-bold text-[var(--text-primary)]">Profil Ayarları</h3>
-            <p className="text-[13px] text-[var(--text-secondary)] mt-1 font-medium">Hesabınızı ve güvenliğinizi yönetin.</p>
+            <p className="text-[13px] text-[var(--text-secondary)] mt-1 font-medium">Hesabınızı, başarımlarınızı ve güvenliğinizi yönetin.</p>
           </div>
-          <button onClick={goHome} className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] rounded-full transition-colors self-start">
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
         <div className="p-6 md:p-8">
           {/* Tabs */}
           <div className="flex bg-[var(--bg-primary)] p-1 rounded-2xl mb-8 relative border border-[var(--border-primary)]/50">
             <div 
-              className="absolute inset-y-1 w-[calc(50%-4px)] bg-[var(--card-bg)] rounded-xl shadow-sm transition-all duration-300 ease-out border border-[var(--border-primary)]/50"
-              style={{ left: tab === 'hesap' ? '4px' : 'calc(50%)' }}
+              className="absolute inset-y-1 w-[calc(33.333%-4px)] bg-[var(--card-bg)] rounded-xl shadow-sm transition-all duration-300 ease-out border border-[var(--border-primary)]/50"
+              style={{ left: tab === 'hesap' ? '4px' : tab === 'guvenlik' ? 'calc(33.333%)' : 'calc(66.666% - 4px)' }}
             />
             <button onClick={() => { setTab('hesap'); setHata(null); setBasari(null); }} className={`flex-1 py-2.5 text-sm font-semibold transition-colors relative z-10 flex items-center justify-center gap-2 ${tab === 'hesap' ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>
-              <User className="w-4 h-4" /> Hesap
+              <User className="w-4 h-4 hidden sm:block" /> Hesap
             </button>
             <button onClick={() => { setTab('guvenlik'); setHata(null); setBasari(null); }} className={`flex-1 py-2.5 text-sm font-semibold transition-colors relative z-10 flex items-center justify-center gap-2 ${tab === 'guvenlik' ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>
-              <Lock className="w-4 h-4" /> Güvenlik
+              <Lock className="w-4 h-4 hidden sm:block" /> Güvenlik
+            </button>
+            <button onClick={() => { setTab('basarimlar'); setHata(null); setBasari(null); }} className={`flex-1 py-2.5 text-sm font-semibold transition-colors relative z-10 flex items-center justify-center gap-2 ${tab === 'basarimlar' ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>
+              <Trophy className="w-4 h-4 hidden sm:block" /> Puanlar
             </button>
           </div>
 
@@ -263,7 +300,7 @@ export default function ProfilePage({ kullanici, supabase, goHome }: ProfilePage
                 </span>
               </button>
             </motion.div>
-          ) : (
+          ) : tab === 'guvenlik' ? (
             <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-5">
               <div className="relative group">
                 <p className="text-[13px] font-semibold text-[var(--text-secondary)] mb-1.5 ml-1">Yeni Şifre</p>
@@ -282,6 +319,103 @@ export default function ProfilePage({ kullanici, supabase, goHome }: ProfilePage
                 {yukleniyor ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Lock className="w-5 h-5" />}
                 {yukleniyor ? 'Güncelleniyor...' : 'Şifreyi Güncelle'}
               </button>
+            </motion.div>
+          ) : (
+            <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+               <div className="flex flex-col items-center p-6 bg-gradient-to-b from-[var(--color-brand-orange)]/10 to-transparent rounded-3xl border border-[var(--border-primary)] text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-[var(--color-brand-orange)] rounded-full flex items-center justify-center text-white mb-4 shadow-lg shadow-orange-500/30">
+                     <Trophy className="w-8 h-8" />
+                  </div>
+                  <h4 className="text-sm font-bold tracking-widest uppercase text-[var(--color-brand-orange)] mb-1">Toplam Deneyim Puanı</h4>
+                  <div className="text-5xl font-black text-[var(--text-primary)] drop-shadow-sm">
+                    {xpLoading ? '...' : xpData.total.toLocaleString('tr-TR')} <span className="text-2xl text-[var(--text-secondary)] font-bold">XP</span>
+                  </div>
+               </div>
+               
+               <div className="space-y-3">
+                  <h5 className="font-bold text-[var(--text-primary)] mb-2 px-1 text-sm uppercase tracking-wider">Nasıl Kazanıldı?</h5>
+                  
+                  <div className="flex items-center justify-between p-4 bg-[var(--bg-primary)]/50 border border-[var(--border-primary)] rounded-2xl transition-all hover:border-[var(--color-brand-orange)]/50">
+                     <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600">
+                           <User className="w-5 h-5" />
+                        </div>
+                        <div>
+                           <p className="font-bold text-sm text-[var(--text-primary)]">Kayıt Bonusu</p>
+                           <p className="text-xs text-[var(--text-secondary)] font-medium">Aramıza katıldığın için</p>
+                        </div>
+                     </div>
+                     <div className="text-right">
+                        <p className="font-bold text-[var(--text-primary)]">+100 XP</p>
+                        <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mt-0.5">Kazanıldı</p>
+                     </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-[var(--bg-primary)]/50 border border-[var(--border-primary)] rounded-2xl transition-all hover:border-[var(--color-brand-orange)]/50">
+                     <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
+                           <Upload className="w-5 h-5" />
+                        </div>
+                        <div>
+                           <p className="font-bold text-sm text-[var(--text-primary)]">Tasarım Paylaşma</p>
+                           <p className="text-xs text-[var(--text-secondary)] font-medium">Toplulukta yayınlanan tasarımlar</p>
+                        </div>
+                     </div>
+                     <div className="text-right">
+                        <p className="font-bold text-[var(--text-primary)] text-base">+{xpData.posts * 200} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
+                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.posts} Kez (<span className="text-blue-500">200x</span>)</p>
+                     </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-[var(--bg-primary)]/50 border border-[var(--border-primary)] rounded-2xl transition-all hover:border-[var(--color-brand-orange)]/50">
+                     <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600">
+                           <Shield className="w-5 h-5" />
+                        </div>
+                        <div>
+                           <p className="font-bold text-sm text-[var(--text-primary)]">Analiz Raporu</p>
+                           <p className="text-xs text-[var(--text-secondary)] font-medium">Yapay zekadan geri bildirim alma</p>
+                        </div>
+                     </div>
+                     <div className="text-right">
+                        <p className="font-bold text-[var(--text-primary)] text-base">+{xpData.analizler * 150} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
+                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.analizler} Kez (<span className="text-purple-500">150x</span>)</p>
+                     </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-[var(--bg-primary)]/50 border border-[var(--border-primary)] rounded-2xl transition-all hover:border-[var(--color-brand-orange)]/50">
+                     <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
+                           <MessageCircle className="w-5 h-5" />
+                        </div>
+                        <div>
+                           <p className="font-bold text-sm text-[var(--text-primary)]">Geri Bildirim Verme</p>
+                           <p className="text-xs text-[var(--text-secondary)] font-medium">Başka tasarımcılara yorum yazma</p>
+                        </div>
+                     </div>
+                     <div className="text-right">
+                        <p className="font-bold text-[var(--text-primary)] text-base">+{xpData.comments * 50} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
+                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.comments} Kez (<span className="text-emerald-500">50x</span>)</p>
+                     </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-4 bg-[var(--bg-primary)]/50 border border-[var(--border-primary)] rounded-2xl transition-all hover:border-[var(--color-brand-orange)]/50">
+                     <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center text-rose-600">
+                           <Zap className="w-5 h-5" />
+                        </div>
+                        <div>
+                           <p className="font-bold text-sm text-[var(--text-primary)]">Haftalık Görevler</p>
+                           <p className="text-xs text-[var(--text-secondary)] font-medium">Görevlere katılım sağlama</p>
+                        </div>
+                     </div>
+                     <div className="text-right">
+                        <p className="font-bold text-[var(--text-primary)] text-base">+{xpData.challenges * 300} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
+                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.challenges} Kez (<span className="text-rose-500">300x</span>)</p>
+                     </div>
+                  </div>
+
+               </div>
             </motion.div>
           )}
         </div>

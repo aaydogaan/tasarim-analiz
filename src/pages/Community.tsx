@@ -40,6 +40,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
     const [userEnteredChallenge, setUserEnteredChallenge] = useState(false);
     const [joiningChallenge, setJoiningChallenge] = useState(false);
     const [trendData, setTrendData] = useState<{ type: string; count: number }[]>([]);
+    const [leaderboard, setLeaderboard] = useState<any[]>([]);
     
     // Community Posts State
     const [posts, setPosts] = useState<any[]>([]);
@@ -201,10 +202,20 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
             if (!error && data?.length) {
                 setFounders(data.map((profile) => normalizeCommunityProfile(null, profile as any)));
                 setFounderSource('live');
-                return;
+            } else {
+                setFounderSource('preview');
             }
-
-            setFounderSource('preview');
+            
+            // Liderlik Tablosu için XP View'ını çek
+            const { data: xpData, error: xpError } = await supabase
+                .from('user_xp_stats')
+                .select('*')
+                .order('total_xp', { ascending: false })
+                .limit(5);
+                
+            if (!xpError && xpData) {
+                setLeaderboard(xpData);
+            }
         };
 
         loadFounders();
@@ -572,28 +583,25 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                 <h3 className="font-bold text-xl tracking-tight text-[var(--text-primary)]">Liderlik Tablosu</h3>
                             </div>
                             <div className="space-y-6">
-                                {[...founders]
-                                    .map(user => {
-                                        const daysSinceJoin = user.createdAt ? Math.max(0, Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 3600 * 24))) : 0;
-                                        const earlyAdopterBonus = Math.max(0, 5000 - ((user.founderNumber || 100) * 50));
-                                        return { ...user, xp: 500 + (daysSinceJoin * 150) + earlyAdopterBonus };
-                                    })
-                                    .sort((a, b) => b.xp - a.xp)
-                                    .slice(0, 5)
-                                    .map((user, i) => {
+                                {leaderboard.map((user, i) => {
                                     const gradient = i === 0 ? 'from-amber-400 via-orange-500 to-red-500' 
                                                    : i === 1 ? 'from-blue-400 to-indigo-500' 
                                                    : i === 2 ? 'from-emerald-400 to-teal-500' 
                                                    : 'from-[var(--border-primary)] to-[var(--text-secondary)]';
 
                                     return (
-                                        <div key={user.id} onClick={() => onProfileOpen?.(user)} className="flex items-center gap-4 group cursor-pointer p-3 -mx-3 rounded-2xl hover:bg-[var(--bg-secondary)] transition-colors transform-gpu will-change-transform">
+                                        <div key={user.id} onClick={() => onProfileOpen?.({
+                                            id: user.id,
+                                            displayName: user.display_name,
+                                            avatarUrl: user.avatar_url,
+                                            founderNumber: user.founder_number
+                                        })} className="flex items-center gap-4 group cursor-pointer p-3 -mx-3 rounded-2xl hover:bg-[var(--bg-secondary)] transition-colors transform-gpu will-change-transform">
                                             <div className="relative">
                                                 {/* Level Glow */}
                                                 <div className={`absolute -inset-1 rounded-full bg-gradient-to-br ${gradient} opacity-40 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300 blur-[3px]`}></div>
                                                 <div className={`w-12 h-12 rounded-full p-[2px] bg-gradient-to-br ${gradient} relative z-10`}>
                                                     <img
-                                                        src={user.avatarUrl || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`}
+                                                        src={user.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`}
                                                         style={{ backfaceVisibility: 'hidden', transform: 'translateZ(0)' }}
                                                         className="w-full h-full rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--bg-primary)] object-cover transform-gpu"
                                                         alt="Avatar"
@@ -605,15 +613,15 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="font-bold text-sm tracking-tight leading-none mb-1 text-[var(--text-primary)] group-hover:text-[var(--color-brand-orange)] transition-colors truncate">
-                                                    {user.displayName || 'Gizli Tasarımcı'}
+                                                    {user.display_name || 'Gizli Tasarımcı'}
                                                 </p>
                                                 <p className={`text-[9px] uppercase font-black tracking-widest bg-gradient-to-r ${gradient} bg-clip-text text-transparent truncate`}>
-                                                    {user.designRank || 'Tasarımcı'}
+                                                    {user.design_rank || 'Tasarımcı'}
                                                 </p>
                                             </div>
                                             <div className="flex flex-col items-end flex-shrink-0">
                                                 <span className="text-lg font-black text-[var(--text-secondary)] italic">#{i + 1}</span>
-                                                <span className="text-[10px] font-bold text-[var(--text-secondary)]">{user.xp.toLocaleString('tr-TR')} XP</span>
+                                                <span className="text-[10px] font-bold text-[var(--text-secondary)]">{user.total_xp?.toLocaleString('tr-TR')} XP</span>
                                             </div>
                                         </div>
                                     );
