@@ -189,8 +189,7 @@ JSON Formatı Şablonu:
             ],
             model: 'llama-3.2-90b-vision-preview',
             temperature: 0.25,
-            max_tokens: 4000,
-            response_format: { type: 'json_object' }
+            max_tokens: 4000
           });
           
           rawText = chatCompletion.choices[0]?.message?.content || '';
