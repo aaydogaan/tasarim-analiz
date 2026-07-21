@@ -15,7 +15,12 @@ import {
     User,
     X,
     Zap,
+    Rocket,
+    Lightbulb,
+    Trophy,
+    Eye
 } from 'lucide-react';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { supabase } from '../lib/supabase';
 import {
     buildAvatarUrl,
@@ -107,7 +112,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
             setLoading(true);
             const { data, error } = await supabase
                 .from('profiles')
-                .select('id, display_name, bio, avatar_url, website, social_handle, design_rank, specialty, experience_level, founder_number, created_at, public_visible, featured_badge')
+                .select('*')
                 .eq('id', kullanici.id)
                 .maybeSingle();
 
@@ -257,6 +262,37 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
         setSaveState('idle');
     };
 
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !kullanici) return;
+        setSaveState('idle');
+        try {
+            const s3Client = new S3Client({
+                region: 'auto',
+                endpoint: `https://${import.meta.env.VITE_R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+                credentials: {
+                    accessKeyId: import.meta.env.VITE_R2_ACCESS_KEY_ID,
+                    secretAccessKey: import.meta.env.VITE_R2_SECRET_ACCESS_KEY,
+                },
+            });
+            const fileName = `avatars/${kullanici.id}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+            const fileBuffer = await file.arrayBuffer();
+
+            await s3Client.send(new PutObjectCommand({
+                Bucket: import.meta.env.VITE_R2_BUCKET_NAME,
+                Key: fileName,
+                Body: new Uint8Array(fileBuffer),
+                ContentType: file.type,
+            }));
+
+            const r2PublicUrl = import.meta.env.VITE_R2_PUBLIC_URL.replace(/\/$/, "");
+            const avatarUrl = `${r2PublicUrl}/${fileName}`;
+            setProfileData((prev) => ({ ...prev, avatarUrl }));
+        } catch (err: any) {
+            console.error('Avatar yükleme hatası:', err);
+        }
+    };
+
     const handleSave = async () => {
         if (!isOwnProfile || !kullanici) return;
         setSaving(true);
@@ -349,6 +385,16 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
 
     const featuredBadgeDef = featuredBadge ? getBadgeById(featuredBadge) : null;
 
+    const renderBadgeIcon = (iconName: string, className?: string) => {
+        switch (iconName) {
+            case 'Rocket': return <Rocket className={className} />;
+            case 'Lightbulb': return <Lightbulb className={className} />;
+            case 'Trophy': return <Trophy className={className} />;
+            case 'Eye': return <Eye className={className} />;
+            default: return <Star className={className} />;
+        }
+    };
+
     return (
         <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] pb-14 w-full pt-10">
             <main className="mx-auto max-w-screen-xl px-4 py-5 md:px-8 md:py-7">
@@ -362,9 +408,9 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                 {featuredBadgeDef ? (
                                     <div
                                         title={featuredBadgeDef.label}
-                                        className={`absolute -bottom-1 -right-1 rounded-full border-4 border-[var(--card-bg)] ${featuredBadgeDef.bg} p-1.5 shadow-lg text-base leading-none`}
+                                        className={`absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full border-4 border-[var(--card-bg)] ${featuredBadgeDef.bg} ${featuredBadgeDef.color} shadow-lg`}
                                     >
-                                        {featuredBadgeDef.emoji}
+                                        {renderBadgeIcon(featuredBadgeDef.emoji, "w-4 h-4")}
                                     </div>
                                 ) : (
                                     <div className="absolute -bottom-1 -right-1 rounded-full border-4 border-[var(--card-bg)] bg-[var(--color-brand-orange)] p-2 shadow-lg">
@@ -391,8 +437,8 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                 </p>
                                 {/* Featured badge label */}
                                 {featuredBadgeDef && (
-                                    <span className={`mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black border ${featuredBadgeDef.bg} ${featuredBadgeDef.border} ${featuredBadgeDef.color}`}>
-                                        {featuredBadgeDef.emoji} {featuredBadgeDef.label}
+                                    <span className={`mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black border ${featuredBadgeDef.bg} ${featuredBadgeDef.border} ${featuredBadgeDef.color}`}>
+                                        {renderBadgeIcon(featuredBadgeDef.emoji, "w-3.5 h-3.5")} {featuredBadgeDef.label}
                                     </span>
                                 )}
                             </div>
@@ -440,14 +486,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                         {/* Bio & Edit Card */}
                         <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-5 shadow-sm">
                             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                                <div className="max-w-2xl w-full">
-                                    <div className="mb-3 flex flex-wrap gap-2">
-                                        {[founderLabel, selectedRank.title, selectedSpecialty.label, selectedExperience.label].map((chip) => (
-                                            <span key={chip} className="rounded-full border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">
-                                                {chip}
-                                            </span>
-                                        ))}
-                                    </div>
+                                <div className="w-full">
                                     {isEditing ? (
                                         <textarea
                                             value={profileData.bio}
@@ -460,12 +499,6 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                         </p>
                                     )}
                                 </div>
-                                <button
-                                    onClick={onCommunityClick}
-                                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full border border-[var(--border-primary)] px-4 py-2 text-xs font-black text-[var(--text-secondary)] transition-colors hover:text-[var(--color-brand-orange)]"
-                                >
-                                    Topluluk <ExternalLink className="h-3.5 w-3.5" />
-                                </button>
                             </div>
 
                             {isEditing && (
@@ -473,16 +506,20 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     <label className="block">
                                         <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Avatar URL</span>
                                         <div className="flex gap-2">
-                                            <input
-                                                type="text"
-                                                value={profileData.avatarUrl}
-                                                onChange={(e) => setProfileData({ ...profileData, avatarUrl: e.target.value })}
-                                                className="min-w-0 flex-1 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-xs outline-none focus:border-[var(--color-brand-orange)]"
-                                            />
-                                            <button type="button" onClick={handleAvatarRefresh} className="rounded-xl border border-[var(--border-primary)] px-3 text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)]">
-                                                <Camera className="h-4 w-4" />
-                                            </button>
-                                        </div>
+                                                <input
+                                                    type="text"
+                                                    value={profileData.avatarUrl}
+                                                    onChange={(e) => setProfileData({ ...profileData, avatarUrl: e.target.value })}
+                                                    className="min-w-0 flex-1 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-xs outline-none focus:border-[var(--color-brand-orange)]"
+                                                />
+                                                <button type="button" onClick={handleAvatarRefresh} className="rounded-xl border border-[var(--border-primary)] px-3 text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)]">
+                                                    <Camera className="h-4 w-4" />
+                                                </button>
+                                                <label className="rounded-xl border border-[var(--border-primary)] px-3 flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] cursor-pointer">
+                                                    Yükle
+                                                    <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                                                </label>
+                                            </div>
                                     </label>
                                     <label className="block">
                                         <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Tasarım rütbesi</span>
@@ -551,34 +588,34 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                 <div className="grid grid-cols-2 gap-3 mb-2 flex-1">
                                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-xl flex flex-col justify-between">
                                         <div className="flex items-center gap-2 mb-2 text-[var(--text-secondary)]">
-                                            <User className="w-4 h-4" />
+                                            <User className="w-4 h-4 text-[var(--color-brand-orange)]" />
                                             <span className="text-[10px] font-black uppercase tracking-widest">Kayıt Bonusu</span>
                                         </div>
                                         <p className="font-bold text-[var(--text-primary)] text-base">+100 <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
                                     </div>
                                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-xl flex flex-col justify-between">
                                         <div className="flex items-center gap-2 mb-2 text-[var(--text-secondary)]">
-                                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                            <CheckCircle2 className="w-4 h-4 text-[var(--color-brand-orange)]" />
                                             <span className="text-[10px] font-black uppercase tracking-widest">Gönderiler</span>
                                         </div>
                                         <p className="font-bold text-[var(--text-primary)] text-base">+{xpData.posts * 200} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
-                                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.posts} Kez (<span className="text-emerald-500">200x</span>)</p>
+                                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.posts} Kez (<span className="text-[var(--color-brand-orange)]">200x</span>)</p>
                                     </div>
                                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-xl flex flex-col justify-between">
                                         <div className="flex items-center gap-2 mb-2 text-[var(--text-secondary)]">
-                                            <MessageCircle className="w-4 h-4 text-blue-500" />
+                                            <MessageCircle className="w-4 h-4 text-[var(--color-brand-orange)]" />
                                             <span className="text-[10px] font-black uppercase tracking-widest">Yorumlar</span>
                                         </div>
                                         <p className="font-bold text-[var(--text-primary)] text-base">+{xpData.comments * 50} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
-                                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.comments} Kez (<span className="text-blue-500">50x</span>)</p>
+                                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.comments} Kez (<span className="text-[var(--color-brand-orange)]">50x</span>)</p>
                                     </div>
                                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-xl flex flex-col justify-between">
                                         <div className="flex items-center gap-2 mb-2 text-[var(--text-secondary)]">
-                                            <Zap className="w-4 h-4 text-purple-500" />
+                                            <Zap className="w-4 h-4 text-[var(--color-brand-orange)]" />
                                             <span className="text-[10px] font-black uppercase tracking-widest">Analizler</span>
                                         </div>
                                         <p className="font-bold text-[var(--text-primary)] text-base">+{xpData.analizler * 150} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
-                                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.analizler} Kez (<span className="text-purple-500">150x</span>)</p>
+                                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.analizler} Kez (<span className="text-[var(--color-brand-orange)]">150x</span>)</p>
                                     </div>
                                 </div>
                             </div>
@@ -655,7 +692,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                                                     : `border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:${badge.border.replace('border-', 'border-').replace('/50', '/80')} hover:${badge.color}`
                                                             }`}
                                                         >
-                                                            <span>{badge.emoji}</span>
+                                                            {renderBadgeIcon(badge.emoji, "w-3.5 h-3.5")}
                                                             <span>{badge.label}</span>
                                                             {isSelected && <CheckCircle2 className="h-3 w-3" />}
                                                         </button>
@@ -700,7 +737,9 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                                     ★
                                                 </span>
                                             )}
-                                            <span className="block text-xl mb-1">{badge.emoji}</span>
+                                            <span className={`mx-auto mb-2 flex h-8 w-8 items-center justify-center ${isActive ? badge.color : 'text-[var(--text-secondary)]'}`}>
+                                                {renderBadgeIcon(badge.emoji, "w-6 h-6")}
+                                            </span>
                                             <span className={`block text-[9px] font-black uppercase tracking-widest leading-4 ${isActive ? badge.color : 'text-[var(--text-secondary)]'}`}>
                                                 {badge.label}
                                             </span>
