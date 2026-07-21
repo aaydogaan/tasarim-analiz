@@ -513,7 +513,16 @@ export default function App() {
   };
 
   const submitCommunityPost = async () => {
-    if (!sonuc?._analiz_id || !kullanici) return;
+    if (!kullanici) {
+      toast.error('Keşfette paylaşmak için giriş yapmalısınız.');
+      setAuthAcik(true);
+      return;
+    }
+    if (!sonuc?._analiz_id) {
+      toast.error('Analiz kimliği bulunamadı. Lütfen tasarımı yeniden analiz edin.');
+      return;
+    }
+    
     setYayinlaniyor(true);
     
     // Update analizler just in case other things depend on it
@@ -771,6 +780,11 @@ export default function App() {
         <Route path="/" element={
           <LandingPage
             onStart={() => {
+              if (!kullanici) {
+                toast.error('Analiz yapmak için kayıt olmanız veya giriş yapmanız gerekmektedir.');
+                setAuthAcik(true);
+                return;
+              }
               navigate('/app');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
@@ -791,7 +805,7 @@ export default function App() {
         } />
         <Route path="/community" element={
           <main className="flex-1 w-full mt-20">
-            <Community />
+            <Community kullanici={kullanici} onAuthClick={() => setAuthAcik(true)} />
           </main>
         } />
         <Route path="/pricing" element={

@@ -93,47 +93,29 @@ export default function CommunitySpotlight({ onExploreClick }: { onExploreClick:
     useEffect(() => {
         const fetchVitrin = async () => {
             const { data, error } = await supabase
-                .from("vitrin_view")
-                .select("*")
-                .order("created_at", { ascending: false })
+                .from("community_posts")
+                .select(`
+                    id,
+                    likes_count,
+                    analizler(isletme, tasarim_turu, gorsel_url, genel_puan, user_name, user_avatar)
+                `)
+                .order("likes_count", { ascending: false })
                 .limit(10);
 
             if (data && data.length > 0) {
-                setVitrinItems(data);
+                const formatted = data.map((post: any) => ({
+                    id: post.id,
+                    isletme: post.analizler?.isletme || 'Bilinmeyen Tasarım',
+                    user_name: post.analizler?.user_name,
+                    user_avatar: post.analizler?.user_avatar,
+                    gorsel_url: post.analizler?.gorsel_url,
+                    tasarim_turu: post.analizler?.tasarim_turu || 'Tasarım',
+                    ai_puan: post.analizler?.genel_puan || 0,
+                    topluluk_puan: post.likes_count
+                }));
+                setVitrinItems(formatted);
             } else {
-                // Fallback sample data if DB is empty
-                setVitrinItems([
-                    {
-                        id: 's1',
-                        isletme: 'Örnek Tasarım 1',
-                        user_name: 'Arda Yılmaz',
-                        user_avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=Arda',
-                        gorsel_url: 'https://images.unsplash.com/photo-1616469829581-73993eb86b02?auto=format&fit=crop&q=80&w=600',
-                        tasarim_turu: 'Mobil',
-                        ai_puan: 92,
-                        topluluk_puan: 85
-                    },
-                    {
-                        id: 's2',
-                        isletme: 'Örnek Tasarım 2',
-                        user_name: 'Selin Demir',
-                        user_avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=Selin',
-                        gorsel_url: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=600',
-                        tasarim_turu: 'E-ticaret',
-                        ai_puan: 88,
-                        topluluk_puan: 90
-                    },
-                    {
-                        id: 's3',
-                        isletme: 'Örnek Tasarım 3',
-                        user_name: 'Murat Can',
-                        user_avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=Murat',
-                        gorsel_url: 'https://images.unsplash.com/photo-1551288049-bbbda536339a?auto=format&fit=crop&q=80&w=600',
-                        tasarim_turu: 'SaaS',
-                        ai_puan: 95,
-                        topluluk_puan: 92
-                    }
-                ]);
+                setVitrinItems([]);
             }
             setLoading(false);
         };

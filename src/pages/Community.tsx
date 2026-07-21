@@ -45,6 +45,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
     const [posts, setPosts] = useState<any[]>([]);
     const [postsLoading, setPostsLoading] = useState(true);
     const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+    const [postSort, setPostSort] = useState<'new' | 'popular'>('new');
 
     // Comments State
     const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
@@ -191,12 +192,9 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         const loadFounders = async () => {
             const { data, error } = await supabase
                 .from('profiles')
-                .select('id, display_name, bio, avatar_url, website, social_handle, design_rank, specialty, experience_level, founder_number, created_at, public_visible')
-                .not('founder_number', 'is', null)
-                .gte('founder_number', CORE_FOUNDER_COUNT + 1)
-                .eq('public_visible', true)
-                .order('founder_number', { ascending: true })
-                .limit(MEMBER_FOUNDER_LIMIT);
+                .select('id, display_name, bio, avatar_url, website, social_handle, design_rank, specialty, experience_level, created_at')
+                .order('created_at', { ascending: true })
+                .limit(100);
 
             if (!aktif) return;
 
@@ -422,7 +420,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                     </div>
                                     <div className="absolute -top-16 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none w-max bg-[#111] border border-white/10 rounded-2xl px-4 py-3 shadow-2xl flex flex-col items-center z-50">
                                         <span className="text-sm font-bold text-white">
-                                            {founderSource === 'live' ? founder.displayName : `Destekçi #${rank}`}
+                                            {founder.displayName || 'Gizli Tasarımcı'}
                                         </span>
                                         <span className="text-[10px] uppercase font-bold tracking-widest mt-1 text-[var(--color-brand-orange)]">
                                             İlk 100 Destekçi
@@ -478,8 +476,18 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                         <div className="flex items-center justify-between mb-8">
                             <h2 className="text-3xl font-bold tracking-tight">Topluluk Akışı</h2>
                             <div className="flex gap-2">
-                                <span className="px-4 py-2 bg-[var(--text-primary)] text-[var(--bg-primary)] text-xs font-bold rounded-full cursor-pointer">En Yeni</span>
-                                <span className="px-4 py-2 bg-[var(--card-bg)] text-[var(--text-secondary)] text-xs font-bold rounded-full border border-[var(--border-primary)] cursor-pointer hover:bg-[var(--bg-secondary)] transition-colors">Popüler</span>
+                                <span 
+                                    onClick={() => setPostSort('new')}
+                                    className={`px-4 py-2 text-xs font-bold rounded-full cursor-pointer transition-colors ${postSort === 'new' ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]' : 'bg-[var(--card-bg)] text-[var(--text-secondary)] border border-[var(--border-primary)] hover:bg-[var(--bg-secondary)]'}`}
+                                >
+                                    En Yeni
+                                </span>
+                                <span 
+                                    onClick={() => setPostSort('popular')}
+                                    className={`px-4 py-2 text-xs font-bold rounded-full cursor-pointer transition-colors ${postSort === 'popular' ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]' : 'bg-[var(--card-bg)] text-[var(--text-secondary)] border border-[var(--border-primary)] hover:bg-[var(--bg-secondary)]'}`}
+                                >
+                                    Popüler
+                                </span>
                             </div>
                         </div>
 
@@ -493,7 +501,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                 <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
                                 <p>Toplulukta henüz gönderi yok. İlk paylaşan sen ol!</p>
                             </div>
-                        ) : posts.map((post) => (
+                        ) : [...posts].sort((a, b) => postSort === 'popular' ? b.likes_count - a.likes_count : new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map((post) => (
                             <motion.div
                                 key={post.id}
                                 initial={{ opacity: 0, x: -20 }}
@@ -570,41 +578,46 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                 <h3 className="font-bold text-xl tracking-tight text-[var(--text-primary)]">Liderlik Tablosu</h3>
                             </div>
                             <div className="space-y-6">
-                                {[
-                                    { name: 'Kadir Mert', points: '12,450', level: 'Kıdemli Tasarımcı', crown: true, gradient: 'from-amber-400 via-orange-500 to-red-500' },
-                                    { name: 'Elif Şahin', points: '11,200', level: 'Uzman Tasarımcı', crown: false, gradient: 'from-blue-400 to-indigo-500' },
-                                    { name: 'Caner Öz', points: '9,800', level: 'Kıdemli Tasarımcı', crown: false, gradient: 'from-emerald-400 to-teal-500' },
-                                    { name: 'Selin Y.', points: '8,400', level: 'Junior Tasarımcı', crown: false, gradient: 'from-[var(--border-primary)] to-[var(--text-secondary)]' }
-                                ].map((user, i) => (
-                                    <div key={i} className="flex items-center gap-4 group cursor-pointer p-3 -mx-3 rounded-2xl hover:bg-[var(--bg-secondary)] transition-colors">
-                                        <div className="relative">
-                                            {/* Level Glow */}
-                                            <div className={`absolute -inset-1 rounded-full bg-gradient-to-br ${user.gradient} opacity-40 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300 blur-[3px]`}></div>
-                                            <div className={`w-12 h-12 rounded-full p-[2px] bg-gradient-to-br ${user.gradient} relative z-10`}>
-                                                <img
-                                                    src={`https://api.dicebear.com/7.x/notionists/svg?seed=User${i + 50}`}
-                                                    className="w-full h-full rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--bg-primary)] object-cover"
-                                                    alt="Avatar"
-                                                />
+                                {founders.slice(0, 5).map((user, i) => {
+                                    const gradient = i === 0 ? 'from-amber-400 via-orange-500 to-red-500' 
+                                                   : i === 1 ? 'from-blue-400 to-indigo-500' 
+                                                   : i === 2 ? 'from-emerald-400 to-teal-500' 
+                                                   : 'from-[var(--border-primary)] to-[var(--text-secondary)]';
+                                    
+                                    // Mock points based on rank
+                                    const points = 12500 - (i * 1200);
+
+                                    return (
+                                        <div key={user.id} onClick={() => onProfileOpen?.(user)} className="flex items-center gap-4 group cursor-pointer p-3 -mx-3 rounded-2xl hover:bg-[var(--bg-secondary)] transition-colors">
+                                            <div className="relative">
+                                                {/* Level Glow */}
+                                                <div className={`absolute -inset-1 rounded-full bg-gradient-to-br ${gradient} opacity-40 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300 blur-[3px]`}></div>
+                                                <div className={`w-12 h-12 rounded-full p-[2px] bg-gradient-to-br ${gradient} relative z-10`}>
+                                                    <img
+                                                        src={user.avatarUrl || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`}
+                                                        className="w-full h-full rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--bg-primary)] object-cover"
+                                                        alt="Avatar"
+                                                    />
+                                                </div>
+                                                {i === 0 && (
+                                                    <Crown className="absolute -top-3 -right-2 text-amber-500 fill-amber-500 w-6 h-6 drop-shadow-sm z-20 animate-bounce" />
+                                                )}
                                             </div>
-                                            {user.crown && (
-                                                <Crown className="absolute -top-3 -right-2 text-amber-500 fill-amber-500 w-6 h-6 drop-shadow-sm z-20 animate-bounce" />
-                                            )}
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-bold text-sm tracking-tight leading-none mb-1 text-[var(--text-primary)] group-hover:text-[var(--color-brand-orange)] transition-colors truncate">
+                                                    {user.displayName || 'Gizli Tasarımcı'}
+                                                </p>
+                                                <p className={`text-[9px] uppercase font-black tracking-widest bg-gradient-to-r ${gradient} bg-clip-text text-transparent truncate`}>
+                                                    {user.designRank || 'Tasarımcı'}
+                                                </p>
+                                            </div>
+                                            <div className="flex flex-col items-end flex-shrink-0">
+                                                <span className="text-lg font-black text-[var(--text-secondary)] italic">#{i + 1}</span>
+                                                <span className="text-[10px] font-bold text-[var(--text-secondary)]">{points.toLocaleString('tr-TR')} XP</span>
+                                            </div>
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-bold text-sm tracking-tight leading-none mb-1 text-[var(--text-primary)] group-hover:text-[var(--color-brand-orange)] transition-colors truncate">
-                                                {user.name}
-                                            </p>
-                                            <p className={`text-[9px] uppercase font-black tracking-widest bg-gradient-to-r ${user.gradient} bg-clip-text text-transparent truncate`}>
-                                                {user.level}
-                                            </p>
-                                        </div>
-                                        <div className="flex flex-col items-end flex-shrink-0">
-                                            <span className="text-lg font-black text-[var(--text-secondary)] italic">#{i + 1}</span>
-                                            <span className="text-[10px] font-bold text-[var(--text-secondary)]">{user.points} XP</span>
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
 

@@ -54,11 +54,31 @@ export function Vitrin() {
     const fetchVitrin = async () => {
         setLoading(true);
         const { data, error } = await supabase
-            .from("vitrin_view")
-            .select("*")
+            .from("community_posts")
+            .select(`
+                id,
+                created_at,
+                likes_count,
+                analizler(isletme, tasarim_turu, gorsel_url, genel_puan, user_name, user_avatar)
+            `)
             .order("created_at", { ascending: false });
 
-        if (data) setItems(data);
+        if (data) {
+            const formatted = data.map((post: any) => ({
+                id: post.id,
+                isletme: post.analizler?.isletme || 'Ads',
+                user_name: post.analizler?.user_name,
+                user_avatar: post.analizler?.user_avatar,
+                gorsel_url: post.analizler?.gorsel_url,
+                tasarim_turu: post.analizler?.tasarim_turu || 'Tasarım',
+                ai_puan: post.analizler?.genel_puan || 0,
+                topluluk_puan: post.likes_count || 0,
+                oy_sayisi: 0,
+                created_at: post.created_at,
+                platform: ''
+            }));
+            setItems(formatted);
+        }
         setLoading(false);
     };
 

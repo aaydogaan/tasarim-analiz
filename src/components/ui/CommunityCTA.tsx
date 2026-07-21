@@ -9,7 +9,7 @@ const CHANGING_PHRASES = [
     { text: "Gelişiyoruz.", suffix: "" }
 ];
 
-export default function CommunityCTA() {
+export default function CommunityCTA({ onExploreClick }: { onExploreClick?: () => void }) {
     const [wordIndex, setWordIndex] = useState(0);
 
     useEffect(() => {
@@ -109,19 +109,19 @@ export default function CommunityCTA() {
                             transition={{ delay: 0.4 }}
                             className="text-white/60 text-base md:text-2xl max-w-3xl mb-12 font-medium leading-relaxed"
                         >
-                            Sadece AI değil, koca bir topluluk yanında. <br className="hidden md:block" /> Discord'a katıl, tasarımlarını canlı tartış ve yeni fikirler edin.
+                            Sadece AI değil, koca bir topluluk yanında. <br className="hidden md:block" /> Keşfet'e katıl, tasarımlarını canlı tartış, puanla ve yeni fikirler edin.
                         </motion.p>
 
                         <div className="flex flex-col sm:flex-row items-center gap-8 mb-16">
-                            <motion.a
-                                href="#"
+                            <motion.button
+                                onClick={onExploreClick}
                                 whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(255, 77, 0, 0.3)" }}
                                 whileTap={{ scale: 0.95 }}
                                 className="flex items-center gap-4 px-12 py-5 bg-[var(--color-brand-orange)] text-white rounded-full text-xl font-bold transition-all shadow-2xl shadow-orange-500/20 group"
                             >
                                 <MessageCircle size={28} className="group-hover:rotate-12 transition-transform" fill="white" />
-                                Discord'a Katıl
-                            </motion.a>
+                                Keşfet'e Katıl
+                            </motion.button>
 
                             <div className="flex items-center gap-5 px-6 py-4 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md">
                                 <div className="flex -space-x-3">

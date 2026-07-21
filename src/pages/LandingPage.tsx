@@ -213,7 +213,7 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                 </div>
             </div>
 
-            <CommunityCTA />
+            <CommunityCTA onExploreClick={onCommunityClick} />
 
             {/* ── Contact Section - Pixel Perfect Match ── */}
             <div className="relative w-full overflow-hidden flex flex-col items-center pt-[80px] md:pt-[160px] pb-[12px] bg-[var(--color-brand-light)]">
