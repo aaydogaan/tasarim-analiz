@@ -3,7 +3,7 @@ import Lenis from 'lenis';
 import { motion, AnimatePresence } from "motion/react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
-import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check, AlertCircle, Globe, ArrowUpRight, Layers, Code, Scan, Download, ExternalLink, BookOpen, Link as LinkIcon, FileText, Clock, Settings, Home, Plus, Target, Star } from "lucide-react";
+import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check, AlertCircle, Globe, ArrowUpRight, Layers, Code, Scan, Download, ExternalLink, BookOpen, Link as LinkIcon, FileText, Clock, Settings, Home, Plus, Target, Star, Search, Filter, MessageCircle, Heart, Trophy, Compass, Lock, Shuffle } from "lucide-react";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { supabase } from "./lib/supabase";
@@ -265,7 +265,7 @@ export default function App() {
 
   // Auth
   const [authAcik, setAuthAcik] = useState(false);
-  const [authMod, setAuthMod] = useState<'giris' | 'kayit'>('giris');
+  const [authMod, setAuthMod] = useState<'giris' | 'kayit' | 'sifremi-unuttum' | 'sifre-yenile'>('giris');
   const [authEmail, setAuthEmail] = useState('');
   const [authSifre, setAuthSifre] = useState('');
   const [authAdSoyad, setAuthAdSoyad] = useState('');
@@ -291,6 +291,10 @@ export default function App() {
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setKullanici(session?.user ?? null);
+      if (_e === 'PASSWORD_RECOVERY') {
+        setAuthMod('sifre-yenile');
+        setAuthAcik(true);
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -373,6 +377,21 @@ export default function App() {
         const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authSifre });
         if (error) throw error;
         setAuthAcik(false);
+      } else if (authMod === 'sifremi-unuttum') {
+        const { error } = await supabase.auth.resetPasswordForEmail(authEmail, {
+          redirectTo: window.location.origin,
+        });
+        if (error) throw error;
+        toast.success('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.');
+        setAuthMod('giris');
+      } else if (authMod === 'sifre-yenile') {
+        if (authSifre !== authSifreTekrar) throw new Error('Şifreler uyuşmuyor.');
+        if (authSifre.length < 6) throw new Error('Şifreniz en az 6 karakter olmalıdır.');
+        const { error } = await supabase.auth.updateUser({ password: authSifre });
+        if (error) throw error;
+        toast.success('Şifreniz başarıyla güncellendi.');
+        setAuthAcik(false);
+        setAuthMod('giris');
       } else {
         if (authSifre !== authSifreTekrar) {
           throw new Error('Şifreler uyuşmuyor.');
@@ -398,6 +417,10 @@ export default function App() {
   };
 
   const rastgeleAvatarUret = () => {
+    if (seciliAvatar && !seciliAvatar.includes('dicebear.com')) {
+      const onay = window.confirm("Şu anda özel bir profil fotoğrafınız var. Onay verirseniz rastgele bir avatar ile değiştirilecektir. Devam etmek istiyor musunuz?");
+      if (!onay) return;
+    }
     setSeciliAvatar(`https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.random().toString(36).substring(7)}`);
   };
 
@@ -1947,12 +1970,18 @@ export default function App() {
                   <User className="w-4 h-4 text-[var(--color-brand-orange)]" />
                   <div className="flex gap-1">
                     {authAdim === 1 ? (
-                      (['giris', 'kayit'] as const).map(m => (
-                        <button key={m} onClick={() => setAuthMod(m)}
-                          className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${authMod === m ? 'bg-[var(--color-brand-orange)] text-white shadow-sm' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}>
-                          {m === 'giris' ? 'Giriş Yap' : 'Kayıt Ol'}
-                        </button>
-                      ))
+                      authMod === 'sifre-yenile' ? (
+                        <span className="text-[13px] font-bold text-gray-900">Şifre Yenileme</span>
+                      ) : authMod === 'sifremi-unuttum' ? (
+                        <span className="text-[13px] font-bold text-gray-900">Şifremi Unuttum</span>
+                      ) : (
+                        (['giris', 'kayit'] as const).map(m => (
+                          <button key={m} onClick={() => setAuthMod(m)}
+                            className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${authMod === m ? 'bg-[var(--color-brand-orange)] text-white shadow-sm' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}>
+                            {m === 'giris' ? 'Giriş Yap' : 'Kayıt Ol'}
+                          </button>
+                        ))
+                      )
                     ) : (
                       <span className="text-[13px] font-bold text-gray-900">Profilini Tamamla</span>
                     )}
@@ -1966,29 +1995,48 @@ export default function App() {
               <div className="p-5 space-y-3">
                 {authAdim === 1 ? (
                   <form onSubmit={girisYap} className="space-y-3">
-                    <input type="email" placeholder="E-posta" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
-                      className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
+                    {authMod !== 'sifre-yenile' && (
+                      <input type="email" placeholder="E-posta" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
+                        className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
+                    )}
                     
                     {authMod === 'kayit' && (
                       <input type="text" placeholder="Ad Soyad" value={authAdSoyad} onChange={e => setAuthAdSoyad(e.target.value)}
                         className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
                     )}
 
-                    <input type="password" placeholder="Şifre" value={authSifre} onChange={e => setAuthSifre(e.target.value)}
-                      className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
+                    {authMod !== 'sifremi-unuttum' && (
+                      <input type="password" placeholder={authMod === 'sifre-yenile' ? "Yeni Şifre" : "Şifre"} value={authSifre} onChange={e => setAuthSifre(e.target.value)}
+                        className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
+                    )}
 
-                    {authMod === 'kayit' && (
+                    {(authMod === 'kayit' || authMod === 'sifre-yenile') && (
                       <input type="password" placeholder="Şifre (Tekrar)" value={authSifreTekrar} onChange={e => setAuthSifreTekrar(e.target.value)}
                         className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
                     )}
 
                     {authHata && <p className="text-red-500 text-[11px] px-1">{authHata}</p>}
 
-                    <button type="submit" disabled={authYukleniyor || !authEmail || !authSifre}
+                    <button type="submit" disabled={authYukleniyor || (authMod !== 'sifre-yenile' && !authEmail) || (authMod !== 'sifremi-unuttum' && !authSifre)}
                       className="w-full py-3 rounded-xl bg-gray-900 text-white text-sm font-bold hover:bg-black shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                       {authYukleniyor ? <div className="w-4 h-4 border-2 border-white/30 border-t-[var(--color-brand-orange)] rounded-full animate-spin" /> : null}
-                      {authMod === 'giris' ? 'Giriş Yap' : 'Hesap Oluştur'}
+                      {authMod === 'giris' ? 'Giriş Yap' : authMod === 'kayit' ? 'Hesap Oluştur' : authMod === 'sifremi-unuttum' ? 'Sıfırlama Bağlantısı Gönder' : 'Şifreyi Yenile'}
                     </button>
+
+                    {authMod === 'giris' && (
+                      <div className="flex justify-center pt-2">
+                        <button type="button" onClick={() => setAuthMod('sifremi-unuttum')} className="text-xs text-gray-500 hover:text-[var(--color-brand-orange)] font-medium transition-colors">
+                          Şifremi unuttum
+                        </button>
+                      </div>
+                    )}
+                    {(authMod === 'sifremi-unuttum' || authMod === 'sifre-yenile') && (
+                      <div className="flex justify-center pt-2">
+                        <button type="button" onClick={() => setAuthMod('giris')} className="text-xs text-gray-500 hover:text-[var(--color-brand-orange)] font-medium transition-colors">
+                          Giriş Ekranına Dön
+                        </button>
+                      </div>
+                    )}
                   </form>
                 ) : (
                   <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center">
@@ -2014,7 +2062,7 @@ export default function App() {
                     <div className="flex gap-3 w-full mb-6">
                       <button onClick={rastgeleAvatarUret} disabled={avatarYukleniyor}
                         className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-                        <Sparkles className="w-4 h-4" /> Zar At
+                        <Shuffle className="w-4 h-4" /> Rastgele
                       </button>
                       <label className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <Upload className="w-4 h-4" /> Yükle

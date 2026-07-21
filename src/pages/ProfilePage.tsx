@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Lock, Upload, Sparkles, AlertCircle, Check, X } from 'lucide-react';
+import { ArrowLeft, User, Shield, LogOut, Check, Upload, Shuffle, Lock, AlertCircle, X } from 'lucide-react';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 interface ProfilePageProps {
@@ -42,6 +42,10 @@ export default function ProfilePage({ kullanici, supabase, goHome }: ProfilePage
   if (!kullanici) return null;
 
   const rastgeleAvatarUret = async () => {
+    if (seciliAvatar && !seciliAvatar.includes('dicebear.com')) {
+      const onay = window.confirm("Şu anda özel bir profil fotoğrafınız var. Onay verirseniz rastgele bir avatar ile değiştirilecektir. Devam etmek istiyor musunuz?");
+      if (!onay) return;
+    }
     const yeniAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.random().toString(36).substring(7)}`;
     setSeciliAvatar(yeniAvatar);
     
@@ -220,7 +224,7 @@ export default function ProfilePage({ kullanici, supabase, goHome }: ProfilePage
 
                 <div className="flex gap-3 w-full justify-center">
                   <button onClick={rastgeleAvatarUret} disabled={avatarYukleniyor} className="py-2.5 px-5 bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] rounded-xl text-[13px] font-semibold transition-colors flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" /> Zar At
+                    <Shuffle className="w-4 h-4" /> Rastgele
                   </button>
                   <label className="py-2.5 px-5 bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] rounded-xl text-[13px] font-semibold transition-colors flex items-center gap-2 cursor-pointer">
                     <Upload className="w-4 h-4" /> Yükle
