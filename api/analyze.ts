@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI } from '@google/genai';
+import Groq from 'groq-sdk';
 import { createClient } from '@supabase/supabase-js';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
@@ -169,9 +170,43 @@ JSON Formatı Şablonu:
       }
     }
 
+    // GEMINI BAŞARISIZ OLURSA GROQ API (LLAMA VISION) İLE YEDEKLEME (FALLBACK)
     if (!rawText.trim()) {
-      console.error('Tüm modeller denendi ancak başarısız oldu. İlk hata:', firstError);
-      return res.status(503).json({ error: `Yapay Zeka Hatası: Lütfen 1-2 dakika bekleyip tekrar deneyin. (Sistem çok yoğun)` });
+      console.warn('Tüm Gemini modelleri başarısız oldu, Groq API (Llama 3.2 Vision) deneniyor...');
+      try {
+        const groqApiKey = process.env.GROQ_API_KEY;
+        if (groqApiKey) {
+          const groq = new Groq({ apiKey: groqApiKey });
+          const chatCompletion = await groq.chat.completions.create({
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: prompt + '\nIMPORTANT: Return ONLY a valid JSON object matching the requested schema.' },
+                  { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } },
+                ],
+              },
+            ],
+            model: 'llama-3.2-90b-vision-preview',
+            temperature: 0.25,
+            max_tokens: 4000,
+            response_format: { type: 'json_object' }
+          });
+          
+          rawText = chatCompletion.choices[0]?.message?.content || '';
+          secilenModel = 'llama-3.2-90b-vision-preview (Groq)';
+          console.log('Groq API başarıyla yanıt verdi.');
+        } else {
+          console.error('Groq API anahtarı bulunamadı.');
+        }
+      } catch (groqErr: any) {
+        console.error('Groq API de başarısız oldu:', groqErr?.message);
+      }
+    }
+
+    if (!rawText.trim()) {
+      console.error('Tüm yapay zeka sağlayıcıları (Gemini ve Groq) başarısız oldu.');
+      return res.status(503).json({ error: `Yapay Zeka Hatası: Lütfen 1-2 dakika bekleyip tekrar deneyin. (Tüm sunucular çok yoğun)` });
     }
 
     // JSON'u ayıkla — model bazen açıklama metni de ekleyebilir
