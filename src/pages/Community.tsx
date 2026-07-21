@@ -32,7 +32,7 @@ type CommunityProps = {
 
 export default function Community({ kullanici, onAuthClick, onProfileClick, onProfileOpen }: CommunityProps) {
     const [wordIndex, setWordIndex] = useState(0);
-    const [founders, setFounders] = useState<NormalizedCommunityProfile[]>(() => makeFounderPreview(24));
+    const [founders, setFounders] = useState<NormalizedCommunityProfile[]>([]);
     const [founderSource, setFounderSource] = useState<'loading' | 'live' | 'preview'>('loading');
     const [activeChallenge, setActiveChallenge] = useState<any>(null);
     const [challengeEntryCount, setChallengeEntryCount] = useState(0);
@@ -572,24 +572,30 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                 <h3 className="font-bold text-xl tracking-tight text-[var(--text-primary)]">Liderlik Tablosu</h3>
                             </div>
                             <div className="space-y-6">
-                                {founders.slice(0, 5).map((user, i) => {
+                                {[...founders]
+                                    .map(user => {
+                                        const daysSinceJoin = user.createdAt ? Math.max(0, Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 3600 * 24))) : 0;
+                                        const earlyAdopterBonus = Math.max(0, 5000 - ((user.founderNumber || 100) * 50));
+                                        return { ...user, xp: 500 + (daysSinceJoin * 150) + earlyAdopterBonus };
+                                    })
+                                    .sort((a, b) => b.xp - a.xp)
+                                    .slice(0, 5)
+                                    .map((user, i) => {
                                     const gradient = i === 0 ? 'from-amber-400 via-orange-500 to-red-500' 
                                                    : i === 1 ? 'from-blue-400 to-indigo-500' 
                                                    : i === 2 ? 'from-emerald-400 to-teal-500' 
                                                    : 'from-[var(--border-primary)] to-[var(--text-secondary)]';
-                                    
-                                    // Mock points based on rank
-                                    const points = 12500 - (i * 1200);
 
                                     return (
-                                        <div key={user.id} onClick={() => onProfileOpen?.(user)} className="flex items-center gap-4 group cursor-pointer p-3 -mx-3 rounded-2xl hover:bg-[var(--bg-secondary)] transition-colors">
+                                        <div key={user.id} onClick={() => onProfileOpen?.(user)} className="flex items-center gap-4 group cursor-pointer p-3 -mx-3 rounded-2xl hover:bg-[var(--bg-secondary)] transition-colors transform-gpu will-change-transform">
                                             <div className="relative">
                                                 {/* Level Glow */}
                                                 <div className={`absolute -inset-1 rounded-full bg-gradient-to-br ${gradient} opacity-40 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300 blur-[3px]`}></div>
                                                 <div className={`w-12 h-12 rounded-full p-[2px] bg-gradient-to-br ${gradient} relative z-10`}>
                                                     <img
                                                         src={user.avatarUrl || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`}
-                                                        className="w-full h-full rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--bg-primary)] object-cover"
+                                                        style={{ backfaceVisibility: 'hidden', transform: 'translateZ(0)' }}
+                                                        className="w-full h-full rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--bg-primary)] object-cover transform-gpu"
                                                         alt="Avatar"
                                                     />
                                                 </div>
@@ -607,7 +613,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                             </div>
                                             <div className="flex flex-col items-end flex-shrink-0">
                                                 <span className="text-lg font-black text-[var(--text-secondary)] italic">#{i + 1}</span>
-                                                <span className="text-[10px] font-bold text-[var(--text-secondary)]">{points.toLocaleString('tr-TR')} XP</span>
+                                                <span className="text-[10px] font-bold text-[var(--text-secondary)]">{user.xp.toLocaleString('tr-TR')} XP</span>
                                             </div>
                                         </div>
                                     );
