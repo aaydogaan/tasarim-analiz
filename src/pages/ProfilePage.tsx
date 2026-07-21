@@ -300,15 +300,14 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                 },
                 { onConflict: 'id' }
             )
-            .select('id, display_name, bio, avatar_url, website, social_handle, design_rank, specialty, experience_level, founder_number, created_at, public_visible, behance_url, dribbble_url, twitter_url')
+            .select('*')
             .maybeSingle();
 
         if (!authError && data) setProfileRecord(data as CommunityProfileRecord);
 
-        const profileTableMissing = profileError && ['42P01', 'PGRST205', 'PGRST204'].includes(profileError.code);
-
         setSaving(false);
-        if (authError || (profileError && !profileTableMissing)) {
+        if (authError || profileError) {
+            console.error("Profile save error:", authError || profileError);
             setSaveState('error');
             return;
         }
