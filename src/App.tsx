@@ -498,13 +498,19 @@ export default function App() {
   const statsAc = async () => {
     setStatsAcik(true);
     setStatsYukleniyor(true);
-    try {
-      const gecerliToken = (await supabase.auth.getSession()).data.session?.access_token;
-      const resp = await fetch('/api/stats', {
-        headers: gecerliToken ? { "Authorization": `Bearer ${gecerliToken}` } : {}
-      });
-      setStatsData(await resp.json());
-    } catch (e) { console.error('Stats hata:', e); }
+    // Mocked stats data as there is no backend route for this yet.
+    setStatsData({
+      platformlar: {
+        'Instagram Post': 0,
+        'LinkedIn Banner': 0,
+        'Kurumsal Kimlik': 0
+      },
+      isletmeler: {
+        'E-Ticaret': 0,
+        'Teknoloji': 0,
+        'Sağlık': 0
+      }
+    });
     setStatsYukleniyor(false);
   };
 

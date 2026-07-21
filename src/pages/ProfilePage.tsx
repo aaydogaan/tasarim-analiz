@@ -147,15 +147,15 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
 
         let aktif = true;
         const loadStats = async () => {
-            try {
-                const token = (await supabase.auth.getSession()).data.session?.access_token;
-                const resp = await fetch('/api/stats', {
-                    headers: token ? { Authorization: `Bearer ${token}` } : {},
+            // We removed the failing /api/stats fetch because it's a frontend-only app right now.
+            // You can replace this with actual Supabase RPC or queries for these stats later.
+            if (aktif) {
+                setStats({
+                    total: 0,
+                    ortalama: 0,
+                    buHafta: 0,
+                    enCokTasarimTuru: 'Henüz yok',
                 });
-                const data = await resp.json();
-                if (aktif && data?.userStats) setStats(data.userStats);
-            } catch (error) {
-                console.warn('Profil istatistikleri alınamadı:', error);
             }
         };
 
@@ -289,17 +289,21 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
 
         const { data, error: profileError } = await supabase
             .from('profiles')
-            .upsert(
-                {
-                    id: kullanici.id,
-                    ...payload,
-                    public_visible: true,
-                    behance_url: profileData.behanceUrl.trim() || null,
-                    dribbble_url: profileData.dribbbleUrl.trim() || null,
-                    twitter_url: profileData.twitterUrl.trim() || null,
-                },
-                { onConflict: 'id' }
-            )
+            .update({
+                display_name: payload.display_name,
+                bio: payload.bio,
+                website: payload.website,
+                social_handle: payload.social_handle,
+                design_rank: payload.design_rank,
+                specialty: payload.specialty,
+                experience_level: payload.experience_level,
+                avatar_url: payload.avatar_url,
+                public_visible: true,
+                behance_url: profileData.behanceUrl.trim() || null,
+                dribbble_url: profileData.dribbbleUrl.trim() || null,
+                twitter_url: profileData.twitterUrl.trim() || null,
+            })
+            .eq('id', kullanici.id)
             .select('*')
             .maybeSingle();
 
