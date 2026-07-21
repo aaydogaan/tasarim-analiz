@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { LogOut, BarChart2, ChevronDown, Sun, Moon, User, Menu, X } from 'lucide-react';
+import { LogOut, BarChart2, ChevronDown, Sun, Moon, User, Menu, X, Info, CreditCard } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import LiveActivityFeed from './LiveActivityFeed';
@@ -130,10 +130,10 @@ export default function Header({
                 </div>
 
                 {/* Desktop Nav Links */}
-                <div className="hidden md:flex flex-wrap justify-center items-center gap-4 md:gap-10 text-[12px] md:text-[13px] font-medium text-[var(--text-secondary)]">
+                <div className="hidden md:flex flex-wrap justify-center items-center gap-6 md:gap-10 text-[14px] md:text-[15px] font-semibold text-[var(--text-primary)]/85">
                     <button
                         onClick={() => handleNavClick('landing')}
-                        className={`transition-colors whitespace-nowrap ${gorunum === 'landing' ? 'text-[var(--text-primary)] font-bold' : 'hover:text-[var(--text-primary)]'}`}
+                        className={`transition-colors whitespace-nowrap ${gorunum === 'landing' ? 'text-[var(--text-primary)]' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
                     >
                         Anasayfa
                     </button>
@@ -147,7 +147,7 @@ export default function Header({
                             onClick={() => setIsToolsDropdownOpen(!isToolsDropdownOpen)}
                             className={`flex items-center gap-1 transition-colors whitespace-nowrap ${['tools', 'typography'].includes(gorunum) ? 'text-[var(--color-brand-orange)] font-bold' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
                         >
-                            Araçlar ✨ <ChevronDown className={`w-3 h-3 opacity-60 transition-transform duration-300 ${isToolsDropdownOpen ? 'rotate-180' : ''}`} />
+                            Araçlar <ChevronDown className={`w-3.5 h-3.5 opacity-60 transition-transform duration-300 ${isToolsDropdownOpen ? 'rotate-180' : ''}`} />
                         </button>
                         {/* Hover & Click Dropdown Box */}
                         <div className={`absolute top-full left-1/2 -translate-x-1/2 pt-3 transition-[opacity,transform] duration-200 ease-out ${isToolsDropdownOpen ? 'opacity-100 visible translate-y-0 pointer-events-auto' : 'opacity-0 invisible translate-y-1 pointer-events-none'}`}>
@@ -176,13 +176,13 @@ export default function Header({
                     </div>
                     <button
                         onClick={() => handleNavClick('vitrin')}
-                        className={`transition-colors whitespace-nowrap ${gorunum === 'vitrin' ? 'text-[var(--text-primary)] font-bold' : 'hover:text-[var(--text-primary)]'}`}
+                        className={`transition-colors whitespace-nowrap ${gorunum === 'vitrin' ? 'text-[var(--text-primary)]' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
                     >
                         Keşfet
                     </button>
                     <button
                         onClick={() => handleNavClick('community')}
-                        className={`flex items-center gap-1.5 transition-colors whitespace-nowrap ${gorunum === 'community' ? 'text-[var(--text-primary)] font-bold' : 'hover:text-[var(--text-primary)]'}`}
+                        className={`flex items-center gap-1.5 transition-colors whitespace-nowrap ${gorunum === 'community' ? 'text-[var(--text-primary)]' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
                     >
                         Topluluk
                         <span className="relative flex h-1.5 w-1.5">
@@ -190,44 +190,6 @@ export default function Header({
                             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                         </span>
                     </button>
-
-                    {/* Dropdown for Hakkımızda (About + Pricing) */}
-                    <div
-                        className="relative group"
-                        onMouseEnter={supportsHover ? openDropdown : undefined}
-                        onMouseLeave={supportsHover ? scheduleCloseDropdown : undefined}
-                    >
-                        <button
-                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className={`flex items-center gap-1 transition-colors whitespace-nowrap ${['about', 'pricing'].includes(gorunum) ? 'text-[var(--color-brand-orange)] font-bold' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
-                        >
-                            Hakkımızda <ChevronDown className={`w-3 h-3 opacity-60 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                        </button>
-                        {/* Hover & Click Dropdown Box */}
-                        <div className={`absolute top-full left-1/2 -translate-x-1/2 pt-3 transition-[opacity,transform] duration-200 ease-out ${isDropdownOpen ? 'opacity-100 visible translate-y-0 pointer-events-auto' : 'opacity-0 invisible translate-y-1 pointer-events-none'}`}>
-                            <div className="bg-[var(--card-bg)]/95 backdrop-blur-xl rounded-[24px] shadow-[0_18px_60px_rgba(0,0,0,0.14)] ring-1 ring-black/5 p-2.5 w-[280px] flex flex-col gap-1 relative before:absolute before:content-[''] before:w-4 before:h-4 before:bg-[var(--card-bg)] before:border-l before:border-t before:border-[var(--border-primary)] before:-top-2 before:left-1/2 before:-translate-x-1/2 before:rotate-45">
-                                <div className="relative z-10 bg-[var(--card-bg)] rounded-xl">
-                                    <button
-                                        onClick={() => handleNavClick('about')}
-                                        className={`w-full text-left px-5 py-3.5 rounded-2xl hover:bg-[var(--bg-secondary)] text-[13px] font-bold transition-all ${gorunum === 'about' ? 'text-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]/5' : 'text-[var(--text-primary)]/80 hover:text-[var(--text-primary)]'}`}
-                                    >
-                                        Proje Hakkında
-                                        <span className="block text-[10px] text-[var(--text-secondary)] font-medium mt-0.5">Motivasyon ve Amaç</span>
-                                    </button>
-                                    <button
-                                        onClick={() => handleNavClick('pricing')}
-                                        className={`w-full text-left px-5 py-3.5 rounded-2xl hover:bg-[var(--color-brand-orange)]/10 text-[13px] font-bold transition-all flex justify-between items-center ${gorunum === 'pricing' ? 'text-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]/5' : 'text-[var(--text-primary)]/80 hover:text-[var(--color-brand-orange)]'}`}
-                                    >
-                                        <div>
-                                            Planlar
-                                            <span className="block text-[10px] text-[var(--text-secondary)] font-medium mt-0.5">Abonelik & Özellikler</span>
-                                        </div>
-                                        <span className="text-[9px] bg-[var(--color-brand-orange)] text-white px-2 py-0.5 rounded-md font-black tracking-wider uppercase">Pro</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Right Side Actions */}
@@ -265,28 +227,46 @@ export default function Header({
                                         </div>
                                         <button
                                             onClick={() => {
-                                            setIsProfileDropdownOpen(false);
+                                                setIsProfileDropdownOpen(false);
                                                 handleNavClick('profile');
                                             }}
-                                            className="w-full text-left px-4 py-2 text-[13px] font-medium text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] hover:bg-[var(--bg-secondary)] transition-colors flex items-center gap-2"
+                                            className="w-full text-left px-4 py-2.5 text-[13px] font-semibold text-[var(--text-primary)]/80 hover:text-[var(--color-brand-orange)] hover:bg-[var(--bg-secondary)] transition-all flex items-center gap-2"
                                         >
-                                            <User className="w-4 h-4" /> Profilim
+                                            <User className="w-4 h-4 opacity-70" /> Profilim
                                         </button>
                                         <button
-                                            onClick={() => {
-                                                setIsProfileDropdownOpen(false);
-                                                onStatsClick();
-                                            }}
-                                            className="w-full text-left px-4 py-2 text-[13px] font-medium text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] hover:bg-[var(--bg-secondary)] transition-colors flex items-center gap-2"
+                                            onClick={() => { onStatsClick(); setIsProfileDropdownOpen(false); }}
+                                            className="w-full text-left px-4 py-2.5 text-[13px] font-semibold text-[var(--text-primary)]/80 hover:text-[var(--color-brand-orange)] hover:bg-[var(--bg-secondary)] transition-all flex items-center gap-2"
                                         >
-                                            <BarChart2 className="w-4 h-4" /> İstatistikler
+                                            <BarChart2 className="w-4 h-4 opacity-70" />
+                                            Dashboard
                                         </button>
+                                        
+                                        <div className="h-px bg-gradient-to-r from-transparent via-[var(--border-primary)] to-transparent my-1" />
+
+                                        <button
+                                            onClick={() => { handleNavClick('about'); setIsProfileDropdownOpen(false); }}
+                                            className="w-full text-left px-4 py-2.5 text-[13px] font-semibold text-[var(--text-primary)]/80 hover:text-[var(--color-brand-orange)] hover:bg-[var(--bg-secondary)] transition-all flex items-center gap-2"
+                                        >
+                                            <Info className="w-4 h-4 opacity-70" />
+                                            Proje Hakkında
+                                        </button>
+                                        <button
+                                            onClick={() => { handleNavClick('pricing'); setIsProfileDropdownOpen(false); }}
+                                            className="w-full text-left px-4 py-2.5 text-[13px] font-semibold text-[var(--text-primary)]/80 hover:text-[var(--color-brand-orange)] hover:bg-[var(--bg-secondary)] transition-all flex items-center gap-2"
+                                        >
+                                            <CreditCard className="w-4 h-4 opacity-70" />
+                                            Planlar
+                                        </button>
+
+                                        <div className="h-px bg-gradient-to-r from-transparent via-[var(--border-primary)] to-transparent my-1" />
+
                                         <button
                                             onClick={() => {
                                                 setIsProfileDropdownOpen(false);
                                                 onLogoutClick();
                                             }}
-                                            className="w-full text-left px-4 py-2 text-[13px] font-medium text-red-500 hover:bg-red-50/10 transition-colors flex items-center gap-2"
+                                            className="w-full text-left px-4 py-2.5 text-[13px] font-semibold text-red-500 hover:bg-red-50/10 transition-colors flex items-center gap-2"
                                         >
                                             <LogOut className="w-4 h-4" /> Çıkış Yap
                                         </button>
@@ -336,7 +316,7 @@ export default function Header({
                             </button>
                             
                             <div className="flex flex-col gap-3">
-                                <span className="text-[12px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Araçlar ✨</span>
+                                <span className="text-[13px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Araçlar</span>
                                 <button
                                     onClick={() => handleNavClick('tools')}
                                     className={`text-left pl-4 transition-colors ${gorunum === 'tools' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
@@ -366,7 +346,7 @@ export default function Header({
                             </button>
 
                             <div className="flex flex-col gap-3">
-                                <span className="text-[12px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Hakkımızda</span>
+                                <span className="text-[13px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Hakkımızda</span>
                                 <button
                                     onClick={() => handleNavClick('about')}
                                     className={`text-left pl-4 transition-colors ${gorunum === 'about' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
