@@ -25,7 +25,8 @@ import {
     RefreshCw,
     Heart,
     MessageSquare,
-    Crown
+    Crown,
+    Zap
 } from 'lucide-react';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { supabase } from '../lib/supabase';
