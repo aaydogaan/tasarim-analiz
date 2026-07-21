@@ -1,7 +1,23 @@
--- Revizelesene - Puanlama Sistemi (XP) Görünümü
+-- 1. Eksik tabloların oluşturulması (Eğer yoksa)
+CREATE TABLE IF NOT EXISTS weekly_challenges (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    description TEXT,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS challenge_entries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    challenge_id UUID REFERENCES weekly_challenges(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    image_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 2. Revizelesene - Puanlama Sistemi (XP) Görünümü
 -- Bu kod kullanıcıların gerçek hareketlerine (yorum, gönderi, analiz vs.) göre 
 -- XP (Deneyim Puanı) hesaplar ve Liderlik tablosu için kullanılmasını sağlar.
-
 CREATE OR REPLACE VIEW user_xp_stats AS
 SELECT 
     p.id,

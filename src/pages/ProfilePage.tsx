@@ -1,475 +1,739 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, User, Shield, LogOut, Check, Upload, Shuffle, Lock, AlertCircle, X, Trophy, MessageCircle, Zap } from 'lucide-react';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import {
+    Camera,
+    CheckCircle2,
+    Edit2,
+    ExternalLink,
+    Globe,
+    HeartHandshake,
+    Loader2,
+    Mail,
+    MessageCircle,
+    Sparkles,
+    Star,
+    User,
+    X,
+    Zap,
+} from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import {
+    buildAvatarUrl,
+    BADGE_DEFINITIONS,
+    getBadgeById,
+    DESIGN_RANKS,
+    DESIGN_SPECIALTIES,
+    EXPERIENCE_LEVELS,
+    FOUNDER_LIMIT,
+    getDesignRankById,
+    getExperienceById,
+    getMemberFounderDisplayNumber,
+    getSpecialtyById,
+    normalizeCommunityProfile,
+    type CommunityProfileRecord,
+    type NormalizedCommunityProfile,
+} from '../lib/communityProfile';
 
-interface ProfilePageProps {
-  kullanici: any;
-  supabase: any;
-  goHome: () => void;
-}
+type ProfileProps = {
+    kullanici: any;
+    publicProfile?: NormalizedCommunityProfile | null;
+    onAuthClick?: () => void;
+    onCommunityClick?: () => void;
+};
 
-export default function ProfilePage({ kullanici, supabase, goHome }: ProfilePageProps) {
-  const [tab, setTab] = useState<'hesap' | 'guvenlik' | 'basarimlar'>('hesap');
-  const [xpData, setXpData] = useState({ posts: 0, comments: 0, analizler: 0, challenges: 0, total: 100 });
-  const [xpLoading, setXpLoading] = useState(false);
-  
-  const [adSoyad, setAdSoyad] = useState(kullanici?.user_metadata?.full_name || '');
-  const [seciliAvatar, setSeciliAvatar] = useState(kullanici?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici?.id}`);
-  
-  const [sifre, setSifre] = useState('');
-  const [sifreTekrar, setSifreTekrar] = useState('');
-  
-  const [yukleniyor, setYukleniyor] = useState(false);
-  const [avatarYukleniyor, setAvatarYukleniyor] = useState(false);
-  const [avatarOnayAcik, setAvatarOnayAcik] = useState(false);
-  const [hata, setHata] = useState<string | null>(null);
-  const [basari, setBasari] = useState<string | null>(null);
+type ProfileForm = {
+    displayName: string;
+    bio: string;
+    website: string;
+    socialHandle: string;
+    avatarUrl: string;
+    designRank: string;
+    specialty: string;
+    experienceLevel: string;
+    behanceUrl: string;
+    dribbbleUrl: string;
+    twitterUrl: string;
+};
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+const defaultStats = {
+    total: 0,
+    ortalama: 0,
+    buHafta: 0,
+    enCokTasarimTuru: 'Henüz yok',
+};
 
-  // Sync kullanici verileri
-  useEffect(() => {
-    if (kullanici?.user_metadata) {
-      if (kullanici.user_metadata.full_name) {
-        setAdSoyad(kullanici.user_metadata.full_name);
-      }
-      if (kullanici.user_metadata.avatar_url) {
-        setSeciliAvatar(kullanici.user_metadata.avatar_url);
-      }
-    }
-  }, [kullanici]);
+export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onCommunityClick }: ProfileProps) {
+    const isPublicProfile = Boolean(publicProfile);
+    const isOwnProfile = Boolean(kullanici && !publicProfile);
+    const [isEditing, setIsEditing] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [saveState, setSaveState] = useState<'idle' | 'saved' | 'error'>('idle');
+    const [stats, setStats] = useState(defaultStats);
+    const [profileRecord, setProfileRecord] = useState<CommunityProfileRecord | null>(null);
+    const [userBadges, setUserBadges] = useState<string[]>([]);
+    const [featuredBadge, setFeaturedBadge] = useState<string | null>(null);
+    const [savingBadge, setSavingBadge] = useState(false);
+    const [showBadgePicker, setShowBadgePicker] = useState(false);
 
-  // Fetch XP Data
-  useEffect(() => {
-    if (tab === 'basarimlar' && kullanici?.id) {
-      const fetchXp = async () => {
-        setXpLoading(true);
-        try {
-          const [postsRes, commentsRes, analizRes, challengeRes] = await Promise.all([
-            supabase.from('community_posts').select('*', { count: 'exact', head: true }).eq('user_id', kullanici.id),
-            supabase.from('post_comments').select('*', { count: 'exact', head: true }).eq('user_id', kullanici.id),
-            supabase.from('analizler').select('*', { count: 'exact', head: true }).eq('user_id', kullanici.id),
-            supabase.from('challenge_entries').select('*', { count: 'exact', head: true }).eq('user_id', kullanici.id),
-          ]);
-          
-          const posts = postsRes.count || 0;
-          const comments = commentsRes.count || 0;
-          const analizler = analizRes.count || 0;
-          const challenges = challengeRes.count || 0;
-          
-          setXpData({
-            posts,
-            comments,
-            analizler,
-            challenges,
-            total: 100 + (posts * 200) + (comments * 50) + (analizler * 150) + (challenges * 300)
-          });
-        } catch (error) {
-          console.error("XP Fetch Error:", error);
-        } finally {
-          setXpLoading(false);
+    // XP Data States
+    const [xpData, setXpData] = useState({ posts: 0, comments: 0, analizler: 0, challenges: 0, total: 100 });
+    const [xpLoading, setXpLoading] = useState(false);
+
+    const normalizedProfile = useMemo(
+        () => publicProfile || normalizeCommunityProfile(kullanici, profileRecord),
+        [kullanici, profileRecord, publicProfile]
+    );
+
+    const [profileData, setProfileData] = useState<ProfileForm>({
+        displayName: normalizedProfile.displayName,
+        bio: normalizedProfile.bio || '',
+        website: normalizedProfile.website || '',
+        socialHandle: normalizedProfile.socialHandle || '',
+        avatarUrl: normalizedProfile.avatarUrl,
+        designRank: normalizedProfile.designRankId || 'stajyer',
+        specialty: normalizedProfile.specialtyId || 'ui-ux',
+        experienceLevel: normalizedProfile.experienceId || '0-1',
+        behanceUrl: '',
+        dribbbleUrl: '',
+        twitterUrl: '',
+    });
+
+    useEffect(() => {
+        if (!isOwnProfile || !kullanici) return;
+
+        let aktif = true;
+        const loadProfile = async () => {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('id, display_name, bio, avatar_url, website, social_handle, design_rank, specialty, experience_level, founder_number, created_at, public_visible, featured_badge')
+                .eq('id', kullanici.id)
+                .maybeSingle();
+
+            if (!aktif) return;
+            if (!error && data) {
+                setProfileRecord(data as CommunityProfileRecord);
+                setFeaturedBadge((data as any).featured_badge ?? null);
+            }
+            setLoading(false);
+        };
+
+        loadProfile();
+        return () => {
+            aktif = false;
+        };
+    }, [isOwnProfile, kullanici]);
+
+    useEffect(() => {
+        setProfileData({
+            displayName: normalizedProfile.displayName,
+            bio: normalizedProfile.bio || '',
+            website: normalizedProfile.website || '',
+            socialHandle: normalizedProfile.socialHandle || '',
+            avatarUrl: normalizedProfile.avatarUrl,
+            designRank: normalizedProfile.designRankId || 'stajyer',
+            specialty: normalizedProfile.specialtyId || 'ui-ux',
+            experienceLevel: normalizedProfile.experienceId || '0-1',
+            behanceUrl: (profileRecord as any)?.behance_url || '',
+            dribbbleUrl: (profileRecord as any)?.dribbble_url || '',
+            twitterUrl: (profileRecord as any)?.twitter_url || '',
+        });
+        setIsEditing(false);
+    }, [normalizedProfile, profileRecord]);
+
+    useEffect(() => {
+        if (!isOwnProfile || !kullanici) return;
+
+        let aktif = true;
+        const loadStats = async () => {
+            try {
+                const token = (await supabase.auth.getSession()).data.session?.access_token;
+                const resp = await fetch('/api/stats', {
+                    headers: token ? { Authorization: `Bearer ${token}` } : {},
+                });
+                const data = await resp.json();
+                if (aktif && data?.userStats) setStats(data.userStats);
+            } catch (error) {
+                console.warn('Profil istatistikleri alınamadı:', error);
+            }
+        };
+
+        loadStats();
+        return () => {
+            aktif = false;
+        };
+    }, [isOwnProfile, kullanici]);
+
+    // XP calculation effect
+    useEffect(() => {
+        const targetUserId = normalizedProfile.id;
+        if (!targetUserId || targetUserId === 'anonymous') return;
+
+        const fetchXp = async () => {
+            setXpLoading(true);
+            try {
+                const [postsRes, commentsRes, analizRes, challengeRes] = await Promise.all([
+                    supabase.from('community_posts').select('*', { count: 'exact', head: true }).eq('user_id', targetUserId),
+                    supabase.from('post_comments').select('*', { count: 'exact', head: true }).eq('user_id', targetUserId),
+                    supabase.from('analizler').select('*', { count: 'exact', head: true }).eq('user_id', targetUserId),
+                    supabase.from('challenge_entries').select('*', { count: 'exact', head: true }).eq('user_id', targetUserId),
+                ]);
+
+                const posts = postsRes.count || 0;
+                const comments = commentsRes.count || 0;
+                const analizler = analizRes.count || 0;
+                const challenges = challengeRes.count || 0;
+
+                setXpData({
+                    posts,
+                    comments,
+                    analizler,
+                    challenges,
+                    total: 100 + (posts * 200) + (comments * 50) + (analizler * 150) + (challenges * 300)
+                });
+            } catch (error) {
+                console.error("XP Fetch Error:", error);
+            } finally {
+                setXpLoading(false);
+            }
+        };
+        fetchXp();
+    }, [normalizedProfile.id]);
+
+    useEffect(() => {
+        if (!normalizedProfile.id || normalizedProfile.id === 'anonymous') return;
+        const loadBadges = async () => {
+            const { data } = await supabase
+                .from('user_badges')
+                .select('badge_id')
+                .eq('user_id', normalizedProfile.id);
+            if (data) {
+                setUserBadges(data.map(b => b.badge_id));
+            }
+        };
+        loadBadges();
+    }, [normalizedProfile.id]);
+
+    // Public profile: load featured badge
+    useEffect(() => {
+        if (!isPublicProfile || !normalizedProfile.id || normalizedProfile.id === 'anonymous') return;
+        const loadFeatured = async () => {
+            const { data } = await supabase
+                .from('profiles')
+                .select('featured_badge')
+                .eq('id', normalizedProfile.id)
+                .maybeSingle();
+            if (data) setFeaturedBadge((data as any).featured_badge ?? null);
+        };
+        loadFeatured();
+    }, [isPublicProfile, normalizedProfile.id]);
+
+    const handleSelectFeaturedBadge = async (badgeId: string | null) => {
+        if (!isOwnProfile || !kullanici) return;
+        setSavingBadge(true);
+        const newVal = badgeId === featuredBadge ? null : badgeId; // toggle off
+        const { error } = await supabase
+            .from('profiles')
+            .upsert({ id: kullanici.id, featured_badge: newVal }, { onConflict: 'id' });
+        if (!error) setFeaturedBadge(newVal);
+        setSavingBadge(false);
+        setShowBadgePicker(false);
+    };
+
+    const founderNumber = getMemberFounderDisplayNumber(normalizedProfile.founderNumber);
+    const selectedRank = getDesignRankById(profileData.designRank);
+    const selectedSpecialty = getSpecialtyById(profileData.specialty);
+    const selectedExperience = getExperienceById(profileData.experienceLevel);
+    const founderLabel = normalizedProfile.isCoreFounder
+        ? `Kurucu #${normalizedProfile.founderNumber}`
+        : founderNumber
+            ? `İlk Destekçi #${founderNumber}`
+            : `İlk ${FOUNDER_LIMIT} destekçiden biri ol`;
+
+    const handleAvatarRefresh = () => {
+        const nextSeed = `${profileData.displayName || kullanici?.id || 'Revizele'}-${Date.now()}`;
+        setProfileData((prev) => ({ ...prev, avatarUrl: buildAvatarUrl(nextSeed) }));
+        setSaveState('idle');
+    };
+
+    const handleSave = async () => {
+        if (!isOwnProfile || !kullanici) return;
+        setSaving(true);
+        setSaveState('idle');
+
+        const payload = {
+            display_name: profileData.displayName.trim() || normalizedProfile.displayName,
+            bio: profileData.bio.trim(),
+            website: profileData.website.trim(),
+            social_handle: profileData.socialHandle.trim(),
+            design_rank: profileData.designRank,
+            specialty: profileData.specialty,
+            experience_level: profileData.experienceLevel,
+            avatar_url: profileData.avatarUrl.trim() || buildAvatarUrl(kullanici.id),
+        };
+
+        const { error: authError } = await supabase.auth.updateUser({
+            data: {
+                display_name: payload.display_name,
+                full_name: payload.display_name,
+                bio: payload.bio,
+                website: payload.website,
+                social_handle: payload.social_handle,
+                design_rank: payload.design_rank,
+                specialty: payload.specialty,
+                experience_level: payload.experience_level,
+                avatar_url: payload.avatar_url,
+            },
+        });
+
+        const { data, error: profileError } = await supabase
+            .from('profiles')
+            .upsert(
+                {
+                    id: kullanici.id,
+                    ...payload,
+                    public_visible: true,
+                    behance_url: profileData.behanceUrl.trim() || null,
+                    dribbble_url: profileData.dribbbleUrl.trim() || null,
+                    twitter_url: profileData.twitterUrl.trim() || null,
+                },
+                { onConflict: 'id' }
+            )
+            .select('id, display_name, bio, avatar_url, website, social_handle, design_rank, specialty, experience_level, founder_number, created_at, public_visible, behance_url, dribbble_url, twitter_url')
+            .maybeSingle();
+
+        if (!authError && data) setProfileRecord(data as CommunityProfileRecord);
+
+        const profileTableMissing = profileError && ['42P01', 'PGRST205', 'PGRST204'].includes(profileError.code);
+
+        setSaving(false);
+        if (authError || (profileError && !profileTableMissing)) {
+            setSaveState('error');
+            return;
         }
-      };
-      fetchXp();
-    }
-  }, [tab, kullanici]);
 
-  if (!kullanici) return null;
+        setIsEditing(false);
+        setSaveState('saved');
+        setTimeout(() => setSaveState('idle'), 2500);
+    };
 
-  const rastgeleAvatarUret = async () => {
-    if (seciliAvatar && !seciliAvatar.includes('dicebear.com')) {
-      setAvatarOnayAcik(true);
-      return;
-    }
-    await rastgeleAvatarUygula();
-  };
-
-  const rastgeleAvatarUygula = async () => {
-    setAvatarOnayAcik(false);
-    const yeniAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.random().toString(36).substring(7)}`;
-    setSeciliAvatar(yeniAvatar);
-    
-    // Rastgele avatarı da hemen kaydet
-    try {
-      await supabase.auth.updateUser({
-        data: { avatar_url: yeniAvatar }
-      });
-    } catch(err) {}
-  };
-
-  const avatarYukle = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setAvatarYukleniyor(true);
-    setHata(null);
-    try {
-      const s3Client = new S3Client({
-        region: 'auto',
-        endpoint: `https://${import.meta.env.VITE_R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-        credentials: {
-          accessKeyId: import.meta.env.VITE_R2_ACCESS_KEY_ID,
-          secretAccessKey: import.meta.env.VITE_R2_SECRET_ACCESS_KEY,
-        },
-      });
-
-      const fileName = `avatars/${kullanici?.id || Date.now()}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
-      const fileBuffer = await file.arrayBuffer();
-
-      await s3Client.send(new PutObjectCommand({
-        Bucket: import.meta.env.VITE_R2_BUCKET_NAME,
-        Key: fileName,
-        Body: new Uint8Array(fileBuffer),
-        ContentType: file.type,
-      }));
-
-      const r2PublicUrl = import.meta.env.VITE_R2_PUBLIC_URL.replace(/\/$/, "");
-      const avatarUrl = `${r2PublicUrl}/${fileName}`;
-      setSeciliAvatar(avatarUrl);
-      
-      // Otomatik olarak profili de güncelle
-      await supabase.auth.updateUser({
-        data: { avatar_url: avatarUrl }
-      });
-      setBasari('Avatar başarıyla yüklendi ve profilinize kaydedildi!');
-      setTimeout(() => setBasari(null), 3000);
-    } catch (err: any) {
-      console.error('Yükleme hatası:', err);
-      setHata('Avatar yüklenirken bir hata oluştu: ' + err.message);
-    } finally {
-      setAvatarYukleniyor(false);
-    }
-  };
-
-  const bilgileriKaydet = async () => {
-    setHata(null);
-    setBasari(null);
-    setYukleniyor(true);
-    
-    try {
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          full_name: adSoyad,
-          avatar_url: seciliAvatar
-        }
-      });
-      
-      if (error) throw error;
-      setBasari('Profil bilgileriniz başarıyla güncellendi!');
-      setTimeout(() => goHome(), 2000);
-    } catch (err: any) {
-      setHata(err.message || 'Güncelleme sırasında bir hata oluştu.');
-    } finally {
-      setYukleniyor(false);
-    }
-  };
-
-  const sifreGuncelle = async () => {
-    if (sifre !== sifreTekrar) {
-      setHata('Şifreler birbiriyle eşleşmiyor.');
-      return;
-    }
-    if (sifre.length < 6) {
-      setHata('Şifreniz en az 6 karakter olmalıdır.');
-      return;
+    if (!kullanici && !publicProfile) {
+        return (
+            <div className="min-h-[70vh] bg-[var(--bg-primary)] text-[var(--text-primary)] px-6 py-12">
+                <div className="mx-auto flex max-w-3xl flex-col items-center text-center rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-10">
+                    <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
+                        <User className="h-6 w-6 text-[var(--color-brand-orange)]" />
+                    </div>
+                    <h1 className="mb-3 text-3xl font-black tracking-tight">Profilin seni bekliyor</h1>
+                    <p className="mb-6 max-w-xl text-sm font-medium leading-7 text-[var(--text-secondary)]">
+                        Rozetler, ilk destekçi numarası ve tasarım kimliğin için giriş yap.
+                    </p>
+                    <button
+                        onClick={onAuthClick}
+                        className="rounded-full bg-[var(--text-primary)] px-7 py-3 text-sm font-black text-[var(--bg-primary)] transition-transform hover:scale-105"
+                    >
+                        Giriş yap ve profilini oluştur
+                    </button>
+                </div>
+            </div>
+        );
     }
 
-    setHata(null);
-    setBasari(null);
-    setYukleniyor(true);
-    
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: sifre
-      });
-      
-      if (error) throw error;
-      setBasari('Şifreniz başarıyla güncellendi!');
-      setSifre('');
-      setSifreTekrar('');
-      setTimeout(() => setBasari(null), 3000);
-    } catch (err: any) {
-      setHata(err.message || 'Şifre güncellenirken bir hata oluştu.');
-    } finally {
-      setYukleniyor(false);
-    }
-  };
+    const earnedBadgeIds = BADGE_DEFINITIONS
+        .filter(b => b.checkFn(userBadges, normalizedProfile.isCoreFounder, normalizedProfile.founderNumber))
+        .map(b => b.id);
 
-  return (
-    <div className="flex flex-col items-center justify-center p-4 md:p-8 w-full max-w-2xl mx-auto my-12" style={{ zIndex: 10 }}>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-        className="w-full bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-[32px] shadow-sm overflow-hidden"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[var(--border-primary)] bg-[var(--bg-primary)]/50">
-          <div>
-            <h3 className="text-xl font-bold text-[var(--text-primary)]">Profil Ayarları</h3>
-            <p className="text-[13px] text-[var(--text-secondary)] mt-1 font-medium">Hesabınızı, başarımlarınızı ve güvenliğinizi yönetin.</p>
-          </div>
+    const featuredBadgeDef = featuredBadge ? getBadgeById(featuredBadge) : null;
+
+    return (
+        <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] pb-14 w-full pt-10">
+            <main className="mx-auto max-w-screen-xl px-4 py-5 md:px-8 md:py-7">
+                <section className="grid gap-5 lg:grid-cols-[360px_1fr]">
+                    {/* LEFT COLUMN: Avatar & Profile Info */}
+                    <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-5 shadow-sm">
+                        <div className="flex items-start gap-4">
+                            <div className={`relative h-24 w-24 shrink-0 rounded-full p-[3px] ${normalizedProfile.isCoreFounder ? 'bg-gradient-to-br from-orange-300 via-[var(--color-brand-orange)] to-amber-500' : 'bg-[var(--border-primary)]'}`}>
+                                <img src={profileData.avatarUrl} className="h-full w-full rounded-full border-2 border-[var(--card-bg)] bg-[var(--bg-secondary)] object-cover" alt="Profil fotoğrafı" />
+                                {/* Featured badge on avatar */}
+                                {featuredBadgeDef ? (
+                                    <div
+                                        title={featuredBadgeDef.label}
+                                        className={`absolute -bottom-1 -right-1 rounded-full border-4 border-[var(--card-bg)] ${featuredBadgeDef.bg} p-1.5 shadow-lg text-base leading-none`}
+                                    >
+                                        {featuredBadgeDef.emoji}
+                                    </div>
+                                ) : (
+                                    <div className="absolute -bottom-1 -right-1 rounded-full border-4 border-[var(--card-bg)] bg-[var(--color-brand-orange)] p-2 shadow-lg">
+                                        <Sparkles className="h-4 w-4 text-white" />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <p className="mb-2 inline-flex rounded-full bg-[var(--color-brand-orange)]/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--color-brand-orange)]">
+                                    {founderLabel}
+                                </p>
+                                {isEditing ? (
+                                    <input
+                                        type="text"
+                                        value={profileData.displayName}
+                                        onChange={(e) => setProfileData({ ...profileData, displayName: e.target.value })}
+                                        className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-xl font-black outline-none focus:border-[var(--color-brand-orange)]"
+                                    />
+                                ) : (
+                                    <h1 className="truncate text-2xl font-black tracking-tight">{profileData.displayName}</h1>
+                                )}
+                                <p className="mt-1 truncate text-xs font-black uppercase tracking-widest text-[var(--text-secondary)]">
+                                    {normalizedProfile.isCoreFounder ? 'Kurucu' : selectedRank.title}
+                                </p>
+                                {/* Featured badge label */}
+                                {featuredBadgeDef && (
+                                    <span className={`mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black border ${featuredBadgeDef.bg} ${featuredBadgeDef.border} ${featuredBadgeDef.color}`}>
+                                        {featuredBadgeDef.emoji} {featuredBadgeDef.label}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="mt-5 grid grid-cols-2 gap-2">
+                            <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Sıra</p>
+                                <p className="mt-1 text-xl font-black">{normalizedProfile.isCoreFounder ? `#${normalizedProfile.founderNumber}` : founderNumber ? `#${founderNumber}` : '-'}</p>
+                            </div>
+                            <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Alan</p>
+                                <p className="mt-1 truncate text-sm font-black">{selectedSpecialty.label}</p>
+                            </div>
+                        </div>
+
+                        <div className="mt-4 space-y-2 text-sm">
+                            <div className="flex items-center gap-2 text-[var(--text-secondary)]">
+                                <Mail className="h-4 w-4" />
+                                <span className="truncate">{isPublicProfile ? selectedExperience.label : kullanici?.email}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-[var(--text-secondary)]">
+                                <Globe className="h-4 w-4" />
+                                <span className="truncate">{profileData.website || profileData.socialHandle || selectedExperience.label}</span>
+                            </div>
+                        </div>
+
+                        {isOwnProfile && (
+                            <button
+                                onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
+                                disabled={saving}
+                                className={`mt-5 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-black transition-all disabled:opacity-60 ${isEditing ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-[var(--text-primary)] text-[var(--bg-primary)] hover:opacity-90'}`}
+                            >
+                                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : isEditing ? <CheckCircle2 className="h-4 w-4" /> : <Edit2 className="h-4 w-4" />}
+                                {isEditing ? 'Kaydet' : 'Profili düzenle'}
+                            </button>
+                        )}
+
+                        {saveState === 'saved' && <p className="mt-3 text-center text-xs font-bold text-emerald-500">Profil güncellendi.</p>}
+                        {saveState === 'error' && <p className="mt-3 text-center text-xs font-bold text-red-500">Profil kaydedilirken bir sorun oluştu.</p>}
+                    </div>
+
+                    {/* RIGHT COLUMN: Bio, Edit Fields, Stats, Badges & XP */}
+                    <div className="grid gap-5">
+                        {/* Bio & Edit Card */}
+                        <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-5 shadow-sm">
+                            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                                <div className="max-w-2xl w-full">
+                                    <div className="mb-3 flex flex-wrap gap-2">
+                                        {[founderLabel, selectedRank.title, selectedSpecialty.label, selectedExperience.label].map((chip) => (
+                                            <span key={chip} className="rounded-full border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">
+                                                {chip}
+                                            </span>
+                                        ))}
+                                    </div>
+                                    {isEditing ? (
+                                        <textarea
+                                            value={profileData.bio}
+                                            onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
+                                            className="min-h-[96px] w-full resize-none rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-4 py-3 text-sm leading-7 outline-none focus:border-[var(--color-brand-orange)]"
+                                        />
+                                    ) : (
+                                        <p className="text-sm font-medium leading-7 text-[var(--text-secondary)]">
+                                            {profileData.bio || 'Henüz bir biyografi eklenmemiş.'}
+                                        </p>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={onCommunityClick}
+                                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full border border-[var(--border-primary)] px-4 py-2 text-xs font-black text-[var(--text-secondary)] transition-colors hover:text-[var(--color-brand-orange)]"
+                                >
+                                    Topluluk <ExternalLink className="h-3.5 w-3.5" />
+                                </button>
+                            </div>
+
+                            {isEditing && (
+                                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                                    <label className="block">
+                                        <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Avatar URL</span>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={profileData.avatarUrl}
+                                                onChange={(e) => setProfileData({ ...profileData, avatarUrl: e.target.value })}
+                                                className="min-w-0 flex-1 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-xs outline-none focus:border-[var(--color-brand-orange)]"
+                                            />
+                                            <button type="button" onClick={handleAvatarRefresh} className="rounded-xl border border-[var(--border-primary)] px-3 text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)]">
+                                                <Camera className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    </label>
+                                    <label className="block">
+                                        <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Tasarım rütbesi</span>
+                                        <select value={profileData.designRank} onChange={(e) => setProfileData({ ...profileData, designRank: e.target.value })} className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]">
+                                            {DESIGN_RANKS.map((rank) => <option key={rank.id} value={rank.id}>{rank.title}</option>)}
+                                        </select>
+                                    </label>
+                                    <label className="block">
+                                        <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Uzmanlık</span>
+                                        <select value={profileData.specialty} onChange={(e) => setProfileData({ ...profileData, specialty: e.target.value })} className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]">
+                                            {DESIGN_SPECIALTIES.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+                                        </select>
+                                    </label>
+                                    <label className="block">
+                                        <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Deneyim</span>
+                                        <select value={profileData.experienceLevel} onChange={(e) => setProfileData({ ...profileData, experienceLevel: e.target.value })} className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]">
+                                            {EXPERIENCE_LEVELS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+                                        </select>
+                                    </label>
+                                    <input type="text" placeholder="Web sitesi" value={profileData.website} onChange={(e) => setProfileData({ ...profileData, website: e.target.value })} className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]" />
+                                    <input type="text" placeholder="Sosyal hesap" value={profileData.socialHandle} onChange={(e) => setProfileData({ ...profileData, socialHandle: e.target.value })} className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]" />
+                                    <input type="url" placeholder="Behance URL" value={profileData.behanceUrl} onChange={(e) => setProfileData({ ...profileData, behanceUrl: e.target.value })} className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]" />
+                                    <input type="url" placeholder="Dribbble URL" value={profileData.dribbbleUrl} onChange={(e) => setProfileData({ ...profileData, dribbbleUrl: e.target.value })} className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]" />
+                                    <input type="url" placeholder="Twitter / X URL" value={profileData.twitterUrl} onChange={(e) => setProfileData({ ...profileData, twitterUrl: e.target.value })} className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)] col-span-2" />
+                                </div>
+                            )}
+
+                            {/* Portfolio Links — View Mode */}
+                            {!isEditing && (profileData.behanceUrl || profileData.dribbbleUrl || profileData.twitterUrl || profileData.website) && (
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    {profileData.behanceUrl && (
+                                        <a href={profileData.behanceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs font-bold text-[var(--text-secondary)] hover:text-[#053EFF] hover:border-[#053EFF]/30 transition-all">
+                                            Behance
+                                        </a>
+                                    )}
+                                    {profileData.dribbbleUrl && (
+                                        <a href={profileData.dribbbleUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs font-bold text-[var(--text-secondary)] hover:text-[#EA4C89] hover:border-[#EA4C89]/30 transition-all">
+                                            Dribbble
+                                        </a>
+                                    )}
+                                    {profileData.twitterUrl && (
+                                        <a href={profileData.twitterUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs font-bold text-[var(--text-secondary)] transition-all">
+                                            Twitter / X
+                                        </a>
+                                    )}
+                                    {profileData.website && (
+                                        <a href={profileData.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] hover:border-[var(--color-brand-orange)]/30 transition-all">
+                                            <Globe className="w-3.5 h-3.5" /> Website
+                                        </a>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* XP and Stats Grid */}
+                        <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
+                            
+                            {/* Puan ve Başarımlar (XP) */}
+                            <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-5 shadow-sm flex flex-col">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="text-sm font-black tracking-tight">Kazanılan Puanlar (XP)</h2>
+                                    <span className="bg-orange-100 text-[var(--color-brand-orange)] px-3 py-1 rounded-full text-sm font-black">
+                                        {xpLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : `${xpData.total.toLocaleString('tr-TR')} XP`}
+                                    </span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3 mb-2 flex-1">
+                                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-xl flex flex-col justify-between">
+                                        <div className="flex items-center gap-2 mb-2 text-[var(--text-secondary)]">
+                                            <User className="w-4 h-4" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Kayıt Bonusu</span>
+                                        </div>
+                                        <p className="font-bold text-[var(--text-primary)] text-base">+100 <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
+                                    </div>
+                                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-xl flex flex-col justify-between">
+                                        <div className="flex items-center gap-2 mb-2 text-[var(--text-secondary)]">
+                                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Gönderiler</span>
+                                        </div>
+                                        <p className="font-bold text-[var(--text-primary)] text-base">+{xpData.posts * 200} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
+                                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.posts} Kez (<span className="text-emerald-500">200x</span>)</p>
+                                    </div>
+                                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-xl flex flex-col justify-between">
+                                        <div className="flex items-center gap-2 mb-2 text-[var(--text-secondary)]">
+                                            <MessageCircle className="w-4 h-4 text-blue-500" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Yorumlar</span>
+                                        </div>
+                                        <p className="font-bold text-[var(--text-primary)] text-base">+{xpData.comments * 50} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
+                                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.comments} Kez (<span className="text-blue-500">50x</span>)</p>
+                                    </div>
+                                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-xl flex flex-col justify-between">
+                                        <div className="flex items-center gap-2 mb-2 text-[var(--text-secondary)]">
+                                            <Zap className="w-4 h-4 text-purple-500" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Analizler</span>
+                                        </div>
+                                        <p className="font-bold text-[var(--text-primary)] text-base">+{xpData.analizler * 150} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
+                                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.analizler} Kez (<span className="text-purple-500">150x</span>)</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Kısa Özet */}
+                            <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-5 shadow-sm">
+                                <h2 className="mb-4 text-sm font-black tracking-tight">Kısa Özet</h2>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {[
+                                        { label: 'Analiz', value: stats.total },
+                                        { label: 'Ortalama', value: stats.ortalama },
+                                        { label: 'Bu Hafta', value: stats.buHafta },
+                                        { label: 'Favori Tür', value: stats.enCokTasarimTuru },
+                                    ].map((item) => (
+                                        <div key={item.label} className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">{item.label}</p>
+                                            <p className="mt-1 truncate text-lg font-black">{item.value}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                        </div>
+
+                        {/* Topluluk Rozetleri */}
+                        <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-5 shadow-sm">
+                            <div className="mb-4 flex items-center justify-between">
+                                <h2 className="text-sm font-black tracking-tight">Topluluk Rozetleri</h2>
+                                <div className="flex items-center gap-2">
+                                    {loading && <Loader2 className="h-4 w-4 animate-spin text-[var(--text-secondary)]" />}
+                                    {isOwnProfile && (
+                                        <button
+                                            onClick={() => setShowBadgePicker(v => !v)}
+                                            className="flex items-center gap-1.5 rounded-full border border-[var(--border-primary)] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] hover:border-[var(--color-brand-orange)] hover:text-[var(--color-brand-orange)] transition-all"
+                                        >
+                                            <Star className="h-3 w-3" />
+                                            {featuredBadge ? 'Rozeti değiştir' : 'Rozet seç'}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Badge picker panel */}
+                            <AnimatePresence>
+                                {showBadgePicker && isOwnProfile && (
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="overflow-hidden mb-4"
+                                    >
+                                        <div className="rounded-xl border border-[var(--color-brand-orange)]/30 bg-[var(--color-brand-orange)]/5 p-3">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--color-brand-orange)]">
+                                                    Profilinde gösterilecek rozeti seç
+                                                </p>
+                                                <button onClick={() => setShowBadgePicker(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+                                                    <X className="h-3.5 w-3.5" />
+                                                </button>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {BADGE_DEFINITIONS.filter(b =>
+                                                    b.checkFn(userBadges, normalizedProfile.isCoreFounder, normalizedProfile.founderNumber)
+                                                ).map(badge => {
+                                                    const isSelected = featuredBadge === badge.id;
+                                                    return (
+                                                        <button
+                                                            key={badge.id}
+                                                            disabled={savingBadge}
+                                                            onClick={() => handleSelectFeaturedBadge(badge.id)}
+                                                            className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-black transition-all ${
+                                                                isSelected
+                                                                    ? `${badge.bg} ${badge.border} ${badge.color} ring-2 ring-offset-1 ring-[var(--color-brand-orange)]/40`
+                                                                    : `border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:${badge.border.replace('border-', 'border-').replace('/50', '/80')} hover:${badge.color}`
+                                                            }`}
+                                                        >
+                                                            <span>{badge.emoji}</span>
+                                                            <span>{badge.label}</span>
+                                                            {isSelected && <CheckCircle2 className="h-3 w-3" />}
+                                                        </button>
+                                                    );
+                                                })}
+                                                {featuredBadge && (
+                                                    <button
+                                                        disabled={savingBadge}
+                                                        onClick={() => handleSelectFeaturedBadge(null)}
+                                                        className="flex items-center gap-1.5 rounded-full border border-dashed border-red-400/50 px-3 py-1.5 text-xs font-black text-red-400 hover:bg-red-500/10 transition-all"
+                                                    >
+                                                        <X className="h-3 w-3" /> Rozeti kaldır
+                                                    </button>
+                                                )}
+                                                {savingBadge && <Loader2 className="h-4 w-4 animate-spin text-[var(--text-secondary)] self-center" />}
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+
+                            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                                {BADGE_DEFINITIONS.map((badge) => {
+                                    const isActive = badge.checkFn(userBadges, normalizedProfile.isCoreFounder, normalizedProfile.founderNumber);
+                                    const isFeatured = featuredBadge === badge.id;
+                                    return (
+                                        <motion.div
+                                            key={badge.id}
+                                            whileHover={isActive ? { y: -2 } : {}}
+                                            className={`relative rounded-xl border p-3 text-center transition-all ${
+                                                isFeatured
+                                                    ? `${badge.bg} ${badge.border} ring-2 ring-[var(--color-brand-orange)]/30`
+                                                    : isActive
+                                                        ? (badge as any).special
+                                                            ? 'border-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]/10'
+                                                            : 'border-[var(--border-primary)] bg-[var(--bg-secondary)]'
+                                                        : 'border-dashed border-[var(--border-primary)] opacity-40'
+                                            }`}
+                                        >
+                                            {isFeatured && (
+                                                <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-brand-orange)] text-[8px] text-white shadow">
+                                                    ★
+                                                </span>
+                                            )}
+                                            <span className="block text-xl mb-1">{badge.emoji}</span>
+                                            <span className={`block text-[9px] font-black uppercase tracking-widest leading-4 ${isActive ? badge.color : 'text-[var(--text-secondary)]'}`}>
+                                                {badge.label}
+                                            </span>
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <section className="mt-5 grid gap-5 lg:grid-cols-3">
+                    <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-5 shadow-sm">
+                        <HeartHandshake className="mb-4 h-6 w-6 text-[var(--color-brand-orange)]" />
+                        <h3 className="mb-2 text-sm font-black">Topluluk Kimliği</h3>
+                        <p className="text-xs font-medium leading-6 text-[var(--text-secondary)]">
+                            İlk destekçi numarası, rütbe ve uzmanlık alanı profilin en görünür parçası olarak kalır.
+                        </p>
+                    </div>
+                    <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-5 shadow-sm">
+                        <MessageCircle className="mb-4 h-6 w-6 text-[var(--color-brand-orange)]" />
+                        <h3 className="mb-2 text-sm font-black">Geri Bildirim Halkası</h3>
+                        <p className="text-xs font-medium leading-6 text-[var(--text-secondary)]">
+                            Rozet sistemi yarışma, puanlama, davet ve aktiflik üzerinden toplulukta kalmayı teşvik eder.
+                        </p>
+                    </div>
+                    <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-5 shadow-sm">
+                        <Sparkles className="mb-4 h-6 w-6 text-[var(--color-brand-orange)]" />
+                        <h3 className="mb-2 text-sm font-black">Vitrin Geçmişi</h3>
+                        <p className="text-xs font-medium leading-6 text-[var(--text-secondary)]">
+                            Paylaşımlar geldikçe bu alan profilin canlı portfolyosuna dönüşecek.
+                        </p>
+                    </div>
+                </section>
+            </main>
         </div>
-
-        <div className="p-6 md:p-8">
-          {/* Tabs */}
-          <div className="flex bg-[var(--bg-primary)] p-1 rounded-2xl mb-8 relative border border-[var(--border-primary)]/50">
-            <div 
-              className="absolute inset-y-1 w-[calc(33.333%-4px)] bg-[var(--card-bg)] rounded-xl shadow-sm transition-all duration-300 ease-out border border-[var(--border-primary)]/50"
-              style={{ left: tab === 'hesap' ? '4px' : tab === 'guvenlik' ? 'calc(33.333%)' : 'calc(66.666% - 4px)' }}
-            />
-            <button onClick={() => { setTab('hesap'); setHata(null); setBasari(null); }} className={`flex-1 py-2.5 text-sm font-semibold transition-colors relative z-10 flex items-center justify-center gap-2 ${tab === 'hesap' ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>
-              <User className="w-4 h-4 hidden sm:block" /> Hesap
-            </button>
-            <button onClick={() => { setTab('guvenlik'); setHata(null); setBasari(null); }} className={`flex-1 py-2.5 text-sm font-semibold transition-colors relative z-10 flex items-center justify-center gap-2 ${tab === 'guvenlik' ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>
-              <Lock className="w-4 h-4 hidden sm:block" /> Güvenlik
-            </button>
-            <button onClick={() => { setTab('basarimlar'); setHata(null); setBasari(null); }} className={`flex-1 py-2.5 text-sm font-semibold transition-colors relative z-10 flex items-center justify-center gap-2 ${tab === 'basarimlar' ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>
-              <Trophy className="w-4 h-4 hidden sm:block" /> Puanlar
-            </button>
-          </div>
-
-          <AnimatePresence mode="wait">
-            {hata && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
-                <div className="flex items-start gap-2 text-rose-600 bg-rose-50/50 p-3.5 rounded-xl border border-rose-100/50">
-                  <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                  <p className="text-[13px] font-medium leading-relaxed">{hata}</p>
-                </div>
-              </motion.div>
-            )}
-
-            {basari && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
-                <div className="flex items-start gap-2 text-emerald-600 bg-emerald-50/50 p-3.5 rounded-xl border border-emerald-100/50">
-                  <Check className="w-4 h-4 mt-0.5 shrink-0" />
-                  <p className="text-[13px] font-medium leading-relaxed">{basari}</p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {tab === 'hesap' ? (
-            <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-              <div className="flex flex-col items-center">
-                <div className="relative w-32 h-32 mb-5 group">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-[#FF5500] to-orange-400 rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-opacity" />
-                  <div className="relative w-full h-full rounded-full border-4 border-[var(--card-bg)] shadow-xl overflow-hidden bg-[var(--bg-primary)]">
-                    {avatarYukleniyor ? (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <div className="w-8 h-8 border-4 border-[#FF5500]/30 border-t-[#FF5500] rounded-full animate-spin" />
-                      </div>
-                    ) : (
-                      <img src={seciliAvatar} alt="Profil Avatar" className="w-full h-full object-cover" />
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex gap-3 w-full justify-center">
-                  <button onClick={rastgeleAvatarUret} disabled={avatarYukleniyor} className="py-2.5 px-5 bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] rounded-xl text-[13px] font-semibold transition-colors flex items-center gap-2">
-                    <Shuffle className="w-4 h-4" /> Rastgele
-                  </button>
-                  <label className="py-2.5 px-5 bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] rounded-xl text-[13px] font-semibold transition-colors flex items-center gap-2 cursor-pointer">
-                    <Upload className="w-4 h-4" /> Yükle
-                    <input type="file" accept="image/*" className="hidden" onChange={avatarYukle} disabled={avatarYukleniyor} />
-                  </label>
-                </div>
-              </div>
-
-              <div className="space-y-5">
-                <div className="relative group">
-                  <p className="text-[13px] font-semibold text-[var(--text-secondary)] mb-1.5 ml-1">E-posta Adresi <span className="text-[10px] bg-[var(--bg-primary)] px-2 py-0.5 rounded-full ml-2 border border-[var(--border-primary)]">Değiştirilemez</span></p>
-                  <div className="w-full px-4 py-3.5 bg-[var(--bg-primary)]/50 border border-[var(--border-primary)] rounded-2xl text-[14px] font-medium text-[var(--text-secondary)] cursor-not-allowed">
-                    {kullanici.email}
-                  </div>
-                </div>
-
-                <div className="relative group">
-                  <p className="text-[13px] font-semibold text-[var(--text-secondary)] mb-1.5 ml-1">Ad Soyad</p>
-                  <input type="text" placeholder="Adınız ve Soyadınız" value={adSoyad} onChange={e => setAdSoyad(e.target.value)}
-                    className="w-full px-4 py-3.5 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-2xl text-[14px] text-[var(--text-primary)] outline-none focus:border-[#FF5500] focus:ring-4 focus:ring-[#FF5500]/10 transition-all font-medium placeholder:text-[var(--text-secondary)]/50" />
-                </div>
-              </div>
-
-              <button onClick={bilgileriKaydet} disabled={yukleniyor || avatarYukleniyor}
-                className="w-full py-4 mt-2 rounded-2xl bg-gradient-to-r from-[#FF5500] to-orange-500 text-white text-sm font-bold shadow-[0_8px_16px_-6px_rgba(255,85,0,0.4)] hover:shadow-[0_12px_20px_-6px_rgba(255,85,0,0.5)] transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group">
-                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out rounded-2xl" />
-                <span className="relative z-10 flex items-center gap-2">
-                  {yukleniyor ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Check className="w-5 h-5" />}
-                  {yukleniyor ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
-                </span>
-              </button>
-            </motion.div>
-          ) : tab === 'guvenlik' ? (
-            <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-5">
-              <div className="relative group">
-                <p className="text-[13px] font-semibold text-[var(--text-secondary)] mb-1.5 ml-1">Yeni Şifre</p>
-                <input type="password" placeholder="En az 6 karakter" value={sifre} onChange={e => setSifre(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-2xl text-[14px] text-[var(--text-primary)] outline-none focus:border-[#FF5500] focus:ring-4 focus:ring-[#FF5500]/10 transition-all font-medium placeholder:text-[var(--text-secondary)]/50" />
-              </div>
-
-              <div className="relative group">
-                <p className="text-[13px] font-semibold text-[var(--text-secondary)] mb-1.5 ml-1">Yeni Şifre (Tekrar)</p>
-                <input type="password" placeholder="Şifrenizi tekrar girin" value={sifreTekrar} onChange={e => setSifreTekrar(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-2xl text-[14px] text-[var(--text-primary)] outline-none focus:border-[#FF5500] focus:ring-4 focus:ring-[#FF5500]/10 transition-all font-medium placeholder:text-[var(--text-secondary)]/50" />
-              </div>
-
-              <button onClick={sifreGuncelle} disabled={yukleniyor || !sifre || !sifreTekrar}
-                className="w-full py-4 mt-6 rounded-2xl bg-[#FF5500] text-white text-sm font-bold shadow-[0_8px_16px_-6px_rgba(255,85,0,0.4)] hover:shadow-[0_12px_20px_-6px_rgba(255,85,0,0.5)] transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed">
-                {yukleniyor ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Lock className="w-5 h-5" />}
-                {yukleniyor ? 'Güncelleniyor...' : 'Şifreyi Güncelle'}
-              </button>
-            </motion.div>
-          ) : (
-            <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-               <div className="flex flex-col items-center p-6 bg-gradient-to-b from-[var(--color-brand-orange)]/10 to-transparent rounded-3xl border border-[var(--border-primary)] text-center">
-                  <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-[var(--color-brand-orange)] rounded-full flex items-center justify-center text-white mb-4 shadow-lg shadow-orange-500/30">
-                     <Trophy className="w-8 h-8" />
-                  </div>
-                  <h4 className="text-sm font-bold tracking-widest uppercase text-[var(--color-brand-orange)] mb-1">Toplam Deneyim Puanı</h4>
-                  <div className="text-5xl font-black text-[var(--text-primary)] drop-shadow-sm">
-                    {xpLoading ? '...' : xpData.total.toLocaleString('tr-TR')} <span className="text-2xl text-[var(--text-secondary)] font-bold">XP</span>
-                  </div>
-               </div>
-               
-               <div className="space-y-3">
-                  <h5 className="font-bold text-[var(--text-primary)] mb-2 px-1 text-sm uppercase tracking-wider">Nasıl Kazanıldı?</h5>
-                  
-                  <div className="flex items-center justify-between p-4 bg-[var(--bg-primary)]/50 border border-[var(--border-primary)] rounded-2xl transition-all hover:border-[var(--color-brand-orange)]/50">
-                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600">
-                           <User className="w-5 h-5" />
-                        </div>
-                        <div>
-                           <p className="font-bold text-sm text-[var(--text-primary)]">Kayıt Bonusu</p>
-                           <p className="text-xs text-[var(--text-secondary)] font-medium">Aramıza katıldığın için</p>
-                        </div>
-                     </div>
-                     <div className="text-right">
-                        <p className="font-bold text-[var(--text-primary)]">+100 XP</p>
-                        <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mt-0.5">Kazanıldı</p>
-                     </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 bg-[var(--bg-primary)]/50 border border-[var(--border-primary)] rounded-2xl transition-all hover:border-[var(--color-brand-orange)]/50">
-                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
-                           <Upload className="w-5 h-5" />
-                        </div>
-                        <div>
-                           <p className="font-bold text-sm text-[var(--text-primary)]">Tasarım Paylaşma</p>
-                           <p className="text-xs text-[var(--text-secondary)] font-medium">Toplulukta yayınlanan tasarımlar</p>
-                        </div>
-                     </div>
-                     <div className="text-right">
-                        <p className="font-bold text-[var(--text-primary)] text-base">+{xpData.posts * 200} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
-                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.posts} Kez (<span className="text-blue-500">200x</span>)</p>
-                     </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 bg-[var(--bg-primary)]/50 border border-[var(--border-primary)] rounded-2xl transition-all hover:border-[var(--color-brand-orange)]/50">
-                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600">
-                           <Shield className="w-5 h-5" />
-                        </div>
-                        <div>
-                           <p className="font-bold text-sm text-[var(--text-primary)]">Analiz Raporu</p>
-                           <p className="text-xs text-[var(--text-secondary)] font-medium">Yapay zekadan geri bildirim alma</p>
-                        </div>
-                     </div>
-                     <div className="text-right">
-                        <p className="font-bold text-[var(--text-primary)] text-base">+{xpData.analizler * 150} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
-                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.analizler} Kez (<span className="text-purple-500">150x</span>)</p>
-                     </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 bg-[var(--bg-primary)]/50 border border-[var(--border-primary)] rounded-2xl transition-all hover:border-[var(--color-brand-orange)]/50">
-                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
-                           <MessageCircle className="w-5 h-5" />
-                        </div>
-                        <div>
-                           <p className="font-bold text-sm text-[var(--text-primary)]">Geri Bildirim Verme</p>
-                           <p className="text-xs text-[var(--text-secondary)] font-medium">Başka tasarımcılara yorum yazma</p>
-                        </div>
-                     </div>
-                     <div className="text-right">
-                        <p className="font-bold text-[var(--text-primary)] text-base">+{xpData.comments * 50} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
-                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.comments} Kez (<span className="text-emerald-500">50x</span>)</p>
-                     </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-4 bg-[var(--bg-primary)]/50 border border-[var(--border-primary)] rounded-2xl transition-all hover:border-[var(--color-brand-orange)]/50">
-                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center text-rose-600">
-                           <Zap className="w-5 h-5" />
-                        </div>
-                        <div>
-                           <p className="font-bold text-sm text-[var(--text-primary)]">Haftalık Görevler</p>
-                           <p className="text-xs text-[var(--text-secondary)] font-medium">Görevlere katılım sağlama</p>
-                        </div>
-                     </div>
-                     <div className="text-right">
-                        <p className="font-bold text-[var(--text-primary)] text-base">+{xpData.challenges * 300} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
-                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase mt-0.5">{xpData.challenges} Kez (<span className="text-rose-500">300x</span>)</p>
-                     </div>
-                  </div>
-
-               </div>
-            </motion.div>
-          )}
-        </div>
-      </motion.div>
-
-      {/* Avatar Onay Modalı */}
-      <AnimatePresence>
-        {avatarOnayAcik && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-3xl p-6 md:p-8 max-w-sm w-full shadow-2xl relative"
-            >
-              <button
-                onClick={() => setAvatarOnayAcik(false)}
-                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-              
-              <div className="flex flex-col items-center text-center mt-2">
-                <div className="w-16 h-16 bg-orange-100 text-[var(--color-brand-orange)] rounded-full flex items-center justify-center mb-4">
-                  <AlertCircle className="w-8 h-8" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Emin misiniz?</h3>
-                <p className="text-gray-500 text-sm mb-6 leading-relaxed">
-                  Şu anda özel olarak yüklediğiniz bir profil fotoğrafınız var. Onay verirseniz bu fotoğraf silinecek ve rastgele bir avatar ile değiştirilecektir.
-                </p>
-                <div className="flex w-full gap-3">
-                  <button
-                    onClick={() => setAvatarOnayAcik(false)}
-                    className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-colors"
-                  >
-                    Vazgeç
-                  </button>
-                  <button
-                    onClick={rastgeleAvatarUygula}
-                    className="flex-1 py-3 px-4 bg-[var(--color-brand-orange)] hover:bg-orange-600 text-white rounded-xl font-semibold transition-colors shadow-sm"
-                  >
-                    Değiştir
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
+    );
 }

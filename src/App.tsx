@@ -271,8 +271,11 @@ export default function App() {
   const [authAcik, setAuthAcik] = useState(false);
   const [authMod, setAuthMod] = useState<'giris' | 'kayit' | 'sifremi-unuttum' | 'sifre-yenile'>('giris');
   const [authEmail, setAuthEmail] = useState('');
-  const [authSifre, setAuthSifre] = useState('');
   const [authAdSoyad, setAuthAdSoyad] = useState('');
+  const [authDesignRank, setAuthDesignRank] = useState('stajyer');
+  const [authSpecialty, setAuthSpecialty] = useState('ui-ux');
+  const [authExperienceLevel, setAuthExperienceLevel] = useState('0-1');
+  const [authSifre, setAuthSifre] = useState('');
   const [authSifreTekrar, setAuthSifreTekrar] = useState('');
   // Auth Adım 2 (Avatar)
   const [authAdim, setAuthAdim] = useState<1 | 2>(1);
@@ -405,7 +408,13 @@ export default function App() {
           email: authEmail,
           password: authSifre,
           options: {
-            data: { full_name: authAdSoyad }
+            data: { 
+              full_name: authAdSoyad,
+              display_name: authAdSoyad,
+              design_rank: authDesignRank,
+              specialty: authSpecialty,
+              experience_level: authExperienceLevel
+            }
           }
         });
         if (error) throw error;
@@ -863,7 +872,7 @@ export default function App() {
         } />
         <Route path="/profile" element={
           <main className="flex-1 w-full mt-20 flex items-center justify-center">
-            <ProfilePage kullanici={kullanici} supabase={supabase} goHome={goHome} />
+            <ProfilePage kullanici={kullanici} />
           </main>
         } />
         <Route path="/app" element={
@@ -2005,14 +2014,46 @@ export default function App() {
               <div className="p-5 space-y-3">
                 {authAdim === 1 ? (
                   <form onSubmit={girisYap} className="space-y-3">
-                    {authMod !== 'sifre-yenile' && (
+                    {authMod !== 'sifre-yenile' && authMod !== 'kayit' && (
                       <input type="email" placeholder="E-posta" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
                         className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
                     )}
                     
                     {authMod === 'kayit' && (
-                      <input type="text" placeholder="Ad Soyad" value={authAdSoyad} onChange={e => setAuthAdSoyad(e.target.value)}
-                        className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
+                      <>
+                        <input type="text" placeholder="Profil adın" value={authAdSoyad} onChange={e => setAuthAdSoyad(e.target.value)}
+                          className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
+                        
+                        <select value={authDesignRank} onChange={e => setAuthDesignRank(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors">
+                          <option value="stajyer">Stajyer Tasarımcı</option>
+                          <option value="junior">Junior Tasarımcı</option>
+                          <option value="tasarimci">Tasarımcı</option>
+                          <option value="senior">Senior Tasarımcı</option>
+                          <option value="art-direktor">Art Direktör</option>
+                          <option value="tasarim-direktoru">Tasarım Direktörü</option>
+                        </select>
+                        
+                        <div className="flex gap-3">
+                          <select value={authSpecialty} onChange={e => setAuthSpecialty(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors flex-1">
+                            <option value="ui-ux">UI/UX Tasarım</option>
+                            <option value="marka">Marka Kimliği</option>
+                            <option value="sosyal-medya">Sosyal Medya Tasarımı</option>
+                            <option value="e-ticaret">E-ticaret Tasarımı</option>
+                            <option value="hareketli">Hareketli Grafik</option>
+                            <option value="illustrasyon">İllüstrasyon</option>
+                            <option value="basili">Basılı Tasarım</option>
+                          </select>
+                          <select value={authExperienceLevel} onChange={e => setAuthExperienceLevel(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors flex-1">
+                            <option value="0-1">0-1 yıl</option>
+                            <option value="1-3">1-3 yıl</option>
+                            <option value="3-5">3-5 yıl</option>
+                            <option value="5+">5+ yıl</option>
+                          </select>
+                        </div>
+                        
+                        <input type="email" placeholder="E-posta" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
+                          className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
+                      </>
                     )}
 
                     {authMod !== 'sifremi-unuttum' && (
@@ -2020,7 +2061,7 @@ export default function App() {
                         className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
                     )}
 
-                    {(authMod === 'kayit' || authMod === 'sifre-yenile') && (
+                    {authMod === 'sifre-yenile' && (
                       <input type="password" placeholder="Şifre (Tekrar)" value={authSifreTekrar} onChange={e => setAuthSifreTekrar(e.target.value)}
                         className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
                     )}
@@ -2028,10 +2069,14 @@ export default function App() {
                     {authHata && <p className="text-red-500 text-[11px] px-1">{authHata}</p>}
 
                     <button type="submit" disabled={authYukleniyor || (authMod !== 'sifre-yenile' && !authEmail) || (authMod !== 'sifremi-unuttum' && !authSifre)}
-                      className="w-full py-3 rounded-xl bg-gray-900 text-white text-sm font-bold hover:bg-black shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                      {authYukleniyor ? <div className="w-4 h-4 border-2 border-white/30 border-t-[var(--color-brand-orange)] rounded-full animate-spin" /> : null}
+                      className={`w-full py-3.5 rounded-xl text-white text-sm font-bold shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${authMod === 'kayit' ? 'bg-[#9CA3AF] hover:bg-gray-500' : 'bg-gray-900 hover:bg-black'}`}>
+                      {authYukleniyor ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
                       {authMod === 'giris' ? 'Giriş Yap' : authMod === 'kayit' ? 'Hesap Oluştur' : authMod === 'sifremi-unuttum' ? 'Sıfırlama Bağlantısı Gönder' : 'Şifreyi Yenile'}
                     </button>
+                    
+                    {authMod === 'kayit' && (
+                      <p className="text-[10px] text-gray-400 text-center mt-2">Kayıt olduktan sonra e-postanı doğrulamanı isteyebilir.</p>
+                    )}
 
                     {authMod === 'giris' && (
                       <div className="flex justify-center pt-2">
