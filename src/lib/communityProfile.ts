@@ -65,88 +65,127 @@ export const EXPERIENCE_LEVELS = [
 ];
 
 export const BADGE_DEFINITIONS = [
+    // Başlangıç (Starter)
     { 
-        id: 'ilk-destekci', 
-        label: 'İlk Destekçi', 
-        description: 'Revizelesene platformunun ilk 100 üyesinden biri.',
-        emoji: 'Rocket', 
-        bg: 'bg-[#FF5500]/10', 
-        border: 'border-[#FF5500]/30', 
-        color: 'text-[#FF5500]', 
+        id: 'aramiza-hos-geldin', 
+        label: 'Aramıza Hoş Geldin', 
+        description: 'Tasarım dünyasına ilk adımı attın. Profilini başarıyla oluşturdun.',
+        emoji: 'UserPlus', 
+        bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        checkFn: () => true // Everyone gets this
+    },
+    { 
+        id: 'ilk-kivilcim', 
+        label: 'İlk Kıvılcım', 
+        description: 'Revizelesene platformunda ilk tasarımını paylaştın.',
+        emoji: 'UploadCloud', 
+        bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        checkFn: (badges: string[]) => badges.includes('ilk-kivilcim') 
+    },
+    { 
+        id: 'ai-ile-tanisma', 
+        label: 'Yapay Zeka ile Tanışma', 
+        description: 'İlk kez bir tasarıma yapay zeka (AI) analizi aldın.',
+        emoji: 'Bot', 
+        bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        checkFn: (badges: string[]) => badges.includes('ai-ile-tanisma') 
+    },
+    { 
+        id: 'ilk-ses', 
+        label: 'İlk Ses', 
+        description: 'Topluluğa ilk yorumunu bıraktın.',
+        emoji: 'MessageCircle', 
+        bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        checkFn: (badges: string[]) => badges.includes('ilk-ses') 
+    },
+    { 
+        id: 'takdir-eden', 
+        label: 'Takdir Eden', 
+        description: 'İyi tasarımı ilk görüşte anlarsın. Bir tasarıma ilk beğenini bıraktın.',
+        emoji: 'Heart', 
+        bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        checkFn: (badges: string[]) => badges.includes('takdir-eden') 
+    },
+    // Topluluk (Community)
+    { 
+        id: 'destekci', 
+        label: 'Destekçi', 
+        description: 'Topluluğun her zaman yanında. 50 farklı gönderiyi beğendin.',
+        emoji: 'ThumbsUp', 
+        bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        checkFn: (badges: string[]) => badges.includes('destekci') 
+    },
+    { 
+        id: 'yorum-ustasi', 
+        label: 'Yorum Ustası', 
+        description: 'Analitik düşünceni paylaşıyorsun. 100 yapıcı yorum yaptın.',
+        emoji: 'MessageSquare', 
+        bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        checkFn: (badges: string[]) => badges.includes('yorum-ustasi') 
+    },
+    { 
+        id: 'elestirmen', 
+        label: 'Eleştirmen', 
+        description: 'Keskin gözlerin detayları kaçırmıyor. Yorumların diğer kullanıcılardan 500 Faydalı oyu aldı.',
+        emoji: 'Eye', 
+        bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
         special: true,
-        checkFn: (_: string[], isCore: boolean, founderNumber: number) => isCore || (founderNumber > 0 && founderNumber <= FOUNDER_LIMIT) 
+        checkFn: (badges: string[]) => badges.includes('elestirmen') 
     },
     { 
-        id: 'topluluk-katkicisi', 
-        label: 'Aktif Katkıcı', 
-        description: 'Toplulukta düzenli olarak içerik paylaşıp yorum yapan aktif üyeler.',
-        emoji: 'Lightbulb', 
-        bg: 'bg-[#FF5500]/10', 
-        border: 'border-[#FF5500]/30', 
-        color: 'text-[#FF5500]', 
-        checkFn: (badges: string[]) => badges.includes('topluluk-katkicisi') 
-    },
-    { 
-        id: 'yarisma-birincisi', 
-        label: 'Haftanın Galibi', 
-        description: 'Haftalık tasarım yarışmalarında birinci olan yetenekli tasarımcı.',
-        emoji: 'Trophy', 
-        bg: 'bg-[#FF5500]/10', 
-        border: 'border-[#FF5500]/30', 
-        color: 'text-[#FF5500]', 
+        id: 'topluluk-lideri', 
+        label: 'Topluluk Lideri', 
+        description: 'Herkes seni takip ediyor. 1.000 takipçiye ulaştın.',
+        emoji: 'Crown', 
+        bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
         special: true,
-        checkFn: (badges: string[]) => badges.includes('yarisma-birincisi') 
+        checkFn: (badges: string[]) => badges.includes('topluluk-lideri') 
     },
+    { 
+        id: 'trend-avcisi', 
+        label: 'Trend Avcısı', 
+        description: 'Geleceği bugünden görüyorsun. Popüler olmadan önce 10 farklı Trend gönderiyi ilk beğenenlerden oldun.',
+        emoji: 'TrendingUp', 
+        bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        checkFn: (badges: string[]) => badges.includes('trend-avcisi') 
+    },
+    // Yapay Zeka (AI)
     { 
         id: 'analiz-ustasi', 
         label: 'Analiz Ustası', 
-        description: 'Gönderilen tasarımlara derinlemesine yapay zeka analizleri sağlayan üye.',
-        emoji: 'Eye', 
-        bg: 'bg-[#FF5500]/10', 
-        border: 'border-[#FF5500]/30', 
-        color: 'text-[#FF5500]', 
+        description: 'Yapay zekayı bir araç olarak mükemmel kullanıyorsun. 50 farklı tasarıma AI analizi istedin.',
+        emoji: 'Scan', 
+        bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
         checkFn: (badges: string[]) => badges.includes('analiz-ustasi') 
-    },
-    { 
-        id: 'populer-tasarim', 
-        label: 'Popüler Tasarım', 
-        description: 'Paylaştığı bir tasarım toplulukta 50\'den fazla beğeni alan üye.',
-        emoji: 'Heart', 
-        bg: 'bg-[#FF5500]/10', 
-        border: 'border-[#FF5500]/30', 
-        color: 'text-[#FF5500]', 
-        checkFn: (badges: string[]) => badges.includes('populer-tasarim') 
-    },
-    { 
-        id: 'seri-yorumcu', 
-        label: 'Seri Yorumcu', 
-        description: 'Tasarım analizlerine veya gönderilere 100\'den fazla yorum yapan katılımcı.',
-        emoji: 'MessageSquare', 
-        bg: 'bg-[#FF5500]/10', 
-        border: 'border-[#FF5500]/30', 
-        color: 'text-[#FF5500]', 
-        checkFn: (badges: string[]) => badges.includes('seri-yorumcu') 
-    },
-    { 
-        id: 'tasarim-elcisi', 
-        label: 'Tasarım Elçisi', 
-        description: 'Siteye referans linki ile en az 5 yeni tasarımcı kazandıran öncü.',
-        emoji: 'Crown', 
-        bg: 'bg-[#FF5500]/10', 
-        border: 'border-[#FF5500]/30', 
-        color: 'text-[#FF5500]', 
-        checkFn: (badges: string[]) => badges.includes('tasarim-elcisi') 
     },
     { 
         id: 'mukemmeliyetci', 
         label: 'Mükemmeliyetçi', 
-        description: 'Yapay zeka analizlerinden arka arkaya 5 kez %90 ve üzeri puan alan yetenek.',
-        emoji: 'Star', 
-        bg: 'bg-[#FF5500]/10', 
-        border: 'border-[#FF5500]/30', 
-        color: 'text-[#FF5500]', 
+        description: '%100\'ün peşinde. İlk denemede AI\'dan genel skorda 95 ve üzeri puan aldın.',
+        emoji: 'Target', 
+        bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        special: true,
         checkFn: (badges: string[]) => badges.includes('mukemmeliyetci') 
     },
+    // Gizli ve Kurucu
+    { 
+        id: 'baykusun-sirri', 
+        label: 'Baykuşun Sırrı', 
+        description: 'Tam saat 03:33\'te bir tasarım paylaştın. Sen hiç uyumaz mısın?',
+        emoji: 'Ghost', 
+        bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        special: true,
+        checkFn: (badges: string[]) => badges.includes('baykusun-sirri') 
+    },
+    { 
+        id: 'ilk-destekci', 
+        label: 'İlk Destekçi', 
+        description: 'Revizelesene platformunun ilk üyelerinden biri (Kurucu).',
+        emoji: 'Rocket', 
+        bg: 'bg-[#FF5500]/10', border: 'border-[#FF5500]/30', color: 'text-[#FF5500]', 
+        special: true,
+        checkFn: (_: string[], isCore: boolean, founderNumber: number) => isCore || (founderNumber > 0 && founderNumber <= FOUNDER_LIMIT) 
+    }
 ];
 
 export function getMemberFounderDisplayNumber(founderNumber: number) {

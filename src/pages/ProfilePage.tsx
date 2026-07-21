@@ -26,7 +26,15 @@ import {
     Heart,
     MessageSquare,
     Crown,
-    Zap
+    Zap,
+    UserPlus,
+    UploadCloud,
+    Bot,
+    ThumbsUp,
+    TrendingUp,
+    Scan,
+    Target,
+    Ghost
 } from 'lucide-react';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { supabase } from '../lib/supabase';
@@ -403,6 +411,15 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
             case 'Heart': return <Heart className={className} />;
             case 'MessageSquare': return <MessageSquare className={className} />;
             case 'Crown': return <Crown className={className} />;
+            case 'UserPlus': return <UserPlus className={className} />;
+            case 'UploadCloud': return <UploadCloud className={className} />;
+            case 'Bot': return <Bot className={className} />;
+            case 'MessageCircle': return <MessageCircle className={className} />;
+            case 'ThumbsUp': return <ThumbsUp className={className} />;
+            case 'TrendingUp': return <TrendingUp className={className} />;
+            case 'Scan': return <Scan className={className} />;
+            case 'Target': return <Target className={className} />;
+            case 'Ghost': return <Ghost className={className} />;
             default: return <Star className={className} />;
         }
     };
