@@ -185,21 +185,22 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
     }, [isOwnProfile, kullanici]);
 
     useEffect(() => {
-        setProfileData({
-            displayName: normalizedProfile.displayName,
-            bio: normalizedProfile.bio || '',
-            website: normalizedProfile.website || '',
-            socialHandle: normalizedProfile.socialHandle || '',
-            avatarUrl: normalizedProfile.avatarUrl,
-            designRank: normalizedProfile.designRankId || 'stajyer',
-            specialty: normalizedProfile.specialtyId || 'ui-ux',
-            experienceLevel: normalizedProfile.experienceId || '0-1',
-            behanceUrl: (profileRecord as any)?.behance_url || '',
-            dribbbleUrl: (profileRecord as any)?.dribbble_url || '',
-            twitterUrl: (profileRecord as any)?.twitter_url || '',
-        });
-        setIsEditing(false);
-    }, [normalizedProfile, profileRecord]);
+        if (!isEditing) {
+            setProfileData({
+                displayName: normalizedProfile.displayName,
+                bio: normalizedProfile.bio || '',
+                website: normalizedProfile.website || '',
+                socialHandle: normalizedProfile.socialHandle || '',
+                avatarUrl: normalizedProfile.avatarUrl,
+                designRank: normalizedProfile.designRankId || 'stajyer',
+                specialty: normalizedProfile.specialtyId || 'ui-ux',
+                experienceLevel: normalizedProfile.experienceId || '0-1',
+                behanceUrl: (profileRecord as any)?.behance_url || '',
+                dribbbleUrl: (profileRecord as any)?.dribbble_url || '',
+                twitterUrl: (profileRecord as any)?.twitter_url || '',
+            });
+        }
+    }, [normalizedProfile, profileRecord, isEditing]);
 
     useEffect(() => {
         if (!isOwnProfile || !kullanici) return;
@@ -709,48 +710,50 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                             </div>
 
                             {isEditing && (
-                                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                                    <label className="block">
-                                        <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Avatar URL</span>
-                                        <div className="flex gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={profileData.avatarUrl}
-                                                    onChange={(e) => setProfileData({ ...profileData, avatarUrl: e.target.value })}
-                                                    className="min-w-0 flex-1 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-xs outline-none focus:border-[var(--color-brand-orange)]"
-                                                />
-                                                <button type="button" onClick={handleAvatarRefresh} className="rounded-xl border border-[var(--border-primary)] px-3 text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)]" title="Rastgele Avatar Üret">
-                                                    <RefreshCw className="h-4 w-4" />
+                                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-full overflow-hidden">
+                                    <label className="block col-span-1 md:col-span-2">
+                                        <span className="mb-1 block text-xs font-semibold text-[var(--text-secondary)]">Avatar URL</span>
+                                        <div className="flex flex-col sm:flex-row gap-2">
+                                            <input
+                                                type="text"
+                                                value={profileData.avatarUrl}
+                                                onChange={(e) => setProfileData({ ...profileData, avatarUrl: e.target.value })}
+                                                className="min-w-0 flex-1 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-xs outline-none focus:border-[var(--color-brand-orange)]"
+                                            />
+                                            <div className="flex gap-2 shrink-0">
+                                                <button type="button" onClick={handleAvatarRefresh} className="flex-1 sm:flex-initial rounded-xl border border-[var(--border-primary)] px-3 py-2 text-xs text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] flex items-center justify-center gap-1.5" title="Rastgele Avatar Üret">
+                                                    <RefreshCw className="h-3.5 w-3.5" /> Rastgele
                                                 </button>
-                                                <label className="rounded-xl border border-[var(--border-primary)] px-3 flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] cursor-pointer">
+                                                <label className="flex-1 sm:flex-initial rounded-xl border border-[var(--border-primary)] px-3 py-2 text-xs text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] cursor-pointer flex items-center justify-center">
                                                     Yükle
                                                     <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
                                                 </label>
                                             </div>
+                                        </div>
                                     </label>
                                     <label className="block">
-                                        <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Tasarım rütbesi</span>
+                                        <span className="mb-1 block text-xs font-semibold text-[var(--text-secondary)]">Tasarım Rütbesi</span>
                                         <select value={profileData.designRank} onChange={(e) => setProfileData({ ...profileData, designRank: e.target.value })} className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]">
                                             {DESIGN_RANKS.map((rank) => <option key={rank.id} value={rank.id}>{rank.title}</option>)}
                                         </select>
                                     </label>
                                     <label className="block">
-                                        <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Uzmanlık</span>
+                                        <span className="mb-1 block text-xs font-semibold text-[var(--text-secondary)]">Uzmanlık</span>
                                         <select value={profileData.specialty} onChange={(e) => setProfileData({ ...profileData, specialty: e.target.value })} className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]">
                                             {DESIGN_SPECIALTIES.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
                                         </select>
                                     </label>
-                                    <label className="block">
-                                        <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Deneyim</span>
+                                    <label className="block col-span-1 md:col-span-2">
+                                        <span className="mb-1 block text-xs font-semibold text-[var(--text-secondary)]">Deneyim</span>
                                         <select value={profileData.experienceLevel} onChange={(e) => setProfileData({ ...profileData, experienceLevel: e.target.value })} className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]">
                                             {EXPERIENCE_LEVELS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
                                         </select>
                                     </label>
-                                    <input type="text" placeholder="Web sitesi" value={profileData.website} onChange={(e) => setProfileData({ ...profileData, website: e.target.value })} className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]" />
-                                    <input type="text" placeholder="Sosyal hesap" value={profileData.socialHandle} onChange={(e) => setProfileData({ ...profileData, socialHandle: e.target.value })} className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]" />
-                                    <input type="url" placeholder="Behance URL" value={profileData.behanceUrl} onChange={(e) => setProfileData({ ...profileData, behanceUrl: e.target.value })} className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]" />
-                                    <input type="url" placeholder="Dribbble URL" value={profileData.dribbbleUrl} onChange={(e) => setProfileData({ ...profileData, dribbbleUrl: e.target.value })} className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]" />
-                                    <input type="url" placeholder="Twitter / X URL" value={profileData.twitterUrl} onChange={(e) => setProfileData({ ...profileData, twitterUrl: e.target.value })} className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)] col-span-2" />
+                                    <input type="text" placeholder="Web sitesi" value={profileData.website} onChange={(e) => setProfileData({ ...profileData, website: e.target.value })} className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]" />
+                                    <input type="text" placeholder="Sosyal hesap" value={profileData.socialHandle} onChange={(e) => setProfileData({ ...profileData, socialHandle: e.target.value })} className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]" />
+                                    <input type="url" placeholder="Behance URL" value={profileData.behanceUrl} onChange={(e) => setProfileData({ ...profileData, behanceUrl: e.target.value })} className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]" />
+                                    <input type="url" placeholder="Dribbble URL" value={profileData.dribbbleUrl} onChange={(e) => setProfileData({ ...profileData, dribbbleUrl: e.target.value })} className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]" />
+                                    <input type="url" placeholder="Twitter / X URL" value={profileData.twitterUrl} onChange={(e) => setProfileData({ ...profileData, twitterUrl: e.target.value })} className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)] col-span-1 md:col-span-2" />
                                 </div>
                             )}
 
@@ -835,7 +838,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                         { label: 'Favori Tür', value: stats.enCokTasarimTuru },
                                     ].map((item) => (
                                         <div key={item.label} className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">{item.label}</p>
+                                            <p className="text-xs font-semibold text-[var(--text-secondary)] mb-0.5">{item.label}</p>
                                             <p className="mt-1 truncate text-lg font-black">{item.value}</p>
                                         </div>
                                     ))}
