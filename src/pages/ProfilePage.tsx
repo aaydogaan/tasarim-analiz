@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Camera,
@@ -692,11 +692,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
 
                         {/* Topluluk Rozetleri */}
                         <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] shadow-sm overflow-hidden">
-                            {/* Header - tıklanabilir */}
-                            <button
-                                onClick={() => setBadgesExpanded(v => !v)}
-                                className="w-full flex items-center justify-between p-5 hover:bg-[var(--bg-secondary)] transition-colors"
-                            >
+                            <div className="flex items-center justify-between px-5 pt-5 pb-4">
                                 <div className="flex items-center gap-2">
                                     <h2 className="text-sm font-black tracking-tight">Topluluk Rozetleri</h2>
                                     <span className="rounded-full bg-[var(--color-brand-orange)]/10 px-2 py-0.5 text-[10px] font-black text-[var(--color-brand-orange)]">
@@ -707,84 +703,36 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     {loading && <Loader2 className="h-4 w-4 animate-spin text-[var(--text-secondary)]" />}
                                     {isOwnProfile && (
                                         <button
-                                            onClick={(e) => { e.stopPropagation(); setShowBadgePicker(v => !v); if (!badgesExpanded) setBadgesExpanded(true); }}
+                                            onClick={() => { setShowBadgePicker(v => !v); if (!badgesExpanded) setBadgesExpanded(true); }}
                                             className="flex items-center gap-1.5 rounded-full border border-[var(--border-primary)] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] hover:border-[var(--color-brand-orange)] hover:text-[var(--color-brand-orange)] transition-all"
                                         >
                                             <Star className="h-3 w-3" />
-                                            {featuredBadge ? 'Değiştir' : 'Rozet seç'}
+                                            {featuredBadge ? 'Degistir' : 'Rozet sec'}
                                         </button>
                                     )}
-                                    <motion.div
-                                        animate={{ rotate: badgesExpanded ? 180 : 0 }}
-                                        transition={{ duration: 0.2 }}
-                                    >
-                                        <ChevronDown className="h-4 w-4 text-[var(--text-secondary)]" />
-                                    </motion.div>
                                 </div>
-                            </button>
+                            </div>
 
-                            {/* Collapsible Content */}
-                            <AnimatePresence initial={false}>
-                                {badgesExpanded && (
-                                <motion.div
-                                    key="badge-content"
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    transition={{ duration: 0.3, ease: 'easeInOut' }}
-                                    className="overflow-hidden"
-                                >
-                                <div className="px-5 pb-5">
-                            {/* Badge picker panel */}
                             <AnimatePresence>
                                 {showBadgePicker && isOwnProfile && (
-                                    <motion.div
-                                        initial={{ opacity: 0, height: 0 }}
-                                        animate={{ opacity: 1, height: 'auto' }}
-                                        exit={{ opacity: 0, height: 0 }}
-                                        className="overflow-hidden mb-4"
-                                    >
+                                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden px-5 mb-3">
                                         <div className="rounded-xl border border-[var(--color-brand-orange)]/30 bg-[var(--color-brand-orange)]/5 p-3">
                                             <div className="flex items-center justify-between mb-2">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--color-brand-orange)]">
-                                                    Profilinde gösterilecek rozeti seç
-                                                </p>
-                                                <button onClick={() => setShowBadgePicker(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
-                                                    <X className="h-3.5 w-3.5" />
-                                                </button>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--color-brand-orange)]">Profilinde gosterilecek rozeti sec</p>
+                                                <button onClick={() => setShowBadgePicker(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X className="h-3.5 w-3.5" /></button>
                                             </div>
                                             <div className="flex flex-wrap gap-2">
-                                                {BADGE_DEFINITIONS.filter(b =>
-                                                    b.checkFn(userBadges, normalizedProfile.isCoreFounder, normalizedProfile.founderNumber)
-                                                ).map(badge => {
+                                                {BADGE_DEFINITIONS.filter(b => b.checkFn(userBadges, normalizedProfile.isCoreFounder, normalizedProfile.founderNumber)).map(badge => {
                                                     const isSelected = featuredBadge === badge.id;
                                                     return (
-                                                        <button
-                                                            key={badge.id}
-                                                            disabled={savingBadge}
-                                                            onClick={() => handleSelectFeaturedBadge(badge.id)}
-                                                            title={(badge as any).description}
-                                                            className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-black transition-all ${
-                                                                isSelected
-                                                                    ? `${badge.bg} ${badge.border} ${badge.color} ring-2 ring-offset-1 ring-[var(--color-brand-orange)]/40`
-                                                                    : `border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:${badge.border.replace('border-', 'border-').replace('/50', '/80')} hover:${badge.color}`
-                                                            }`}
-                                                        >
+                                                        <button key={badge.id} disabled={savingBadge} onClick={() => handleSelectFeaturedBadge(badge.id)} className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-black transition-all ${isSelected ? `${badge.bg} ${badge.border} ${badge.color} ring-2 ring-offset-1 ring-[var(--color-brand-orange)]/40` : 'border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
                                                             {renderBadgeIcon(badge.emoji, "w-3.5 h-3.5")}
                                                             <span>{badge.label}</span>
                                                             {isSelected && <CheckCircle2 className="h-3 w-3" />}
                                                         </button>
                                                     );
                                                 })}
-                                                {featuredBadge && (
-                                                    <button
-                                                        disabled={savingBadge}
-                                                        onClick={() => handleSelectFeaturedBadge(null)}
-                                                        className="flex items-center gap-1.5 rounded-full border border-dashed border-red-400/50 px-3 py-1.5 text-xs font-black text-red-400 hover:bg-red-500/10 transition-all"
-                                                    >
-                                                        <X className="h-3 w-3" /> Rozeti kaldır
-                                                    </button>
-                                                )}
+                                                {featuredBadge && (<button disabled={savingBadge} onClick={() => handleSelectFeaturedBadge(null)} className="flex items-center gap-1.5 rounded-full border border-dashed border-red-400/50 px-3 py-1.5 text-xs font-black text-red-400 hover:bg-red-500/10 transition-all"><X className="h-3 w-3" /> Rozeti kaldir</button>)}
                                                 {savingBadge && <Loader2 className="h-4 w-4 animate-spin text-[var(--text-secondary)] self-center" />}
                                             </div>
                                         </div>
@@ -792,15 +740,10 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                 )}
                             </AnimatePresence>
 
-                            <div className="grid gap-3 sm:grid-cols-2">
-                                {BADGE_DEFINITIONS.map((badge) => {
-                                    const isActive = badge.checkFn(userBadges, normalizedProfile.isCoreFounder, normalizedProfile.founderNumber);
-                                    const isFeatured = featuredBadge === badge.id;
-                                    
-                                    const badgeAny = badge as any;
-                                    const rarity = badgeAny.rarity || 'Common';
-                                    const xp = badgeAny.xp || 0;
-                                    
+                            <div className="px-5 pb-5">
+                                {(() => {
+                                    const previewBadges = BADGE_DEFINITIONS.slice(0, 3);
+                                    const restBadges = BADGE_DEFINITIONS.slice(3);
                                     const rarityColors: Record<string, string> = {
                                         Common: 'bg-slate-500/10 text-slate-500 border-slate-500/20',
                                         Rare: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
@@ -808,63 +751,51 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                         Legendary: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
                                         Mythic: 'bg-rose-500/10 text-rose-500 border-rose-500/20'
                                     };
-                                    const rarityBadgeColor = rarityColors[rarity] || rarityColors.Common;
-
+                                    const renderCard = (badge: typeof BADGE_DEFINITIONS[0]) => {
+                                        const isActive = badge.checkFn(userBadges, normalizedProfile.isCoreFounder, normalizedProfile.founderNumber);
+                                        const isFeatured = featuredBadge === badge.id;
+                                        const ba = badge as any;
+                                        const rarity: string = ba.rarity || 'Common';
+                                        const xp: number = ba.xp || 0;
+                                        const rarityColor = rarityColors[rarity] || rarityColors.Common;
+                                        return (
+                                            <motion.div key={badge.id} whileHover={{ y: -2 }} className={`relative overflow-hidden rounded-2xl border p-4 transition-all duration-300 ${isActive ? isFeatured ? 'border-[var(--color-brand-orange)] bg-[var(--bg-secondary)] shadow-sm shadow-[var(--color-brand-orange)]/10 ring-1 ring-[var(--color-brand-orange)]/50' : 'border-[var(--border-primary)] bg-[var(--card-bg)] hover:border-[var(--border-hover)]' : 'border-dashed border-[var(--border-primary)] bg-[var(--bg-secondary)]/30 opacity-60 grayscale hover:opacity-100 hover:grayscale-0'}`}>
+                                                <div className="mb-3 flex items-start justify-between relative z-10">
+                                                    <div className={`flex items-center justify-center h-10 w-10 rounded-xl ${isActive ? badge.bg : 'bg-gray-500/10'} ${isActive ? badge.color : 'text-gray-400'}`}>{renderBadgeIcon(badge.emoji, "w-5 h-5")}</div>
+                                                    <div className="flex flex-col items-end gap-1.5">
+                                                        <span className={`rounded px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest border ${isActive ? rarityColor : 'bg-gray-500/10 text-gray-400 border-gray-500/20'}`}>{rarity}</span>
+                                                        {xp > 0 && <span className={`text-[10px] font-black ${isActive ? 'text-emerald-500' : 'text-gray-400'}`}>+{xp} XP</span>}
+                                                    </div>
+                                                </div>
+                                                <div className="relative z-10">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <h4 className={`text-sm font-black ${isActive ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>{badge.label}</h4>
+                                                        {isFeatured && <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-brand-orange)] text-[8px] text-white shadow">&#9733;</span>}
+                                                    </div>
+                                                    <p className="text-xs leading-5 text-[var(--text-secondary)] font-medium">{ba.description}</p>
+                                                </div>
+                                                {isFeatured && <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-[var(--color-brand-orange)]/10 blur-2xl z-0" />}
+                                            </motion.div>
+                                        );
+                                    };
                                     return (
-                                        <motion.div
-                                            key={badge.id}
-                                            whileHover={{ y: -2 }}
-                                            className={`relative overflow-hidden rounded-2xl border p-4 transition-all duration-300 ${
-                                                isActive
-                                                    ? isFeatured 
-                                                        ? 'border-[var(--color-brand-orange)] bg-[var(--bg-secondary)] shadow-sm shadow-[var(--color-brand-orange)]/10 ring-1 ring-[var(--color-brand-orange)]/50'
-                                                        : 'border-[var(--border-primary)] bg-[var(--card-bg)] hover:border-[var(--border-hover)]'
-                                                    : 'border-dashed border-[var(--border-primary)] bg-[var(--bg-secondary)]/30 opacity-60 grayscale hover:opacity-100 hover:grayscale-0'
-                                            }`}
-                                        >
-                                            <div className="mb-3 flex items-start justify-between relative z-10">
-                                                <div className={`flex items-center justify-center h-10 w-10 rounded-xl ${isActive ? badge.bg : 'bg-gray-500/10'} ${isActive ? badge.color : 'text-gray-400'}`}>
-                                                     {renderBadgeIcon(badge.emoji, "w-5 h-5")}
-                                                </div>
-                                                <div className="flex flex-col items-end gap-1.5">
-                                                    <span className={`rounded px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest border ${isActive ? rarityBadgeColor : 'bg-gray-500/10 text-gray-400 border-gray-500/20'}`}>
-                                                        {rarity}
-                                                    </span>
-                                                    {xp > 0 && (
-                                                        <span className={`text-[10px] font-black ${isActive ? 'text-emerald-500' : 'text-gray-400'}`}>
-                                                            +{xp} XP
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="relative z-10">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <h4 className={`text-sm font-black ${isActive ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
-                                                        {badge.label}
-                                                    </h4>
-                                                    {isFeatured && (
-                                                        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-brand-orange)] text-[8px] text-white shadow" title="Öne Çıkan Rozet">
-                                                            ★
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <p className="text-xs leading-5 text-[var(--text-secondary)] font-medium">
-                                                    {badgeAny.description}
-                                                </p>
-                                            </div>
-                                            
-                                            {isFeatured && (
-                                                <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-[var(--color-brand-orange)]/10 blur-2xl z-0" />
-                                            )}
-                                        </motion.div>
+                                        <>
+                                            <div className="grid gap-3 sm:grid-cols-3">{previewBadges.map(renderCard)}</div>
+                                            <AnimatePresence initial={false}>
+                                                {badgesExpanded && (
+                                                    <motion.div key="badge-rest" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.35, ease: 'easeInOut' }} className="overflow-hidden">
+                                                        <div className="grid gap-3 sm:grid-cols-3 mt-3">{restBadges.map(renderCard)}</div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                            <button onClick={() => setBadgesExpanded(v => !v)} className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--border-primary)] py-2.5 text-xs font-black text-[var(--text-secondary)] hover:border-[var(--color-brand-orange)] hover:text-[var(--color-brand-orange)] transition-all">
+                                                <motion.div animate={{ rotate: badgesExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}><ChevronDown className="h-3.5 w-3.5" /></motion.div>
+                                                {badgesExpanded ? 'Daha Az Goster' : `Tumunu Gor (${restBadges.length} rozet daha)`}
+                                            </button>
+                                        </>
                                     );
-                                })}
+                                })()}
                             </div>
-                            </div>
-                            </motion.div>
-                                )}
-                            </AnimatePresence>
                         </div>
 
                     </div>
