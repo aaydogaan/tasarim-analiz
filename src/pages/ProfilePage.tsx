@@ -36,8 +36,12 @@ import {
     Target,
     Ghost,
     ChevronDown,
-    Trash2
+    Trash2,
+    ShieldCheck,
+    KeyRound,
+    ChevronRight
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { supabase } from '../lib/supabase';
 import {
@@ -103,6 +107,37 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
     // XP Data States
     const [xpData, setXpData] = useState({ posts: 0, comments: 0, analizler: 0, challenges: 0, total: 100 });
     const [xpLoading, setXpLoading] = useState(false);
+
+    // Password Change Modal States
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [changingPassword, setChangingPassword] = useState(false);
+
+    const handlePasswordChange = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newPassword.length < 6) {
+            toast.error('Şifre en az 6 karakter olmalıdır.');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            toast.error('Şifreler eşleşmiyor.');
+            return;
+        }
+        setChangingPassword(true);
+        try {
+            const { error } = await supabase.auth.updateUser({ password: newPassword });
+            if (error) throw error;
+            toast.success('Şifreniz başarıyla güncellendi!');
+            setShowPasswordModal(false);
+            setNewPassword('');
+            setConfirmPassword('');
+        } catch (err: any) {
+            toast.error(err.message || 'Şifre güncellenirken hata oluştu.');
+        } finally {
+            setChangingPassword(false);
+        }
+    };
 
     const normalizedProfile = useMemo(
         () => publicProfile || normalizeCommunityProfile(kullanici, profileRecord),
@@ -558,7 +593,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     <h1 className="truncate text-xl font-black tracking-tight">{profileData.displayName}</h1>
                                 )}
                                 <p className="mt-1 text-xs font-semibold text-[var(--text-secondary)]">
-                                    {normalizedProfile.isCoreFounder ? 'Kurucu Uye' : selectedRank.title}
+                                    {normalizedProfile.isCoreFounder ? 'Kurucu Üye' : selectedRank.title}
                                     {normalizedProfile.founderNumber ? ` · #${normalizedProfile.founderNumber}` : ''}
                                 </p>
                                 {featuredBadgeDef && (
@@ -572,7 +607,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                         {/* Info grid */}
                         <div className="mt-4 grid grid-cols-2 gap-2">
                             <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
-                                <p className="text-[10px] font-semibold text-[var(--text-secondary)]">Uzmanlik</p>
+                                <p className="text-[10px] font-semibold text-[var(--text-secondary)]">Uzmanlık</p>
                                 <p className="mt-1 truncate text-sm font-black">{selectedSpecialty.label}</p>
                             </div>
                             <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
@@ -580,11 +615,11 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                 <p className="mt-1 text-sm font-black">{selectedExperience?.label || '-'}</p>
                             </div>
                             <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
-                                <p className="text-[10px] font-semibold text-[var(--text-secondary)]">Siradaki yeri</p>
+                                <p className="text-[10px] font-semibold text-[var(--text-secondary)]">Sıradaki Yeri</p>
                                 <p className="mt-1 text-xl font-black">{normalizedProfile.founderNumber ? `#${normalizedProfile.founderNumber}` : '-'}</p>
                             </div>
                             <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
-                                <p className="text-[10px] font-semibold text-[var(--text-secondary)]">Analiz sayisi</p>
+                                <p className="text-[10px] font-semibold text-[var(--text-secondary)]">Analiz Sayısı</p>
                                 <p className="mt-1 text-xl font-black">{stats.total}</p>
                             </div>
                         </div>
@@ -618,11 +653,39 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                 className={`mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-black transition-all disabled:opacity-60 ${isEditing ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-[var(--text-primary)] text-[var(--bg-primary)] hover:opacity-90'}`}
                             >
                                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : isEditing ? <CheckCircle2 className="h-4 w-4" /> : <Edit2 className="h-4 w-4" />}
-                                {isEditing ? 'Kaydet' : 'Profili duzenle'}
+                                {isEditing ? 'Kaydet' : 'Profili Düzenle'}
                             </button>
                         )}
-                        {saveState === 'saved' && <p className="mt-3 text-center text-xs font-bold text-emerald-500">Profil guncellendi.</p>}
-                        {saveState === 'error' && <p className="mt-3 text-center text-xs font-bold text-red-500">Kaydedilirken hata olustu.</p>}
+                        {saveState === 'saved' && <p className="mt-3 text-center text-xs font-bold text-emerald-500">Profil güncellendi.</p>}
+                        {saveState === 'error' && <p className="mt-3 text-center text-xs font-bold text-red-500">Kaydedilirken hata oluştu.</p>}
+
+                        {/* Tercihler & Güvenlik */}
+                        {isOwnProfile && (
+                            <div className="mt-5 pt-4 border-t border-[var(--border-primary)] space-y-3">
+                                <div>
+                                    <h3 className="text-xs font-black text-[var(--text-primary)] flex items-center gap-1.5">
+                                        <ShieldCheck className="w-4 h-4 text-[var(--color-brand-orange)]" />
+                                        Tercihler
+                                    </h3>
+                                    <p className="text-[10px] font-medium text-[var(--text-secondary)] mt-0.5 leading-relaxed">
+                                        Hesap ve uygulama ayarlarınızı yönetin.
+                                    </p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <button
+                                        onClick={() => setShowPasswordModal(true)}
+                                        className="w-full flex items-center justify-between p-2.5 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:border-[var(--color-brand-orange)] hover:text-[var(--color-brand-orange)] transition-all text-xs font-bold text-[var(--text-primary)] group"
+                                    >
+                                        <span className="flex items-center gap-2">
+                                            <KeyRound className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-[var(--color-brand-orange)]" />
+                                            Şifre Değiştir
+                                        </span>
+                                        <ChevronRight className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* RIGHT COLUMN: Bio, Edit Fields, Stats, Badges & XP */}
@@ -734,28 +797,28 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                         <div className="flex items-center justify-center gap-2 mb-2 text-[var(--text-secondary)]">
                                             <User className="w-4 h-4 text-[var(--color-brand-orange)]" />
                                         </div>
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] mb-1">Kayıt Bonusu</span>
+                                        <span className="text-xs font-semibold text-[var(--text-secondary)] mb-0.5">Kayıt Bonusu</span>
                                         <p className="font-bold text-[var(--text-primary)] text-xl">+100 <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
                                     </div>
                                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-xl flex flex-col justify-center text-center">
                                         <div className="flex items-center justify-center gap-2 mb-2 text-[var(--text-secondary)]">
                                             <CheckCircle2 className="w-4 h-4 text-[var(--color-brand-orange)]" />
                                         </div>
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] mb-1">Gönderiler</span>
+                                        <span className="text-xs font-semibold text-[var(--text-secondary)] mb-0.5">Gönderiler</span>
                                         <p className="font-bold text-[var(--text-primary)] text-xl">+{xpData.posts * 200} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
                                     </div>
                                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-xl flex flex-col justify-center text-center">
                                         <div className="flex items-center justify-center gap-2 mb-2 text-[var(--text-secondary)]">
                                             <MessageCircle className="w-4 h-4 text-[var(--color-brand-orange)]" />
                                         </div>
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] mb-1">Yorumlar</span>
+                                        <span className="text-xs font-semibold text-[var(--text-secondary)] mb-0.5">Yorumlar</span>
                                         <p className="font-bold text-[var(--text-primary)] text-xl">+{xpData.comments * 50} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
                                     </div>
                                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-xl flex flex-col justify-center text-center">
                                         <div className="flex items-center justify-center gap-2 mb-2 text-[var(--text-secondary)]">
                                             <Zap className="w-4 h-4 text-[var(--color-brand-orange)]" />
                                         </div>
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] mb-1">Analizler</span>
+                                        <span className="text-xs font-semibold text-[var(--text-secondary)] mb-0.5">Analizler</span>
                                         <p className="font-bold text-[var(--text-primary)] text-xl">+{xpData.analizler * 150} <span className="text-xs text-[var(--text-secondary)]">XP</span></p>
                                     </div>
                                 </div>
@@ -783,8 +846,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                         {/* Paylaşılan Tasarımlar & Silme Alanı */}
                         <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-5 shadow-sm space-y-4">
                             <div className="flex items-center justify-between">
-                                <h2 className="text-sm font-black tracking-tight flex items-center gap-2">
-                                    <Sparkles className="w-4 h-4 text-[var(--color-brand-orange)]" />
+                                <h2 className="text-sm font-black tracking-tight">
                                     Paylaşılan Tasarımlar ({userPosts.length})
                                 </h2>
                             </div>
@@ -881,7 +943,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                             className="flex items-center gap-1.5 rounded-full border border-[var(--border-primary)] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] hover:border-[var(--color-brand-orange)] hover:text-[var(--color-brand-orange)] transition-all"
                                         >
                                             <Star className="h-3 w-3" />
-                                            {featuredBadge ? 'Degistir' : 'Rozet sec'}
+                                            {featuredBadge ? 'Değiştir' : 'Rozet Seç'}
                                         </button>
                                     )}
                                 </div>
@@ -892,7 +954,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden px-5 mb-3">
                                         <div className="rounded-xl border border-[var(--color-brand-orange)]/30 bg-[var(--color-brand-orange)]/5 p-3">
                                             <div className="flex items-center justify-between mb-2">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--color-brand-orange)]">Profilinde gosterilecek rozeti sec</p>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--color-brand-orange)]">Profilinde gösterilecek rozeti seç</p>
                                                 <button onClick={() => setShowBadgePicker(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X className="h-3.5 w-3.5" /></button>
                                             </div>
                                             <div className="flex flex-wrap gap-2">
@@ -906,7 +968,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                                         </button>
                                                     );
                                                 })}
-                                                {featuredBadge && (<button disabled={savingBadge} onClick={() => handleSelectFeaturedBadge(null)} className="flex items-center gap-1.5 rounded-full border border-dashed border-red-400/50 px-3 py-1.5 text-xs font-black text-red-400 hover:bg-red-500/10 transition-all"><X className="h-3 w-3" /> Rozeti kaldir</button>)}
+                                                {featuredBadge && (<button disabled={savingBadge} onClick={() => handleSelectFeaturedBadge(null)} className="flex items-center gap-1.5 rounded-full border border-dashed border-red-400/50 px-3 py-1.5 text-xs font-black text-red-400 hover:bg-red-500/10 transition-all"><X className="h-3 w-3" /> Rozeti Kaldır</button>)}
                                                 {savingBadge && <Loader2 className="h-4 w-4 animate-spin text-[var(--text-secondary)] self-center" />}
                                             </div>
                                         </div>
@@ -963,7 +1025,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                             </AnimatePresence>
                                             <button onClick={() => setBadgesExpanded(v => !v)} className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--border-primary)] py-2.5 text-xs font-black text-[var(--text-secondary)] hover:border-[var(--color-brand-orange)] hover:text-[var(--color-brand-orange)] transition-all">
                                                 <motion.div animate={{ rotate: badgesExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}><ChevronDown className="h-3.5 w-3.5" /></motion.div>
-                                                {badgesExpanded ? 'Daha Az Goster' : `Tumunu Gor (${restBadges.length} rozet daha)`}
+                                                {badgesExpanded ? 'Daha Az Göster' : `Tümünü Gör (${restBadges.length} rozet daha)`}
                                             </button>
                                         </>
                                     );
@@ -997,6 +1059,72 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                         </p>
                     </div>
                 </section>
+
+                {/* Şifre Değiştirme Modalı */}
+                {showPasswordModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowPasswordModal(false)}>
+                        <div className="bg-[var(--card-bg)] border border-[var(--border-primary)] p-6 rounded-3xl max-w-sm w-full shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-9 h-9 rounded-xl bg-[var(--color-brand-orange)]/10 text-[var(--color-brand-orange)] flex items-center justify-center">
+                                        <KeyRound className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-black text-sm text-[var(--text-primary)]">Şifre Değiştir</h3>
+                                        <p className="text-[10px] text-[var(--text-secondary)] font-medium">Yeni şifrenizi belirleyin.</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setShowPasswordModal(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handlePasswordChange} className="space-y-3 pt-2">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">Yeni Şifre</label>
+                                    <input
+                                        type="password"
+                                        required
+                                        minLength={6}
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        placeholder="En az 6 karakter"
+                                        className="w-full px-3 py-2.5 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs text-[var(--text-primary)] outline-none focus:border-[var(--color-brand-orange)]"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">Yeni Şifre (Tekrar)</label>
+                                    <input
+                                        type="password"
+                                        required
+                                        minLength={6}
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        placeholder="Şifreyi tekrar yazın"
+                                        className="w-full px-3 py-2.5 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs text-[var(--text-primary)] outline-none focus:border-[var(--color-brand-orange)]"
+                                    />
+                                </div>
+
+                                <div className="flex gap-2 pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPasswordModal(false)}
+                                        className="flex-1 py-2.5 rounded-xl border border-[var(--border-primary)] text-xs font-bold text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-all"
+                                    >
+                                        İptal
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={changingPassword || !newPassword || newPassword !== confirmPassword}
+                                        className="flex-1 py-2.5 rounded-xl bg-[var(--color-brand-orange)] text-white text-xs font-bold hover:bg-[#e64500] disabled:opacity-50 transition-all flex items-center justify-center gap-1.5"
+                                    >
+                                        {changingPassword ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Şifreyi Güncelle'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     );
