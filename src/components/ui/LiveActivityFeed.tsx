@@ -169,7 +169,7 @@ export default function LiveActivityFeed() {
                         animate={{ opacity: 1, scale: 1, rotate: 0 }}
                         exit={{ opacity: 0, scale: 0.5, rotate: 45 }}
                         onClick={() => setIsVisible(true)}
-                        className="w-12 h-12 bg-[var(--card-bg)]/90 backdrop-blur-xl border border-[var(--color-brand-dark)]/5 rounded-2xl flex items-center justify-center shadow-xl shadow-black/5 text-[var(--color-brand-dark)]/40 hover:text-[var(--color-brand-orange)] transition-all hover:scale-105 active:scale-95 group"
+                        className="w-12 h-12 bg-[var(--card-bg)]/90 backdrop-blur-xl border border-[var(--color-brand-dark)]/5 rounded-2xl flex items-center justify-center shadow-xl shadow-black/5 text-[var(--color-brand-orange)] transition-all hover:scale-105 active:scale-95 group"
                     >
                         <Bell size={20} className="group-hover:animate-bounce" />
                         {/* Small activity dot for reopen button */}

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { motion } from 'motion/react';
 import { ArrowUpRight } from 'lucide-react';
@@ -148,9 +148,9 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                                 <motion.div
                                     animate={{ y: [0, -6, 0], rotate: [0, 3, -3, 0] }}
                                     transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                                    className="w-[35px] sm:w-[45px] md:w-[80px] h-[35px] sm:h-[45px] md:h-[80px] rounded-[50%] overflow-hidden relative shadow-[0_8px_30px_rgb(255,77,0,0.3)] bg-[#FF4D00] flex items-center justify-center -mb-1 md:-mb-2"
+                                    className="w-[35px] sm:w-[45px] md:w-[80px] h-[35px] sm:h-[45px] md:h-[80px] rounded-lg md:rounded-2xl overflow-hidden relative shadow-[0_8px_30px_rgba(49,168,255,0.3)] bg-[#001E36] flex items-center justify-center -mb-1 md:-mb-2"
                                 >
-                                    <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=400&q=80" className="w-[85%] h-[85%] object-cover object-top mix-blend-luminosity opacity-40 rounded-full" alt="AI Icon" />
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/af/Adobe_Photoshop_CC_icon.svg" className="w-[85%] h-[85%] object-contain drop-shadow-md" alt="Photoshop" />
                                 </motion.div>
                                 <span className="text-[#FF4D00]">Destekli</span>
                             </div>
@@ -161,9 +161,9 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                                 <motion.div
                                     animate={{ y: [0, 8, 0], rotate: [0, -2, 2, 0] }}
                                     transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                                    className="w-[35px] sm:w-[45px] md:w-[80px] h-[35px] sm:h-[45px] md:h-[80px] rounded-[50%] overflow-hidden relative shadow-lg -mb-1 md:-mb-2 border border-[var(--color-brand-dark)]/5"
+                                    className="w-[35px] sm:w-[45px] md:w-[80px] h-[35px] sm:h-[45px] md:h-[80px] rounded-lg md:rounded-2xl overflow-hidden relative shadow-[0_8px_30px_rgba(255,154,0,0.3)] bg-[#330000] -mb-1 md:-mb-2 border border-[var(--color-brand-dark)]/5 flex items-center justify-center"
                                 >
-                                    <img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=400&q=80" className="w-full h-full object-cover grayscale-[20%]" alt="Design Icon" />
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/fb/Adobe_Illustrator_CC_icon.svg" className="w-[85%] h-[85%] object-contain drop-shadow-md" alt="Illustrator" />
                                 </motion.div>
                                 <span className="text-[var(--color-brand-dark)]">Analizi</span>
                             </div>
