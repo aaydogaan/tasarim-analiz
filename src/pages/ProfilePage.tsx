@@ -798,7 +798,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     Henüz paylaşılan bir tasarım bulunmuyor.
                                 </div>
                             ) : (
-                                <div className="grid gap-4 sm:grid-cols-2">
+                                <div className="grid gap-4 sm:grid-cols-2 max-h-[520px] overflow-y-auto pr-1.5 custom-scrollbar">
                                     {userPosts.map((post) => {
                                         const rawG = post.analizler?.gorsel_url;
                                         const thumbSrc = rawG ? (rawG.startsWith('http') || rawG.startsWith('data:') ? rawG : `data:image/jpeg;base64,${rawG}`) : null;

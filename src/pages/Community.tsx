@@ -73,7 +73,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
             setInlineLoading(prev => ({ ...prev, [postId]: true }));
             const { data } = await supabase
                 .from('post_comments')
-                .select('*')
+                .select('*, profiles(display_name, avatar_url)')
                 .eq('post_id', postId)
                 .order('created_at', { ascending: true });
             if (data) {
@@ -90,16 +90,11 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         const content = commentInput.trim();
         setCommentInput('');
 
-        const userName = kullanici.user_metadata?.display_name || kullanici.user_metadata?.full_name || kullanici.email?.split('@')[0] || 'Tasarımcı';
-        const userAvatar = kullanici.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici.id}`;
-
         const { data, error } = await supabase.from('post_comments').insert({
             post_id: postId,
             user_id: kullanici.id,
-            user_name: userName,
-            user_avatar: userAvatar,
             content
-        }).select('*').single();
+        }).select('*, profiles(display_name, avatar_url)').single();
 
         if (!error && data) {
             setInlineComments(prev => ({ ...prev, [postId]: [...(prev[postId] || []), data] }));
@@ -111,7 +106,8 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                 await supabase.from('user_badges').insert({ user_id: kullanici.id, badge_id: 'ilk-ses' });
             } catch (_) {}
         } else if (error) {
-            toast.error('Yorum eklenirken hata oluştu');
+            console.error("Yorum ekleme hatası:", error);
+            toast.error('Yorum eklenirken hata oluştu: ' + (error.message || 'Bilinmeyen hata'));
         }
         setSubmittingComment(false);
     };
@@ -649,18 +645,23 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                     </p>
                                                 ) : (
                                                     <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
-                                                        {(inlineComments[post.id] || []).map((c: any) => (
+                                                        {(inlineComments[post.id] || []).map((c: any) => {
+                                                            const cName = c.profiles?.display_name || c.user_name || 'Tasarımcı';
+                                                            const cAvatar = c.profiles?.avatar_url || c.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${c.user_id}`;
+
+                                                            return (
                                                             <div key={c.id} className="flex gap-3 bg-[var(--bg-secondary)] p-3 rounded-2xl border border-[var(--border-primary)] text-xs">
-                                                                <img src={c.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${c.user_id}`} className="w-7 h-7 rounded-full object-cover shrink-0" alt="" />
+                                                                <img src={cAvatar} className="w-7 h-7 rounded-full object-cover shrink-0" alt="" />
                                                                 <div className="min-w-0 flex-1">
                                                                     <div className="flex justify-between items-center mb-0.5">
-                                                                        <span className="font-bold text-[var(--text-primary)]">{c.user_name || 'Tasarımcı'}</span>
+                                                                        <span className="font-bold text-[var(--text-primary)]">{cName}</span>
                                                                         <span className="text-[10px] text-[var(--text-secondary)]">{new Date(c.created_at).toLocaleDateString('tr-TR')}</span>
                                                                     </div>
                                                                     <p className="text-[var(--text-secondary)] leading-relaxed">{c.content}</p>
                                                                 </div>
                                                             </div>
-                                                        ))}
+                                                            );
+                                                        })}
                                                     </div>
                                                 )}
 

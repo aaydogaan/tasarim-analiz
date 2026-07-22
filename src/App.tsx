@@ -590,7 +590,7 @@ export default function App() {
     const userAvatar = kullanici.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici.id}`;
 
     // Fix image URL format for data URL / base64
-    let gorselSource = sonuc?._gorsel_url || gorselBase64 || gorsel || null;
+    let gorselSource = (gorsel && gorsel.startsWith('data:')) ? gorsel : (sonuc?._gorsel_url || (gorselBase64 ? (gorselBase64.startsWith('data:') ? gorselBase64 : `data:image/jpeg;base64,${gorselBase64}`) : null));
     if (gorselSource && !gorselSource.startsWith('http') && !gorselSource.startsWith('data:')) {
       gorselSource = `data:image/jpeg;base64,${gorselSource}`;
     }
