@@ -40,10 +40,10 @@ export function Vitrin() {
     const [aramaMetni, setAramaMetni] = useState('');
 
     const siralamaSecenekleri = [
-        { id: 'yeni', label: 'En Yeni', icon: <Clock className="w-4 h-4 text-sky-500" /> },
-        { id: 'topluluk', label: 'En Yüksek Topluluk Oyu', icon: <Flame className="w-4 h-4 text-[#FF5500]" /> },
-        { id: 'ai', label: 'En Yüksek AI Puanı', icon: <Sparkles className="w-4 h-4 text-amber-500" /> },
-        { id: 'oy', label: 'En Çok Oy Alan', icon: <Trophy className="w-4 h-4 text-purple-500" /> },
+        { id: 'yeni', label: 'En Yeni', icon: <Clock className="w-4 h-4 text-[var(--text-secondary)] shrink-0" /> },
+        { id: 'topluluk', label: 'En Yüksek Topluluk Oyu', icon: <Flame className="w-4 h-4 text-[var(--text-secondary)] shrink-0" /> },
+        { id: 'ai', label: 'En Yüksek AI Puanı', icon: <Sparkles className="w-4 h-4 text-[var(--text-secondary)] shrink-0" /> },
+        { id: 'oy', label: 'En Çok Oy Alan', icon: <Trophy className="w-4 h-4 text-[var(--text-secondary)] shrink-0" /> },
     ];
 
     useEffect(() => {
@@ -360,7 +360,7 @@ export function Vitrin() {
                             >
                                 {siralamaSecenekleri.find(s => s.id === siralama)?.icon}
                                 <span>{siralamaSecenekleri.find(s => s.id === siralama)?.label}</span>
-                                <ChevronDown className={`w-4 h-4 text-[var(--text-secondary)] transition-transform duration-300 ${siralamaAcik ? 'rotate-180 text-[#FF5500]' : ''}`} />
+                                <ChevronDown className={`w-4 h-4 text-[var(--text-secondary)] transition-transform duration-300 ${siralamaAcik ? 'rotate-180' : ''}`} />
                             </button>
 
                             <AnimatePresence>
@@ -388,17 +388,17 @@ export function Vitrin() {
                                                             setSiralama(secenek.id as any);
                                                             setSiralamaAcik(false);
                                                         }}
-                                                        className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs md:text-sm font-bold transition-all ${
+                                                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all ${
                                                             isSelected
-                                                                ? 'bg-[#FF5500]/10 text-[#FF5500]'
-                                                                : 'text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]'
+                                                                ? 'bg-[var(--bg-secondary)] text-[var(--text-primary)] border border-[var(--border-primary)] shadow-sm'
+                                                                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]/50 border border-transparent'
                                                         }`}
                                                     >
                                                         <div className="flex items-center gap-3">
                                                             {secenek.icon}
                                                             <span>{secenek.label}</span>
                                                         </div>
-                                                        {isSelected && <div className="w-2 h-2 rounded-full bg-[#FF5500]" />}
+                                                        {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-[var(--text-primary)]" />}
                                                     </button>
                                                 );
                                             })}
