@@ -25,8 +25,8 @@
   --color-brand-orange: #ff4d00;
   --color-brand-light: var(--bg-primary);
   --color-brand-dark: var(--text-primary);
-  --font-sans: "Inter", "Cal Sans", sans-serif;
-  --font-display: "Cal Sans", sans-serif;
+  --font-sans: "TT Firs Neue", "Inter", "Cal Sans", sans-serif;
+  --font-display: "TT Firs Neue", "Cal Sans", sans-serif;
 }
 
 * {
