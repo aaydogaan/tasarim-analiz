@@ -506,7 +506,12 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                 <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
                                 <p>Toplulukta henüz gönderi yok. İlk paylaşan sen ol!</p>
                             </div>
-                        ) : [...posts].sort((a, b) => postSort === 'popular' ? b.likes_count - a.likes_count : new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map((post) => (
+                        ) : [...posts].sort((a, b) => postSort === 'popular' ? b.likes_count - a.likes_count : new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map((post) => {
+                            const rawGorsel = post.analizler?.gorsel_url;
+                            const imageSrc = rawGorsel ? (rawGorsel.startsWith('http') || rawGorsel.startsWith('data:') ? rawGorsel : `data:image/jpeg;base64,${rawGorsel}`) : null;
+                            const authorName = (post.analizler?.user_name && post.analizler.user_name !== 'Gizli Tasarımcı') ? post.analizler.user_name : (kullanici?.id === post.user_id ? (kullanici.user_metadata?.display_name || kullanici.user_metadata?.full_name || 'Tasarımcı') : 'Tasarımcı');
+
+                            return (
                             <motion.div
                                 key={post.id}
                                 initial={{ opacity: 0, x: -20 }}
@@ -522,7 +527,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                     />
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className="font-bold text-lg text-[var(--text-primary)] truncate">{post.analizler?.user_name || 'Gizli Tasarımcı'}</span>
+                                            <span className="font-bold text-lg text-[var(--text-primary)] truncate">{authorName}</span>
                                             <span className="text-[var(--text-secondary)] text-xs shrink-0">• {new Date(post.created_at).toLocaleDateString('tr-TR')}</span>
                                             {post.analizler?.genel_puan && (
                                                 <span className="ml-auto text-[10px] font-bold uppercase tracking-widest text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md shrink-0 flex items-center gap-1">
@@ -535,10 +540,10 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                             {post.content || 'Bu tasarım analiz edildi.'}
                                         </p>
                                         
-                                        {post.analizler?.gorsel_url && (
-                                            <div className="relative aspect-video rounded-3xl overflow-hidden mb-6 bg-[var(--bg-secondary)]">
+                                        {imageSrc && (
+                                            <div className="relative aspect-video rounded-3xl overflow-hidden mb-6 bg-[var(--bg-secondary)] border border-[var(--border-primary)]">
                                                 <img
-                                                    src={post.analizler.gorsel_url}
+                                                    src={imageSrc}
                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                                     alt="Post thumbnail"
                                                     loading="lazy"
@@ -566,7 +571,8 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                     </div>
                                 </div>
                             </motion.div>
-                        ))}
+                            );
+                        })}
 
                         <button className="w-full py-6 rounded-[32px] border-2 border-dashed border-[var(--border-primary)] text-[var(--text-secondary)] font-bold hover:border-[var(--color-brand-orange)] hover:text-[var(--color-brand-orange)] transition-all">
                             Daha Fazla Göster

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Camera,
@@ -231,9 +231,62 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                 .from('user_badges')
                 .select('badge_id')
                 .eq('user_id', normalizedProfile.id);
-            if (data) {
-                setUserBadges(data.map(b => b.badge_id));
+
+            let existingBadges = data ? data.map(b => b.badge_id) : [];
+            const toAdd: string[] = [];
+
+            // 1. 'aramiza-hos-geldin'
+            if (!existingBadges.includes('aramiza-hos-geldin')) {
+                toAdd.push('aramiza-hos-geldin');
             }
+
+            // 2. 'ai-ile-tanisma'
+            if (!existingBadges.includes('ai-ile-tanisma')) {
+                const { count: analysisCount } = await supabase
+                    .from('analizler')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', normalizedProfile.id);
+                if (analysisCount && analysisCount > 0) {
+                    toAdd.push('ai-ile-tanisma');
+                }
+            }
+
+            // 3. 'ilk-kivilcim'
+            if (!existingBadges.includes('ilk-kivilcim')) {
+                const { count: postCount } = await supabase
+                    .from('community_posts')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', normalizedProfile.id);
+                if (postCount && postCount > 0) {
+                    toAdd.push('ilk-kivilcim');
+                }
+            }
+
+            // 4. 'ilk-ses'
+            if (!existingBadges.includes('ilk-ses')) {
+                const { count: commentCount } = await supabase
+                    .from('post_comments')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', normalizedProfile.id);
+                if (commentCount && commentCount > 0) {
+                    toAdd.push('ilk-ses');
+                }
+            }
+
+            // Save to DB
+            if (toAdd.length > 0) {
+                for (const badgeId of toAdd) {
+                    try {
+                        await supabase.from('user_badges').insert({
+                            user_id: normalizedProfile.id,
+                            badge_id: badgeId
+                        });
+                    } catch (_) {}
+                }
+                existingBadges = [...existingBadges, ...toAdd];
+            }
+
+            setUserBadges(existingBadges);
         };
         loadBadges();
     }, [normalizedProfile.id]);

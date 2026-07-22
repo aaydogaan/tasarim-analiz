@@ -571,6 +571,16 @@ export default function App() {
 
     let targetAnalizId = sonuc?._analiz_id;
 
+    // Get exact user display name and avatar
+    const userName = kullanici.user_metadata?.display_name || kullanici.user_metadata?.full_name || kullanici.email?.split('@')[0] || 'Tasarımcı';
+    const userAvatar = kullanici.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici.id}`;
+
+    // Fix image URL format for data URL / base64
+    let gorselSource = sonuc?._gorsel_url || gorselBase64 || gorsel || null;
+    if (gorselSource && !gorselSource.startsWith('http') && !gorselSource.startsWith('data:')) {
+      gorselSource = `data:image/jpeg;base64,${gorselSource}`;
+    }
+
     // Eğer _analiz_id yoksa (örn: anonim analiz edilmişse), o an veritabanına kaydet
     if (!targetAnalizId && sonuc) {
       try {
@@ -578,8 +588,8 @@ export default function App() {
           .from('analizler')
           .insert({
             user_id: kullanici.id,
-            user_name: kullanici.user_metadata?.full_name || kullanici.email?.split('@')[0] || "Gizli Tasarımcı",
-            user_avatar: kullanici.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici.id}`,
+            user_name: userName,
+            user_avatar: userAvatar,
             tasarim_turu: tasarimTuru || "Sosyal Medya",
             platform: platform || null,
             isletme: isletme || "Genel",
@@ -595,7 +605,7 @@ export default function App() {
             zayif_yon: sonuc.zayifYon,
             teknik_ozet: sonuc.teknikOzet || null,
             renk_paleti: sonuc.renkPaleti || null,
-            gorsel_url: sonuc._gorsel_url || gorselBase64 || gorsel || null,
+            gorsel_url: gorselSource,
             paylasim_aktif: true
           })
           .select('id')
@@ -618,8 +628,14 @@ export default function App() {
       return;
     }
     
-    // Update analizler status
-    await supabase.from('analizler').update({ paylasim_aktif: true }).eq('id', targetAnalizId);
+    // Always update 'analizler' with actual user details and image URL
+    await supabase.from('analizler').update({
+      user_id: kullanici.id,
+      user_name: userName,
+      user_avatar: userAvatar,
+      gorsel_url: gorselSource,
+      paylasim_aktif: true
+    }).eq('id', targetAnalizId);
     
     // Insert into community_posts
     const { error } = await supabase.from('community_posts').insert({
@@ -630,6 +646,15 @@ export default function App() {
     });
 
     if (!error) {
+      // Auto-award badges for sharing & analyzing
+      try {
+        await supabase.from('user_badges').insert([
+          { user_id: kullanici.id, badge_id: 'ai-ile-tanisma' },
+          { user_id: kullanici.id, badge_id: 'ilk-kivilcim' },
+          { user_id: kullanici.id, badge_id: 'aramiza-hos-geldin' }
+        ]);
+      } catch (_) { /* ignore duplicate inserts */ }
+
       setVitrindeYayinlandi(true);
       setShareModalAcik(false);
       toast.success('Başarıyla keşfete gönderildi!');
