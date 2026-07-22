@@ -500,12 +500,16 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                             );
                         })}
 
-                        {Array.from({ length: placeholderCount }).map((_, i) => (
+                        {Array.from({ length: Math.min(Math.max(FOUNDER_LIMIT - CORE_FOUNDER_COUNT - liveFounderCount, 0), 15) }).map((_, i) => (
                             <div
                                 key={`empty-founder-${i}`}
-                                className="group relative flex w-16 h-16 md:w-[84px] md:h-[84px] items-center justify-center rounded-full border-2 border-dashed border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-secondary)]/30"
+                                className="group relative flex w-16 h-16 md:w-[84px] md:h-[84px] items-center justify-center rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--border-primary)] opacity-40 saturate-0 hover:opacity-80 transition-opacity cursor-pointer"
                             >
-                                <span className="text-sm font-black">+</span>
+                                <img
+                                    src={`https://api.dicebear.com/7.x/notionists/svg?seed=placeholder-${i}`}
+                                    className="w-full h-full rounded-full object-cover blur-[1px]"
+                                    alt="Açık Kontenjan"
+                                />
                                 <div className="absolute -top-14 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none w-max bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-2xl px-4 py-3 shadow-2xl z-50">
                                     <span className="text-xs font-bold text-[var(--text-secondary)]">Açık destekçi yeri</span>
                                     <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[var(--card-bg)] border-r border-b border-[var(--border-primary)] rotate-45" />
