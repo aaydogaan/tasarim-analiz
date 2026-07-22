@@ -763,7 +763,6 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                                 <div className="mb-3 flex items-start justify-between relative z-10">
                                                     <div className={`flex items-center justify-center h-10 w-10 rounded-xl ${isActive ? badge.bg : 'bg-gray-500/10'} ${isActive ? badge.color : 'text-gray-400'}`}>{renderBadgeIcon(badge.emoji, "w-5 h-5")}</div>
                                                     <div className="flex flex-col items-end gap-1.5">
-                                                        <span className={`rounded px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest border ${isActive ? rarityColor : 'bg-gray-500/10 text-gray-400 border-gray-500/20'}`}>{rarity}</span>
                                                         {xp > 0 && <span className={`text-[10px] font-black ${isActive ? 'text-emerald-500' : 'text-gray-400'}`}>+{xp} XP</span>}
                                                     </div>
                                                 </div>
