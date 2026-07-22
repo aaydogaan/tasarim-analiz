@@ -127,7 +127,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         const fetchPosts = async () => {
             const { data, error } = await supabase
                 .from('community_posts')
-                .select(`*, profiles(display_name, avatar_url), analizler(id, gorsel_url, genel_puan, user_name, user_avatar, isletme)`)
+                .select(`*, analizler(id, gorsel_url, genel_puan, user_name, user_avatar, isletme)`)
                 .order('created_at', { ascending: false });
             if (data && !error && isMounted) {
                 setPosts(data);

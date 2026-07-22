@@ -60,7 +60,6 @@ export function Vitrin() {
                 user_id,
                 created_at,
                 likes_count,
-                profiles(display_name, avatar_url),
                 analizler(*)
             `)
             .order("created_at", { ascending: false });
