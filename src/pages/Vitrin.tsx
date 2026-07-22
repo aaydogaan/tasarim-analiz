@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { supabase } from "../lib/supabase";
-import { Heart, Maximize2, X, Star, Loader2 } from "lucide-react";
+import { Heart, Maximize2, X, Star, Loader2, Search, ChevronDown, Filter, Sparkles, Trophy, Flame } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface VitrinItem {
@@ -32,6 +32,11 @@ export function Vitrin() {
     const [modalCommentsLoading, setModalCommentsLoading] = useState(false);
     const [commentInput, setCommentInput] = useState('');
     const [submittingComment, setSubmittingComment] = useState(false);
+
+    // Filter & Sort State
+    const [kategoriFiltre, setKategoriFiltre] = useState<string>('Tümü');
+    const [siralama, setSiralama] = useState<'yeni' | 'topluluk' | 'ai' | 'oy'>('yeni');
+    const [aramaMetni, setAramaMetni] = useState('');
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -266,15 +271,95 @@ export function Vitrin() {
         }
     };
 
+    const filtrelenmisItems = items
+        .filter((item) => {
+            if (kategoriFiltre !== 'Tümü' && item.tasarim_turu !== kategoriFiltre) {
+                return false;
+            }
+            if (aramaMetni.trim()) {
+                const query = aramaMetni.toLowerCase().trim();
+                const isletmeMatch = item.isletme.toLowerCase().includes(query);
+                const userMatch = item.user_name?.toLowerCase().includes(query) || false;
+                const turMatch = item.tasarim_turu.toLowerCase().includes(query);
+                return isletmeMatch || userMatch || turMatch;
+            }
+            return true;
+        })
+        .sort((a, b) => {
+            if (siralama === 'topluluk') {
+                return b.topluluk_puan - a.topluluk_puan;
+            } else if (siralama === 'ai') {
+                return b.ai_puan - a.ai_puan;
+            } else if (siralama === 'oy') {
+                return b.oy_sayisi - a.oy_sayisi;
+            } else {
+                return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            }
+        });
+
     return (
         <div className="w-full relative z-10 pt-4 pb-12">
-            <div className="text-center mb-10">
-                <h2 className="text-3xl md:text-5xl font-extrabold text-[var(--text-primary)] tracking-tight mb-4 drop-shadow-sm">
+            <div className="text-center mb-8">
+                <h2 className="text-3xl md:text-5xl font-extrabold text-[var(--text-primary)] tracking-tight mb-3 drop-shadow-sm">
                     Tasarım <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-brand-orange)] to-[#ff7b00]">Keşfet</span>
                 </h2>
                 <p className="text-[var(--text-secondary)] text-sm md:text-base max-w-2xl mx-auto">
-                    Topluluk tarafından analiz edilen en ilham verici tasarımları keşfedin. AI değerlendirmeleri ve kullanıcı oylarıyla en iyileri bulun.
+                    Topluluk tarafından analiz edilen en ilham verici tasarımları keşfedin. AI değerlendirmeleri ve kullanıcı oylarıyla en iyileri süzün.
                 </p>
+            </div>
+
+            {/* Filter & Search Control Bar */}
+            <div className="mb-8 space-y-4">
+                <div className="flex flex-col lg:flex-row items-center justify-between gap-4 bg-[var(--card-bg)] p-4 rounded-2xl border border-[var(--border-primary)] shadow-sm">
+                    
+                    {/* Category Filter Pills */}
+                    <div className="flex items-center gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 hide-scrollbar">
+                        {['Tümü', 'Sosyal Medya', 'Kurumsal', 'E-Ticaret', 'Baskı Materyali'].map((kat) => (
+                            <button
+                                key={kat}
+                                onClick={() => setKategoriFiltre(kat)}
+                                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                                    kategoriFiltre === kat
+                                        ? 'bg-[#FF5500] text-white shadow-md shadow-[#FF5500]/20'
+                                        : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-primary)] border border-[var(--border-primary)]'
+                                }`}
+                            >
+                                {kat}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Search & Sort Controls */}
+                    <div className="flex items-center gap-3 w-full lg:w-auto">
+                        {/* Search Input */}
+                        <div className="relative flex-1 lg:w-60">
+                            <Search className="w-4 h-4 text-[var(--text-secondary)] absolute left-3 top-1/2 -translate-y-1/2" />
+                            <input
+                                type="text"
+                                value={aramaMetni}
+                                onChange={(e) => setAramaMetni(e.target.value)}
+                                placeholder="Tasarım veya kişi ara..."
+                                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] outline-none focus:border-[#FF5500] transition-colors"
+                            />
+                        </div>
+
+                        {/* Sort Dropdown */}
+                        <div className="relative shrink-0">
+                            <select
+                                value={siralama}
+                                onChange={(e: any) => setSiralama(e.target.value)}
+                                className="appearance-none pl-3 pr-8 py-2 text-xs font-bold rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] outline-none focus:border-[#FF5500] cursor-pointer transition-colors"
+                            >
+                                <option value="yeni">🕒 En Yeni</option>
+                                <option value="topluluk">🔥 En Yüksek Topluluk Oyu</option>
+                                <option value="ai">⚡ En Yüksek AI Puanı</option>
+                                <option value="oy">🏆 En Çok Oy Alan</option>
+                            </select>
+                            <ChevronDown className="w-3.5 h-3.5 text-[var(--text-secondary)] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
             {loading ? (
@@ -282,13 +367,14 @@ export function Vitrin() {
                     <div className="w-8 h-8 border-4 border-[var(--border-primary)] border-t-[var(--color-brand-orange)] rounded-full animate-spin" />
                     <span className="text-[var(--text-secondary)] font-medium">Vitrin yükleniyor...</span>
                 </div>
-            ) : items.length === 0 ? (
-                <div className="text-center py-20 bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-3xl shadow-sm">
-                    <p className="text-[var(--text-secondary)]">Henüz vitrinde sergilenen bir tasarım yok.</p>
+            ) : filtrelenmisItems.length === 0 ? (
+                <div className="text-center py-20 bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-3xl shadow-sm space-y-2">
+                    <p className="text-[var(--text-primary)] font-bold text-base">Aradığınız kriterlere uygun tasarım bulunamadı.</p>
+                    <p className="text-[var(--text-secondary)] text-xs">Filtreleri veya arama kelimenizi değiştirmeyi deneyebilirsiniz.</p>
                 </div>
             ) : (
                 <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-4 space-y-4">
-                    {items.map((item, idx) => (
+                    {filtrelenmisItems.map((item, idx) => (
                         <motion.div
                             key={item.id}
                             initial={{ opacity: 0, y: 20 }}
