@@ -11,20 +11,35 @@
   font-family: 'TT Firs Neue';
   font-style: normal;
   font-weight: 400;
-  src: url('/fonts/TT-Firs-Neue.woff2') format('woff2'),
-       url('/fonts/TT-Firs-Neue.woff') format('woff'),
-       url('/fonts/TT-Firs-Neue.ttf') format('truetype'),
-       url('/fonts/TT-Firs-Neue.otf') format('opentype');
+  src: url('/fonts/TT Firs Neue Trial Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'TT Firs Neue';
+  font-style: normal;
+  font-weight: 500;
+  src: url('/fonts/TT Firs Neue Trial Medium.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'TT Firs Neue';
+  font-style: normal;
+  font-weight: 600;
+  src: url('/fonts/TT Firs Neue Trial DemiBold.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'TT Firs Neue';
   font-style: normal;
   font-weight: 700;
-  src: url('/fonts/TT-Firs-Neue-Bold.woff2') format('woff2'),
-       url('/fonts/TT-Firs-Neue-Bold.woff') format('woff'),
-       url('/fonts/TT-Firs-Neue-Bold.ttf') format('truetype'),
-       url('/fonts/TT-Firs-Neue-Bold.otf') format('opentype');
+  src: url('/fonts/TT Firs Neue Trial Bold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'TT Firs Neue';
+  font-style: normal;
+  font-weight: 900;
+  src: url('/fonts/TT Firs Neue Trial Black.ttf') format('truetype');
 }
 
 :root {
