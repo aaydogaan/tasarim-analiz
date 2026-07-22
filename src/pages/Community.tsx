@@ -56,6 +56,30 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
     const [inlineLoading, setInlineLoading] = useState<Record<string, boolean>>({});
     const [submittingComment, setSubmittingComment] = useState(false);
     const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
+    const [seciliGorsel, setSeciliGorsel] = useState<string | null>(null);
+
+    // Modal açıkken arkadaki kaydırmayı kapatmak için
+    useEffect(() => {
+        if (seciliGorsel) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "auto";
+        }
+        return () => {
+            document.body.style.overflow = "auto";
+        };
+    }, [seciliGorsel]);
+
+    // ESC ile kapatma
+    useEffect(() => {
+        const handleEsc = (event: KeyboardEvent) => {
+            if (event.key === "Escape") setSeciliGorsel(null);
+        };
+        window.addEventListener("keydown", handleEsc);
+        return () => {
+            window.removeEventListener("keydown", handleEsc);
+        };
+    }, []);
 
     const toggleInlineComments = async (postId: string) => {
         if (openInlinePostId === postId) {
@@ -597,10 +621,13 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                         </p>
                                         
                                         {imageSrc && (
-                                            <div className="relative aspect-video rounded-3xl overflow-hidden mb-6 bg-[var(--bg-secondary)] border border-[var(--border-primary)]">
+                                            <div 
+                                                className="relative aspect-video rounded-3xl overflow-hidden mb-6 bg-[var(--bg-secondary)] border border-[var(--border-primary)] cursor-zoom-in group"
+                                                onClick={() => setSeciliGorsel(imageSrc)}
+                                            >
                                                 <img
                                                     src={imageSrc}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                                    className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-90"
                                                     alt="Post thumbnail"
                                                     loading="lazy"
                                                 />
@@ -884,6 +911,37 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                 </div>
             </main>
 
+            {/* Tam Ekran Görsel Modalı */}
+            <AnimatePresence>
+                {seciliGorsel && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[999] flex flex-col items-center justify-start p-4 pt-24 pb-12 md:p-12 overflow-y-auto overflow-x-hidden"
+                    >
+                        <div
+                            className="fixed inset-0 bg-white/95 backdrop-blur-xl cursor-zoom-out"
+                            onClick={() => setSeciliGorsel(null)}
+                        />
+                        <button
+                            onClick={() => setSeciliGorsel(null)}
+                            className="fixed top-20 right-4 md:top-24 md:right-8 z-[1001] p-2.5 md:p-3 rounded-full bg-[var(--card-bg)] border border-[var(--border-primary)] hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] shadow-lg backdrop-blur-xl transition-all hover:rotate-90"
+                        >
+                            <X className="w-6 h-6 md:w-7 md:h-7" />
+                        </button>
+                        <div className="relative z-[1000] max-w-7xl w-full flex justify-center pointer-events-none my-auto">
+                            <div className="w-full flex justify-center pointer-events-auto">
+                                <img
+                                    src={seciliGorsel}
+                                    alt="Büyütülmüş Görsel"
+                                    className="w-auto h-auto max-w-full max-h-[85vh] object-contain rounded-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]"
+                                />
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
