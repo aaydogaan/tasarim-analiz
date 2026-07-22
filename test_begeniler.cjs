@@ -4,4 +4,10 @@ const env = fs.readFileSync('.env', 'utf-8');
 const url = env.match(/VITE_SUPABASE_URL="([^"]+)"/)[1];
 const key = env.match(/SUPABASE_SERVICE_ROLE_KEY="([^"]+)"/)[1];
 const supabase = createClient(url, key);
-supabase.from('profiles').select('*').then(r => console.log(JSON.stringify(r.data, null, 2))).catch(console.error);
+
+async function check() {
+  const { data, error } = await supabase.from('begeniler').select('*');
+  console.log('Error:', error);
+  console.log('Data count:', data ? data.length : 0);
+}
+check();

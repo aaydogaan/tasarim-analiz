@@ -91,6 +91,7 @@ export function Vitrin() {
 
                 return {
                     id: post.id,
+                    analiz_id: post.analizler?.id,
                     isletme: post.analizler?.isletme || post.title || 'Genel',
                     user_name: authorName,
                     user_avatar: authorAvatar,
@@ -110,6 +111,7 @@ export function Vitrin() {
 
     const vote = async (analiz_id: string, puan: number) => {
         if (!user) return toast.error("Puan vermek için giriş yapmalısınız.");
+        if (!analiz_id) return toast.error("Bu tasarımın orijinal analizi bulunamadı.");
 
         // Check if voted already
         const { data: existing } = await supabase
@@ -129,10 +131,12 @@ export function Vitrin() {
             .insert({ analiz_id, user_id: user.id, puan });
 
         if (!error) {
+            toast.success("Oyunuz başarıyla kaydedildi!");
             // Local optimistik güncelleme
             setItems((prev) =>
                 prev.map((item) => {
-                    if (item.id === analiz_id) {
+                    // Update matching analiz_id
+                    if (item.analiz_id === analiz_id || item.id === analiz_id) {
                         const yeniOySayisi = item.oy_sayisi + 1;
                         const yeniPuan = Math.round(((item.topluluk_puan * item.oy_sayisi) + puan) / yeniOySayisi);
                         return { ...item, oy_sayisi: yeniOySayisi, topluluk_puan: yeniPuan };
@@ -140,6 +144,14 @@ export function Vitrin() {
                     return item;
                 })
             );
+            if (seciliGorsel) {
+                 const yeniOySayisi = seciliGorsel.oy_sayisi + 1;
+                 const yeniPuan = Math.round(((seciliGorsel.topluluk_puan * seciliGorsel.oy_sayisi) + puan) / yeniOySayisi);
+                 setSeciliGorsel({ ...seciliGorsel, oy_sayisi: yeniOySayisi, topluluk_puan: yeniPuan });
+            }
+        } else {
+            console.error(error);
+            toast.error("Oyunuz kaydedilirken bir hata oluştu: " + error.message);
         }
     };
 
@@ -312,7 +324,7 @@ export function Vitrin() {
                                             {[70, 80, 90, 100].map(pt => (
                                                 <button
                                                     key={pt}
-                                                    onClick={() => vote(seciliGorsel.id, pt)}
+                                                    onClick={() => vote(seciliGorsel.analiz_id || seciliGorsel.id, pt)}
                                                     className="py-3.5 bg-[var(--bg-primary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)] border border-[var(--border-primary)] rounded-xl text-[var(--text-primary)] font-bold transition-all text-base shadow-sm"
                                                 >
                                                     {pt}
