@@ -73,7 +73,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
             setInlineLoading(prev => ({ ...prev, [postId]: true }));
             const { data } = await supabase
                 .from('post_comments')
-                .select('*, profiles(display_name, avatar_url)')
+                .select('*')
                 .eq('post_id', postId)
                 .order('created_at', { ascending: true });
             if (data) {
@@ -90,14 +90,22 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         const content = commentInput.trim();
         setCommentInput('');
 
+        const userName = kullanici.user_metadata?.display_name || kullanici.user_metadata?.full_name || kullanici.email?.split('@')[0] || 'Tasarımcı';
+        const userAvatar = kullanici.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici.id}`;
+
         const { data, error } = await supabase.from('post_comments').insert({
             post_id: postId,
             user_id: kullanici.id,
             content
-        }).select('*, profiles(display_name, avatar_url)').single();
+        }).select('*').single();
 
         if (!error && data) {
-            setInlineComments(prev => ({ ...prev, [postId]: [...(prev[postId] || []), data] }));
+            const commentObj = {
+                ...data,
+                user_name: userName,
+                user_avatar: userAvatar
+            };
+            setInlineComments(prev => ({ ...prev, [postId]: [...(prev[postId] || []), commentObj] }));
             setPosts(prev => prev.map(p => p.id === postId ? { ...p, comments_count: (p.comments_count || 0) + 1 } : p));
             toast.success('Yorumunuz eklendi!');
 

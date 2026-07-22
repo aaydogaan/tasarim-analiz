@@ -57,26 +57,47 @@ export function Vitrin() {
             .from("community_posts")
             .select(`
                 id,
+                user_id,
                 created_at,
                 likes_count,
-                analizler(isletme, tasarim_turu, gorsel_url, genel_puan, user_name, user_avatar)
+                analizler(*)
             `)
             .order("created_at", { ascending: false });
 
         if (data) {
-            const formatted = data.map((post: any) => ({
-                id: post.id,
-                isletme: post.analizler?.isletme || 'Ads',
-                user_name: post.analizler?.user_name,
-                user_avatar: post.analizler?.user_avatar,
-                gorsel_url: post.analizler?.gorsel_url,
-                tasarim_turu: post.analizler?.tasarim_turu || 'Tasarım',
-                ai_puan: post.analizler?.genel_puan || 0,
-                topluluk_puan: post.likes_count || 0,
-                oy_sayisi: 0,
-                created_at: post.created_at,
-                platform: ''
-            }));
+            const formatted = data.map((post: any) => {
+                const rawG = post.analizler?.gorsel_url || post.gorsel_url;
+                const formattedGorsel = rawG ? (rawG.startsWith('http') || rawG.startsWith('data:') ? rawG : `data:image/jpeg;base64,${rawG}`) : '';
+                
+                // Author name calculation
+                const isCurrentUser = user && user.id === post.user_id;
+                const currentUserName = user?.user_metadata?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Tasarımcı';
+                const currentUserAvatar = user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.id}`;
+
+                let authorName = post.analizler?.user_name;
+                if (!authorName || authorName === 'Gizli Tasarımcı') {
+                    authorName = isCurrentUser ? currentUserName : 'Tasarımcı';
+                }
+
+                let authorAvatar = post.analizler?.user_avatar;
+                if (!authorAvatar) {
+                    authorAvatar = isCurrentUser ? currentUserAvatar : `https://api.dicebear.com/7.x/notionists/svg?seed=${post.user_id}`;
+                }
+
+                return {
+                    id: post.id,
+                    isletme: post.analizler?.isletme || post.title || 'Genel',
+                    user_name: authorName,
+                    user_avatar: authorAvatar,
+                    gorsel_url: formattedGorsel,
+                    tasarim_turu: post.analizler?.tasarim_turu || 'Tasarım',
+                    ai_puan: post.analizler?.genel_puan || 80,
+                    topluluk_puan: post.likes_count || 0,
+                    oy_sayisi: post.likes_count ? 1 : 0,
+                    created_at: post.created_at,
+                    platform: ''
+                };
+            });
             setItems(formatted);
         }
         setLoading(false);
@@ -187,7 +208,7 @@ export function Vitrin() {
                                         className="w-7 h-7 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] object-cover"
                                     />
                                     <span className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer transition-colors text-sm font-medium leading-none">
-                                        {item.user_name || "Gizli Tasarımcı"}
+                                        {item.user_name || "Tasarımcı"}
                                     </span>
                                 </div>
 
@@ -222,12 +243,12 @@ export function Vitrin() {
                             onClick={() => setSeciliGorsel(null)}
                         />
 
-                        {/* Kapatma Butonu - Z-Index artırıldı */}
+                        {/* Kapatma Butonu */}
                         <button
                             onClick={() => setSeciliGorsel(null)}
-                            className="fixed top-6 right-6 z-[1001] p-4 rounded-full bg-[var(--card-bg)] border border-[var(--border-primary)] hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] shadow-sm backdrop-blur-xl transition-all hover:rotate-90"
+                            className="fixed top-20 right-4 md:top-24 md:right-8 z-[1001] p-2.5 md:p-3 rounded-full bg-[var(--card-bg)] border border-[var(--border-primary)] hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] shadow-lg backdrop-blur-xl transition-all hover:rotate-90"
                         >
-                            <X className="w-8 h-8" />
+                            <X className="w-6 h-6 md:w-7 md:h-7" />
                         </button>
 
                         <div
@@ -252,7 +273,7 @@ export function Vitrin() {
                                     />
                                     <div>
                                         <h3 className="text-[var(--text-primary)] text-lg font-bold leading-tight mb-1">
-                                            {seciliGorsel.user_name || "Gizli Tasarımcı"}
+                                            {seciliGorsel.user_name || "Tasarımcı"}
                                         </h3>
                                         <div className="flex items-center gap-2 text-[var(--text-secondary)] text-[10px] uppercase font-bold tracking-widest">
                                             <span>{seciliGorsel.tasarim_turu}</span>
@@ -275,7 +296,7 @@ export function Vitrin() {
                                         <div className="flex-1 p-5 rounded-[24px] bg-[var(--bg-secondary)] border border-[var(--border-primary)] flex flex-col items-center text-center shadow-sm relative overflow-hidden group">
                                             <div className="absolute inset-0 bg-[#ff7b00]/5 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                                             <span className="text-[var(--text-secondary)] text-[10px] uppercase font-black tracking-widest mb-1 relative z-10">Topluluk ({seciliGorsel.oy_sayisi} Oy)</span>
-                                            <span className="text-4xl text-[#ff7b00] font-black tracking-tighter relative z-10">{seciliGorsel.topluluk_puan || '-'}</span>
+                                            <span className="text-4xl text-[#ff7b00] font-black tracking-tighter relative z-10">{seciliGorsel.oy_sayisi > 0 ? seciliGorsel.topluluk_puan : 0}</span>
                                         </div>
                                     </div>
 
