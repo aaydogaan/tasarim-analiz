@@ -693,15 +693,16 @@ export default function App() {
       return;
     }
     
-    // Always update 'analizler' with actual user details, exact AI score, and image URL
-    await supabase.from('analizler').update({
-      user_id: kullanici.id,
+    // Update 'analizler' to make it public and ensure user details are current
+    const { error: updateErr } = await supabase.from('analizler').update({
       user_name: userName,
       user_avatar: userAvatar,
-      genel_puan: sonuc?.genelPuan ?? sonuc?.genel_puan ?? sonuc?.puan ?? 75,
-      gorsel_url: gorselSource,
       paylasim_aktif: true
     }).eq('id', targetAnalizId);
+
+    if (updateErr) {
+      console.error('Analiz update hatası:', updateErr);
+    }
     
     // Insert into community_posts
     const { error } = await supabase.from('community_posts').insert({

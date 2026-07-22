@@ -49,16 +49,9 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
     const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
     const [postSort, setPostSort] = useState<'new' | 'popular'>('new');
 
-    // Comments State
-    const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
-    const [commentsModalAcik, setCommentsModalAcik] = useState(false);
-    const [comments, setComments] = useState<any[]>([]);
-    const [commentInput, setCommentInput] = useState('');
-    const [loadingComments, setLoadingComments] = useState(false);
-    const [sendingComment, setSendingComment] = useState(false);
-
     // Inline Instagram Style Comments State
     const [openInlinePostId, setOpenInlinePostId] = useState<string | null>(null);
+    const [commentInput, setCommentInput] = useState('');
     const [inlineComments, setInlineComments] = useState<Record<string, any[]>>({});
     const [inlineLoading, setInlineLoading] = useState<Record<string, boolean>>({});
     const [submittingComment, setSubmittingComment] = useState(false);
@@ -192,65 +185,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         }
     };
 
-    const openComments = async (postId: string) => {
-        setSelectedPostId(postId);
-        setCommentsModalAcik(true);
-        setLoadingComments(true);
-        const { data } = await supabase
-            .from('post_comments')
-            .select(`*, profiles(display_name, avatar_url)`)
-            .eq('post_id', postId)
-            .order('created_at', { ascending: true });
-        if (data) setComments(data);
-        setLoadingComments(false);
-    };
-
-    const submitComment = async () => {
-        if (!selectedPostId || !commentInput.trim()) return;
-        if (!kullanici) {
-            onAuthClick?.();
-            return;
-        }
-
-        setSendingComment(true);
-        const { data, error } = await supabase
-            .from('post_comments')
-            .insert({ post_id: selectedPostId, user_id: kullanici.id, content: commentInput.trim() })
-            .select('*, profiles(display_name, avatar_url)')
-            .single();
-
-        if (data && !error) {
-            setComments(prev => [...prev, data]);
-            setCommentInput('');
-        }
-        setSendingComment(false);
-    };
-
-    // Realtime for open comments
-    useEffect(() => {
-        if (!selectedPostId || !commentsModalAcik) return;
-        const commentsSubscription = supabase
-            .channel(`comments_${selectedPostId}`)
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_comments', filter: `post_id=eq.${selectedPostId}` }, async (payload) => {
-                const { data } = await supabase
-                    .from('post_comments')
-                    .select('*, profiles(display_name, avatar_url)')
-                    .eq('id', payload.new.id)
-                    .single();
-                
-                if (data) {
-                    setComments(current => {
-                        if (current.find(c => c.id === data.id)) return current;
-                        return [...current, data];
-                    });
-                }
-            })
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(commentsSubscription);
-        };
-    }, [selectedPostId, commentsModalAcik]);
+    // Realtime for community_posts is handled above
 
     useEffect(() => {
         let aktif = true;
@@ -909,84 +844,6 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                 </div>
             </main>
 
-            {/* Comments Modal */}
-            <AnimatePresence>
-                {commentsModalAcik && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                            onClick={() => { setCommentsModalAcik(false); setSelectedPostId(null); }}
-                        />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="relative w-full max-w-lg bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-[32px] overflow-hidden shadow-2xl z-10 flex flex-col max-h-[85vh]"
-                        >
-                            <div className="px-6 py-5 border-b border-[var(--border-primary)] flex items-center justify-between bg-[var(--card-bg)] shrink-0">
-                                <h3 className="font-bold text-lg text-[var(--text-primary)]">Yorumlar</h3>
-                                <button onClick={() => { setCommentsModalAcik(false); setSelectedPostId(null); }} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--bg-secondary)] text-[var(--text-secondary)] transition-colors">
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-                            
-                            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                                {loadingComments ? (
-                                    <div className="flex flex-col items-center justify-center py-10 text-[var(--text-secondary)]">
-                                        <div className="w-6 h-6 border-2 border-[#FF5500]/30 border-t-[#FF5500] rounded-full animate-spin mb-4" />
-                                        Yükleniyor...
-                                    </div>
-                                ) : comments.length === 0 ? (
-                                    <div className="text-center py-10 text-[var(--text-secondary)]">
-                                        <MessageCircle className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                                        <p className="text-sm">Henüz yorum yok. İlk yorumu sen yap!</p>
-                                    </div>
-                                ) : (
-                                    comments.map(c => (
-                                        <div key={c.id} className="flex gap-4">
-                                            <img 
-                                                src={c.profiles?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${c.user_id}&backgroundColor=b6e3f4,c0aede`} 
-                                                alt="avatar" 
-                                                className="w-10 h-10 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] shrink-0 object-cover"
-                                            />
-                                            <div>
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <span className="font-bold text-sm text-[var(--text-primary)]">{c.profiles?.display_name || 'Gizli Tasarımcı'}</span>
-                                                    <span className="text-[10px] text-[var(--text-secondary)]">{new Date(c.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
-                                                </div>
-                                                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{c.content}</p>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-
-                            <div className="p-4 border-t border-[var(--border-primary)] bg-[var(--bg-secondary)] shrink-0">
-                                <div className="relative">
-                                    <input 
-                                        type="text" 
-                                        value={commentInput}
-                                        onChange={(e) => setCommentInput(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && submitComment()}
-                                        placeholder="Bir yorum yaz..."
-                                        className="w-full bg-[var(--card-bg)] border border-[var(--border-primary)] text-[var(--text-primary)] px-4 py-3 pr-12 rounded-2xl focus:outline-none focus:border-[#FF5500] transition-colors text-sm"
-                                    />
-                                    <button 
-                                        onClick={submitComment}
-                                        disabled={sendingComment || !commentInput.trim()}
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-[#FF5500] text-white rounded-xl hover:bg-[#e64d00] transition-colors disabled:opacity-50"
-                                    >
-                                        {sendingComment ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send className="w-4 h-4" />}
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
         </div>
     );
 }
