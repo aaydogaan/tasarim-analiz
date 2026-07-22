@@ -599,22 +599,26 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                 viewport={{ once: true }}
                                 className="bg-[var(--card-bg)] p-6 md:p-8 rounded-[40px] border border-[var(--border-primary)] shadow-sm hover:shadow-md transition-all group cursor-pointer"
                             >
-                                <div className="flex items-start gap-5">
-                                    <img
-                                        src={authorAvatar}
-                                        className="w-14 h-14 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] object-cover shrink-0"
-                                        alt="Avatar"
-                                    />
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="font-bold text-lg text-[var(--text-primary)] truncate">{authorName}</span>
-                                            <span className="text-[var(--text-secondary)] text-xs shrink-0">• {new Date(post.created_at).toLocaleDateString('tr-TR')}</span>
-                                            {post.analizler?.genel_puan && (
-                                                <span className="ml-auto text-[10px] font-bold uppercase tracking-widest text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md shrink-0 flex items-center gap-1">
-                                                    <Star className="w-3 h-3 fill-amber-500" /> {post.analizler.genel_puan} AI
-                                                </span>
-                                            )}
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex items-center gap-4">
+                                        <img
+                                            src={authorAvatar}
+                                            className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] object-cover shrink-0"
+                                            alt="Avatar"
+                                        />
+                                        <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                            <div className="flex items-center gap-2 mb-0.5">
+                                                <span className="font-bold text-base md:text-lg text-[var(--text-primary)] truncate">{authorName}</span>
+                                                {post.analizler?.genel_puan && (
+                                                    <span className="ml-auto text-[10px] font-bold uppercase tracking-widest text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md shrink-0 flex items-center gap-1">
+                                                        <Star className="w-3 h-3 fill-amber-500" /> {post.analizler.genel_puan} AI
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <span className="text-[var(--text-secondary)] text-xs">{new Date(post.created_at).toLocaleDateString('tr-TR')}</span>
                                         </div>
+                                    </div>
+                                    <div className="w-full">
                                         {post.title && <h3 className="font-bold text-[var(--text-primary)] mb-2">{post.title}</h3>}
                                         <p className="text-[var(--text-secondary)] leading-relaxed mb-6 whitespace-pre-wrap">
                                             {post.content || 'Bu tasarım analiz edildi.'}

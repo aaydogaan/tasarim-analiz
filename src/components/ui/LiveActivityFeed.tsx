@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Users, Zap, X, Bell, UserPlus, UploadCloud, MessageCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
@@ -124,7 +124,7 @@ export default function LiveActivityFeed() {
     const current = activities[index] || DEMO_ACTIVITIES[0];
 
     return (
-        <div className="fixed bottom-20 right-4 md:bottom-6 md:left-6 md:right-auto z-[90] flex items-end">
+        <div className="fixed bottom-4 right-4 md:bottom-6 md:left-6 md:right-auto z-[90] flex items-end">
             <AnimatePresence mode="wait">
                 {isVisible ? (
                     <motion.div
