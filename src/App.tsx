@@ -1507,9 +1507,13 @@ export default function App() {
                   </button>
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[var(--card-bg)] p-5 rounded-[24px] border border-[var(--border-primary)] shadow-sm">
                     <div className="flex items-center gap-4 pl-2">
-                      <div className="w-12 h-12 rounded-full bg-[#FF5500]/10 flex items-center justify-center relative">
-                        <div className="absolute top-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></div>
-                        <span className="text-xl font-black text-[var(--text-primary)]">{isletme.charAt(0)}</span>
+                      <div className="relative w-12 h-12 shrink-0 rounded-full border-2 border-[#FF5500]/20 bg-[var(--bg-secondary)] overflow-hidden shadow-sm">
+                        <img 
+                          src={kullanici?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici?.id || 'user'}`} 
+                          className="w-full h-full object-cover" 
+                          alt="Profil" 
+                        />
+                        <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-[var(--card-bg)] rounded-full"></div>
                       </div>
                       <div>
                         <h3 className="text-[var(--text-primary)] font-bold text-base leading-tight">Analiz Raporu</h3>
@@ -1519,13 +1523,6 @@ export default function App() {
                     <div className="flex items-center gap-2 md:gap-3 flex-wrap">
                       <button onClick={sifirla} className="px-4 py-2 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] font-semibold text-sm transition-colors border border-transparent hover:border-[var(--border-primary)] flex items-center gap-2">
                         <RotateCcw className="w-4 h-4" /> Yeni Analiz
-                      </button>
-                      <button
-                        onClick={indirPDF}
-                        disabled={yukleniyor}
-                        className="px-4 py-2 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] font-semibold text-sm transition-colors border border-[var(--border-primary)] flex items-center gap-2"
-                      >
-                        {yukleniyor ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Download className="w-4 h-4" />} PDF İndir
                       </button>
                       <button
                         disabled={vitrindeYayinlandi}
@@ -1539,104 +1536,148 @@ export default function App() {
                   </div>
 
                   {/* Main Dashboard Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
 
-                    {/* LEFT STACK - Metrics + Gauge */}
-                    <div className="col-span-1 md:col-span-8 space-y-4 md:space-y-6">
-                      {/* Top Top Metrics */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
-                        {[
-                          { label: "Baskın Renk", value: sonuc.teknikOzet?.baskinRenkSayisi || 3, sub: "farklı renk", icon: <Palette />, color: "text-emerald-500", bg: "bg-emerald-50" },
-                          { label: "Görsel Düzen", value: `%${sonuc.teknikOzet?.detayYogunlugu || 45}`, sub: "doluluk oranı", icon: <Grid />, color: "text-sky-500", bg: "bg-sky-50" },
-                          { label: "Okunabilirlik", value: sonuc.teknikOzet?.kontrastDegeri || 'Yüksek', sub: "metin netliği", icon: <TypeIcon />, color: "text-purple-500", bg: "bg-purple-50" }
-                        ].map((m, i) => (
-                          <div key={i} className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6">
-                            <div className="flex flex-col items-center">
-                              <div className={`w-12 h-12 rounded-full ${m.bg} ${m.color} flex items-center justify-center mb-4`}>
-                                {React.cloneElement(m.icon as any, { className: "w-6 h-6" })}
-                              </div>
-                              <p className="text-[var(--text-secondary)] text-[10px] uppercase font-bold tracking-widest text-center">{m.label}</p>
-                              <div className="flex items-baseline gap-1 mt-1">
-                                <span className="text-3xl font-black text-[var(--text-primary)] tracking-tight">{m.value}</span>
-                              </div>
-                              <span className="text-[var(--text-secondary)] text-xs font-semibold bg-[var(--bg-primary)] border border-[var(--border-primary)] px-3 py-1 rounded-full mt-3">{m.sub}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                    {/* LEFT STACK (8 Cols): Score, Detailed Metrics & Feedback */}
+                    <div className="col-span-1 md:col-span-8 space-y-6">
 
-                      {/* Middle Gauge & Summary */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                        {/* Gauge Card */}
-                        <div className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6 flex flex-col justify-between">
-                          <div className="flex items-center justify-between mb-8">
-                            <div className="flex items-center gap-2">
-                              <Check className="w-4 h-4 text-[var(--text-secondary)]" />
-                              <span className="text-[var(--text-primary)] font-bold text-sm tracking-wide">Tasarım Puanı</span>
+                      {/* Score & Detailed Metrics Side-by-Side Card */}
+                      <div className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6 md:p-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                          
+                          {/* Score Ring (Left) */}
+                          <div className="lg:col-span-5 flex flex-col items-center justify-center border-b lg:border-b-0 lg:border-r border-[var(--border-primary)] pb-6 lg:pb-0 lg:pr-6">
+                            <span className="text-[var(--text-secondary)] font-bold text-xs uppercase tracking-wider mb-6">Tasarım Puanı</span>
+                            <ScoreRing score={sonuc.genelPuan} />
+                            <div className="mt-6 flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200/50">
+                              <Check className="w-4 h-4" />
+                              <span className="text-xs font-bold">Genel Kalite Standardı Yüksek</span>
                             </div>
-                            <button className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)] border border-[var(--border-primary)] px-3 py-1 rounded-full hover:bg-[var(--bg-primary)] transition-colors">Detaylar</button>
                           </div>
-                          <ScoreRing score={sonuc.genelPuan} />
-                          <div className="mt-8 pt-4 border-t border-[var(--border-primary)] flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center">
-                              <span className="text-emerald-500 text-sm font-bold">+</span>
-                            </div>
-                            <div>
-                              <p className="text-[var(--text-primary)] text-sm font-bold">Harika!</p>
-                              <p className="text-[var(--text-secondary)] text-[10px]">Genel kalite standartını yakaladınız.</p>
-                            </div>
-                            <ChevronRight className="w-4 h-4 ml-auto text-[var(--text-secondary)]" />
-                          </div>
-                        </div>
 
-                        {/* Summary / Productivity Card */}
-                        <div className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6 flex flex-col">
-                          <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-2">
-                              <BarChart2 className="w-4 h-4 text-[var(--text-secondary)]" />
-                              <span className="text-[var(--text-primary)] font-bold text-sm tracking-wide">Detaylı Analiz</span>
-                            </div>
-                          </div>
-                          <div className="space-y-4 flex-1 flex flex-col justify-center">
+                          {/* Detailed Metrics Bars (Right) */}
+                          <div className="lg:col-span-7 space-y-4">
+                            <span className="text-[var(--text-primary)] font-bold text-sm tracking-wide block mb-2">Detaylı Kriter Analizi</span>
                             {kriterler.slice(0, 4).map((k) => (
                               <div key={k.key}>
                                 <div className="flex justify-between items-end mb-1.5">
-                                  <span className="text-[var(--text-secondary)] text-[11px] font-bold">{k.label}</span>
-                                  <span className="text-[var(--text-primary)] text-sm font-black">{sonuc[k.key]?.puan}/25</span>
+                                  <span className="text-[var(--text-secondary)] text-xs font-semibold">{k.label}</span>
+                                  <span className="text-[var(--text-primary)] text-xs font-black">{sonuc[k.key]?.puan}/25</span>
                                 </div>
-                                <div className="h-[6px] w-full bg-[var(--text-primary)]/10 rounded-full overflow-hidden">
+                                <div className="h-2 w-full bg-[var(--text-primary)]/10 rounded-full overflow-hidden">
                                   <motion.div
                                     initial={{ width: 0 }}
                                     animate={{ width: `${(sonuc[k.key]?.puan / 25) * 100}%` }}
-                                    transition={{ duration: 1, delay: 0.5 }}
+                                    transition={{ duration: 1, delay: 0.3 }}
                                     className="h-full bg-[#FF5500] rounded-full"
                                   />
                                 </div>
                               </div>
                             ))}
                           </div>
+
                         </div>
                       </div>
+
+                      {/* Feedback Section */}
+                      <div className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6 md:p-8 space-y-6">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className="w-5 h-5 text-[#FF5500]" />
+                          <h4 className="text-[var(--text-primary)] font-bold text-base tracking-tight">Geri Bildirimler & Değerlendirme</h4>
+                        </div>
+
+                        <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-5 rounded-2xl">
+                          <p className="text-[var(--text-primary)] text-sm font-medium leading-relaxed">"{sonuc.genelYorum}"</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {sonuc.gucluYon && (
+                            <div className="flex items-start gap-3 border border-emerald-200/60 rounded-2xl p-4 bg-emerald-50/30">
+                              <div className="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                                <Check className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <p className="text-emerald-700 text-xs font-extrabold uppercase tracking-wider mb-1">Güçlü Yön</p>
+                                <p className="text-[var(--text-primary)] text-xs leading-relaxed font-medium">{sonuc.gucluYon}</p>
+                              </div>
+                            </div>
+                          )}
+                          {sonuc.zayifYon && (
+                            <div className="flex items-start gap-3 border border-amber-200/60 rounded-2xl p-4 bg-amber-50/30">
+                              <div className="w-7 h-7 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                                <AlertCircle className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <p className="text-amber-700 text-xs font-extrabold uppercase tracking-wider mb-1">Geliştirilebilir</p>
+                                <p className="text-[var(--text-primary)] text-xs leading-relaxed font-medium">{sonuc.zayifYon}</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* AI Pro Improvement Banner */}
+                      <div className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6 md:p-8 flex flex-col relative overflow-hidden group">
+                        <div className="absolute top-[-50%] right-[-10%] w-[150%] h-[150%] bg-gradient-to-br from-[#FF5500]/10 via-purple-600/5 to-transparent blur-3xl rounded-full opacity-60 pointer-events-none"></div>
+
+                        <div className="relative z-10 flex items-center justify-between mb-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF5500]/20 to-amber-500/20 flex items-center justify-center border border-[#FF5500]/30 shadow-inner">
+                              <Sparkles className="w-5 h-5 text-[#FF5500]" />
+                            </div>
+                            <div>
+                              <span className="text-[var(--text-primary)] font-black text-lg tracking-tight block leading-tight">AI Tasarım Revizyonu</span>
+                              <span className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mt-0.5 block">Otomatik İyileştirme</span>
+                            </div>
+                          </div>
+                          <span className="bg-gradient-to-r from-[#FF5500] to-amber-500 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-lg uppercase tracking-widest shadow-md border border-white/20">PRO</span>
+                        </div>
+
+                        <div className="relative z-10 flex-1 border border-[#FF5500]/20 bg-gradient-to-br from-[#FF5500]/[0.05] to-transparent rounded-2xl p-6 mb-4 backdrop-blur-md flex flex-col items-center justify-center text-center overflow-hidden">
+                          <div className="absolute inset-0 bg-[var(--card-bg)]/40 backdrop-blur-md z-10 flex flex-col items-center justify-center p-6">
+                            <div className="w-10 h-10 bg-[var(--card-bg)] rounded-full flex items-center justify-center mb-3 shadow-sm">
+                              <Sparkles className="w-5 h-5 text-[#FF5500]" />
+                            </div>
+                            <p className="text-[var(--text-primary)] font-bold text-xs mb-1 uppercase tracking-tight">Revizyon Detayları Kilitli</p>
+                            <p className="text-[var(--text-secondary)] text-[10px] uppercase font-bold tracking-wider max-w-md">
+                              AI ile tasarımınızı otomatik iyileştirmek ve teknik revizyonları görmek için PRO plana geçin.
+                            </p>
+                          </div>
+                          <p className="text-[var(--text-primary)] text-xs opacity-20 select-none blur-[2px]">
+                            {sonuc.oneri}
+                          </p>
+                        </div>
+
+                        <button 
+                          onClick={() => navigate('/pricing')}
+                          className="relative z-10 w-full py-3.5 rounded-xl bg-slate-900 hover:bg-black text-white font-black text-xs transition-all shadow-md flex items-center justify-center gap-2"
+                        >
+                          <span>Tasarımı AI İle İyileştir</span>
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+
                     </div>
 
-                    {/* RIGHT STACK - Image & Colors */}
-                    <div className="col-span-1 md:col-span-4 space-y-4 md:space-y-6">
-                      {/* Image Preview (Like Crops Stocked) */}
-                      <div className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm overflow-hidden flex flex-col h-full">
+                    {/* RIGHT STACK (4 Cols): Image Preview & Disclaimer */}
+                    <div className="col-span-1 md:col-span-4 space-y-6">
+
+                      {/* Uploaded Design Image Card */}
+                      <div className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm overflow-hidden flex flex-col">
                         <div className="p-5 border-b border-[var(--border-primary)] flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Layers className="w-4 h-4 text-[var(--text-secondary)]" />
                             <span className="text-[var(--text-primary)] font-bold text-sm tracking-wide">Yüklediğiniz Tasarım</span>
                           </div>
-                          <button className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)] border border-[var(--border-primary)] px-3 py-1 rounded-full hover:bg-[var(--bg-primary)] transition-colors">Büyüt</button>
                         </div>
-                        <div className="p-4 flex-1 flex flex-col justify-center items-center bg-[var(--bg-primary)]/50 group cursor-zoom-in min-h-[220px]" onClick={() => gorsel && setSeciliGorsel(gorsel)}>
-                          <img src={gorsel!} alt="Orijinal" className="max-w-full max-h-[250px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform duration-500 shadow-sm" />
+                        <div className="p-4 flex flex-col justify-center items-center bg-[var(--bg-primary)]/50 group cursor-zoom-in min-h-[240px]" onClick={() => gorsel && setSeciliGorsel(gorsel)}>
+                          <img src={gorsel!} alt="Orijinal" className="max-w-full max-h-[300px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform duration-500 shadow-sm" />
                         </div>
 
-                        {/* Sub Colors */}
+                        {/* Color Palette Chips */}
                         {sonuc.renkPaleti?.length > 0 && (
-                          <div className="p-4 border-t border-[var(--border-primary)] bg-[var(--card-bg)]">
+                          <div className="p-4 border-t border-[var(--border-primary)] bg-[var(--card-bg)] space-y-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)] block">Tespit Edilen Palet</span>
                             <div className="flex items-center justify-between gap-1.5 overflow-x-auto pb-1 hide-scrollbar">
                               {sonuc.renkPaleti.slice(0, 5).map((hex: string, i: number) => (
                                 <div key={i} className="flex flex-col items-center gap-1 group cursor-pointer" onClick={() => renkKopyala(hex)}>
@@ -1650,133 +1691,24 @@ export default function App() {
                           </div>
                         )}
                       </div>
-                    </div>
-                  </div>
 
-                  {/* BOTTOM ROW - Feedback & AI Pro */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-4 md:mt-6">
-                    {/* Detailed Feedback (Like Weather/Tasks) */}
-                    <div className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6">
-                      <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-2">
-                          <AlertCircle className="w-4 h-4 text-[var(--text-secondary)]" />
-                          <span className="text-[var(--text-primary)] font-bold text-sm tracking-wide">Geri Bildirimler</span>
+                      {/* Disclaimer Note Card */}
+                      <div className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6">
+                        <div className="flex items-center gap-2 mb-3">
+                          <AlertCircle className="w-4 h-4 text-amber-500" />
+                          <h4 className="font-bold text-[var(--text-primary)] text-xs uppercase tracking-wider">Önemli Not</h4>
                         </div>
-                      </div>
-                      <div className="space-y-4">
-                        <div className="bg-[var(--bg-primary)] border border-[var(--border-primary)] p-5 rounded-xl">
-                          <p className="text-[var(--text-primary)] text-[13px] font-semibold leading-relaxed">"{sonuc.genelYorum}"</p>
-                        </div>
-                        {sonuc.gucluYon && (
-                          <div className="flex items-start gap-3 border border-[var(--border-primary)] rounded-xl p-4 bg-[var(--card-bg)]">
-                            <div className="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
-                              <Check className="w-3 h-3 text-emerald-500" />
-                            </div>
-                            <div>
-                              <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mb-1">Güçlü Yön</p>
-                              <p className="text-[var(--text-primary)] text-xs leading-relaxed">{sonuc.gucluYon}</p>
-                            </div>
-                          </div>
-                        )}
-                        {sonuc.zayifYon && (
-                          <div className="flex items-start gap-3 border border-[var(--border-primary)] rounded-xl p-4 bg-[var(--card-bg)]">
-                            <div className="w-6 h-6 rounded-full bg-rose-50 flex items-center justify-center shrink-0">
-                              <AlertCircle className="w-3 h-3 text-rose-500" />
-                            </div>
-                            <div>
-                              <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mb-1">Geliştirilebilir</p>
-                              <p className="text-[var(--text-primary)] text-xs leading-relaxed">{sonuc.zayifYon}</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* AI Suggestion */}
-                    <div className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6 md:p-8 flex flex-col relative overflow-hidden group">
-                      {/* Arka plan efektleri (Parallax & Glow) */}
-                      <div className="absolute top-[-50%] right-[-10%] w-[150%] h-[150%] bg-gradient-to-br from-[#FF5500]/10 via-purple-600/5 to-transparent blur-3xl rounded-full transform rotate-12 group-hover:opacity-100 opacity-60 transition-opacity duration-700 pointer-events-none"></div>
-
-                      <div className="relative z-10 flex items-center justify-between mb-8">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FF5500]/20 to-amber-500/20 flex items-center justify-center border border-[#FF5500]/30 shadow-inner group-hover:scale-110 transition-transform duration-500">
-                            <Sparkles className="w-6 h-6 text-[#FF5500]" />
-                          </div>
-                          <div>
-                            <span className="text-[var(--text-primary)] font-black text-xl tracking-tight block leading-tight">AI Tasarım Revizyonu</span>
-                            <span className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mt-0.5 block">Sizi Bir Üst Seviyeye Taşır</span>
-                          </div>
-                        </div>
-                        <span className="bg-gradient-to-r from-[#FF5500] to-amber-500 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-lg uppercase tracking-widest shadow-md shadow-[#FF5500]/30 border border-white/20">PRO</span>
-                      </div>
-
-                      <div className="relative z-10 flex-1 border border-[#FF5500]/20 bg-gradient-to-br from-[#FF5500]/[0.05] to-transparent rounded-2xl p-8 mb-6 backdrop-blur-md group-hover:border-[#FF5500]/30 transition-all duration-500 flex flex-col items-center justify-center text-center overflow-hidden">
-                        {/* Blur overlay for PRO info */}
-                        <div className="absolute inset-0 bg-[var(--card-bg)]/40 backdrop-blur-md z-10 flex flex-col items-center justify-center p-6">
-                          <div className="w-12 h-12 bg-[var(--card-bg)] rounded-full flex items-center justify-center mb-4 shadow-sm">
-                            <Sparkles className="w-6 h-6 text-[#FF5500]" />
-                          </div>
-                          <p className="text-[var(--text-primary)] font-bold text-sm mb-1 uppercase tracking-tight">Revizyon Detayları Kilitli</p>
-                          <p className="text-[var(--text-secondary)] text-[10px] uppercase font-black tracking-widest leading-normal">
-                            AI ile tasarımınızı otomatik iyileştirmek ve teknik revizyonları görmek için PRO plana geçin.
-                          </p>
-                        </div>
-                        <p className="text-[var(--text-primary)] text-[14px] opacity-20 select-none blur-[2px]">
-                          {sonuc.oneri}
+                        <p className="text-[var(--text-secondary)] text-[11px] leading-relaxed italic">
+                          Bu değerlendirme yapay zeka tarafından otomatik oluşturulmuştur. Tasarımınız için profesyonel rehberlik amaçlıdır.
                         </p>
                       </div>
 
-                      <button 
-                        onClick={() => navigate('/pricing')}
-                        className="relative z-10 w-full py-4 rounded-xl bg-slate-900 hover:bg-black text-white font-black text-sm transition-all duration-300 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 overflow-hidden"
-                      >
-                        {/* Shimmer effect inside button */}
-                        <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_2s_infinite]" />
-                        <span className="relative z-10 flex items-center gap-2">Tasarımı AI İle İyileştir <ChevronRight className="w-4 h-4" /></span>
-                      </button>
                     </div>
+
                   </div>
 
-                  {/* RESOURCES & DISCLAIMER */}
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-8">
-                    {/* Educational Resources */}
-                    <div className="col-span-1 md:col-span-8 bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6">
-                      <div className="flex items-center gap-2 mb-4">
-                        <BookOpen className="w-4 h-4 text-[#FF5500]" />
-                        <h4 className="font-bold text-[var(--text-primary)] text-sm uppercase tracking-wider">Tasarımını Geliştirmen İçin Kaynaklar</h4>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {[
-                          { title: "Nielsen Norman Group", desc: "UX/UI dünyasının en prestijli eğitim ve araştırma kurumu.", url: "https://www.nngroup.com/" },
-                          { title: "Interaction Design Foundation", desc: "Tasarım prensiplerini derinlemesine öğrenin.", url: "https://www.interaction-design.org/" },
-                          { title: "Color Contrast Guide (WCAG)", desc: "Erişilebilir renk kullanımı kuralları.", url: "https://webaim.org/resources/contrastchecker/" },
-                          { title: "Laws of UX", desc: "Kullanıcı psikolojisi ve tasarım kural seti.", url: "https://lawsofux.com/" }
-                        ].map((source, i) => (
-                          <a target="_blank" rel="noopener noreferrer" key={i} href={source.url} className="group block p-4 bg-[var(--bg-primary)] rounded-xl border border-[var(--border-primary)] hover:border-[#FF5500]/30 transition-all hover:shadow-sm">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="font-bold text-[var(--text-primary)] text-xs">{source.title}</span>
-                              <ExternalLink className="w-3 h-3 text-[var(--text-secondary)] group-hover:text-[#FF5500] transition-colors" />
-                            </div>
-                            <p className="text-[var(--text-secondary)] text-[10px] leading-relaxed">{source.desc}</p>
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Disclaimer */}
-                    <div className="col-span-1 md:col-span-4 bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6 flex flex-col justify-center">
-                      <div className="flex items-center gap-2 mb-3">
-                        <AlertCircle className="w-4 h-4 text-amber-500" />
-                        <h4 className="font-bold text-[var(--text-primary)] text-xs uppercase tracking-wider">Önemli Not</h4>
-                      </div>
-                      <p className="text-[var(--text-secondary)] text-[11px] leading-relaxed italic">
-                        "Feragatname: Bu eleştiri yapay zeka teknolojisi kullanılarak oluşturulur ve yalnızca bir rehberlik aracı olarak kullanılmalıdır. Doğruluk için çaba gösterirken, nihai tasarım kararlarında insan yargısı ve profesyonel uzmanlık dikkate alınmalıdır."
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Footer Padding for aesthetics */}
-                  <div className="h-12 w-full" />
+                  {/* Footer Spacing */}
+                  <div className="h-8 w-full" />
                 </motion.div>
               )}
                     </div>
