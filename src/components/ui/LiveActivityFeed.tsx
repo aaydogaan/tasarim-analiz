@@ -149,7 +149,7 @@ export default function LiveActivityFeed() {
 
                         <div className="flex flex-col gap-0.5 pr-2">
                             <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-brand-dark)]/30">
+                                <span className="text-[10px] font-black tracking-wide text-[var(--color-brand-dark)]/30">
                                     Canlı Aktivite
                                 </span>
                                 <span className="relative flex h-1.5 w-1.5">

@@ -1,3 +1,5 @@
+﻿import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import { motion } from 'motion/react';
 import { ArrowUpRight } from 'lucide-react';
 import Footer from '../components/ui/Footer';
@@ -15,6 +17,33 @@ interface LandingPageProps {
 }
 
 export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }: LandingPageProps) {
+    const [dbStats, setDbStats] = useState({
+        analizler: 0,
+        kullanicilar: 0,
+        tasarimlar: 0,
+        yorumlar: 0
+    });
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const { count: c1 } = await supabase.from('analizler').select('*', { count: 'exact', head: true });
+                const { count: c2 } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+                const { count: c3 } = await supabase.from('community_posts').select('*', { count: 'exact', head: true });
+                const { count: c4 } = await supabase.from('post_comments').select('*', { count: 'exact', head: true });
+                
+                setDbStats({
+                    analizler: c1 || 0,
+                    kullanicilar: c2 || 0,
+                    tasarimlar: c3 || 0,
+                    yorumlar: c4 || 0
+                });
+            } catch (err) {
+                console.error("Stats error", err);
+            }
+        };
+        fetchStats();
+    }, []);
     const brandOrange = "var(--color-brand-orange, #ff4d00)";
 
     return (
@@ -155,10 +184,10 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                     {/* Quick Stats Row */}
                     <div className="mt-20 md:mt-32 w-full grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 border-t border-[var(--color-brand-dark)]/5 pt-12">
                         {[
-                            { label: "Analiz Edilen Tasarım", value: 1250, suffix: "+", prefix: "" },
-                            { label: "Mutlu Tasarımcı", value: 480, suffix: "+", prefix: "" },
-                            { label: "Revize Önerisi", value: 3400, suffix: "+", prefix: "" },
-                            { label: "Başarı Oranı", value: 98, suffix: "%", prefix: "" },
+                            { label: "Toplam Analiz", value: dbStats.analizler, suffix: "", prefix: "" },
+                            { label: "Kayıtlı Kullanıcı", value: dbStats.kullanicilar, suffix: "", prefix: "" },
+                            { label: "Yüklenen Tasarım", value: dbStats.tasarimlar, suffix: "", prefix: "" },
+                            { label: "Yapılan Yorum", value: dbStats.yorumlar, suffix: "", prefix: "" },
                         ].map((stat, i) => (
                             <motion.div
                                 key={i}
@@ -171,7 +200,7 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                                 <div className="text-2xl md:text-4xl text-[var(--color-brand-dark)] flex items-center">
                                     <AnimatedCounter value={stat.value} suffix={stat.suffix} prefix={stat.prefix} />
                                 </div>
-                                <span className="text-[11px] md:text-sm font-medium text-[#7A7A7A] mt-2 uppercase tracking-wider">
+                                <span className="text-[11px] md:text-sm font-medium text-[#7A7A7A] mt-2 tracking-wide">
                                     {stat.label}
                                 </span>
                             </motion.div>
