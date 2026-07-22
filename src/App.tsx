@@ -775,7 +775,7 @@ export default function App() {
       img.onload = () => {
         let width = img.width;
         let height = img.height;
-        const max_dim = 1600; // Maksimum uzun kenar
+        const max_dim = 1200; // Daha az token harcamak ve R2 alanından tasarruf için 1200px (eski 1600)
 
         if (width < 2 || height < 2) {
           setHata("Görsel çözünürlüğü çok düşük. Lütfen geçerli bir tasarım yükleyin.");
@@ -799,9 +799,9 @@ export default function App() {
         const ctx = canvas.getContext("2d");
         ctx?.drawImage(img, 0, 0, width, height);
 
-        const jpegDataUrl = canvas.toDataURL("image/jpeg", 0.85);
-        setGorsel(jpegDataUrl);
-        setGorselBase64(jpegDataUrl.split(",")[1]);
+        const webpDataUrl = canvas.toDataURL("image/webp", 0.75); // WebP formatına çevir, %75 kalite
+        setGorsel(webpDataUrl);
+        setGorselBase64(webpDataUrl.split(",")[1]);
         setYukleniyor(false);
         setAdim(2);
       };
