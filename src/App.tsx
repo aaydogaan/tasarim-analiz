@@ -1107,7 +1107,7 @@ export default function App() {
                     </button>
                     <div>
                       <h1 className="text-xl font-bold text-[var(--text-primary)] tracking-tight hidden sm:block">
-                        Merhaba, {kullanici ? kullanici.email?.split('@')[0] : 'Tasarımcı'} 👋
+                        Merhaba, {kullanici ? (kullanici.user_metadata?.display_name || kullanici.user_metadata?.full_name || kullanici.email?.split('@')[0]) : 'Tasarımcı'} 👋
                       </h1>
                       <p className="text-sm text-[var(--text-secondary)] font-medium hidden sm:block">Bugün ne analiz edelim?</p>
                       <h2 className="text-lg font-bold sm:hidden cursor-pointer text-[var(--text-primary)]" onClick={goHome}>RevizeAI.</h2>
@@ -1293,8 +1293,7 @@ export default function App() {
                             <div className="w-full max-w-4xl">
                               {/* Header */}
                               <div className="text-center mb-10">
-                                <h3 className="text-3xl font-black text-[var(--text-primary)] tracking-tight flex items-center justify-center gap-3 mb-2">
-                                  <Sparkles className="w-8 h-8 text-[#FF5500]" />
+                                <h3 className="text-3xl font-black text-[var(--text-primary)] tracking-tight text-center mb-2">
                                   Tasarımınızı Analiz Edin
                                 </h3>
                                 <p className="text-[var(--text-secondary)] font-medium text-base">Saniyeler içinde UI/UX hatalarını bulun ve yapay zeka ile mükemmelleştirin.</p>
@@ -1310,26 +1309,20 @@ export default function App() {
                                   </h4>
                                   <div className="flex flex-col gap-3">
                                     {(Object.keys(kriterlerMap) as TasarimTuru[]).map(turu => {
-                                      const isAvailable = turu === "Sosyal Medya";
+                                      const isSelected = tasarimTuru === turu;
                                       return (
                                         <button
                                           key={turu}
-                                          disabled={!isAvailable}
-                                          onClick={() => isAvailable && setTasarimTuru(turu)}
-                                          className={`w-full px-5 py-4 rounded-full border text-left flex items-center justify-between transition-all duration-300 font-bold relative overflow-hidden ${
-                                            !isAvailable 
-                                              ? 'bg-slate-50/50 border-slate-100 text-slate-300 cursor-not-allowed opacity-70' 
-                                              : tasarimTuru === turu 
-                                                ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)] shadow-md' 
-                                                : 'bg-[var(--card-bg)] border-[var(--border-primary)] text-[var(--text-secondary)] hover:border-[var(--text-secondary)]'
+                                          type="button"
+                                          onClick={() => setTasarimTuru(turu)}
+                                          className={`w-full px-5 py-3.5 rounded-full border text-left flex items-center justify-between transition-all duration-300 font-bold relative overflow-hidden ${
+                                            isSelected 
+                                              ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)] shadow-md' 
+                                              : 'bg-[var(--card-bg)] border-[var(--border-primary)] text-[var(--text-secondary)] hover:border-[var(--text-secondary)]'
                                           }`}
                                         >
-                                          <span className={`text-sm ${!isAvailable ? 'blur-[0.5px]' : ''}`}>{turu}</span>
-                                          {isAvailable ? (
-                                            tasarimTuru === turu && <Check className="w-5 h-5 text-[#FF5500]" />
-                                          ) : (
-                                            <span className="text-[9px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full font-black tracking-tighter uppercase">Yakında</span>
-                                          )}
+                                          <span className="text-sm">{turu}</span>
+                                          {isSelected && <Check className="w-5 h-5 text-[#FF5500]" />}
                                         </button>
                                       );
                                     })}
@@ -1431,7 +1424,7 @@ export default function App() {
                                         metin="Yapay Zeka ile Analizi Başlat"
                                         kullanici={kullanici}
                                         authAc={() => setAuthAcik(true)}
-                                        disabled={!(gorsel || gorselBase64 || imageUrl) || !tasarimTuru || !platform}
+                                        disabled={!(gorsel || gorselBase64 || imageUrl) || !tasarimTuru}
                                       />
                                   </div>
                                 </div>
@@ -1481,74 +1474,6 @@ export default function App() {
                             </div>
                           </div>
                         </div>
-
-                        {/* RIGHT SIDEBAR: 3 STAT CARDS */}
-                        <div className="w-full xl:w-[320px] shrink-0 flex flex-col gap-4">
-                          {/* Stat 1 */}
-                          <div className="bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-[20px] p-6 flex items-center justify-between shadow-sm">
-                            <div>
-                              <h3 className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider mb-2">Tespit Edilen Hata</h3>
-                              <div className="flex items-end gap-2">
-                                <p className="text-3xl font-black text-[var(--text-primary)] tracking-tight leading-none">84</p>
-                                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md mb-1">Bu Ay</span>
-                              </div>
-                            </div>
-                            <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-rose-500">
-                              <AlertCircle className="w-5 h-5" />
-                            </div>
-                          </div>
-
-                          {/* Stat 2 */}
-                          <div className="bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-[20px] p-6 flex items-center justify-between shadow-sm">
-                            <div>
-                              <h3 className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider mb-2">Toplam Analiz</h3>
-                              <div className="flex items-end gap-2">
-                                <p className="text-3xl font-black text-[var(--text-primary)] tracking-tight leading-none">142</p>
-                                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100/50 px-2 py-0.5 rounded-md mb-1">+12%</span>
-                              </div>
-                            </div>
-                            <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
-                              <BarChart2 className="w-5 h-5" />
-                            </div>
-                          </div>
-
-                          {/* Stat 3 */}
-                          <div className="bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-[20px] p-6 flex items-center justify-between shadow-sm">
-                            <div>
-                              <h3 className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider mb-2">Ort. Kalite Skoru</h3>
-                              <div className="flex items-end gap-2">
-                                <p className="text-3xl font-black text-[var(--text-primary)] tracking-tight leading-none">82.4</p>
-                                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100/50 px-2 py-0.5 rounded-md mb-1">+5.2</span>
-                              </div>
-                            </div>
-                            <div className="w-10 h-10 rounded-full bg-[#FF5500]/10 flex items-center justify-center text-[#FF5500]">
-                              <Check className="w-5 h-5" />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* BOTTOM ROW: Mini Info Cards */}
-                      <div className="flex flex-col md:flex-row gap-4 mt-2 w-full">
-                         {/* Mini Card 1 */}
-                         <div className="bg-white border border-slate-200 rounded-[20px] p-6 shadow-sm w-full md:w-[400px]">
-                             <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-4">Önerilen Sektörler</h4>
-                             <div className="flex flex-wrap gap-2">
-                                <span className="bg-slate-50 border border-slate-200 text-slate-600 px-4 py-1.5 rounded-full text-xs font-bold">E-Ticaret</span>
-                                <span className="bg-slate-50 border border-slate-200 text-slate-600 px-4 py-1.5 rounded-full text-xs font-bold">Moda</span>
-                                <span className="bg-slate-50 border border-slate-200 text-slate-600 px-4 py-1.5 rounded-full text-xs font-bold">Teknoloji</span>
-                             </div>
-                         </div>
-                         {/* Mini Card 2 */}
-                         <div className="bg-white border border-slate-200 rounded-[20px] p-6 shadow-sm w-full md:w-[400px]">
-                             <div className="flex items-center justify-between mb-4">
-                                <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Analiz Derinliği</h4>
-                                <span className="text-[10px] font-bold text-[#FF5500] bg-[#FF5500]/10 px-2.5 py-1 rounded-full uppercase tracking-wider">Seviye 3</span>
-                             </div>
-                             <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                                <div className="h-full w-3/4 bg-[#FF5500] rounded-full relative"></div>
-                             </div>
-                         </div>
                       </div>
                       <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => e.target.files && handleDosya(e.target.files[0])} />
                     </>
