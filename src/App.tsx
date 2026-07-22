@@ -421,27 +421,60 @@ export default function App() {
         if (authSifre.length < 6) {
           throw new Error('Şifreniz en az 6 karakter olmalıdır.');
         }
+        const cleanEmail = authEmail.trim();
         const { data, error } = await supabase.auth.signUp({
-          email: authEmail,
+          email: cleanEmail,
           password: authSifre,
           options: {
             data: { 
-              full_name: authAdSoyad,
-              display_name: authAdSoyad,
+              full_name: authAdSoyad || 'Tasarımcı',
+              display_name: authAdSoyad || 'Tasarımcı',
               design_rank: authDesignRank,
               specialty: authSpecialty,
               experience_level: authExperienceLevel
             }
           }
         });
-        if (error) throw error;
+
+        if (error) {
+          console.error("Supabase Auth SignUp hatası:", error);
+          
+          // Try auto login if user exists or if email provider has 500 limit
+          const signInRes = await supabase.auth.signInWithPassword({
+            email: cleanEmail,
+            password: authSifre
+          });
+
+          if (!signInRes.error && signInRes.data.user) {
+            setAuthAcik(false);
+            toast.success('Giriş yapıldı!');
+            return;
+          }
+
+          if (error.status === 500 || error.message?.includes('500') || error.message?.includes('Database error') || error.message?.includes('email')) {
+            throw new Error('E-posta sunucusu geçici olarak yanıt vermedi veya bu hesap zaten kayıtlı. Lütfen "Giriş Yap" sekmesini deneyin.');
+          }
+          throw error;
+        }
+
+        // Upsert user profile record into public.profiles to ensure DB row exists
+        if (data?.user) {
+          try {
+            await supabase.from('profiles').upsert({
+              id: data.user.id,
+              display_name: authAdSoyad || 'Tasarımcı',
+              avatar_url: `https://api.dicebear.com/7.x/notionists/svg?seed=${data.user.id}`,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'id' });
+          } catch (_) {}
+        }
         
         // Step 1 done, move to Step 2
         setAuthAdim(2);
-        setSeciliAvatar(`https://api.dicebear.com/7.x/avataaars/svg?seed=${Date.now()}`);
+        setSeciliAvatar(`https://api.dicebear.com/7.x/notionists/svg?seed=${data?.user?.id || Date.now()}`);
       }
     } catch (error: any) {
-      setAuthHata(error.message);
+      setAuthHata(error.message || 'Kayıt sırasında bir hata oluştu.');
     } finally {
       setAuthYukleniyor(false);
     }
