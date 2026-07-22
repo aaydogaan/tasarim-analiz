@@ -439,7 +439,7 @@ export default function App() {
         if (error) {
           console.error("Supabase Auth SignUp hatası:", error);
           
-          // Try auto login if user exists or if email provider has 500 limit
+          // Try auto login if user exists
           const signInRes = await supabase.auth.signInWithPassword({
             email: cleanEmail,
             password: authSifre
@@ -451,10 +451,7 @@ export default function App() {
             return;
           }
 
-          if (error.status === 500 || error.message?.includes('500') || error.message?.includes('Database error') || error.message?.includes('email')) {
-            throw new Error('E-posta sunucusu geçici olarak yanıt vermedi veya bu hesap zaten kayıtlı. Lütfen "Giriş Yap" sekmesini deneyin.');
-          }
-          throw error;
+          throw new Error(`Kayıt Hatası (${error.status || 500}): ${error.message}`);
         }
 
         // Upsert user profile record into public.profiles to ensure DB row exists
