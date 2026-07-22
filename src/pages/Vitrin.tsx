@@ -60,7 +60,7 @@ export function Vitrin() {
                 user_id,
                 created_at,
                 likes_count,
-                analizler(*)
+                analizler(*, begeniler(puan))
             `)
             .order("created_at", { ascending: false });
 
@@ -88,6 +88,13 @@ export function Vitrin() {
                 }
 
                 const realAiPuan = post.analizler?.genel_puan ?? 75;
+                
+                const begeniler = post.analizler?.begeniler || [];
+                const oySayisi = begeniler.length;
+                let toplulukPuan = 0;
+                if (oySayisi > 0) {
+                    toplulukPuan = Math.round(begeniler.reduce((sum: number, b: any) => sum + b.puan, 0) / oySayisi);
+                }
 
                 return {
                     id: post.id,
@@ -98,8 +105,8 @@ export function Vitrin() {
                     gorsel_url: formattedGorsel,
                     tasarim_turu: post.analizler?.tasarim_turu || 'Tasarım',
                     ai_puan: realAiPuan,
-                    topluluk_puan: post.likes_count || 0,
-                    oy_sayisi: 0,
+                    topluluk_puan: toplulukPuan,
+                    oy_sayisi: oySayisi,
                     created_at: post.created_at,
                     platform: ''
                 };
@@ -217,19 +224,19 @@ export function Vitrin() {
                             </div>
 
                             {/* Dribbble Style Footer Info */}
-                            <div className="flex justify-between items-center mt-3 px-1.5">
-                                <div className="flex items-center gap-3">
+                            <div className="flex justify-between items-center mt-3 px-1.5 min-w-0 gap-2">
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
                                     <img
                                         src={item.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${item.id}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`}
                                         alt="Designer"
-                                        className="w-7 h-7 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] object-cover"
+                                        className="w-7 h-7 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] object-cover shrink-0"
                                     />
-                                    <span className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer transition-colors text-sm font-medium leading-none">
+                                    <span className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer transition-colors text-sm font-medium leading-none truncate whitespace-nowrap">
                                         {item.user_name || "Tasarımcı"}
                                     </span>
                                 </div>
 
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-3 shrink-0">
                                     <div className="flex items-center gap-1.5 group cursor-help" title="AI Puanı">
                                         <Star className="w-4 h-4 text-[var(--text-secondary)]/20 group-hover:text-amber-500 group-hover:fill-amber-500 transition-colors" />
                                         <span className="text-[var(--text-secondary)]/60 text-xs font-semibold tabular-nums">{item.ai_puan}</span>
@@ -269,13 +276,13 @@ export function Vitrin() {
                         </button>
 
                         <div
-                            className="relative z-[1000] max-w-7xl w-full flex flex-col md:flex-row gap-8 items-center justify-center pointer-events-none"
+                            className="relative z-[1000] max-w-7xl w-full flex flex-col md:flex-row gap-8 items-center md:items-start justify-center pointer-events-none py-10"
                         >
-                            <div className="w-full md:w-2/3 flex justify-center max-h-[80vh] pointer-events-auto">
+                            <div className="w-full md:w-2/3 flex justify-center pointer-events-auto">
                                 <img
                                     src={seciliGorsel.gorsel_url}
                                     alt="Büyütülmüş Görsel"
-                                    className="max-w-full max-h-full object-contain rounded-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]"
+                                    className="w-auto h-auto max-w-full max-h-[85vh] object-contain rounded-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]"
                                 />
                             </div>
                             <div className="w-full md:w-[400px] p-8 border border-[var(--border-primary)] bg-[var(--card-bg)] backdrop-blur-2xl rounded-[32px] h-fit flex flex-col justify-center relative overflow-hidden shadow-sm pointer-events-auto">

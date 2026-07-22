@@ -100,6 +100,9 @@ export default function Header({
     }, []);
 
     const handleNavClick = (view: string) => {
+        if (view === 'app') {
+            sessionStorage.clear();
+        }
         if (gorunum !== view) {
             setIsMobileMenuOpen(false);
             setIsToolsDropdownOpen(false);
@@ -116,6 +119,8 @@ export default function Header({
         navigate('/');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
+
+    if (gorunum === 'app') return null;
 
     return (
         <header className="fixed top-0 w-full z-[200] bg-[var(--bg-primary)]/80 backdrop-blur-xl border-b border-[var(--border-primary)] transition-all duration-300">

@@ -970,6 +970,7 @@ export default function App() {
                 setAuthAcik(true);
                 return;
               }
+              sessionStorage.clear();
               navigate('/app');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
