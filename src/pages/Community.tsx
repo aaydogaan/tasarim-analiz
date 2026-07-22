@@ -67,11 +67,16 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
             setInlineLoading(prev => ({ ...prev, [postId]: true }));
             const { data } = await supabase
                 .from('post_comments')
-                .select('*')
+                .select('*, profiles(display_name, avatar_url)')
                 .eq('post_id', postId)
                 .order('created_at', { ascending: true });
             if (data) {
-                setInlineComments(prev => ({ ...prev, [postId]: data }));
+                const formatted = data.map(c => ({
+                    ...c,
+                    user_name: c.profiles?.display_name || c.user_name || 'Tasarımcı',
+                    user_avatar: c.profiles?.avatar_url || c.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${c.user_id}`
+                }));
+                setInlineComments(prev => ({ ...prev, [postId]: formatted }));
             }
             setInlineLoading(prev => ({ ...prev, [postId]: false }));
         }
@@ -84,8 +89,14 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         const content = commentInput.trim();
         setCommentInput('');
 
-        const userName = kullanici.user_metadata?.display_name || kullanici.user_metadata?.full_name || kullanici.email?.split('@')[0] || 'Tasarımcı';
-        const userAvatar = kullanici.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici.id}`;
+        let finalName = 'Tasarımcı';
+        let finalAvatar = `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici.id}`;
+
+        const { data: profileData } = await supabase.from('profiles').select('display_name, avatar_url').eq('id', kullanici.id).single();
+        if (profileData) {
+            if (profileData.display_name) finalName = profileData.display_name;
+            if (profileData.avatar_url) finalAvatar = profileData.avatar_url;
+        }
 
         const { data, error } = await supabase.from('post_comments').insert({
             post_id: postId,
@@ -96,8 +107,8 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         if (!error && data) {
             const commentObj = {
                 ...data,
-                user_name: userName,
-                user_avatar: userAvatar
+                user_name: finalName,
+                user_avatar: finalAvatar
             };
             setInlineComments(prev => ({ ...prev, [postId]: [...(prev[postId] || []), commentObj] }));
             setPosts(prev => prev.map(p => p.id === postId ? { ...p, comments_count: (p.comments_count || 0) + 1 } : p));
@@ -127,7 +138,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         const fetchPosts = async () => {
             const { data, error } = await supabase
                 .from('community_posts')
-                .select(`*, analizler(id, gorsel_url, genel_puan, user_name, user_avatar, isletme)`)
+                .select(`*, analizler(id, gorsel_url, genel_puan, user_name, user_avatar, isletme), profiles(display_name, avatar_url, founder_number)`)
                 .order('created_at', { ascending: false });
             if (data && !error && isMounted) {
                 setPosts(data);
@@ -478,9 +489,9 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
 
                     {/* Left: Latest Activity */}
                     <div className="lg:col-span-2 space-y-12">
-                        <div className="flex items-center justify-between mb-8">
-                            <h2 className="text-3xl font-bold tracking-tight">Topluluk Akışı</h2>
-                            <div className="flex gap-2">
+                        <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4 md:gap-0">
+                            <h2 className="text-3xl font-bold tracking-tight text-center md:text-left">Topluluk Akışı</h2>
+                            <div className="flex gap-2 justify-center">
                                 <span 
                                     onClick={() => setPostSort('new')}
                                     className={`px-4 py-2 text-xs font-bold rounded-full cursor-pointer transition-colors ${postSort === 'new' ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]' : 'bg-[var(--card-bg)] text-[var(--text-secondary)] border border-[var(--border-primary)] hover:bg-[var(--bg-secondary)]'}`}
@@ -648,7 +659,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                     <button
                                                         onClick={() => submitInlineComment(post.id)}
                                                         disabled={submittingComment || !commentInput.trim()}
-                                                        className="px-4 py-2 bg-[var(--color-brand-orange)] text-white text-xs font-bold rounded-xl hover:bg-[#e64500] transition-colors disabled:opacity-50"
+                                                        className="px-4 py-2 bg-[var(--color-brand-orange)] text-white text-xs font-bold rounded-xl hover:bg-[#e64500] transition-colors disabled:opacity-50 shrink-0"
                                                     >
                                                         {submittingComment ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Gönder'}
                                                     </button>
