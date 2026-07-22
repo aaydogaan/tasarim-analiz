@@ -7,40 +7,6 @@
   src: url(https://fonts.gstatic.com/s/calsans/v2/fdN99sWUv3gWqXxqqRBctFs.woff2) format('woff2');
 }
 
-@font-face {
-  font-family: 'TT Firs Neue';
-  font-style: normal;
-  font-weight: 400;
-  src: url('/fonts/TT Firs Neue Trial Regular.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'TT Firs Neue';
-  font-style: normal;
-  font-weight: 500;
-  src: url('/fonts/TT Firs Neue Trial Medium.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'TT Firs Neue';
-  font-style: normal;
-  font-weight: 600;
-  src: url('/fonts/TT Firs Neue Trial DemiBold.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'TT Firs Neue';
-  font-style: normal;
-  font-weight: 700;
-  src: url('/fonts/TT Firs Neue Trial Bold.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'TT Firs Neue';
-  font-style: normal;
-  font-weight: 900;
-  src: url('/fonts/TT Firs Neue Trial Black.ttf') format('truetype');
-}
 
 :root {
   --color-brand-orange: #ff4d00;
@@ -60,8 +26,8 @@
   --color-brand-orange: #ff4d00;
   --color-brand-light: var(--bg-primary);
   --color-brand-dark: var(--text-primary);
-  --font-sans: "TT Firs Neue", "Inter", "Cal Sans", sans-serif;
-  --font-display: "TT Firs Neue", "Cal Sans", sans-serif;
+  --font-sans: "Inter", "Cal Sans", sans-serif;
+  --font-display: "Cal Sans", sans-serif;
 }
 
 * {

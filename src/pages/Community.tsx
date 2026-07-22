@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Users, MessageCircle, Heart, Trophy, Zap, Share2, Crown, Star, Sparkles, ArrowRight, Award, X, Send, Loader2 } from 'lucide-react';
+import { Users, MessageCircle, Heart, Trophy, Zap, Share2, Crown, Star, Sparkles, ArrowRight, Award, X, Send, Loader2, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import {
@@ -57,6 +57,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
     const [submittingComment, setSubmittingComment] = useState(false);
     const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
     const [seciliGorsel, setSeciliGorsel] = useState<string | null>(null);
+    const [isBadgesExpanded, setIsBadgesExpanded] = useState(false);
 
     // Modal açıkken arkadaki kaydırmayı kapatmak için
     useEffect(() => {
@@ -801,23 +802,34 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
 
                         {/* Badge Goals */}
                         <div className="bg-[var(--card-bg)] p-8 rounded-[32px] border border-[var(--border-primary)] shadow-sm">
-                            <div className="flex items-center gap-3 mb-6">
-                                <Sparkles className="text-[var(--color-brand-orange)] w-6 h-6" />
-                                <h3 className="font-bold text-xl tracking-tight text-[var(--text-primary)]">Kazanılabilir Rozetler</h3>
+                            <div className="flex items-center justify-between gap-3 mb-2 md:mb-6 cursor-pointer md:cursor-default" onClick={() => { if (window.innerWidth < 768) setIsBadgesExpanded(!isBadgesExpanded); }}>
+                                <div className="flex items-center gap-3">
+                                    <Sparkles className="text-[var(--color-brand-orange)] w-6 h-6" />
+                                    <h3 className="font-bold text-xl tracking-tight text-[var(--text-primary)]">Kazanılabilir Rozetler</h3>
+                                </div>
+                                <ChevronDown className={`w-5 h-5 text-[var(--text-secondary)] transition-transform md:hidden ${isBadgesExpanded ? 'rotate-180' : ''}`} />
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                {[
-                                    { title: 'Challenge Şampiyonu', note: 'Haftanın en yüksek puanı' },
-                                    { title: 'En Aktif Üye', note: 'Düzenli yorum ve paylaşım' },
-                                    { title: 'Puan Ustası', note: 'En çok değerlendirme yapan' },
-                                    { title: 'Davetçi', note: 'Arkadaş getiren üyeler' },
-                                ].map((badge) => (
-                                    <div key={badge.title} className="rounded-2xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-4">
-                                        <p className="text-xs font-black text-[var(--text-primary)]">{badge.title}</p>
-                                        <p className="mt-1 text-[10px] font-medium leading-4 text-[var(--text-secondary)]">{badge.note}</p>
+                            <AnimatePresence initial={false}>
+                                <motion.div 
+                                    initial={{ height: 0, opacity: 0 }} 
+                                    animate={{ height: typeof window !== 'undefined' && window.innerWidth >= 768 ? 'auto' : (isBadgesExpanded ? 'auto' : 0), opacity: typeof window !== 'undefined' && window.innerWidth >= 768 ? 1 : (isBadgesExpanded ? 1 : 0) }} 
+                                    className="overflow-hidden md:!h-auto md:!opacity-100"
+                                >
+                                    <div className="grid grid-cols-2 gap-3 pt-4 md:pt-0">
+                                        {[
+                                            { title: 'Challenge Şampiyonu', note: 'Haftanın en yüksek puanı' },
+                                            { title: 'En Aktif Üye', note: 'Düzenli yorum ve paylaşım' },
+                                            { title: 'Puan Ustası', note: 'En çok değerlendirme yapan' },
+                                            { title: 'Davetçi', note: 'Arkadaş getiren üyeler' },
+                                        ].map((badge) => (
+                                            <div key={badge.title} className="rounded-2xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-4">
+                                                <p className="text-xs font-black text-[var(--text-primary)]">{badge.title}</p>
+                                                <p className="mt-1 text-[10px] font-medium leading-4 text-[var(--text-secondary)]">{badge.note}</p>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
+                                </motion.div>
+                            </AnimatePresence>
                         </div>
 
                         {/* Weekly Challenge — Real Data */}
