@@ -2125,9 +2125,9 @@ export default function App() {
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ ease: [0.22, 1, 0.36, 1] }}
               onClick={e => e.stopPropagation()}
-              className="w-full max-w-sm bg-white border border-gray-200 rounded-3xl shadow-2xl overflow-hidden"
+              className="w-full max-w-sm bg-white border border-gray-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
             >
-              <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+              <div className="p-5 border-b border-gray-100 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2.5">
                   <User className="w-4 h-4 text-[var(--color-brand-orange)]" />
                   <div className="flex gap-1">
@@ -2154,7 +2154,7 @@ export default function App() {
                 </button>
               </div>
 
-              <div className="p-5 space-y-3">
+              <div className="p-5 space-y-3 overflow-y-auto">
                 {authAdim === 1 ? (
                   <form onSubmit={girisYap} className="space-y-3">
                     {authMod !== 'sifre-yenile' && authMod !== 'kayit' && (
