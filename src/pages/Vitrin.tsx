@@ -16,6 +16,7 @@ interface VitrinItem {
     created_at: string;
     user_name: string | null;
     user_avatar: string | null;
+    user_vote: number | null;
 }
 
 export function Vitrin() {
@@ -31,6 +32,13 @@ export function Vitrin() {
 
         fetchVitrin();
     }, []);
+
+    useEffect(() => {
+        // Oturum değiştiğinde (login olduğunda) verileri tekrar çek ki puanlar güncellensin
+        if (user) {
+            fetchVitrin();
+        }
+    }, [user]);
 
     useEffect(() => {
         const handleEsc = (event: KeyboardEvent) => {
@@ -60,7 +68,7 @@ export function Vitrin() {
                 user_id,
                 created_at,
                 likes_count,
-                analizler(*, begeniler(puan))
+                analizler(*, begeniler(puan, user_id))
             `)
             .order("created_at", { ascending: false });
 
@@ -92,8 +100,16 @@ export function Vitrin() {
                 const begeniler = post.analizler?.begeniler || [];
                 const oySayisi = begeniler.length;
                 let toplulukPuan = 0;
+                let user_vote = null;
+                
                 if (oySayisi > 0) {
                     toplulukPuan = Math.round(begeniler.reduce((sum: number, b: any) => sum + b.puan, 0) / oySayisi);
+                    if (user) {
+                        const myVoteObj = begeniler.find((b: any) => b.user_id === user.id);
+                        if (myVoteObj) {
+                            user_vote = myVoteObj.puan;
+                        }
+                    }
                 }
 
                 return {
@@ -102,6 +118,7 @@ export function Vitrin() {
                     isletme: post.analizler?.isletme || post.title || 'Genel',
                     user_name: authorName,
                     user_avatar: authorAvatar,
+                    user_vote,
                     gorsel_url: formattedGorsel,
                     tasarim_turu: post.analizler?.tasarim_turu || 'Tasarım',
                     ai_puan: realAiPuan,
@@ -146,7 +163,7 @@ export function Vitrin() {
                     if (item.analiz_id === analiz_id || item.id === analiz_id) {
                         const yeniOySayisi = item.oy_sayisi + 1;
                         const yeniPuan = Math.round(((item.topluluk_puan * item.oy_sayisi) + puan) / yeniOySayisi);
-                        return { ...item, oy_sayisi: yeniOySayisi, topluluk_puan: yeniPuan };
+                        return { ...item, oy_sayisi: yeniOySayisi, topluluk_puan: yeniPuan, user_vote: puan };
                     }
                     return item;
                 })
@@ -154,7 +171,7 @@ export function Vitrin() {
             if (seciliGorsel) {
                  const yeniOySayisi = seciliGorsel.oy_sayisi + 1;
                  const yeniPuan = Math.round(((seciliGorsel.topluluk_puan * seciliGorsel.oy_sayisi) + puan) / yeniOySayisi);
-                 setSeciliGorsel({ ...seciliGorsel, oy_sayisi: yeniOySayisi, topluluk_puan: yeniPuan });
+                 setSeciliGorsel({ ...seciliGorsel, oy_sayisi: yeniOySayisi, topluluk_puan: yeniPuan, user_vote: puan });
             }
         } else {
             console.error(error);
@@ -224,26 +241,26 @@ export function Vitrin() {
                             </div>
 
                             {/* Dribbble Style Footer Info */}
-                            <div className="flex justify-between items-center mt-3 px-1.5 min-w-0 gap-2">
-                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <div className="flex justify-between items-start mt-3 px-1.5 min-w-0 gap-2">
+                                <div className="flex items-start gap-2 min-w-0 flex-1">
                                     <img
                                         src={item.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${item.id}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`}
                                         alt="Designer"
-                                        className="w-7 h-7 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] object-cover shrink-0"
+                                        className="w-7 h-7 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] object-cover shrink-0 mt-0.5"
                                     />
-                                    <span className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer transition-colors text-sm font-medium leading-none truncate whitespace-nowrap">
+                                    <span className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer transition-colors text-sm font-medium leading-snug">
                                         {item.user_name || "Tasarımcı"}
                                     </span>
                                 </div>
 
-                                <div className="flex items-center gap-3 shrink-0">
+                                <div className="flex flex-col items-end gap-1 shrink-0">
                                     <div className="flex items-center gap-1.5 group cursor-help" title="AI Puanı">
-                                        <Star className="w-4 h-4 text-[var(--text-secondary)]/20 group-hover:text-amber-500 group-hover:fill-amber-500 transition-colors" />
-                                        <span className="text-[var(--text-secondary)]/60 text-xs font-semibold tabular-nums">{item.ai_puan}</span>
+                                        <Star className="w-3.5 h-3.5 text-[var(--text-secondary)]/20 group-hover:text-amber-500 group-hover:fill-amber-500 transition-colors" />
+                                        <span className="text-[var(--text-secondary)]/80 text-xs font-semibold tabular-nums">{item.ai_puan}</span>
                                     </div>
                                     <div className="flex items-center gap-1.5 group cursor-help" title="Topluluk Puanı">
-                                        <Heart className="w-4 h-4 text-[var(--text-secondary)]/20 group-hover:text-emerald-500 group-hover:fill-emerald-500 transition-colors" />
-                                        <span className="text-[var(--text-secondary)]/60 text-xs font-semibold tabular-nums tracking-tighter">{item.topluluk_puan || 0}</span>
+                                        <Heart className="w-3.5 h-3.5 text-[var(--text-secondary)]/20 group-hover:text-emerald-500 group-hover:fill-emerald-500 transition-colors" />
+                                        <span className="text-[var(--text-secondary)]/80 text-xs font-semibold tabular-nums tracking-tighter">{item.topluluk_puan || 0}</span>
                                     </div>
                                 </div>
                             </div>
@@ -259,7 +276,7 @@ export function Vitrin() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[999] flex items-center justify-center p-4 md:p-12 overflow-y-auto overflow-x-hidden"
+                        className="fixed inset-0 z-[999] flex flex-col items-center justify-start p-4 pt-24 pb-12 md:p-12 overflow-y-auto overflow-x-hidden"
                     >
                         {/* Arkaplan Katmanı - Tıklanabilir alan */}
                         <div
@@ -276,7 +293,7 @@ export function Vitrin() {
                         </button>
 
                         <div
-                            className="relative z-[1000] max-w-7xl w-full flex flex-col md:flex-row gap-8 items-center md:items-start justify-center pointer-events-none py-10"
+                            className="relative z-[1000] max-w-7xl w-full flex flex-col md:flex-row gap-8 items-center md:items-start justify-center pointer-events-none my-auto"
                         >
                             <div className="w-full md:w-2/3 flex justify-center pointer-events-auto">
                                 <img
@@ -332,7 +349,12 @@ export function Vitrin() {
                                                 <button
                                                     key={pt}
                                                     onClick={() => vote(seciliGorsel.analiz_id || seciliGorsel.id, pt)}
-                                                    className="py-3.5 bg-[var(--bg-primary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)] border border-[var(--border-primary)] rounded-xl text-[var(--text-primary)] font-bold transition-all text-base shadow-sm"
+                                                    disabled={seciliGorsel.user_vote != null}
+                                                    className={`py-3.5 border rounded-xl font-bold transition-all text-base shadow-sm ${
+                                                        seciliGorsel.user_vote === pt
+                                                            ? 'bg-[var(--color-brand-orange)] text-white border-[var(--color-brand-orange)] scale-[1.02]'
+                                                            : 'bg-[var(--bg-primary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)] border-[var(--border-primary)] text-[var(--text-primary)] disabled:opacity-50 disabled:hover:bg-[var(--bg-primary)] disabled:hover:text-[var(--text-primary)] disabled:cursor-not-allowed'
+                                                    }`}
                                                 >
                                                     {pt}
                                                 </button>
