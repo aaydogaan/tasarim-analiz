@@ -436,7 +436,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                         {/* Avatar + Name centered */}
                         <div className="flex flex-col items-center text-center gap-3 pb-5 border-b border-[var(--border-primary)]">
                             <div className={`relative h-20 w-20 shrink-0 rounded-full p-[3px] ${normalizedProfile.isCoreFounder ? 'bg-gradient-to-br from-orange-300 via-[var(--color-brand-orange)] to-amber-500' : 'bg-[var(--border-primary)]'}`}>
-                                <img src={profileData.avatarUrl} className="h-full w-full rounded-full border-2 border-[var(--card-bg)] bg-[var(--bg-secondary)] object-cover" alt="Profil fotografi" />
+                                <div className="h-full w-full rounded-full border-2 border-[var(--card-bg)] bg-[var(--bg-secondary)] overflow-hidden"><img src={profileData.avatarUrl} className="h-full w-full object-cover" alt="Profil fotografi" /></div>
                                 {featuredBadgeDef ? (
                                     <div title={featuredBadgeDef.label} className={`absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-4 border-[var(--card-bg)] ${featuredBadgeDef.bg} ${featuredBadgeDef.color} shadow-lg`}>
                                         {renderBadgeIcon(featuredBadgeDef.emoji, "w-3.5 h-3.5")}
