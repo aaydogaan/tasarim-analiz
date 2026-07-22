@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Users, MessageCircle, Heart, Trophy, Zap, Share2, Crown, Star, Sparkles, ArrowRight, Award, X, Send } from 'lucide-react';
+import { Users, MessageCircle, Heart, Trophy, Zap, Share2, Crown, Star, Sparkles, ArrowRight, Award, X, Send, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import {
     CORE_FOUNDERS,
@@ -55,6 +56,65 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
     const [commentInput, setCommentInput] = useState('');
     const [loadingComments, setLoadingComments] = useState(false);
     const [sendingComment, setSendingComment] = useState(false);
+
+    // Inline Instagram Style Comments State
+    const [openInlinePostId, setOpenInlinePostId] = useState<string | null>(null);
+    const [inlineComments, setInlineComments] = useState<Record<string, any[]>>({});
+    const [inlineLoading, setInlineLoading] = useState<Record<string, boolean>>({});
+    const [submittingComment, setSubmittingComment] = useState(false);
+
+    const toggleInlineComments = async (postId: string) => {
+        if (openInlinePostId === postId) {
+            setOpenInlinePostId(null);
+            return;
+        }
+        setOpenInlinePostId(postId);
+        if (!inlineComments[postId]) {
+            setInlineLoading(prev => ({ ...prev, [postId]: true }));
+            const { data } = await supabase
+                .from('post_comments')
+                .select('*')
+                .eq('post_id', postId)
+                .order('created_at', { ascending: true });
+            if (data) {
+                setInlineComments(prev => ({ ...prev, [postId]: data }));
+            }
+            setInlineLoading(prev => ({ ...prev, [postId]: false }));
+        }
+    };
+
+    const submitInlineComment = async (postId: string) => {
+        if (!kullanici) { onAuthClick?.(); return; }
+        if (!commentInput.trim()) return;
+        setSubmittingComment(true);
+        const content = commentInput.trim();
+        setCommentInput('');
+
+        const userName = kullanici.user_metadata?.display_name || kullanici.user_metadata?.full_name || kullanici.email?.split('@')[0] || 'Tasarımcı';
+        const userAvatar = kullanici.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici.id}`;
+
+        const { data, error } = await supabase.from('post_comments').insert({
+            post_id: postId,
+            user_id: kullanici.id,
+            user_name: userName,
+            user_avatar: userAvatar,
+            content
+        }).select('*').single();
+
+        if (!error && data) {
+            setInlineComments(prev => ({ ...prev, [postId]: [...(prev[postId] || []), data] }));
+            setPosts(prev => prev.map(p => p.id === postId ? { ...p, comments_count: (p.comments_count || 0) + 1 } : p));
+            toast.success('Yorumunuz eklendi!');
+
+            // Award badge 'ilk-ses'
+            try {
+                await supabase.from('user_badges').insert({ user_id: kullanici.id, badge_id: 'ilk-ses' });
+            } catch (_) {}
+        } else if (error) {
+            toast.error('Yorum eklenirken hata oluştu');
+        }
+        setSubmittingComment(false);
+    };
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -559,15 +619,71 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                 <Heart size={18} className={likedPosts.has(post.id) ? 'fill-red-500' : ''} /> {post.likes_count}
                                             </button>
                                             <button 
-                                                onClick={(e) => { e.stopPropagation(); openComments(post.id); }}
-                                                className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm font-bold"
+                                                onClick={(e) => { e.stopPropagation(); toggleInlineComments(post.id); }}
+                                                className={`flex items-center gap-2 transition-colors text-sm font-bold ${openInlinePostId === post.id ? 'text-[var(--color-brand-orange)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
                                             >
                                                 <MessageCircle size={18} /> {post.comments_count}
                                             </button>
-                                            <button className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm font-bold ml-auto">
+                                            <button 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    navigator.clipboard.writeText(`${window.location.origin}/community`);
+                                                    toast.success('Bağlantı kopyalandı!');
+                                                }}
+                                                className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm font-bold ml-auto"
+                                            >
                                                 <Share2 size={18} />
                                             </button>
                                         </div>
+
+                                        {/* Instagram Style Inline Comments Panel */}
+                                        {openInlinePostId === post.id && (
+                                            <div className="mt-5 pt-5 border-t border-[var(--border-primary)] space-y-4" onClick={(e) => e.stopPropagation()}>
+                                                {inlineLoading[post.id] ? (
+                                                    <div className="flex justify-center py-4 text-[var(--text-secondary)]">
+                                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                                    </div>
+                                                ) : (inlineComments[post.id] || []).length === 0 ? (
+                                                    <p className="text-xs text-[var(--text-secondary)] text-center py-2 italic">
+                                                        Henüz yorum yapılmamış. İlk yorumu sen bırak!
+                                                    </p>
+                                                ) : (
+                                                    <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                                                        {(inlineComments[post.id] || []).map((c: any) => (
+                                                            <div key={c.id} className="flex gap-3 bg-[var(--bg-secondary)] p-3 rounded-2xl border border-[var(--border-primary)] text-xs">
+                                                                <img src={c.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${c.user_id}`} className="w-7 h-7 rounded-full object-cover shrink-0" alt="" />
+                                                                <div className="min-w-0 flex-1">
+                                                                    <div className="flex justify-between items-center mb-0.5">
+                                                                        <span className="font-bold text-[var(--text-primary)]">{c.user_name || 'Tasarımcı'}</span>
+                                                                        <span className="text-[10px] text-[var(--text-secondary)]">{new Date(c.created_at).toLocaleDateString('tr-TR')}</span>
+                                                                    </div>
+                                                                    <p className="text-[var(--text-secondary)] leading-relaxed">{c.content}</p>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* Input box */}
+                                                <div className="flex gap-2 pt-1">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Yorumunuzu yazın..."
+                                                        value={commentInput}
+                                                        onChange={(e) => setCommentInput(e.target.value)}
+                                                        onKeyDown={(e) => { if (e.key === 'Enter') submitInlineComment(post.id); }}
+                                                        className="flex-1 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] px-3.5 py-2 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--color-brand-orange)]"
+                                                    />
+                                                    <button
+                                                        onClick={() => submitInlineComment(post.id)}
+                                                        disabled={submittingComment || !commentInput.trim()}
+                                                        className="px-4 py-2 bg-[var(--color-brand-orange)] text-white text-xs font-bold rounded-xl hover:bg-[#e64500] transition-colors disabled:opacity-50"
+                                                    >
+                                                        {submittingComment ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Gönder'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </motion.div>

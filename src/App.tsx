@@ -307,6 +307,20 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Auto-award badges for logged-in users
+  useEffect(() => {
+    if (!kullanici) return;
+    const checkAndAwardBadges = async () => {
+      try {
+        await supabase.from('user_badges').insert([
+          { user_id: kullanici.id, badge_id: 'aramiza-hos-geldin' },
+          { user_id: kullanici.id, badge_id: 'ai-ile-tanisma' }
+        ]);
+      } catch (_) {}
+    };
+    checkAndAwardBadges();
+  }, [kullanici]);
+
   // Fetch Past Analyses
   useEffect(() => {
     if (dashboardTab === 'analizlerim' && kullanici) {

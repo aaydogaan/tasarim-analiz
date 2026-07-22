@@ -35,7 +35,8 @@ import {
     Scan,
     Target,
     Ghost,
-    ChevronDown
+    ChevronDown,
+    Trash2
 } from 'lucide-react';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { supabase } from '../lib/supabase';
@@ -187,6 +188,51 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
             aktif = false;
         };
     }, [isOwnProfile, kullanici]);
+
+    // User Posts & Deletion State
+    const [userPosts, setUserPosts] = useState<any[]>([]);
+    const [userPostsLoading, setUserPostsLoading] = useState(true);
+    const [deletePostId, setDeletePostId] = useState<string | null>(null);
+    const [deletingPost, setDeletingPost] = useState(false);
+
+    useEffect(() => {
+        const targetUserId = normalizedProfile.id;
+        if (!targetUserId || targetUserId === 'anonymous') return;
+        const fetchUserPosts = async () => {
+            setUserPostsLoading(true);
+            const { data } = await supabase
+                .from('community_posts')
+                .select(`*, analizler(*)`)
+                .eq('user_id', targetUserId)
+                .order('created_at', { ascending: false });
+            if (data) setUserPosts(data);
+            setUserPostsLoading(false);
+        };
+        fetchUserPosts();
+    }, [normalizedProfile.id]);
+
+    const handleConfirmDeletePost = async () => {
+        if (!deletePostId || !isOwnProfile) return;
+        setDeletingPost(true);
+        try {
+            const targetPost = userPosts.find(p => p.id === deletePostId);
+            await supabase.from('community_posts').delete().eq('id', deletePostId);
+            if (targetPost?.analiz_id) {
+                await supabase.from('analizler').delete().eq('id', targetPost.analiz_id);
+            }
+            setUserPosts(prev => prev.filter(p => p.id !== deletePostId));
+            setDeletePostId(null);
+            setXpData(prev => ({
+                ...prev,
+                posts: Math.max(0, prev.posts - 1),
+                total: Math.max(0, prev.total - 200)
+            }));
+        } catch (err) {
+            console.error("Silme hatası:", err);
+        } finally {
+            setDeletingPost(false);
+        }
+    };
 
     // XP calculation effect
     useEffect(() => {
@@ -732,8 +778,91 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     ))}
                                 </div>
                             </div>
-
                         </div>
+
+                        {/* Paylaşılan Tasarımlar & Silme Alanı */}
+                        <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-5 shadow-sm space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-sm font-black tracking-tight flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4 text-[var(--color-brand-orange)]" />
+                                    Paylaşılan Tasarımlar ({userPosts.length})
+                                </h2>
+                            </div>
+
+                            {userPostsLoading ? (
+                                <div className="flex justify-center py-8 text-[var(--text-secondary)]">
+                                    <Loader2 className="w-6 h-6 animate-spin" />
+                                </div>
+                            ) : userPosts.length === 0 ? (
+                                <div className="text-center py-8 text-[var(--text-secondary)] bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-primary)] text-xs font-medium">
+                                    Henüz paylaşılan bir tasarım bulunmuyor.
+                                </div>
+                            ) : (
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    {userPosts.map((post) => {
+                                        const rawG = post.analizler?.gorsel_url;
+                                        const thumbSrc = rawG ? (rawG.startsWith('http') || rawG.startsWith('data:') ? rawG : `data:image/jpeg;base64,${rawG}`) : null;
+
+                                        return (
+                                            <div key={post.id} className="relative rounded-2xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] overflow-hidden p-3.5 flex flex-col justify-between group">
+                                                {thumbSrc ? (
+                                                    <div className="relative aspect-video rounded-xl overflow-hidden mb-3 bg-black/5">
+                                                        <img src={thumbSrc} className="w-full h-full object-cover" alt="Tasarım" />
+                                                    </div>
+                                                ) : (
+                                                    <div className="relative aspect-video rounded-xl overflow-hidden mb-3 bg-[var(--card-bg)] border border-[var(--border-primary)] flex items-center justify-center text-[var(--text-secondary)]/40">
+                                                        <UploadCloud className="w-8 h-8" />
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <h3 className="text-xs font-bold text-[var(--text-primary)] line-clamp-1">{post.title || 'Tasarım Analizi'}</h3>
+                                                    <p className="text-[10px] text-[var(--text-secondary)] mt-0.5">{new Date(post.created_at).toLocaleDateString('tr-TR')}</p>
+                                                </div>
+
+                                                {isOwnProfile && (
+                                                    <button
+                                                        onClick={() => setDeletePostId(post.id)}
+                                                        className="mt-3 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all text-xs font-bold w-full"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" /> Sil
+                                                    </button>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Delete Confirmation Modal */}
+                        {deletePostId && (
+                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setDeletePostId(null)}>
+                                <div className="bg-[var(--card-bg)] border border-[var(--border-primary)] p-6 rounded-3xl max-w-sm w-full shadow-2xl text-center space-y-4" onClick={(e) => e.stopPropagation()}>
+                                    <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto">
+                                        <Trash2 className="w-6 h-6" />
+                                    </div>
+                                    <h3 className="font-black text-lg text-[var(--text-primary)]">Tasarımı Sil</h3>
+                                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                                        Bu tasarımı ve analiz kaydını silmek istediğinize emin misiniz? Puanlarınız buna göre güncellenecektir.
+                                    </p>
+                                    <div className="flex gap-2 pt-2">
+                                        <button
+                                            onClick={() => setDeletePostId(null)}
+                                            className="flex-1 py-2.5 rounded-xl border border-[var(--border-primary)] text-xs font-bold hover:bg-[var(--bg-secondary)] text-[var(--text-primary)]"
+                                        >
+                                            Vazgeç
+                                        </button>
+                                        <button
+                                            onClick={handleConfirmDeletePost}
+                                            disabled={deletingPost}
+                                            className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-xs font-bold hover:bg-red-600 disabled:opacity-50"
+                                        >
+                                            {deletingPost ? 'Siliniyor...' : 'Evet, Sil'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Topluluk Rozetleri */}
                         <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] shadow-sm overflow-hidden">
