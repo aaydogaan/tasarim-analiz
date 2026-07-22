@@ -566,20 +566,65 @@ export default function App() {
       setAuthAcik(true);
       return;
     }
-    if (!sonuc?._analiz_id) {
+
+    setYayinlaniyor(true);
+
+    let targetAnalizId = sonuc?._analiz_id;
+
+    // Eğer _analiz_id yoksa (örn: anonim analiz edilmişse), o an veritabanına kaydet
+    if (!targetAnalizId && sonuc) {
+      try {
+        const { data: newAnaliz, error: createErr } = await supabase
+          .from('analizler')
+          .insert({
+            user_id: kullanici.id,
+            user_name: kullanici.user_metadata?.full_name || kullanici.email?.split('@')[0] || "Gizli Tasarımcı",
+            user_avatar: kullanici.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici.id}`,
+            tasarim_turu: tasarimTuru || "Sosyal Medya",
+            platform: platform || null,
+            isletme: isletme || "Genel",
+            genel_puan: sonuc.genelPuan || 80,
+            renk_puan: sonuc.renk?.puan,
+            font_puan: sonuc.font?.puan,
+            butunluk_puan: sonuc.butunluk?.puan,
+            kompozisyon_puan: sonuc.kompozisyon?.puan,
+            genel_yorum: sonuc.genelYorum || "",
+            oneri: sonuc.oneri || "",
+            genel_degerlendirme: sonuc.genelDegerlendirme,
+            guclu_yon: sonuc.gucluYon,
+            zayif_yon: sonuc.zayifYon,
+            teknik_ozet: sonuc.teknikOzet || null,
+            renk_paleti: sonuc.renkPaleti || null,
+            gorsel_url: sonuc._gorsel_url || gorselBase64 || gorsel || null,
+            paylasim_aktif: true
+          })
+          .select('id')
+          .single();
+
+        if (newAnaliz?.id) {
+          targetAnalizId = newAnaliz.id;
+          setSonuc((prev: any) => ({ ...prev, _analiz_id: targetAnalizId }));
+        } else if (createErr) {
+          console.error("Analiz veritabanına kaydedilemedi:", createErr);
+        }
+      } catch (e) {
+        console.error("Analiz kaydetme istisnası:", e);
+      }
+    }
+
+    if (!targetAnalizId) {
+      setYayinlaniyor(false);
       toast.error('Analiz kimliği bulunamadı. Lütfen tasarımı yeniden analiz edin.');
       return;
     }
     
-    setYayinlaniyor(true);
-    
-    // Update analizler just in case other things depend on it
-    await supabase.from('analizler').update({ paylasim_aktif: true }).eq('id', sonuc._analiz_id);
+    // Update analizler status
+    await supabase.from('analizler').update({ paylasim_aktif: true }).eq('id', targetAnalizId);
     
     // Insert into community_posts
     const { error } = await supabase.from('community_posts').insert({
       user_id: kullanici.id,
-      analiz_id: sonuc._analiz_id,
+      analiz_id: targetAnalizId,
       title: shareTitle || null,
       content: shareContent || null
     });

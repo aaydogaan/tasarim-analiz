@@ -222,102 +222,97 @@ JSON Formatı Şablonu:
       return res.status(502).json({ error: 'AI yanıtı işlenemedi. Lütfen tekrar deneyin.' });
     }
 
-    // Supabase'e kaydet
-    // Supabase'e kaydet
-    const { guestMode } = body;
-    if (!guestMode) {
-      try {
-        const supabaseUrl = process.env.VITE_SUPABASE_URL;
-        const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
-        if (supabaseUrl && supabaseKey) {
-          const supabase = createClient(supabaseUrl, supabaseKey);
+    // Supabase'e kaydet ve _analiz_id üret
+    try {
+      const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+      if (supabaseUrl && supabaseKey) {
+        const supabase = createClient(supabaseUrl, supabaseKey);
 
-          // Kullanıcı token'ından user_id'yi bul
-          const token = req.headers.authorization?.replace('Bearer ', '');
-          let userId: string | null = null;
-          let userName: string | null = null;
-          let userAvatar: string | null = null;
+        // Kullanıcı token'ından user_id'yi bul
+        const token = req.headers.authorization?.replace('Bearer ', '');
+        let userId: string | null = null;
+        let userName: string | null = null;
+        let userAvatar: string | null = null;
 
-          if (token) {
-            // Tokenı doğrudan auth API'sine gönderip doğrula
-            const authClient = createClient(supabaseUrl, supabaseKey, {
-              global: { headers: { Authorization: `Bearer ${token}` } }
-            });
-            const { data: { user }, error: userError } = await authClient.auth.getUser();
-            if (!userError && user) {
-              userId = user.id;
-              userName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || "Gizli Tasarımcı";
-              userAvatar = user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`;
-            }
-          }
-
-          let gorselUrl: string | null = null;
-          try {
-            const fileName = `${userId || 'anon'}_${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
-            const imageBuffer = Buffer.from(imageBase64, 'base64');
-            
-            const s3Client = new S3Client({
-              region: 'auto',
-              endpoint: `https://${process.env.VITE_R2_ACCOUNT_ID || process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-              credentials: {
-                accessKeyId: (process.env.VITE_R2_ACCESS_KEY_ID || process.env.R2_ACCESS_KEY_ID)!,
-                secretAccessKey: (process.env.VITE_R2_SECRET_ACCESS_KEY || process.env.R2_SECRET_ACCESS_KEY)!,
-              },
-            });
-
-            await s3Client.send(new PutObjectCommand({
-              Bucket: process.env.VITE_R2_BUCKET_NAME || process.env.R2_BUCKET_NAME,
-              Key: fileName,
-              Body: imageBuffer,
-              ContentType: 'image/jpeg',
-            }));
-
-            const r2PublicUrl = (process.env.VITE_R2_PUBLIC_URL || process.env.R2_PUBLIC_URL)?.replace(/\/$/, "");
-            gorselUrl = `${r2PublicUrl}/${fileName}`;
-          } catch (storageErr) {
-            console.warn('R2 Storage yükleme atlandı:', storageErr);
-          }
-
-          // DB'ye kaydetmek için doğru yetkilere sahip client oluşturalım (SELECT RLS için)
-          let dbClient = supabase;
-          if (token) {
-            dbClient = createClient(supabaseUrl, supabaseKey, {
-              global: { headers: { Authorization: `Bearer ${token}` } }
-            });
-          }
-
-          // DB'ye kaydet
-          const { data: dbData } = await dbClient.from('analizler').insert({
-            user_id: userId,
-            user_name: userName,
-            user_avatar: userAvatar,
-            tasarim_turu: tasarimTuru,
-            platform: platform || null,
-            isletme,
-            marka_adi: sorular?.markaAdi || null,
-            genel_puan: parsed.genelPuan,
-            renk_puan: parsed.renk?.puan,
-            font_puan: parsed.font?.puan,
-            butunluk_puan: parsed.butunluk?.puan,
-            kompozisyon_puan: parsed.kompozisyon?.puan,
-            genel_yorum: parsed.genelYorum,
-            oneri: parsed.oneri,
-            genel_degerlendirme: parsed.genelDegerlendirme,
-            guclu_yon: parsed.gucluYon,
-            zayif_yon: parsed.zayifYon,
-            teknik_ozet: parsed.teknikOzet || null,
-            renk_paleti: parsed.renkPaleti || null,
-            gorsel_url: gorselUrl,
-          }).select('id').single();
-
-          if (dbData?.id) {
-            parsed._analiz_id = dbData.id;
-            parsed._gorsel_url = gorselUrl;
+        if (token) {
+          // Tokenı doğrudan auth API'sine gönderip doğrula
+          const authClient = createClient(supabaseUrl, supabaseKey, {
+            global: { headers: { Authorization: `Bearer ${token}` } }
+          });
+          const { data: { user }, error: userError } = await authClient.auth.getUser();
+          if (!userError && user) {
+            userId = user.id;
+            userName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || "Gizli Tasarımcı";
+            userAvatar = user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`;
           }
         }
-      } catch (dbErr) {
-        console.error('Supabase kayıt hatası (analiz döndürülüyor):', dbErr);
+
+        let gorselUrl: string | null = null;
+        try {
+          const fileName = `${userId || 'anon'}_${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+          const imageBuffer = Buffer.from(imageBase64, 'base64');
+          
+          const s3Client = new S3Client({
+            region: 'auto',
+            endpoint: `https://${process.env.VITE_R2_ACCOUNT_ID || process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+            credentials: {
+              accessKeyId: (process.env.VITE_R2_ACCESS_KEY_ID || process.env.R2_ACCESS_KEY_ID)!,
+              secretAccessKey: (process.env.VITE_R2_SECRET_ACCESS_KEY || process.env.R2_SECRET_ACCESS_KEY)!,
+            },
+          });
+
+          await s3Client.send(new PutObjectCommand({
+            Bucket: process.env.VITE_R2_BUCKET_NAME || process.env.R2_BUCKET_NAME,
+            Key: fileName,
+            Body: imageBuffer,
+            ContentType: 'image/jpeg',
+          }));
+
+          const r2PublicUrl = (process.env.VITE_R2_PUBLIC_URL || process.env.R2_PUBLIC_URL)?.replace(/\/$/, "");
+          gorselUrl = `${r2PublicUrl}/${fileName}`;
+        } catch (storageErr) {
+          console.warn('R2 Storage yükleme atlandı:', storageErr);
+        }
+
+        // Service role client veya fallback client ile kaydet (RLS takılmasın)
+        const dbClient = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseKey);
+
+        // DB'ye kaydet
+        const { data: dbData, error: dbInsertErr } = await dbClient.from('analizler').insert({
+          user_id: userId,
+          user_name: userName,
+          user_avatar: userAvatar,
+          tasarim_turu: tasarimTuru,
+          platform: platform || null,
+          isletme,
+          marka_adi: sorular?.markaAdi || null,
+          genel_puan: parsed.genelPuan,
+          renk_puan: parsed.renk?.puan,
+          font_puan: parsed.font?.puan,
+          butunluk_puan: parsed.butunluk?.puan,
+          kompozisyon_puan: parsed.kompozisyon?.puan,
+          genel_yorum: parsed.genelYorum,
+          oneri: parsed.oneri,
+          genel_degerlendirme: parsed.genelDegerlendirme,
+          guclu_yon: parsed.gucluYon,
+          zayif_yon: parsed.zayifYon,
+          teknik_ozet: parsed.teknikOzet || null,
+          renk_paleti: parsed.renkPaleti || null,
+          gorsel_url: gorselUrl,
+        }).select('id').single();
+
+        if (dbInsertErr) {
+          console.error('Analiz DB insert hatası:', dbInsertErr);
+        }
+
+        if (dbData?.id) {
+          parsed._analiz_id = dbData.id;
+          parsed._gorsel_url = gorselUrl;
+        }
       }
+    } catch (dbErr) {
+      console.error('Supabase kayıt hatası (analiz döndürülüyor):', dbErr);
     }
 
     return res.status(200).json(parsed);
