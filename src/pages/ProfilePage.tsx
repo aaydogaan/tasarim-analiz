@@ -432,90 +432,83 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                 <section className="grid gap-5 lg:grid-cols-[320px_1fr]">
                     {/* LEFT COLUMN: Avatar & Profile Info */}
                     <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-5 shadow-sm">
-                        <div className="flex items-start gap-4">
-                            <div className={`relative h-24 w-24 shrink-0 rounded-full p-[3px] ${normalizedProfile.isCoreFounder ? 'bg-gradient-to-br from-orange-300 via-[var(--color-brand-orange)] to-amber-500' : 'bg-[var(--border-primary)]'}`}>
-                                <img src={profileData.avatarUrl} className="h-full w-full rounded-full border-2 border-[var(--card-bg)] bg-[var(--bg-secondary)] object-cover" alt="Profil fotoğrafı" />
-                                {/* Featured badge on avatar */}
+
+                        {/* Avatar + Name centered */}
+                        <div className="flex flex-col items-center text-center gap-3 pb-5 border-b border-[var(--border-primary)]">
+                            <div className={`relative h-20 w-20 shrink-0 rounded-full p-[3px] ${normalizedProfile.isCoreFounder ? 'bg-gradient-to-br from-orange-300 via-[var(--color-brand-orange)] to-amber-500' : 'bg-[var(--border-primary)]'}`}>
+                                <img src={profileData.avatarUrl} className="h-full w-full rounded-full border-2 border-[var(--card-bg)] bg-[var(--bg-secondary)] object-cover" alt="Profil fotografi" />
                                 {featuredBadgeDef ? (
-                                    <div
-                                        title={featuredBadgeDef.label}
-                                        className={`absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full border-4 border-[var(--card-bg)] ${featuredBadgeDef.bg} ${featuredBadgeDef.color} shadow-lg`}
-                                    >
-                                        {renderBadgeIcon(featuredBadgeDef.emoji, "w-4 h-4")}
+                                    <div title={featuredBadgeDef.label} className={`absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-4 border-[var(--card-bg)] ${featuredBadgeDef.bg} ${featuredBadgeDef.color} shadow-lg`}>
+                                        {renderBadgeIcon(featuredBadgeDef.emoji, "w-3.5 h-3.5")}
                                     </div>
                                 ) : (
-                                    <div className="absolute -bottom-1 -right-1 rounded-full border-4 border-[var(--card-bg)] bg-[var(--color-brand-orange)] p-2 shadow-lg">
-                                        <Sparkles className="h-4 w-4 text-white" />
+                                    <div className="absolute -bottom-1 -right-1 rounded-full border-4 border-[var(--card-bg)] bg-[var(--color-brand-orange)] p-1.5 shadow-lg">
+                                        <Sparkles className="h-3.5 w-3.5 text-white" />
                                     </div>
                                 )}
                             </div>
-                            <div className="min-w-0 flex-1">
-                                <p className="mb-2 inline-flex rounded-full bg-[var(--color-brand-orange)]/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--color-brand-orange)]">
-                                    {founderLabel}
-                                </p>
+                            <div className="min-w-0 w-full">
                                 {isEditing ? (
                                     <input
                                         type="text"
                                         value={profileData.displayName}
                                         onChange={(e) => setProfileData({ ...profileData, displayName: e.target.value })}
-                                        className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-xl font-black outline-none focus:border-[var(--color-brand-orange)]"
+                                        className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-lg font-black outline-none focus:border-[var(--color-brand-orange)] text-center"
                                     />
                                 ) : (
-                                    <h1 className="truncate text-2xl font-black tracking-tight">{profileData.displayName}</h1>
+                                    <h1 className="truncate text-xl font-black tracking-tight">{profileData.displayName}</h1>
                                 )}
-                                <p className="mt-1 truncate text-xs font-black uppercase tracking-widest text-[var(--text-secondary)]">
-                                    {normalizedProfile.isCoreFounder ? 'Kurucu' : selectedRank.title}
+                                <p className="mt-1 text-xs font-semibold text-[var(--text-secondary)]">
+                                    {normalizedProfile.isCoreFounder ? 'Kurucu Uye' : selectedRank.title}
+                                    {normalizedProfile.founderNumber ? ` · #${normalizedProfile.founderNumber}` : ''}
                                 </p>
-                                {/* Featured badge label */}
                                 {featuredBadgeDef && (
-                                    <span className={`mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black border ${featuredBadgeDef.bg} ${featuredBadgeDef.border} ${featuredBadgeDef.color}`}>
-                                        {renderBadgeIcon(featuredBadgeDef.emoji, "w-3.5 h-3.5")} {featuredBadgeDef.label}
+                                    <span className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black border ${featuredBadgeDef.bg} ${featuredBadgeDef.border} ${featuredBadgeDef.color}`}>
+                                        {renderBadgeIcon(featuredBadgeDef.emoji, "w-3 h-3")} {featuredBadgeDef.label}
                                     </span>
                                 )}
                             </div>
                         </div>
 
-                        <div className="mt-5 grid grid-cols-2 gap-2">
+                        {/* Info grid */}
+                        <div className="mt-4 grid grid-cols-2 gap-2">
                             <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Sıra</p>
-                                <p className="mt-1 text-xl font-black">{normalizedProfile.isCoreFounder ? `#${normalizedProfile.founderNumber}` : founderNumber ? `#${founderNumber}` : '-'}</p>
+                                <p className="text-[10px] font-semibold text-[var(--text-secondary)]">Uzmanlik</p>
+                                <p className="mt-1 truncate text-sm font-black">{selectedSpecialty.label}</p>
                             </div>
                             <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Alan</p>
-                                <p className="mt-1 truncate text-sm font-black">{selectedSpecialty.label}</p>
+                                <p className="text-[10px] font-semibold text-[var(--text-secondary)]">Deneyim</p>
+                                <p className="mt-1 text-sm font-black">{selectedExperience?.label || '-'}</p>
+                            </div>
+                            <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
+                                <p className="text-[10px] font-semibold text-[var(--text-secondary)]">Siradaki yeri</p>
+                                <p className="mt-1 text-xl font-black">{normalizedProfile.founderNumber ? `#${normalizedProfile.founderNumber}` : '-'}</p>
+                            </div>
+                            <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
+                                <p className="text-[10px] font-semibold text-[var(--text-secondary)]">Analiz sayisi</p>
+                                <p className="mt-1 text-xl font-black">{stats.total}</p>
                             </div>
                         </div>
 
-                        <div className="mt-4 flex flex-wrap gap-3 text-[var(--text-secondary)]">
+                        {/* Social links */}
+                        <div className="mt-4 flex flex-wrap gap-2">
                             {(!isPublicProfile && kullanici?.email) && (
-                                <a href={`mailto:${kullanici.email}`} className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors" title={kullanici.email}>
-                                    <Mail className="h-4 w-4" />
-                                </a>
+                                <a href={`mailto:${kullanici.email}`} className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors text-[var(--text-secondary)]" title={kullanici.email}><Mail className="h-4 w-4" /></a>
                             )}
                             {profileData.website && (
-                                <a href={profileData.website.startsWith('http') ? profileData.website : `https://${profileData.website}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors" title={profileData.website}>
-                                    <Globe className="h-4 w-4" />
-                                </a>
+                                <a href={profileData.website.startsWith('http') ? profileData.website : `https://${profileData.website}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors text-[var(--text-secondary)]" title={profileData.website}><Globe className="h-4 w-4" /></a>
                             )}
                             {profileData.twitterUrl && (
-                                <a href={profileData.twitterUrl.startsWith('http') ? profileData.twitterUrl : `https://${profileData.twitterUrl}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors" title="Twitter / X">
-                                    <Twitter className="h-4 w-4" />
-                                </a>
+                                <a href={profileData.twitterUrl.startsWith('http') ? profileData.twitterUrl : `https://${profileData.twitterUrl}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors text-[var(--text-secondary)]" title="Twitter"><Twitter className="h-4 w-4" /></a>
                             )}
                             {profileData.behanceUrl && (
-                                <a href={profileData.behanceUrl.startsWith('http') ? profileData.behanceUrl : `https://${profileData.behanceUrl}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors" title="Behance">
-                                    <Palette className="h-4 w-4" />
-                                </a>
+                                <a href={profileData.behanceUrl.startsWith('http') ? profileData.behanceUrl : `https://${profileData.behanceUrl}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors text-[var(--text-secondary)]" title="Behance"><Palette className="h-4 w-4" /></a>
                             )}
                             {profileData.dribbbleUrl && (
-                                <a href={profileData.dribbbleUrl.startsWith('http') ? profileData.dribbbleUrl : `https://${profileData.dribbbleUrl}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors" title="Dribbble">
-                                    <Dribbble className="h-4 w-4" />
-                                </a>
+                                <a href={profileData.dribbbleUrl.startsWith('http') ? profileData.dribbbleUrl : `https://${profileData.dribbbleUrl}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors text-[var(--text-secondary)]" title="Dribbble"><Dribbble className="h-4 w-4" /></a>
                             )}
                             {profileData.socialHandle && (
-                                <a href={profileData.socialHandle.startsWith('http') ? profileData.socialHandle : `https://${profileData.socialHandle}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors" title="Sosyal Medya">
-                                    <Link className="h-4 w-4" />
-                                </a>
+                                <a href={profileData.socialHandle.startsWith('http') ? profileData.socialHandle : `https://${profileData.socialHandle}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors text-[var(--text-secondary)]" title="Sosyal Medya"><Link className="h-4 w-4" /></a>
                             )}
                         </div>
 
@@ -523,15 +516,14 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                             <button
                                 onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
                                 disabled={saving}
-                                className={`mt-5 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-black transition-all disabled:opacity-60 ${isEditing ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-[var(--text-primary)] text-[var(--bg-primary)] hover:opacity-90'}`}
+                                className={`mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-black transition-all disabled:opacity-60 ${isEditing ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-[var(--text-primary)] text-[var(--bg-primary)] hover:opacity-90'}`}
                             >
                                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : isEditing ? <CheckCircle2 className="h-4 w-4" /> : <Edit2 className="h-4 w-4" />}
-                                {isEditing ? 'Kaydet' : 'Profili düzenle'}
+                                {isEditing ? 'Kaydet' : 'Profili duzenle'}
                             </button>
                         )}
-
-                        {saveState === 'saved' && <p className="mt-3 text-center text-xs font-bold text-emerald-500">Profil güncellendi.</p>}
-                        {saveState === 'error' && <p className="mt-3 text-center text-xs font-bold text-red-500">Profil kaydedilirken bir sorun oluştu.</p>}
+                        {saveState === 'saved' && <p className="mt-3 text-center text-xs font-bold text-emerald-500">Profil guncellendi.</p>}
+                        {saveState === 'error' && <p className="mt-3 text-center text-xs font-bold text-red-500">Kaydedilirken hata olustu.</p>}
                     </div>
 
                     {/* RIGHT COLUMN: Bio, Edit Fields, Stats, Badges & XP */}
