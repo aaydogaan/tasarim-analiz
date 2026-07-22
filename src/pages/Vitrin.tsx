@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { supabase } from "../lib/supabase";
-import { Heart, Maximize2, X, Star, Loader2, Search, ChevronDown, Filter, Sparkles, Trophy, Flame } from "lucide-react";
+import { Heart, Maximize2, X, Star, Loader2, Search, ChevronDown, Filter, Sparkles, Trophy, Flame, Clock } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface VitrinItem {
@@ -36,7 +36,15 @@ export function Vitrin() {
     // Filter & Sort State
     const [kategoriFiltre, setKategoriFiltre] = useState<string>('Tümü');
     const [siralama, setSiralama] = useState<'yeni' | 'topluluk' | 'ai' | 'oy'>('yeni');
+    const [siralamaAcik, setSiralamaAcik] = useState(false);
     const [aramaMetni, setAramaMetni] = useState('');
+
+    const siralamaSecenekleri = [
+        { id: 'yeni', label: 'En Yeni', icon: <Clock className="w-4 h-4 text-sky-500" /> },
+        { id: 'topluluk', label: 'En Yüksek Topluluk Oyu', icon: <Flame className="w-4 h-4 text-[#FF5500]" /> },
+        { id: 'ai', label: 'En Yüksek AI Puanı', icon: <Sparkles className="w-4 h-4 text-amber-500" /> },
+        { id: 'oy', label: 'En Çok Oy Alan', icon: <Trophy className="w-4 h-4 text-purple-500" /> },
+    ];
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -318,7 +326,7 @@ export function Vitrin() {
                             <button
                                 key={kat}
                                 onClick={() => setKategoriFiltre(kat)}
-                                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                                className={`px-4.5 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all whitespace-nowrap ${
                                     kategoriFiltre === kat
                                         ? 'bg-[#FF5500] text-white shadow-md shadow-[#FF5500]/20'
                                         : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-primary)] border border-[var(--border-primary)]'
@@ -332,30 +340,72 @@ export function Vitrin() {
                     {/* Search & Sort Controls */}
                     <div className="flex items-center gap-3 w-full lg:w-auto">
                         {/* Search Input */}
-                        <div className="relative flex-1 lg:w-60">
-                            <Search className="w-4 h-4 text-[var(--text-secondary)] absolute left-3 top-1/2 -translate-y-1/2" />
+                        <div className="relative flex-1 lg:w-64">
+                            <Search className="w-4.5 h-4.5 text-[var(--text-secondary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
                             <input
                                 type="text"
                                 value={aramaMetni}
                                 onChange={(e) => setAramaMetni(e.target.value)}
                                 placeholder="Tasarım veya kişi ara..."
-                                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] outline-none focus:border-[#FF5500] transition-colors"
+                                className="w-full pl-10 pr-4 py-2.5 text-xs md:text-sm rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] outline-none focus:border-[#FF5500] transition-colors font-medium"
                             />
                         </div>
 
-                        {/* Sort Dropdown */}
+                        {/* Custom Animated Sort Dropdown */}
                         <div className="relative shrink-0">
-                            <select
-                                value={siralama}
-                                onChange={(e: any) => setSiralama(e.target.value)}
-                                className="appearance-none pl-3 pr-8 py-2 text-xs font-bold rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] outline-none focus:border-[#FF5500] cursor-pointer transition-colors"
+                            <button
+                                type="button"
+                                onClick={() => setSiralamaAcik(!siralamaAcik)}
+                                className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[var(--bg-secondary)] hover:bg-[var(--bg-primary)] border border-[var(--border-primary)] text-[var(--text-primary)] text-xs md:text-sm font-bold shadow-sm transition-all"
                             >
-                                <option value="yeni">🕒 En Yeni</option>
-                                <option value="topluluk">🔥 En Yüksek Topluluk Oyu</option>
-                                <option value="ai">⚡ En Yüksek AI Puanı</option>
-                                <option value="oy">🏆 En Çok Oy Alan</option>
-                            </select>
-                            <ChevronDown className="w-3.5 h-3.5 text-[var(--text-secondary)] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                {siralamaSecenekleri.find(s => s.id === siralama)?.icon}
+                                <span>{siralamaSecenekleri.find(s => s.id === siralama)?.label}</span>
+                                <ChevronDown className={`w-4 h-4 text-[var(--text-secondary)] transition-transform duration-300 ${siralamaAcik ? 'rotate-180 text-[#FF5500]' : ''}`} />
+                            </button>
+
+                            <AnimatePresence>
+                                {siralamaAcik && (
+                                    <>
+                                        {/* Overlay to dismiss */}
+                                        <div 
+                                            className="fixed inset-0 z-20" 
+                                            onClick={() => setSiralamaAcik(false)} 
+                                        />
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="absolute right-0 mt-2 w-64 bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-2xl shadow-xl z-30 p-2 space-y-1"
+                                        >
+                                            {siralamaSecenekleri.map((secenek) => {
+                                                const isSelected = siralama === secenek.id;
+                                                return (
+                                                    <button
+                                                        key={secenek.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setSiralama(secenek.id as any);
+                                                            setSiralamaAcik(false);
+                                                        }}
+                                                        className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs md:text-sm font-bold transition-all ${
+                                                            isSelected
+                                                                ? 'bg-[#FF5500]/10 text-[#FF5500]'
+                                                                : 'text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            {secenek.icon}
+                                                            <span>{secenek.label}</span>
+                                                        </div>
+                                                        {isSelected && <div className="w-2 h-2 rounded-full bg-[#FF5500]" />}
+                                                    </button>
+                                                );
+                                            })}
+                                        </motion.div>
+                                    </>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </div>
 
