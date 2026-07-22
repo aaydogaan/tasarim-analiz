@@ -61,6 +61,32 @@ import {
     type NormalizedCommunityProfile,
 } from '../lib/communityProfile';
 
+const BehanceIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+        <path d="M22 7h-7V5h7v2zm-1.7 5.2c0-1.8-1.2-3.2-3.3-3.2-2.1 0-3.6 1.5-3.6 3.7 0 2.2 1.4 3.7 3.7 3.7 1.7 0 2.8-.7 3.3-1.8h-1.9c-.3.4-.8.6-1.4.6-1 0-1.6-.6-1.7-1.6h5c0-.1 0-.3 0-.4zm-3.3-1.7c.8 0 1.3.5 1.4 1.2h-2.9c.1-.8.7-1.2 1.5-1.2zM8.7 13.3c.7 0 1.2-.4 1.2-1.1 0-.6-.4-1-1.1-1H6.3v2.1h2.4zm.2-4c.6 0 1-.3 1-.9 0-.5-.4-.8-1-.8H6.3v1.7h2.6zM3.5 6h5.6c2.2 0 3.5 1 3.5 2.3 0 1-.5 1.7-1.4 2.1 1.1.4 1.8 1.3 1.8 2.5 0 1.7-1.4 2.8-3.7 2.8H3.5V6z"/>
+    </svg>
+);
+
+const DribbbleIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2zm7.93 9.17c-.8-.16-2.58-.4-4.83.08a22.2 22.2 0 0 0-1.84-3.54A8.04 8.04 0 0 1 19.93 11.17zM12 4.07c1.7 0 3.26.56 4.5 1.51a24.1 24.1 0 0 1 1.74 3.37c-2.07-.46-4.08-.22-5.74.07a41.3 41.3 0 0 0-2.32-3.79c.58-.1 1.19-.16 1.82-.16zm-3.66.72c.8 1.25 1.63 2.58 2.37 3.86a22.9 22.9 0 0 0-5.7 1.83 8.04 8.04 0 0 1 3.33-5.69zM4.07 12c0-.28.02-.55.06-.82 2.1-.64 4.54-1.22 7.03-.89a24.8 24.8 0 0 1 .92 4.79C9.37 16 6.13 15.65 4.5 14.6A7.95 7.95 0 0 1 4.07 12zm3.17 4.14c1.84.97 4.8 1.27 7.42.47a25.5 25.5 0 0 1 1.86 4.3 8.04 8.04 0 0 1-9.28-4.77zm11.38 2.76a27.1 27.1 0 0 0-1.86-4.25c2.1-.5 3.65-.28 4.25-.13a8.03 8.03 0 0 1-2.39 4.38z"/>
+    </svg>
+);
+
+const TwitterIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    </svg>
+);
+
+const InstagramIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+    </svg>
+);
+
 type ProfileProps = {
     kullanici: any;
     publicProfile?: NormalizedCommunityProfile | null;
@@ -203,19 +229,58 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
     }, [normalizedProfile, profileRecord, isEditing]);
 
     useEffect(() => {
-        if (!isOwnProfile || !kullanici) return;
+        const targetUserId = normalizedProfile.id;
+        if (!targetUserId || targetUserId === 'anonymous') return;
 
         let aktif = true;
         const loadStats = async () => {
-            // We removed the failing /api/stats fetch because it's a frontend-only app right now.
-            // You can replace this with actual Supabase RPC or queries for these stats later.
-            if (aktif) {
-                setStats({
-                    total: 0,
-                    ortalama: 0,
-                    buHafta: 0,
-                    enCokTasarimTuru: 'Henüz yok',
-                });
+            try {
+                const { data, error } = await supabase
+                    .from('analizler')
+                    .select('id, genel_puan, tasarim_turu, created_at')
+                    .eq('user_id', targetUserId);
+
+                if (!aktif) return;
+
+                if (!error && data && data.length > 0) {
+                    const total = data.length;
+                    const totalPuan = data.reduce((acc, curr) => acc + (curr.genel_puan || 0), 0);
+                    const ortalama = Math.round((totalPuan / total) * 10) / 10;
+
+                    const oneWeekAgo = new Date();
+                    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                    const buHafta = data.filter(d => d.created_at && new Date(d.created_at) >= oneWeekAgo).length;
+
+                    const türMap: Record<string, number> = {};
+                    data.forEach(d => {
+                        const tür = d.tasarim_turu || 'Diğer';
+                        türMap[tür] = (türMap[tür] || 0) + 1;
+                    });
+                    let enCokTasarimTuru = 'Henüz yok';
+                    let maxCount = 0;
+                    Object.entries(türMap).forEach(([tür, count]) => {
+                        if (count > maxCount) {
+                            maxCount = count;
+                            enCokTasarimTuru = tür;
+                        }
+                    });
+
+                    setStats({
+                        total,
+                        ortalama,
+                        buHafta,
+                        enCokTasarimTuru,
+                    });
+                } else if (aktif) {
+                    setStats({
+                        total: 0,
+                        ortalama: 0,
+                        buHafta: 0,
+                        enCokTasarimTuru: 'Henüz yok',
+                    });
+                }
+            } catch (e) {
+                console.error("Stats load error:", e);
             }
         };
 
@@ -223,7 +288,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
         return () => {
             aktif = false;
         };
-    }, [isOwnProfile, kullanici]);
+    }, [normalizedProfile.id]);
 
     // User Posts & Deletion State
     const [userPosts, setUserPosts] = useState<any[]>([]);
@@ -628,22 +693,22 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                         {/* Social links */}
                         <div className="mt-4 flex flex-wrap gap-2">
                             {(!isPublicProfile && kullanici?.email) && (
-                                <a href={`mailto:${kullanici.email}`} className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors text-[var(--text-secondary)]" title={kullanici.email}><Mail className="h-4 w-4" /></a>
+                                <a href={`mailto:${kullanici.email}`} className="rounded-full bg-[var(--bg-secondary)] p-2.5 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-all text-[var(--text-secondary)] border border-[var(--border-primary)]" title={kullanici.email}><Mail className="h-4 w-4" /></a>
                             )}
                             {profileData.website && (
-                                <a href={profileData.website.startsWith('http') ? profileData.website : `https://${profileData.website}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors text-[var(--text-secondary)]" title={profileData.website}><Globe className="h-4 w-4" /></a>
-                            )}
-                            {profileData.twitterUrl && (
-                                <a href={profileData.twitterUrl.startsWith('http') ? profileData.twitterUrl : `https://${profileData.twitterUrl}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors text-[var(--text-secondary)]" title="Twitter"><Twitter className="h-4 w-4" /></a>
+                                <a href={profileData.website.startsWith('http') ? profileData.website : `https://${profileData.website}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2.5 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-all text-[var(--text-secondary)] border border-[var(--border-primary)]" title={profileData.website}><Globe className="h-4 w-4" /></a>
                             )}
                             {profileData.behanceUrl && (
-                                <a href={profileData.behanceUrl.startsWith('http') ? profileData.behanceUrl : `https://${profileData.behanceUrl}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors text-[var(--text-secondary)]" title="Behance"><Palette className="h-4 w-4" /></a>
+                                <a href={profileData.behanceUrl.startsWith('http') ? profileData.behanceUrl : `https://${profileData.behanceUrl}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2.5 hover:text-[#053EFF] hover:bg-[#053EFF]/10 transition-all text-[var(--text-secondary)] border border-[var(--border-primary)]" title="Behance"><BehanceIcon className="h-4 w-4" /></a>
                             )}
                             {profileData.dribbbleUrl && (
-                                <a href={profileData.dribbbleUrl.startsWith('http') ? profileData.dribbbleUrl : `https://${profileData.dribbbleUrl}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors text-[var(--text-secondary)]" title="Dribbble"><Dribbble className="h-4 w-4" /></a>
+                                <a href={profileData.dribbbleUrl.startsWith('http') ? profileData.dribbbleUrl : `https://${profileData.dribbbleUrl}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2.5 hover:text-[#EA4C89] hover:bg-[#EA4C89]/10 transition-all text-[var(--text-secondary)] border border-[var(--border-primary)]" title="Dribbble"><DribbbleIcon className="h-4 w-4" /></a>
+                            )}
+                            {profileData.twitterUrl && (
+                                <a href={profileData.twitterUrl.startsWith('http') ? profileData.twitterUrl : `https://${profileData.twitterUrl}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2.5 hover:text-[#1DA1F2] hover:bg-[#1DA1F2]/10 transition-all text-[var(--text-secondary)] border border-[var(--border-primary)]" title="Twitter / X"><TwitterIcon className="h-4 w-4" /></a>
                             )}
                             {profileData.socialHandle && (
-                                <a href={profileData.socialHandle.startsWith('http') ? profileData.socialHandle : `https://${profileData.socialHandle}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2 hover:text-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange)]/10 transition-colors text-[var(--text-secondary)]" title="Sosyal Medya"><Link className="h-4 w-4" /></a>
+                                <a href={profileData.socialHandle.startsWith('http') ? profileData.socialHandle : `https://${profileData.socialHandle}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--bg-secondary)] p-2.5 hover:text-[#E4405F] hover:bg-[#E4405F]/10 transition-all text-[var(--text-secondary)] border border-[var(--border-primary)]" title="Instagram / Sosyal Medya"><InstagramIcon className="h-4 w-4" /></a>
                             )}
                         </div>
 
@@ -664,25 +729,25 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                         {isOwnProfile && (
                             <div className="mt-5 pt-4 border-t border-[var(--border-primary)] space-y-3">
                                 <div>
-                                    <h3 className="text-xs font-black text-[var(--text-primary)] flex items-center gap-1.5">
-                                        <ShieldCheck className="w-4 h-4 text-[var(--color-brand-orange)]" />
+                                    <h3 className="text-sm font-black text-[var(--text-primary)] flex items-center gap-2">
+                                        <ShieldCheck className="w-4.5 h-4.5 text-[var(--color-brand-orange)]" />
                                         Tercihler
                                     </h3>
-                                    <p className="text-[10px] font-medium text-[var(--text-secondary)] mt-0.5 leading-relaxed">
+                                    <p className="text-xs font-medium text-[var(--text-secondary)] mt-1 leading-relaxed">
                                         Hesap ve uygulama ayarlarınızı yönetin.
                                     </p>
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="space-y-2 pt-1">
                                     <button
                                         onClick={() => setShowPasswordModal(true)}
-                                        className="w-full flex items-center justify-between p-2.5 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:border-[var(--color-brand-orange)] hover:text-[var(--color-brand-orange)] transition-all text-xs font-bold text-[var(--text-primary)] group"
+                                        className="w-full flex items-center justify-between p-3 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:border-[var(--color-brand-orange)] hover:text-[var(--color-brand-orange)] transition-all text-xs font-bold text-[var(--text-primary)] group"
                                     >
-                                        <span className="flex items-center gap-2">
-                                            <KeyRound className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-[var(--color-brand-orange)]" />
+                                        <span className="flex items-center gap-2.5">
+                                            <KeyRound className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--color-brand-orange)]" />
                                             Şifre Değiştir
                                         </span>
-                                        <ChevronRight className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
+                                        <ChevronRight className="w-4 h-4 text-[var(--text-secondary)]" />
                                     </button>
                                 </div>
                             </div>
@@ -758,25 +823,30 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                             )}
 
                             {/* Portfolio Links — View Mode */}
-                            {!isEditing && (profileData.behanceUrl || profileData.dribbbleUrl || profileData.twitterUrl || profileData.website) && (
+                            {!isEditing && (profileData.behanceUrl || profileData.dribbbleUrl || profileData.twitterUrl || profileData.website || profileData.socialHandle) && (
                                 <div className="mt-4 flex flex-wrap gap-2">
                                     {profileData.behanceUrl && (
-                                        <a href={profileData.behanceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs font-bold text-[var(--text-secondary)] hover:text-[#053EFF] hover:border-[#053EFF]/30 transition-all">
-                                            Behance
+                                        <a href={profileData.behanceUrl.startsWith('http') ? profileData.behanceUrl : `https://${profileData.behanceUrl}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs font-bold text-[var(--text-secondary)] hover:text-[#053EFF] hover:border-[#053EFF]/30 transition-all">
+                                            <BehanceIcon className="w-3.5 h-3.5" /> Behance
                                         </a>
                                     )}
                                     {profileData.dribbbleUrl && (
-                                        <a href={profileData.dribbbleUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs font-bold text-[var(--text-secondary)] hover:text-[#EA4C89] hover:border-[#EA4C89]/30 transition-all">
-                                            Dribbble
+                                        <a href={profileData.dribbbleUrl.startsWith('http') ? profileData.dribbbleUrl : `https://${profileData.dribbbleUrl}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs font-bold text-[var(--text-secondary)] hover:text-[#EA4C89] hover:border-[#EA4C89]/30 transition-all">
+                                            <DribbbleIcon className="w-3.5 h-3.5" /> Dribbble
                                         </a>
                                     )}
                                     {profileData.twitterUrl && (
-                                        <a href={profileData.twitterUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs font-bold text-[var(--text-secondary)] transition-all">
-                                            Twitter / X
+                                        <a href={profileData.twitterUrl.startsWith('http') ? profileData.twitterUrl : `https://${profileData.twitterUrl}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs font-bold text-[var(--text-secondary)] hover:text-[#1DA1F2] hover:border-[#1DA1F2]/30 transition-all">
+                                            <TwitterIcon className="w-3.5 h-3.5" /> Twitter / X
+                                        </a>
+                                    )}
+                                    {profileData.socialHandle && (
+                                        <a href={profileData.socialHandle.startsWith('http') ? profileData.socialHandle : `https://${profileData.socialHandle}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs font-bold text-[var(--text-secondary)] hover:text-[#E4405F] hover:border-[#E4405F]/30 transition-all">
+                                            <InstagramIcon className="w-3.5 h-3.5" /> Instagram
                                         </a>
                                     )}
                                     {profileData.website && (
-                                        <a href={profileData.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] hover:border-[var(--color-brand-orange)]/30 transition-all">
+                                        <a href={profileData.website.startsWith('http') ? profileData.website : `https://${profileData.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] hover:border-[var(--color-brand-orange)]/30 transition-all">
                                             <Globe className="w-3.5 h-3.5" /> Website
                                         </a>
                                     )}
