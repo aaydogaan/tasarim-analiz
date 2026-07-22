@@ -909,7 +909,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     ].map((item) => (
                                         <div key={item.label} className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
                                             <p className="text-xs font-semibold text-[var(--text-secondary)] mb-0.5">{item.label}</p>
-                                            <p className="mt-1 truncate text-lg font-black">{item.value}</p>
+                                            <p className="mt-1 text-sm sm:text-base font-black leading-tight break-words">{item.value}</p>
                                         </div>
                                     ))}
                                 </div>

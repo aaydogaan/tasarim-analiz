@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { supabase } from "../lib/supabase";
-import { Heart, Maximize2, X, Star } from "lucide-react";
+import { Heart, Maximize2, X, Star, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface VitrinItem {
     id: string;
+    analiz_id?: string;
+    user_id?: string;
     tasarim_turu: string;
     platform: string;
     isletme: string;
@@ -24,6 +26,12 @@ export function Vitrin() {
     const [loading, setLoading] = useState(true);
     const [seciliGorsel, setSeciliGorsel] = useState<VitrinItem | null>(null);
     const [user, setUser] = useState<any>(null);
+
+    // Modal Comments State
+    const [modalComments, setModalComments] = useState<any[]>([]);
+    const [modalCommentsLoading, setModalCommentsLoading] = useState(false);
+    const [commentInput, setCommentInput] = useState('');
+    const [submittingComment, setSubmittingComment] = useState(false);
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -115,6 +123,7 @@ export function Vitrin() {
                 return {
                     id: post.id,
                     analiz_id: post.analizler?.id,
+                    user_id: post.user_id,
                     isletme: post.analizler?.isletme || post.title || 'Genel',
                     user_name: authorName,
                     user_avatar: authorAvatar,
@@ -133,8 +142,86 @@ export function Vitrin() {
         setLoading(false);
     };
 
+    useEffect(() => {
+        if (!seciliGorsel) {
+            setModalComments([]);
+            return;
+        }
+        const fetchComments = async () => {
+            setModalCommentsLoading(true);
+            const { data } = await supabase
+                .from('post_comments')
+                .select('*')
+                .eq('post_id', seciliGorsel.id)
+                .order('created_at', { ascending: true });
+
+            if (data && data.length > 0) {
+                const userIds = [...new Set(data.map((c: any) => c.user_id).filter(Boolean))];
+                let profileMap: Record<string, any> = {};
+                if (userIds.length > 0) {
+                    const { data: profilesData } = await supabase
+                        .from('profiles')
+                        .select('id, display_name, avatar_url')
+                        .in('id', userIds);
+                    if (profilesData) {
+                        profileMap = Object.fromEntries(profilesData.map(p => [p.id, p]));
+                    }
+                }
+                const formatted = data.map(c => ({
+                    ...c,
+                    user_name: profileMap[c.user_id]?.display_name || c.user_name || 'Tasarımcı',
+                    user_avatar: profileMap[c.user_id]?.avatar_url || c.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${c.user_id}`
+                }));
+                setModalComments(formatted);
+            } else {
+                setModalComments([]);
+            }
+            setModalCommentsLoading(false);
+        };
+        fetchComments();
+    }, [seciliGorsel?.id]);
+
+    const handleAddComment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user) return toast.error("Yorum yapmak için giriş yapmalısınız.");
+        if (!commentInput.trim() || !seciliGorsel) return;
+
+        setSubmittingComment(true);
+        const content = commentInput.trim();
+        setCommentInput('');
+
+        let finalName = 'Tasarımcı';
+        let finalAvatar = `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`;
+        const { data: profileData } = await supabase.from('profiles').select('display_name, avatar_url').eq('id', user.id).single();
+        if (profileData) {
+            if (profileData.display_name) finalName = profileData.display_name;
+            if (profileData.avatar_url) finalAvatar = profileData.avatar_url;
+        }
+
+        const { data, error } = await supabase.from('post_comments').insert({
+            post_id: seciliGorsel.id,
+            user_id: user.id,
+            content
+        }).select('*').single();
+
+        if (!error && data) {
+            setModalComments(prev => [...prev, {
+                ...data,
+                user_name: finalName,
+                user_avatar: finalAvatar
+            }]);
+            toast.success('Yorumunuz eklendi!');
+        } else {
+            toast.error('Yorum eklenirken hata oluştu.');
+        }
+        setSubmittingComment(false);
+    };
+
     const vote = async (analiz_id: string, puan: number) => {
         if (!user) return toast.error("Puan vermek için giriş yapmalısınız.");
+        if (seciliGorsel && seciliGorsel.user_id === user.id) {
+            return toast.error("Kendi tasarımınıza puan veremezsiniz.");
+        }
         if (!analiz_id) return toast.error("Bu tasarımın orijinal analizi bulunamadı.");
 
         // Check if voted already
@@ -341,25 +428,80 @@ export function Vitrin() {
                                         </div>
                                     </div>
 
-                                    {/* Oylama Alanı */}
-                                    <div className="space-y-4 bg-[var(--bg-secondary)] p-6 rounded-[24px] border border-[var(--border-primary)]">
-                                        <p className="text-[var(--text-secondary)] text-sm text-center font-medium">Bu tasarıma siz kaç puan verirsiniz?</p>
-                                        <div className="grid grid-cols-4 gap-2.5">
-                                            {[70, 80, 90, 100].map(pt => (
-                                                <button
-                                                    key={pt}
-                                                    onClick={() => vote(seciliGorsel.analiz_id || seciliGorsel.id, pt)}
-                                                    disabled={seciliGorsel.user_vote != null}
-                                                    className={`py-3.5 border rounded-xl font-bold transition-all text-base shadow-sm ${
-                                                        seciliGorsel.user_vote === pt
-                                                            ? 'bg-[var(--color-brand-orange)] text-white border-[var(--color-brand-orange)] scale-[1.02]'
-                                                            : 'bg-[var(--bg-primary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)] border-[var(--border-primary)] text-[var(--text-primary)] disabled:opacity-50 disabled:hover:bg-[var(--bg-primary)] disabled:hover:text-[var(--text-primary)] disabled:cursor-not-allowed'
-                                                    }`}
-                                                >
-                                                    {pt}
-                                                </button>
-                                            ))}
+                                    {/* Oylama Alanı veya Kendi Tasarımın Uyarısı */}
+                                    {user && seciliGorsel.user_id === user.id ? (
+                                        <div className="p-4 bg-[var(--bg-secondary)] rounded-[24px] border border-[var(--border-primary)] text-center">
+                                            <p className="text-xs font-bold text-[var(--color-brand-orange)]">Kendi tasarımınıza puan veremezsiniz</p>
                                         </div>
+                                    ) : (
+                                        <div className="space-y-4 bg-[var(--bg-secondary)] p-6 rounded-[24px] border border-[var(--border-primary)]">
+                                            <p className="text-[var(--text-secondary)] text-sm text-center font-medium">Bu tasarıma siz kaç puan verirsiniz?</p>
+                                            <div className="grid grid-cols-4 gap-2.5">
+                                                {[70, 80, 90, 100].map(pt => (
+                                                    <button
+                                                        key={pt}
+                                                        onClick={() => vote(seciliGorsel.analiz_id || seciliGorsel.id, pt)}
+                                                        disabled={seciliGorsel.user_vote != null}
+                                                        className={`py-3.5 border rounded-xl font-bold transition-all text-base shadow-sm ${
+                                                            seciliGorsel.user_vote === pt
+                                                                ? 'bg-[var(--color-brand-orange)] text-white border-[var(--color-brand-orange)] scale-[1.02]'
+                                                                : 'bg-[var(--bg-primary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)] border-[var(--border-primary)] text-[var(--text-primary)] disabled:opacity-50 disabled:hover:bg-[var(--bg-primary)] disabled:hover:text-[var(--text-primary)] disabled:cursor-not-allowed'
+                                                        }`}
+                                                    >
+                                                        {pt}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Yorumlar Bölümü */}
+                                    <div className="mt-6 pt-6 border-t border-[var(--border-primary)] space-y-4">
+                                        <h4 className="text-[var(--text-primary)] text-xs font-black uppercase tracking-wider flex items-center justify-between">
+                                            <span>Yorumlar ({modalComments.length})</span>
+                                        </h4>
+
+                                        <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                                            {modalCommentsLoading ? (
+                                                <p className="text-xs text-[var(--text-secondary)] text-center py-2">Yorumlar yükleniyor...</p>
+                                            ) : modalComments.length === 0 ? (
+                                                <p className="text-xs text-[var(--text-secondary)] italic text-center py-2">Henüz yorum yapılmamış. İlk yorumu sen yap!</p>
+                                            ) : (
+                                                modalComments.map((c) => (
+                                                    <div key={c.id || c.created_at} className="flex gap-2.5 items-start bg-[var(--bg-secondary)] p-2.5 rounded-xl border border-[var(--border-primary)]">
+                                                        <img src={c.user_avatar} className="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5" alt={c.user_name} />
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="flex items-center justify-between gap-1">
+                                                                <span className="text-xs font-bold text-[var(--text-primary)] truncate">{c.user_name}</span>
+                                                                <span className="text-[9px] text-[var(--text-secondary)] shrink-0">{new Date(c.created_at).toLocaleDateString('tr-TR')}</span>
+                                                            </div>
+                                                            <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed break-words">{c.content}</p>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+
+                                        {user ? (
+                                            <form onSubmit={handleAddComment} className="flex gap-2 pt-1">
+                                                <input
+                                                    type="text"
+                                                    value={commentInput}
+                                                    onChange={(e) => setCommentInput(e.target.value)}
+                                                    placeholder="Yorumunuzu yazın..."
+                                                    className="flex-1 px-3 py-2 text-xs rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-primary)] outline-none focus:border-[var(--color-brand-orange)]"
+                                                />
+                                                <button
+                                                    type="submit"
+                                                    disabled={submittingComment || !commentInput.trim()}
+                                                    className="px-3.5 py-2 bg-[var(--color-brand-orange)] text-white text-xs font-bold rounded-xl hover:bg-[#e64500] transition-colors disabled:opacity-50 shrink-0"
+                                                >
+                                                    {submittingComment ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Gönder'}
+                                                </button>
+                                            </form>
+                                        ) : (
+                                            <p className="text-[10px] text-[var(--text-secondary)] text-center">Yorum yapmak için giriş yapmalısınız.</p>
+                                        )}
                                     </div>
                                 </div>
                             </div>
