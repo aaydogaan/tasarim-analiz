@@ -7,6 +7,26 @@
   src: url(https://fonts.gstatic.com/s/calsans/v2/fdN99sWUv3gWqXxqqRBctFs.woff2) format('woff2');
 }
 
+@font-face {
+  font-family: 'TT Firs Neue';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/fonts/TT-Firs-Neue.woff2') format('woff2'),
+       url('/fonts/TT-Firs-Neue.woff') format('woff'),
+       url('/fonts/TT-Firs-Neue.ttf') format('truetype'),
+       url('/fonts/TT-Firs-Neue.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'TT Firs Neue';
+  font-style: normal;
+  font-weight: 700;
+  src: url('/fonts/TT-Firs-Neue-Bold.woff2') format('woff2'),
+       url('/fonts/TT-Firs-Neue-Bold.woff') format('woff'),
+       url('/fonts/TT-Firs-Neue-Bold.ttf') format('truetype'),
+       url('/fonts/TT-Firs-Neue-Bold.otf') format('opentype');
+}
+
 :root {
   --color-brand-orange: #ff4d00;
   --bg-primary: #f8f9fa;
