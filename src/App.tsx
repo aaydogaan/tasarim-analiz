@@ -658,7 +658,7 @@ export default function App() {
             tasarim_turu: tasarimTuru || "Sosyal Medya",
             platform: platform || null,
             isletme: isletme || "Genel",
-            genel_puan: sonuc.genelPuan || 80,
+            genel_puan: sonuc.genelPuan ?? sonuc.genel_puan ?? sonuc.puan ?? 75,
             renk_puan: sonuc.renk?.puan,
             font_puan: sonuc.font?.puan,
             butunluk_puan: sonuc.butunluk?.puan,
@@ -693,11 +693,12 @@ export default function App() {
       return;
     }
     
-    // Always update 'analizler' with actual user details and image URL
+    // Always update 'analizler' with actual user details, exact AI score, and image URL
     await supabase.from('analizler').update({
       user_id: kullanici.id,
       user_name: userName,
       user_avatar: userAvatar,
+      genel_puan: sonuc?.genelPuan ?? sonuc?.genel_puan ?? sonuc?.puan ?? 75,
       gorsel_url: gorselSource,
       paylasim_aktif: true
     }).eq('id', targetAnalizId);

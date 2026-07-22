@@ -62,6 +62,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
     const [inlineComments, setInlineComments] = useState<Record<string, any[]>>({});
     const [inlineLoading, setInlineLoading] = useState<Record<string, boolean>>({});
     const [submittingComment, setSubmittingComment] = useState(false);
+    const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
 
     const toggleInlineComments = async (postId: string) => {
         if (openInlinePostId === postId) {
@@ -133,7 +134,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         const fetchPosts = async () => {
             const { data, error } = await supabase
                 .from('community_posts')
-                .select(`*, analizler(id, gorsel_url, genel_puan, user_name, user_avatar, isletme)`)
+                .select(`*, profiles(display_name, avatar_url), analizler(id, gorsel_url, genel_puan, user_name, user_avatar, isletme)`)
                 .order('created_at', { ascending: false });
             if (data && !error && isMounted) {
                 setPosts(data);
@@ -571,9 +572,25 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                 <p>Toplulukta henüz gönderi yok. İlk paylaşan sen ol!</p>
                             </div>
                         ) : [...posts].sort((a, b) => postSort === 'popular' ? b.likes_count - a.likes_count : new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map((post) => {
-                            const rawGorsel = post.analizler?.gorsel_url;
+                            const rawGorsel = post.analizler?.gorsel_url || post.gorsel_url;
                             const imageSrc = rawGorsel ? (rawGorsel.startsWith('http') || rawGorsel.startsWith('data:') ? rawGorsel : `data:image/jpeg;base64,${rawGorsel}`) : null;
-                            const authorName = (post.analizler?.user_name && post.analizler.user_name !== 'Gizli Tasarımcı') ? post.analizler.user_name : (kullanici?.id === post.user_id ? (kullanici.user_metadata?.display_name || kullanici.user_metadata?.full_name || 'Tasarımcı') : 'Tasarımcı');
+
+                            const isAuthorCurrent = kullanici && kullanici.id === post.user_id;
+                            const currentUserName = kullanici?.user_metadata?.display_name || kullanici?.user_metadata?.full_name || kullanici?.email?.split('@')[0];
+                            const currentUserAvatar = kullanici?.user_metadata?.avatar_url;
+
+                            let authorName = post.profiles?.display_name || (post.analizler?.user_name && post.analizler.user_name !== 'Gizli Tasarımcı' ? post.analizler.user_name : null);
+                            if (!authorName) {
+                                authorName = isAuthorCurrent ? (currentUserName || 'Tasarımcı') : 'Tasarımcı';
+                            }
+
+                            let authorAvatar = post.profiles?.avatar_url || post.analizler?.user_avatar;
+                            if (!authorAvatar) {
+                                authorAvatar = isAuthorCurrent ? currentUserAvatar : null;
+                            }
+                            if (!authorAvatar) {
+                                authorAvatar = `https://api.dicebear.com/7.x/notionists/svg?seed=${post.user_id || post.id}`;
+                            }
 
                             return (
                             <motion.div
@@ -585,7 +602,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                             >
                                 <div className="flex items-start gap-5">
                                     <img
-                                        src={post.analizler?.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${post.user_id}&backgroundColor=b6e3f4,c0aede`}
+                                        src={authorAvatar}
                                         className="w-14 h-14 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] object-cover shrink-0"
                                         alt="Avatar"
                                     />
@@ -628,16 +645,6 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                             >
                                                 <MessageCircle size={18} /> {post.comments_count}
                                             </button>
-                                            <button 
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    navigator.clipboard.writeText(`${window.location.origin}/community`);
-                                                    toast.success('Bağlantı kopyalandı!');
-                                                }}
-                                                className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm font-bold ml-auto"
-                                            >
-                                                <Share2 size={18} />
-                                            </button>
                                         </div>
 
                                         {/* Instagram Style Inline Comments Panel */}
@@ -652,24 +659,44 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                         Henüz yorum yapılmamış. İlk yorumu sen bırak!
                                                     </p>
                                                 ) : (
-                                                    <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
-                                                        {(inlineComments[post.id] || []).map((c: any) => {
-                                                            const cName = c.profiles?.display_name || c.user_name || 'Tasarımcı';
-                                                            const cAvatar = c.profiles?.avatar_url || c.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${c.user_id}`;
+                                                    <div className="space-y-2.5">
+                                                        {(() => {
+                                                            const allComments = inlineComments[post.id] || [];
+                                                            const isExpanded = expandedComments[post.id];
+                                                            const visibleComments = isExpanded ? allComments : allComments.slice(0, 2);
 
                                                             return (
-                                                            <div key={c.id} className="flex gap-3 bg-[var(--bg-secondary)] p-3 rounded-2xl border border-[var(--border-primary)] text-xs">
-                                                                <img src={cAvatar} className="w-7 h-7 rounded-full object-cover shrink-0" alt="" />
-                                                                <div className="min-w-0 flex-1">
-                                                                    <div className="flex justify-between items-center mb-0.5">
-                                                                        <span className="font-bold text-[var(--text-primary)]">{cName}</span>
-                                                                        <span className="text-[10px] text-[var(--text-secondary)]">{new Date(c.created_at).toLocaleDateString('tr-TR')}</span>
-                                                                    </div>
-                                                                    <p className="text-[var(--text-secondary)] leading-relaxed">{c.content}</p>
-                                                                </div>
-                                                            </div>
+                                                                <>
+                                                                    {visibleComments.map((c: any) => {
+                                                                        const isCAuthorCurrent = kullanici && kullanici.id === c.user_id;
+                                                                        const cName = c.profiles?.display_name || c.user_name || (isCAuthorCurrent ? (kullanici.user_metadata?.display_name || 'Tasarımcı') : 'Tasarımcı');
+                                                                        const cAvatar = (isCAuthorCurrent && kullanici.user_metadata?.avatar_url) ? kullanici.user_metadata.avatar_url : (c.profiles?.avatar_url || c.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${c.user_id}`);
+
+                                                                        return (
+                                                                        <div key={c.id} className="flex gap-3 bg-[var(--bg-secondary)] p-3 rounded-2xl border border-[var(--border-primary)] text-xs">
+                                                                            <img src={cAvatar} className="w-7 h-7 rounded-full object-cover shrink-0" alt="" />
+                                                                            <div className="min-w-0 flex-1">
+                                                                                <div className="flex justify-between items-center mb-0.5">
+                                                                                    <span className="font-bold text-[var(--text-primary)]">{cName}</span>
+                                                                                    <span className="text-[10px] text-[var(--text-secondary)]">{new Date(c.created_at).toLocaleDateString('tr-TR')}</span>
+                                                                                </div>
+                                                                                <p className="text-[var(--text-secondary)] leading-relaxed">{c.content}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                        );
+                                                                    })}
+
+                                                                    {allComments.length > 2 && (
+                                                                        <button
+                                                                            onClick={() => setExpandedComments(prev => ({ ...prev, [post.id]: !isExpanded }))}
+                                                                            className="text-xs font-bold text-[var(--color-brand-orange)] hover:underline pt-1 text-left block"
+                                                                        >
+                                                                            {isExpanded ? 'Yorumları daralt' : `Diğer ${allComments.length - 2} yorumu daha gör...`}
+                                                                        </button>
+                                                                    )}
+                                                                </>
                                                             );
-                                                        })}
+                                                        })()}
                                                     </div>
                                                 )}
 
@@ -720,11 +747,13 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                    : i === 2 ? 'from-emerald-400 to-teal-500' 
                                                    : 'from-[var(--border-primary)] to-[var(--text-secondary)]';
 
+                                    const isLeaderCurrent = kullanici && kullanici.id === user.id;
+
                                     return (
                                         <div key={user.id} onClick={() => onProfileOpen?.({
                                             id: user.id,
-                                            displayName: user.display_name,
-                                            avatarUrl: user.avatar_url,
+                                            displayName: isLeaderCurrent ? (kullanici?.user_metadata?.display_name || user.display_name) : user.display_name,
+                                            avatarUrl: isLeaderCurrent ? (kullanici?.user_metadata?.avatar_url || user.avatar_url) : user.avatar_url,
                                             founderNumber: user.founder_number
                                         })} className="flex items-center gap-4 group cursor-pointer p-3 -mx-3 rounded-2xl hover:bg-[var(--bg-secondary)] transition-colors transform-gpu will-change-transform">
                                             <div className="relative">
@@ -732,7 +761,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                 <div className={`absolute -inset-1 rounded-full bg-gradient-to-br ${gradient} opacity-40 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300 blur-[3px]`}></div>
                                                 <div className={`w-12 h-12 rounded-full p-[2px] bg-gradient-to-br ${gradient} relative z-10`}>
                                                     <img
-                                                        src={user.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`}
+                                                        src={isLeaderCurrent && kullanici?.user_metadata?.avatar_url ? kullanici.user_metadata.avatar_url : (user.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`)}
                                                         style={{ backfaceVisibility: 'hidden', transform: 'translateZ(0)' }}
                                                         className="w-full h-full rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--bg-primary)] object-cover transform-gpu"
                                                         alt="Avatar"
@@ -744,7 +773,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="font-bold text-sm tracking-tight leading-none mb-1 text-[var(--text-primary)] group-hover:text-[var(--color-brand-orange)] transition-colors truncate">
-                                                    {user.display_name || 'Gizli Tasarımcı'}
+                                                    {isLeaderCurrent ? (kullanici?.user_metadata?.display_name || kullanici?.user_metadata?.full_name || user.display_name || 'Tasarımcı') : (user.display_name || 'Tasarımcı')}
                                                 </p>
                                                 <p className={`text-[9px] uppercase font-black tracking-widest bg-gradient-to-r ${gradient} bg-clip-text text-transparent truncate`}>
                                                     {user.design_rank || 'Tasarımcı'}

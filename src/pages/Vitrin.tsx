@@ -60,6 +60,7 @@ export function Vitrin() {
                 user_id,
                 created_at,
                 likes_count,
+                profiles(display_name, avatar_url),
                 analizler(*)
             `)
             .order("created_at", { ascending: false });
@@ -69,20 +70,25 @@ export function Vitrin() {
                 const rawG = post.analizler?.gorsel_url || post.gorsel_url;
                 const formattedGorsel = rawG ? (rawG.startsWith('http') || rawG.startsWith('data:') ? rawG : `data:image/jpeg;base64,${rawG}`) : '';
                 
-                // Author name calculation
+                // Author name & avatar calculation
                 const isCurrentUser = user && user.id === post.user_id;
-                const currentUserName = user?.user_metadata?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Tasarımcı';
-                const currentUserAvatar = user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.id}`;
+                const currentUserName = user?.user_metadata?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0];
+                const currentUserAvatar = user?.user_metadata?.avatar_url;
 
-                let authorName = post.analizler?.user_name;
-                if (!authorName || authorName === 'Gizli Tasarımcı') {
-                    authorName = isCurrentUser ? currentUserName : 'Tasarımcı';
+                let authorName = post.profiles?.display_name || (post.analizler?.user_name && post.analizler.user_name !== 'Gizli Tasarımcı' ? post.analizler.user_name : null);
+                if (!authorName) {
+                    authorName = isCurrentUser ? (currentUserName || 'Tasarımcı') : 'Tasarımcı';
                 }
 
-                let authorAvatar = post.analizler?.user_avatar;
+                let authorAvatar = post.profiles?.avatar_url || post.analizler?.user_avatar;
                 if (!authorAvatar) {
-                    authorAvatar = isCurrentUser ? currentUserAvatar : `https://api.dicebear.com/7.x/notionists/svg?seed=${post.user_id}`;
+                    authorAvatar = isCurrentUser ? currentUserAvatar : null;
                 }
+                if (!authorAvatar) {
+                    authorAvatar = `https://api.dicebear.com/7.x/notionists/svg?seed=${post.user_id || post.id}`;
+                }
+
+                const realAiPuan = post.analizler?.genel_puan ?? 75;
 
                 return {
                     id: post.id,
@@ -91,9 +97,9 @@ export function Vitrin() {
                     user_avatar: authorAvatar,
                     gorsel_url: formattedGorsel,
                     tasarim_turu: post.analizler?.tasarim_turu || 'Tasarım',
-                    ai_puan: post.analizler?.genel_puan || 80,
+                    ai_puan: realAiPuan,
                     topluluk_puan: post.likes_count || 0,
-                    oy_sayisi: post.likes_count ? 1 : 0,
+                    oy_sayisi: 0,
                     created_at: post.created_at,
                     platform: ''
                 };

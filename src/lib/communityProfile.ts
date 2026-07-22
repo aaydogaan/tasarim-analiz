@@ -198,6 +198,7 @@ export const BADGE_DEFINITIONS = [
 ];
 
 export function getMemberFounderDisplayNumber(founderNumber: number) {
+    if (!founderNumber || founderNumber <= 0) return 1;
     return founderNumber;
 }
 
