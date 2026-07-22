@@ -34,7 +34,8 @@ import {
     TrendingUp,
     Scan,
     Target,
-    Ghost
+    Ghost,
+    ChevronDown
 } from 'lucide-react';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { supabase } from '../lib/supabase';
@@ -96,6 +97,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
     const [featuredBadge, setFeaturedBadge] = useState<string | null>(null);
     const [savingBadge, setSavingBadge] = useState(false);
     const [showBadgePicker, setShowBadgePicker] = useState(false);
+    const [badgesExpanded, setBadgesExpanded] = useState(false);
 
     // XP Data States
     const [xpData, setXpData] = useState({ posts: 0, comments: 0, analizler: 0, challenges: 0, total: 100 });
@@ -427,7 +429,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
     return (
         <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] pb-14 w-full pt-10">
             <main className="mx-auto max-w-screen-xl px-4 py-5 md:px-8 md:py-7">
-                <section className="grid gap-5 lg:grid-cols-[360px_1fr]">
+                <section className="grid gap-5 lg:grid-cols-[320px_1fr]">
                     {/* LEFT COLUMN: Avatar & Profile Info */}
                     <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-5 shadow-sm">
                         <div className="flex items-start gap-4">
@@ -689,23 +691,50 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                         </div>
 
                         {/* Topluluk Rozetleri */}
-                        <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-5 shadow-sm">
-                            <div className="mb-4 flex items-center justify-between">
-                                <h2 className="text-sm font-black tracking-tight">Topluluk Rozetleri</h2>
+                        <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] shadow-sm overflow-hidden">
+                            {/* Header - tıklanabilir */}
+                            <button
+                                onClick={() => setBadgesExpanded(v => !v)}
+                                className="w-full flex items-center justify-between p-5 hover:bg-[var(--bg-secondary)] transition-colors"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <h2 className="text-sm font-black tracking-tight">Topluluk Rozetleri</h2>
+                                    <span className="rounded-full bg-[var(--color-brand-orange)]/10 px-2 py-0.5 text-[10px] font-black text-[var(--color-brand-orange)]">
+                                        {BADGE_DEFINITIONS.filter(b => b.checkFn(userBadges, normalizedProfile.isCoreFounder, normalizedProfile.founderNumber)).length}/{BADGE_DEFINITIONS.length}
+                                    </span>
+                                </div>
                                 <div className="flex items-center gap-2">
                                     {loading && <Loader2 className="h-4 w-4 animate-spin text-[var(--text-secondary)]" />}
                                     {isOwnProfile && (
                                         <button
-                                            onClick={() => setShowBadgePicker(v => !v)}
+                                            onClick={(e) => { e.stopPropagation(); setShowBadgePicker(v => !v); if (!badgesExpanded) setBadgesExpanded(true); }}
                                             className="flex items-center gap-1.5 rounded-full border border-[var(--border-primary)] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] hover:border-[var(--color-brand-orange)] hover:text-[var(--color-brand-orange)] transition-all"
                                         >
                                             <Star className="h-3 w-3" />
-                                            {featuredBadge ? 'Rozeti değiştir' : 'Rozet seç'}
+                                            {featuredBadge ? 'Değiştir' : 'Rozet seç'}
                                         </button>
                                     )}
+                                    <motion.div
+                                        animate={{ rotate: badgesExpanded ? 180 : 0 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <ChevronDown className="h-4 w-4 text-[var(--text-secondary)]" />
+                                    </motion.div>
                                 </div>
-                            </div>
+                            </button>
 
+                            {/* Collapsible Content */}
+                            <AnimatePresence initial={false}>
+                                {badgesExpanded && (
+                                <motion.div
+                                    key="badge-content"
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                                    className="overflow-hidden"
+                                >
+                                <div className="px-5 pb-5">
                             {/* Badge picker panel */}
                             <AnimatePresence>
                                 {showBadgePicker && isOwnProfile && (
@@ -763,7 +792,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                 )}
                             </AnimatePresence>
 
-                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                            <div className="grid gap-3 sm:grid-cols-2">
                                 {BADGE_DEFINITIONS.map((badge) => {
                                     const isActive = badge.checkFn(userBadges, normalizedProfile.isCoreFounder, normalizedProfile.founderNumber);
                                     const isFeatured = featuredBadge === badge.id;
@@ -832,6 +861,10 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     );
                                 })}
                             </div>
+                            </div>
+                            </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
 
                     </div>
