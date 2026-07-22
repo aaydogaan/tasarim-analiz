@@ -415,8 +415,11 @@ export default function App() {
         setAuthAcik(false);
         setAuthMod('giris');
       } else {
-        if (authSifre !== authSifreTekrar) {
+        if (authSifreTekrar && authSifre !== authSifreTekrar) {
           throw new Error('Şifreler uyuşmuyor.');
+        }
+        if (authSifre.length < 6) {
+          throw new Error('Şifreniz en az 6 karakter olmalıdır.');
         }
         const { data, error } = await supabase.auth.signUp({
           email: authEmail,
@@ -2151,7 +2154,7 @@ export default function App() {
                         className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
                     )}
 
-                    {authMod === 'sifre-yenile' && (
+                    {(authMod === 'sifre-yenile' || authMod === 'kayit') && (
                       <input type="password" placeholder="Şifre (Tekrar)" value={authSifreTekrar} onChange={e => setAuthSifreTekrar(e.target.value)}
                         className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
                     )}
@@ -2159,7 +2162,7 @@ export default function App() {
                     {authHata && <p className="text-red-500 text-[11px] px-1">{authHata}</p>}
 
                     <button type="submit" disabled={authYukleniyor || (authMod !== 'sifre-yenile' && !authEmail) || (authMod !== 'sifremi-unuttum' && !authSifre)}
-                      className={`w-full py-3.5 rounded-xl text-white text-sm font-bold shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${authMod === 'kayit' ? 'bg-[#9CA3AF] hover:bg-gray-500' : 'bg-gray-900 hover:bg-black'}`}>
+                      className={`w-full py-3.5 rounded-xl text-white text-sm font-bold shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${authMod === 'kayit' ? 'bg-[var(--color-brand-orange)] hover:bg-[#e64500]' : 'bg-gray-900 hover:bg-black'}`}>
                       {authYukleniyor ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
                       {authMod === 'giris' ? 'Giriş Yap' : authMod === 'kayit' ? 'Hesap Oluştur' : authMod === 'sifremi-unuttum' ? 'Sıfırlama Bağlantısı Gönder' : 'Şifreyi Yenile'}
                     </button>
