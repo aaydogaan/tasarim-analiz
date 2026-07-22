@@ -97,7 +97,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const ai = new GoogleGenAI({ apiKey });
 
-  const prompt = `Sen dünya çapında ödüllü, son derece detaycı ve profesyonel bir Grafik Tasarım Analiz Yapay Zekasısın. Gönderilen görseli derinlemesine, akademik ve teknik bir dille analiz edeceksin. Lütfen cevaplarını çok detaylı, uzun ve açıklayıcı tut. Kısa ve yüzeysel yorumlardan kesinlikle kaçın! Analizlerinde font seçimlerinin psikolojik etkileri, renk teorisi, kompozisyon kuralları (altın oran, gestalt prensipleri) gibi profesyonel kavramları kullan.
+  const prompt = `Sen dünya çapında ödüllü, son derece detaycı ama öz ve net konuşan bir Grafik Tasarım Analiz Yapay Zekasısın. Gönderilen görseli akademik ve teknik bir dille analiz edeceksin. Lütfen cevaplarını KISA, NET ve DOĞRUDAN profesyonel terimlerle (renk teorisi, kompozisyon, gestalt vb.) ver. Gereksiz uzun cümlelerden kesinlikle kaçın, maliyet ve token tasarrufu için odak noktasını kaybetmeden en can alıcı tespitleri yap.
 
 Tasarım Bağlamı:
 - Tasarım Türü: ${tasarimTuru}
@@ -109,7 +109,7 @@ ${platformBilgisi}
 
 ${kriterler.context}
 
-Lütfen yukarıdaki bağlamlarda tasarımı sert ama yapıcı bir dille eleştir. 4 temel kriter için 0-25 arası puan ver ve her bir kriter için derinlemesine nedenlerini açıkla:
+Lütfen yukarıdaki bağlamlarda tasarımı sert ama yapıcı bir dille eleştir. 4 temel kriter için 0-25 arası puan ver:
 1. RENK: ${kriterler.renk}
 2. FONT: ${kriterler.font}
 3. BÜTÜNLÜK: ${kriterler.butunluk}
@@ -118,22 +118,22 @@ Lütfen yukarıdaki bağlamlarda tasarımı sert ama yapıcı bir dille eleştir
 YALNIZCA GEÇERLİ BİR JSON NESNESİ DÖNDÜR. (Markdown veya \`\`\`json ekleme, doğrudan salt JSON çıktısı ver).
 JSON Formatı Şablonu:
 {
-  "renk": {"puan": 20, "aciklama": "(Renk teorisi, psikolojik etki ve harmoni açısından en az 3-4 cümlelik derinlemesine analiz)"},
-  "font": {"puan": 18, "aciklama": "(Tipografi, okunabilirlik ve font hiyerarşisi üzerine teknik terimlerle bol detaylı açıklama)"},
-  "butunluk": {"puan": 22, "aciklama": "(Marka kimliği, sektör uyumu ve hedef kitle iletişimine dair 3-4 cümlelik profesyonel inceleme)"},
-  "kompozisyon": {"puan": 19, "aciklama": "(Görsel denge, boşluk kullanımı, hizalama ve gestalt prensipleriyle detaylı analiz)"},
+  "renk": {"puan": 20, "aciklama": "(Renk teorisi ve harmoni açısından en fazla 1-2 cümlelik kısa profesyonel analiz)"},
+  "font": {"puan": 18, "aciklama": "(Tipografi ve okunabilirlik üzerine teknik terimlerle 1-2 cümlelik net açıklama)"},
+  "butunluk": {"puan": 22, "aciklama": "(Marka kimliği ve sektör uyumuna dair kısa profesyonel inceleme)"},
+  "kompozisyon": {"puan": 19, "aciklama": "(Görsel denge ve hizalama ile ilgili nokta atışı analiz)"},
   "genelPuan": 82,
-  "genelYorum": "(Tasarımın genel karakteri, eksikleri ve nelerin parladığı hakkında en az 2-3 paragraflık derinlemesine sonuç değerlendirmesi)",
-  "oneri": "(Gelişim için maddeler halinde, nokta atışı ve çok spesifik tasarım tavsiyeleri)",
+  "genelYorum": "(Tasarımın neleri başardığı ve eksikleri hakkında kısa, tek paragraflık net değerlendirme)",
+  "oneri": "(Gelişim için en fazla 3 maddelik kısa ve spesifik tavsiyeler)",
   "genelDegerlendirme": "Örn: Profesyonel / Usta İşi / Geliştirilebilir",
-  "gucluYon": "(Tasarımı kurtaran en temel özellikler, çok detaylı)",
-  "zayifYon": "(Net ve teknik eksiklikler)",
+  "gucluYon": "(Tasarımı kurtaran 1 temel özellik)",
+  "zayifYon": "(En bariz teknik eksiklik)",
   "renkPaleti": ["#1a1a2e","#16213e","#0f3460","#e94560","#ffffff"],
   "teknikOzet": {"baskınRenkSayisi": 4, "detayYogunlugu": 35, "negatifAlanOrani": 55}
 }`;
 
   try {
-    const modelsToTry = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-flash-latest'];
+    const modelsToTry = ['gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash-lite-preview-02-05', 'gemini-1.5-flash'];
     let rawText = '';
     let secilenModel = '';
     let firstError = null;
@@ -154,7 +154,7 @@ JSON Formatı Şablonu:
           ],
           config: {
             temperature: 0.25,
-            maxOutputTokens: 4000,
+            maxOutputTokens: 1000,
             responseMimeType: 'application/json',
           }
         });
