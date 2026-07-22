@@ -422,53 +422,71 @@ export default function App() {
           throw new Error('Şifreniz en az 6 karakter olmalıdır.');
         }
         const cleanEmail = authEmail.trim();
-        const { data, error } = await supabase.auth.signUp({
+        let signUpRes = await supabase.auth.signUp({
           email: cleanEmail,
           password: authSifre,
           options: {
             data: { 
               full_name: authAdSoyad || 'Tasarımcı',
-              display_name: authAdSoyad || 'Tasarımcı',
-              design_rank: authDesignRank,
-              specialty: authSpecialty,
-              experience_level: authExperienceLevel
+              display_name: authAdSoyad || 'Tasarımcı'
             }
           }
         });
 
-        if (error) {
-          console.error("Supabase Auth SignUp hatası:", error);
+        // If custom metadata triggered a DB error on Postgres, retry without metadata
+        if (signUpRes.error && (signUpRes.error.message?.includes('Database error') || signUpRes.error.status === 500)) {
+          console.warn("Retrying clean signUp without metadata...");
+          signUpRes = await supabase.auth.signUp({
+            email: cleanEmail,
+            password: authSifre
+          });
+        }
+
+        let userRecord = signUpRes.data?.user;
+
+        if (signUpRes.error) {
+          console.error("Supabase Auth SignUp hatası:", signUpRes.error);
           
-          // Try auto login if user exists
+          // Check if user was actually created or already exists
           const signInRes = await supabase.auth.signInWithPassword({
             email: cleanEmail,
             password: authSifre
           });
 
           if (!signInRes.error && signInRes.data.user) {
-            setAuthAcik(false);
-            toast.success('Giriş yapıldı!');
-            return;
+            userRecord = signInRes.data.user;
+          } else {
+            throw new Error(`Kayıt Hatası (${signUpRes.error.status || 500}): ${signUpRes.error.message}`);
           }
-
-          throw new Error(`Kayıt Hatası (${error.status || 500}): ${error.message}`);
         }
 
-        // Upsert user profile record into public.profiles to ensure DB row exists
-        if (data?.user) {
+        // Update user metadata & profile client-side safely
+        if (userRecord) {
           try {
+            await supabase.auth.updateUser({
+              data: {
+                full_name: authAdSoyad || 'Tasarımcı',
+                display_name: authAdSoyad || 'Tasarımcı'
+              }
+            });
             await supabase.from('profiles').upsert({
-              id: data.user.id,
+              id: userRecord.id,
               display_name: authAdSoyad || 'Tasarımcı',
-              avatar_url: `https://api.dicebear.com/7.x/notionists/svg?seed=${data.user.id}`,
+              avatar_url: `https://api.dicebear.com/7.x/notionists/svg?seed=${userRecord.id}`,
               updated_at: new Date().toISOString()
             }, { onConflict: 'id' });
           } catch (_) {}
+
+          // Ensure session is signed in
+          await supabase.auth.signInWithPassword({
+            email: cleanEmail,
+            password: authSifre
+          }).catch(() => {});
         }
         
         // Step 1 done, move to Step 2
         setAuthAdim(2);
-        setSeciliAvatar(`https://api.dicebear.com/7.x/notionists/svg?seed=${data?.user?.id || Date.now()}`);
+        setSeciliAvatar(`https://api.dicebear.com/7.x/notionists/svg?seed=${userRecord?.id || Date.now()}`);
       }
     } catch (error: any) {
       setAuthHata(error.message || 'Kayıt sırasında bir hata oluştu.');
