@@ -67,14 +67,25 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
             setInlineLoading(prev => ({ ...prev, [postId]: true }));
             const { data } = await supabase
                 .from('post_comments')
-                .select('*, profiles(display_name, avatar_url)')
+                .select('*')
                 .eq('post_id', postId)
                 .order('created_at', { ascending: true });
             if (data) {
+                const userIds = [...new Set(data.map((c: any) => c.user_id).filter(Boolean))];
+                let profileMap: Record<string, any> = {};
+                if (userIds.length > 0) {
+                    const { data: profilesData } = await supabase
+                        .from('profiles')
+                        .select('id, display_name, avatar_url')
+                        .in('id', userIds);
+                    if (profilesData) {
+                        profileMap = Object.fromEntries(profilesData.map(p => [p.id, p]));
+                    }
+                }
                 const formatted = data.map(c => ({
                     ...c,
-                    user_name: c.profiles?.display_name || c.user_name || 'Tasarımcı',
-                    user_avatar: c.profiles?.avatar_url || c.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${c.user_id}`
+                    user_name: profileMap[c.user_id]?.display_name || c.user_name || 'Tasarımcı',
+                    user_avatar: profileMap[c.user_id]?.avatar_url || c.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${c.user_id}`
                 }));
                 setInlineComments(prev => ({ ...prev, [postId]: formatted }));
             }
@@ -138,9 +149,27 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         const fetchPosts = async () => {
             const { data, error } = await supabase
                 .from('community_posts')
-                .select(`*, analizler(id, gorsel_url, genel_puan, user_name, user_avatar, isletme), profiles(display_name, avatar_url, founder_number)`)
+                .select(`*, analizler(id, gorsel_url, genel_puan, user_name, user_avatar, isletme)`)
                 .order('created_at', { ascending: false });
             if (data && !error && isMounted) {
+                const userIds = [...new Set(data.map((p: any) => p.user_id).filter(Boolean))];
+                if (userIds.length > 0) {
+                    const { data: profilesData } = await supabase
+                        .from('profiles')
+                        .select('id, display_name, avatar_url, founder_number')
+                        .in('id', userIds);
+                    
+                    if (profilesData) {
+                        const profileMap = Object.fromEntries(profilesData.map(p => [p.id, p]));
+                        const enrichedData = data.map((p: any) => ({
+                            ...p,
+                            profiles: profileMap[p.user_id] || null
+                        }));
+                        setPosts(enrichedData);
+                        if (isMounted) setPostsLoading(false);
+                        return;
+                    }
+                }
                 setPosts(data);
             }
             if (isMounted) setPostsLoading(false);
