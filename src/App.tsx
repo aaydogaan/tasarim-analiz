@@ -265,6 +265,7 @@ export default function App() {
       '/about':     { title: 'Hakkımızda — Revizelesene', description: 'Revizelesene\'nin hikayesini, misyonunu ve ekibini tanıyın.' },
       '/tools':     { title: 'Araçlar — Revizelesene', description: 'Tasarımcılar için ücretsiz renk, tipografi ve kompozisyon araçlarını keşfedin.' },
       '/typography': { title: 'Tipografi Laboratuvarı — Revizelesene', description: 'Font çiftlerini test edin, hiyerarşi oluşturun ve projeleriniz için en iyi tipografi kombinasyonunu bulun.' },
+      '/nasil-calisir': { title: 'Nasıl Çalışır? — Revizelesene', description: 'Revizelesene yapay zeka analizinin, topluluk vitrininin ve liderlik tablosunun nasıl çalıştığını keşfedin.' },
       '/profile':   { title: 'Profilim — Revizelesene', description: 'Analizlerinizi, rozetlerinizi ve ilerlemenizi görüntüleyin.' },
     };
 
@@ -1079,6 +1080,11 @@ export default function App() {
         <Route path="/vitrin" element={
           <main className="flex-1 w-full max-w-screen-2xl mx-auto px-4 mt-20">
             <Vitrin />
+          </main>
+        } />
+        <Route path="/nasil-calisir" element={
+          <main className="flex-1 w-full">
+            <HowItWorks />
           </main>
         } />
         <Route path="/community" element={

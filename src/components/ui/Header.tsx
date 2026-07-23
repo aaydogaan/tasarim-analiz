@@ -142,6 +142,12 @@ export default function Header({
                     >
                         Anasayfa
                     </button>
+                    <button
+                        onClick={() => navigate('/nasil-calisir')}
+                        className={`transition-colors whitespace-nowrap ${gorunum === 'nasil-calisir' ? 'text-[var(--text-primary)]' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
+                    >
+                        Nasıl Çalışır?
+                    </button>
                     {/* Dropdown for Araçlar (Tools + Typography) */}
                     <div
                         className="relative group"
@@ -324,6 +330,16 @@ export default function Header({
                                 className={`text-left transition-colors ${gorunum === 'landing' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
                             >
                                 Anasayfa
+                            </button>
+                            <button
+                                onClick={() => {
+                                    navigate('/nasil-calisir');
+                                    setIsMobileMenuOpen(false);
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className={`text-left transition-colors ${gorunum === 'nasil-calisir' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                            >
+                                Nasıl Çalışır?
                             </button>
                             
                             <div className="flex flex-col gap-3">
