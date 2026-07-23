@@ -120,10 +120,10 @@ export default function PublicProfile() {
                 >
                     {/* Cover Image */}
                     <div className="h-32 md:h-48 w-full bg-gradient-to-r from-orange-100 to-amber-100 relative group overflow-hidden">
-                        {profile.cover_url ? (
+                        {profile.cover_url && profile.cover_url.trim() !== '' ? (
                             <img src={profile.cover_url} className="w-full h-full object-cover" alt="Kapak Fotoğrafı" />
                         ) : (
-                            <img src="/revizelesene-kapak-görseli.webp" className="w-full h-full object-cover" alt="Varsayılan Kapak Fotoğrafı" />
+                            <img src="/revizelesene-kapak-gorseli.webp" className="w-full h-full object-cover" alt="Varsayılan Kapak Fotoğrafı" />
                         )}
                         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20"></div>
                     </div>

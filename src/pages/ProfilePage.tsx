@@ -693,10 +693,10 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
 
                         {/* Cover Image */}
                         <div className="relative h-28 w-full bg-gradient-to-r from-orange-100 to-amber-100 group">
-                            {profileData.coverUrl ? (
+                            {profileData.coverUrl && profileData.coverUrl.trim() !== '' ? (
                                 <img src={profileData.coverUrl} className="w-full h-full object-cover" alt="Kapak Fotoğrafı" />
                             ) : (
-                                <img src="/revizelesene-kapak-görseli.webp" className="w-full h-full object-cover" alt="Varsayılan Kapak Fotoğrafı" />
+                                <img src="/revizelesene-kapak-gorseli.webp" className="w-full h-full object-cover" alt="Varsayılan Kapak Fotoğrafı" />
                             )}
                             
                             {isEditing && (
