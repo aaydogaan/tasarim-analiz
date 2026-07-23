@@ -40,38 +40,30 @@ interface LeaderboardUser {
   isCurrentUser?: boolean;
 }
 
-type SortOption = 'xp' | 'ai_score' | 'community';
+type SortOption = 'ai_score' | 'community';
 
 const SORT_CONFIG: { id: SortOption; label: string; sublabel: string; icon: React.ReactNode; color: string; activeClass: string }[] = [
-  {
-    id: 'xp',
-    label: 'XP Puanı',
-    sublabel: 'Toplam deneyim puanı',
-    icon: <Star className="w-4 h-4" />,
-    color: 'text-amber-600',
-    activeClass: 'bg-amber-500 text-white border-amber-500 shadow-amber-200'
-  },
   {
     id: 'ai_score',
     label: 'Yapay Zeka Puanı',
     sublabel: 'Analiz ortalama skoru',
     icon: <Sparkles className="w-4 h-4" />,
-    color: 'text-violet-600',
-    activeClass: 'bg-violet-500 text-white border-violet-500 shadow-violet-200'
+    color: 'text-slate-600',
+    activeClass: 'bg-slate-800 text-white border-slate-800 shadow-sm'
   },
   {
     id: 'community',
     label: 'Topluluk Puanı',
     sublabel: 'Keşfet beğenileri',
     icon: <Heart className="w-4 h-4" />,
-    color: 'text-rose-500',
-    activeClass: 'bg-rose-500 text-white border-rose-500 shadow-rose-200'
+    color: 'text-slate-600',
+    activeClass: 'bg-slate-800 text-white border-slate-800 shadow-sm'
   },
 ];
 
 export function Leaderboard() {
   const [activeTab, setActiveTab] = useState<'week' | 'month' | 'all'>('all');
-  const [sortOption, setSortOption] = useState<SortOption>('xp');
+  const [sortOption, setSortOption] = useState<SortOption>('ai_score');
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -222,8 +214,8 @@ export function Leaderboard() {
         };
       });
 
-      // Default sort: XP descending
-      liveList.sort((a, b) => b.pointsNum - a.pointsNum);
+      // Default sort: AI Score descending
+      liveList.sort((a, b) => b.avgAiScore - a.avgAiScore);
       liveList.forEach((u, index) => { u.rank = index + 1; });
 
       setUsers(liveList);
@@ -240,9 +232,8 @@ export function Leaderboard() {
 
   // Top three always based on current sort
   const getSortValue = (u: LeaderboardUser) => {
-    if (sortOption === 'ai_score') return u.avgAiScore;
     if (sortOption === 'community') return u.communityLikes;
-    return u.pointsNum;
+    return u.avgAiScore; // Default to AI score
   };
 
   const sortedUsers = [...users].sort((a, b) => getSortValue(b) - getSortValue(a));
@@ -275,12 +266,10 @@ export function Leaderboard() {
         : { bg: 'bg-gradient-to-br from-orange-50 to-amber-100 border border-orange-200', numColor: 'text-orange-700', icon: <CrownSimple size={28} weight="duotone" color="#f97316" /> };
 
     // Show score relevant to active sort
-    const scoreLabel = sortOption === 'ai_score' ? 'YZ Skoru' : sortOption === 'community' ? 'Beğeni' : 'XP Puanı';
+    const scoreLabel = sortOption === 'community' ? 'Beğeni' : 'YZ Skoru';
     const scoreValue = sortOption === 'ai_score'
       ? (user.avgAiScore > 0 ? `${user.avgAiScore}/100` : '—')
-      : sortOption === 'community'
-        ? user.communityLikes.toLocaleString('tr-TR')
-        : user.pointsNum.toLocaleString('tr-TR');
+      : user.communityLikes.toLocaleString('tr-TR');
 
     return (
       <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-5 hover:shadow-md transition-shadow">
@@ -531,12 +520,8 @@ export function Leaderboard() {
 
           {/* TABLE */}
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-            {/* Active sort indicator bar */}
-            <div className={`h-1 w-full ${
-              sortOption === 'xp' ? 'bg-gradient-to-r from-amber-400 to-yellow-300'
-              : sortOption === 'ai_score' ? 'bg-gradient-to-r from-violet-500 to-purple-400'
-              : 'bg-gradient-to-r from-rose-500 to-pink-400'
-            }`} />
+            {/* Active sort indicator bar - corporate styling */}
+            <div className={`h-1 w-full bg-slate-800`} />
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-[600px]">
@@ -545,22 +530,16 @@ export function Leaderboard() {
                     <th className="py-4 px-6">Sıra</th>
                     <th className="py-4 px-6">Kullanıcı</th>
                     <th className="py-4 px-6 text-center">Tamamlanan analiz</th>
-                    <th className={`py-4 px-6 text-center ${sortOption === 'ai_score' ? 'text-violet-600' : 'text-slate-500'}`}>
-                      <div className="flex items-center justify-center gap-1">
-                        {sortOption === 'ai_score' && <Sparkles className="w-3.5 h-3.5 text-violet-500" />}
+                    <th className={`py-4 px-6 text-center ${sortOption === 'ai_score' ? 'text-slate-800' : 'text-slate-400'}`}>
+                      <div className="flex items-center justify-center gap-1.5">
+                        {sortOption === 'ai_score' && <Sparkles className="w-4 h-4 text-slate-700" />}
                         Yapay zeka puanı
                       </div>
                     </th>
-                    <th className={`py-4 px-6 text-center ${sortOption === 'community' ? 'text-rose-500' : 'text-slate-500'}`}>
-                      <div className="flex items-center justify-center gap-1">
-                        {sortOption === 'community' && <Heart className="w-3.5 h-3.5 text-rose-500" />}
+                    <th className={`py-4 px-6 text-center ${sortOption === 'community' ? 'text-slate-800' : 'text-slate-400'}`}>
+                      <div className="flex items-center justify-center gap-1.5">
+                        {sortOption === 'community' && <Heart className="w-4 h-4 text-slate-700" />}
                         Topluluk beğenisi
-                      </div>
-                    </th>
-                    <th className={`py-4 px-6 text-right ${sortOption === 'xp' ? 'text-amber-600' : 'text-slate-500'}`}>
-                      <div className="flex items-center justify-end gap-1">
-                        {sortOption === 'xp' && <Star className="w-3.5 h-3.5 text-amber-500" />}
-                        Toplam puan
                       </div>
                     </th>
                   </tr>
@@ -656,17 +635,12 @@ export function Leaderboard() {
                           <td className="py-4 px-6 text-center whitespace-nowrap">
                             {user.communityLikes > 0 ? (
                               <div className="flex items-center justify-center gap-1.5">
-                                <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400 shrink-0" />
+                                <Heart className="w-4 h-4 text-slate-400 shrink-0" />
                                 <span className="font-bold text-slate-800">{user.communityLikes}</span>
                               </div>
                             ) : (
                               <span className="text-slate-300 font-medium">—</span>
                             )}
-                          </td>
-
-                          {/* Total XP */}
-                          <td className="py-4 px-6 text-right whitespace-nowrap font-extrabold text-slate-900 text-sm md:text-base">
-                            {user.totalPoints}
                           </td>
                         </tr>
                       );
