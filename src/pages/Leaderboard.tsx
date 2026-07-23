@@ -195,19 +195,17 @@ export function Leaderboard() {
   ];
 
   const PodiumCard = ({ user, rank }: { user: LeaderboardUser; rank: 1 | 2 | 3 }) => {
-    const borderColor = rank === 1 ? 'border-amber-300' : rank === 2 ? 'border-slate-300' : 'border-amber-600/40';
-    const emblemClass = rank === 1
-      ? 'bg-gradient-to-br from-amber-100 to-amber-200 border-amber-300 text-amber-700'
-      : rank === 2
-        ? 'bg-gradient-to-br from-slate-100 to-slate-200 border-slate-300 text-slate-700'
-        : 'bg-gradient-to-br from-amber-50 to-orange-100 border-amber-600/30 text-amber-800';
+    const avatarBorder = rank === 1 ? 'ring-2 ring-amber-400 ring-offset-2' : rank === 2 ? 'ring-2 ring-slate-300 ring-offset-2' : 'ring-2 ring-orange-400/50 ring-offset-2';
 
-    const Icon = rank === 1 ? Trophy : rank === 2 ? Medal : Award;
-    const iconClass = rank === 1
-      ? 'text-amber-600 fill-amber-500'
+    // Clean rank badge: background color + Lucide icon (stroke only, no fill)
+    const badgeBg = rank === 1
+      ? 'bg-amber-50 border border-amber-200'
       : rank === 2
-        ? 'text-slate-500 fill-slate-300'
-        : 'text-amber-700 fill-amber-600';
+        ? 'bg-slate-50 border border-slate-200'
+        : 'bg-orange-50 border border-orange-200';
+    const badgeNumColor = rank === 1 ? 'text-amber-700' : rank === 2 ? 'text-slate-600' : 'text-orange-700';
+    const badgeIconColor = rank === 1 ? 'text-amber-500' : rank === 2 ? 'text-slate-400' : 'text-orange-500';
+    const Icon = rank === 1 ? Trophy : rank === 2 ? Medal : Award;
 
     return (
       <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-5 hover:shadow-md transition-shadow">
@@ -216,7 +214,7 @@ export function Leaderboard() {
             <img
               src={user.avatar}
               alt={user.name}
-              className={`w-14 h-14 rounded-full object-cover border-2 ${borderColor} shadow-sm`}
+              className={`w-14 h-14 rounded-full object-cover ${avatarBorder}`}
             />
             <div>
               <h3 className="font-bold text-slate-900 text-base flex items-center gap-1.5">
@@ -228,9 +226,11 @@ export function Leaderboard() {
               </div>
             </div>
           </div>
-          <div className={`w-10 h-10 rounded-full ${emblemClass} border flex items-center justify-center font-extrabold text-xs shadow-xs shrink-0 gap-1`}>
-            <Icon className={`w-4 h-4 ${iconClass}`} />
-            <span>{rank}</span>
+
+          {/* Clean rank badge: icon above number, no fill */}
+          <div className={`flex flex-col items-center justify-center w-12 h-12 rounded-2xl ${badgeBg} shrink-0 gap-0.5`}>
+            <Icon className={`w-4 h-4 ${badgeIconColor} shrink-0`} strokeWidth={2} />
+            <span className={`text-[11px] font-black ${badgeNumColor} leading-none`}>#{rank}</span>
           </div>
         </div>
 
@@ -313,7 +313,7 @@ export function Leaderboard() {
               </button>
             </div>
             <div>
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Katılan Üyeler</span>
+              <span className="text-xs font-semibold text-slate-500 block mb-1">Katılan üyeler</span>
               <span className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">{realMemberCount}</span>
             </div>
           </div>
@@ -328,7 +328,7 @@ export function Leaderboard() {
               </button>
             </div>
             <div>
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Tamamlanan Analizler</span>
+              <span className="text-xs font-semibold text-slate-500 block mb-1">Tamamlanan analizler</span>
               <span className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">{realAnalysisCount}</span>
             </div>
           </div>
