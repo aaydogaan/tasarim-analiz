@@ -187,13 +187,19 @@ export default function Header({
                     </button>
                     <button
                         onClick={() => handleNavClick('community')}
-                        className={`flex items-center gap-1.5 transition-colors whitespace-nowrap ${gorunum === 'community' ? 'text-[var(--text-primary)]' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
+                        className={`flex items-center gap-1.5 transition-colors whitespace-nowrap ${gorunum === 'community' ? 'text-[var(--text-primary)] font-bold' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
                     >
                         Topluluk
                         <span className="relative flex h-1.5 w-1.5">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                         </span>
+                    </button>
+                    <button
+                        onClick={() => handleNavClick('leaderboard')}
+                        className={`transition-colors whitespace-nowrap ${['leaderboard', 'liderlik'].includes(gorunum) ? 'text-[var(--text-primary)] font-bold' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
+                    >
+                        Liderlik Tablosu
                     </button>
                 </div>
 
@@ -348,6 +354,13 @@ export default function Header({
                                 className={`text-left transition-colors ${gorunum === 'community' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
                             >
                                 Topluluk
+                            </button>
+
+                            <button
+                                onClick={() => handleNavClick('leaderboard')}
+                                className={`text-left transition-colors ${['leaderboard', 'liderlik'].includes(gorunum) ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                            >
+                                Liderlik Tablosu
                             </button>
 
                             <div className="flex flex-col gap-3">

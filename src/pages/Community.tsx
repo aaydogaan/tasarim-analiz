@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useNavigate } from 'react-router-dom';
 import { Users, MessageCircle, Heart, Trophy, Zap, Share2, Crown, Star, Sparkles, ArrowRight, Award, X, Send, Loader2, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
@@ -32,6 +33,7 @@ type CommunityProps = {
 };
 
 export default function Community({ kullanici, onAuthClick, onProfileClick, onProfileOpen }: CommunityProps) {
+    const navigate = useNavigate();
     const [wordIndex, setWordIndex] = useState(0);
     const [founders, setFounders] = useState<NormalizedCommunityProfile[]>([]);
     const [founderSource, setFounderSource] = useState<'loading' | 'live' | 'preview'>('loading');
@@ -798,6 +800,17 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                     );
                                 })}
                             </div>
+
+                            <button
+                                onClick={() => {
+                                    navigate('/leaderboard');
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className="w-full mt-6 py-3 px-4 bg-[var(--bg-secondary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)] border border-[var(--border-primary)] rounded-2xl text-xs font-extrabold text-[var(--text-primary)] transition-all flex items-center justify-center gap-2 shadow-xs group"
+                            >
+                                <span>Detaylı Liderlik Tablosunu Gör</span>
+                                <ArrowRight className="w-4 h-4 text-[var(--color-brand-orange)] group-hover:translate-x-0.5 transition-transform" />
+                            </button>
                         </div>
 
                         {/* Badge Goals */}

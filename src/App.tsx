@@ -19,6 +19,7 @@ import Pricing from "./pages/Pricing";
 import About from "./pages/About";
 import Tools from "./pages/Tools";
 import TypographyLab from "./pages/TypographyLab";
+import { Leaderboard } from "./pages/Leaderboard";
 import LiveActivityFeed from "./components/ui/LiveActivityFeed";
 import AnalizEtButton from "./components/ui/AnalizEtButton";
 import ScanningOverlay from "./components/ui/ScanningOverlay";
@@ -1012,6 +1013,16 @@ export default function App() {
         <Route path="/typography" element={
           <main className="flex-1 w-full mt-20">
             <TypographyLab />
+          </main>
+        } />
+        <Route path="/leaderboard" element={
+          <main className="flex-1 w-full">
+            <Leaderboard />
+          </main>
+        } />
+        <Route path="/liderlik" element={
+          <main className="flex-1 w-full">
+            <Leaderboard />
           </main>
         } />
         <Route path="/profile" element={
