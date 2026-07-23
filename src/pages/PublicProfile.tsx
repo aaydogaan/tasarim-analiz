@@ -255,13 +255,13 @@ export default function PublicProfile() {
                         onClick={() => setSeciliGorsel(null)}
                     >
                         <button 
-                            className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors backdrop-blur-sm"
+                            className="absolute top-4 right-4 md:top-6 md:right-6 z-[101] p-2.5 md:p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all backdrop-blur-md border border-white/20"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setSeciliGorsel(null);
                             }}
                         >
-                            <X className="w-6 h-6" />
+                            <X className="w-5 h-5 md:w-6 md:h-6" />
                         </button>
                         <motion.div
                             initial={{ scale: 0.95, y: 20 }}
