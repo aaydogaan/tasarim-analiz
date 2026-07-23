@@ -252,22 +252,21 @@ export default function Header({
                                             <User className="w-4 h-4 opacity-70" /> Profilim
                                         </button>
                                         <button
-                                            onClick={() => { onStatsClick(); setIsProfileDropdownOpen(false); }}
+                                            onClick={() => { handleNavClick(''); setIsProfileDropdownOpen(false); }}
                                             className="w-full text-left px-4 py-2.5 text-[13px] font-semibold text-[var(--text-primary)]/80 hover:text-[var(--color-brand-orange)] hover:bg-[var(--bg-secondary)] transition-all flex items-center gap-2"
                                         >
                                             <BarChart2 className="w-4 h-4 opacity-70" />
-                                            Dashboard
+                                            Analiz Ekranı
+                                        </button>
+                                        <button
+                                            onClick={() => { handleNavClick('app?tab=analizlerim'); setIsProfileDropdownOpen(false); }}
+                                            className="w-full text-left px-4 py-2.5 text-[13px] font-semibold text-[var(--text-primary)]/80 hover:text-[var(--color-brand-orange)] hover:bg-[var(--bg-secondary)] transition-all flex items-center gap-2"
+                                        >
+                                            <Layers className="w-4 h-4 opacity-70" />
+                                            Analizlerim
                                         </button>
                                         
                                         <div className="h-px bg-gradient-to-r from-transparent via-[var(--border-primary)] to-transparent my-1" />
-
-                                        <button
-                                            onClick={() => { handleNavClick('about'); setIsProfileDropdownOpen(false); }}
-                                            className="w-full text-left px-4 py-2.5 text-[13px] font-semibold text-[var(--text-primary)]/80 hover:text-[var(--color-brand-orange)] hover:bg-[var(--bg-secondary)] transition-all flex items-center gap-2"
-                                        >
-                                            <Info className="w-4 h-4 opacity-70" />
-                                            Proje Hakkında
-                                        </button>
                                         <button
                                             onClick={() => { handleNavClick('pricing'); setIsProfileDropdownOpen(false); }}
                                             className="w-full text-left px-4 py-2.5 text-[13px] font-semibold text-[var(--text-primary)]/80 hover:text-[var(--color-brand-orange)] hover:bg-[var(--bg-secondary)] transition-all flex items-center gap-2"
@@ -382,10 +381,10 @@ export default function Header({
                             <div className="flex flex-col gap-3">
                                 <span className="text-[13px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Hakkımızda</span>
                                 <button
-                                    onClick={() => handleNavClick('about')}
-                                    className={`text-left pl-4 transition-colors ${gorunum === 'about' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                                    onClick={() => handleNavClick('app?tab=analizlerim')}
+                                    className={`text-left pl-4 transition-colors ${gorunum === 'app' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
                                 >
-                                    Proje Hakkında
+                                    Analizlerim
                                 </button>
                                 <button
                                     onClick={() => handleNavClick('pricing')}

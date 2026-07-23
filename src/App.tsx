@@ -335,6 +335,14 @@ export default function App() {
   const [kopyalananRenk, setKopyalananRenk] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab === 'analizlerim' || tab === 'genel' || tab === 'raporlar' || tab === 'gecmis' || tab === 'tercihler') {
+      setDashboardTab(tab);
+    }
+  }, [location.search]);
+
   // Stats modal
   const [statsAcik, setStatsAcik] = useState(false);
   const [statsData, setStatsData] = useState<any>(null);
