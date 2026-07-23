@@ -17,8 +17,7 @@ import {
   Medal, 
   Info,
   ShieldCheck,
-  Check,
-  PlusCircle
+  Check
 } from 'lucide-react';
 
 interface LeaderboardUser {
@@ -85,8 +84,6 @@ export function Leaderboard() {
         .from('profiles')
         .select('*', { count: 'exact', head: true });
 
-      setRealMemberCount(memberCount || 0);
-
       // 2. Fetch exact real total analyses count
       const { count: goalCount } = await supabase
         .from('analizler')
@@ -94,11 +91,24 @@ export function Leaderboard() {
 
       setRealGoalCount(goalCount || 0);
 
-      // 3. Fetch ONLY real registered user profiles sorted by xp
+      // 3. Fetch real user profiles sorted by xp
       const { data: profilesData } = await supabase
         .from('profiles')
         .select('*')
         .order('xp', { ascending: false });
+
+      // 4. Fetch community posts & comments to discover all registered platform users
+      const { data: postsData } = await supabase
+        .from('community_posts')
+        .select('user_id, user_name, user_avatar');
+
+      const { data: commentsData } = await supabase
+        .from('post_comments')
+        .select('user_id, user_name, user_avatar');
+
+      const { data: vitrinData } = await supabase
+        .from('vitrin_items')
+        .select('user_id');
 
       // Fetch analyses count per user
       const { data: userAnalizler } = await supabase
@@ -128,56 +138,91 @@ export function Leaderboard() {
         });
       }
 
-      const liveList: LeaderboardUser[] = [];
-      const addedIds = new Set<string>();
+      // User Metadata Registry
+      const userMetaRegistry: Record<string, { name: string; avatar: string; xp: number }> = {};
 
-      // A) Process real profiles from Supabase ONLY
-      if (profilesData && profilesData.length > 0) {
-        profilesData.forEach((p, idx) => {
-          if (!p.id) return;
-          addedIds.add(p.id);
-          const xp = p.xp || (p.total_xp ? p.total_xp : (analizCountMap[p.id] || 1) * 250);
-          const realTasks = analizCountMap[p.id] || (p.analiz_sayisi ? p.analiz_sayisi : Math.floor(xp / 100) || 1);
-          const realVictories = victoriesMap[p.id] || Math.floor(xp / 250) || 0;
-          
-          liveList.push({
-            rank: 0,
-            id: p.id,
-            name: p.display_name || p.full_name || 'Tasarımcı',
-            userIdTag: `ID ${p.id.slice(0, 7).toUpperCase()}`,
-            avatar: p.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${p.id}`,
-            tasksCompleted: realTasks,
-            spentTime: `${Math.floor(xp / 80) + 10}:${((idx + 1) * 17) % 60}`,
-            victories: realVictories,
-            achievements: Math.floor(xp / 30) || (realTasks > 0 ? 5 : 1),
-            totalPoints: (xp / 1000).toFixed(5),
-            pointsNum: xp,
-            trend: idx % 2 === 0 ? 'up' : 'down',
-            isCurrentUser: currentUser && currentUser.id === p.id
-          });
+      if (profilesData) {
+        profilesData.forEach(p => {
+          if (p.id) {
+            userMetaRegistry[p.id] = {
+              name: p.display_name || p.full_name || 'Tasarımcı',
+              avatar: p.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${p.id}`,
+              xp: p.xp || p.total_xp || 0
+            };
+          }
         });
       }
 
-      // B) If current logged-in user is not in profiles list yet, include current user
-      if (currentUser && !addedIds.has(currentUser.id)) {
-        const userTasks = analizCountMap[currentUser.id] || 0;
-        const userXP = (userTasks * 250) || 500;
-        liveList.push({
-          rank: 0,
-          id: currentUser.id,
+      if (postsData) {
+        postsData.forEach(post => {
+          if (post.user_id && !userMetaRegistry[post.user_id]) {
+            userMetaRegistry[post.user_id] = {
+              name: post.user_name || 'Tasarımcı',
+              avatar: post.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${post.user_id}`,
+              xp: 0
+            };
+          }
+        });
+      }
+
+      if (commentsData) {
+        commentsData.forEach(c => {
+          if (c.user_id && !userMetaRegistry[c.user_id]) {
+            userMetaRegistry[c.user_id] = {
+              name: c.user_name || 'Tasarımcı',
+              avatar: c.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${c.user_id}`,
+              xp: 0
+            };
+          }
+        });
+      }
+
+      if (vitrinData) {
+        vitrinData.forEach(v => {
+          if (v.user_id && !userMetaRegistry[v.user_id]) {
+            userMetaRegistry[v.user_id] = {
+              name: 'Tasarımcı',
+              avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${v.user_id}`,
+              xp: 0
+            };
+          }
+        });
+      }
+
+      // Ensure current user is in registry
+      if (currentUser && !userMetaRegistry[currentUser.id]) {
+        userMetaRegistry[currentUser.id] = {
           name: currentUser.user_metadata?.display_name || currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Tasarımcı',
-          userIdTag: `ID ${currentUser.id.slice(0, 7).toUpperCase()}`,
           avatar: currentUser.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${currentUser.id}`,
-          tasksCompleted: userTasks,
-          spentTime: `${Math.floor(userXP / 80) + 10}:15`,
-          victories: victoriesMap[currentUser.id] || 0,
-          achievements: Math.floor(userXP / 30) || 2,
-          totalPoints: (userXP / 1000).toFixed(5),
-          pointsNum: userXP,
-          trend: 'up',
-          isCurrentUser: true
-        });
+          xp: 0
+        };
       }
+
+      const allUserIds = Object.keys(userMetaRegistry);
+      setRealMemberCount(Math.max(memberCount || 0, allUserIds.length));
+
+      const liveList: LeaderboardUser[] = allUserIds.map((userId, idx) => {
+        const meta = userMetaRegistry[userId];
+        const realTasks = analizCountMap[userId] || 0;
+        const realVictories = victoriesMap[userId] || 0;
+        const xp = meta.xp > 0 ? meta.xp : (realTasks * 250 + realVictories * 150 + (userId === currentUser?.id ? 500 : 250));
+        
+        return {
+          rank: 0,
+          id: userId,
+          name: meta.name,
+          userIdTag: `ID ${userId.slice(0, 7).toUpperCase()}`,
+          avatar: meta.avatar,
+          tasksCompleted: realTasks,
+          spentTime: `${Math.floor(xp / 80) + 10}:${((idx + 1) * 17) % 60}`,
+          victories: realVictories,
+          achievements: Math.floor(xp / 30) || (realTasks > 0 ? 5 : 1),
+          totalPoints: `${xp.toLocaleString('tr-TR')} XP`,
+          pointsNum: xp,
+          trend: idx % 2 === 0 ? 'up' : 'down',
+          isCurrentUser: currentUser && currentUser.id === userId
+        };
+      });
 
       // Sort by pointsNum initially
       liveList.sort((a, b) => b.pointsNum - a.pointsNum);
@@ -406,7 +451,6 @@ export function Leaderboard() {
                       </h3>
                       <div className="flex items-baseline gap-1 mt-0.5">
                         <span className="text-xl font-extrabold text-slate-900">{topThree[0].totalPoints}</span>
-                        <span className="text-xs font-semibold text-slate-500">puan</span>
                       </div>
                     </div>
                   </div>
@@ -458,7 +502,6 @@ export function Leaderboard() {
                       </h3>
                       <div className="flex items-baseline gap-1 mt-0.5">
                         <span className="text-xl font-extrabold text-slate-900">{topThree[1].totalPoints}</span>
-                        <span className="text-xs font-semibold text-slate-500">puan</span>
                       </div>
                     </div>
                   </div>
@@ -510,7 +553,6 @@ export function Leaderboard() {
                       </h3>
                       <div className="flex items-baseline gap-1 mt-0.5">
                         <span className="text-xl font-extrabold text-slate-900">{topThree[2].totalPoints}</span>
-                        <span className="text-xs font-semibold text-slate-500">puan</span>
                       </div>
                     </div>
                   </div>
@@ -554,15 +596,15 @@ export function Leaderboard() {
             <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Genel Sıralama</h2>
 
             <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-              {/* Custom Animated Sort Selector */}
-              <div className="relative w-full sm:w-56">
+              {/* Custom Animated Sort Selector - Extended width & single line text */}
+              <div className="relative w-full sm:w-auto min-w-[240px]">
                 <button
                   type="button"
                   onClick={() => setIsSortOpen(!isSortOpen)}
-                  className="w-full flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs md:text-sm font-bold text-slate-700 shadow-sm hover:border-slate-300 transition-colors"
+                  className="w-full whitespace-nowrap flex items-center justify-between gap-4 bg-white border border-slate-200 rounded-xl px-5 py-3 text-xs md:text-sm font-bold text-slate-800 shadow-sm hover:border-slate-300 transition-colors"
                 >
                   <span>{sortOptionsConfig.find(s => s.id === sortOption)?.label}</span>
-                  <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${isSortOpen ? 'rotate-180 text-slate-700' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-300 shrink-0 ${isSortOpen ? 'rotate-180 text-slate-700' : ''}`} />
                 </button>
 
                 <AnimatePresence>
@@ -574,7 +616,7 @@ export function Leaderboard() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 6, scale: 0.96 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute right-0 mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-xl z-30 p-1.5 space-y-1"
+                        className="absolute right-0 mt-2 min-w-full w-max bg-white border border-slate-200 rounded-2xl shadow-xl z-30 p-1.5 space-y-1"
                       >
                         {sortOptionsConfig.map((opt) => (
                           <button
@@ -584,12 +626,12 @@ export function Leaderboard() {
                               setSortOption(opt.id as any);
                               setIsSortOpen(false);
                             }}
-                            className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center justify-between ${
+                            className={`w-full whitespace-nowrap text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center justify-between gap-3 ${
                               sortOption === opt.id ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-50'
                             }`}
                           >
                             <span>{opt.label}</span>
-                            {sortOption === opt.id && <Check className="w-3.5 h-3.5 text-slate-900" />}
+                            {sortOption === opt.id && <Check className="w-3.5 h-3.5 text-slate-900 shrink-0" />}
                           </button>
                         ))}
                       </motion.div>
@@ -606,7 +648,7 @@ export function Leaderboard() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Kullanıcı adına göre ara..."
-                  className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs md:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 shadow-sm"
+                  className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-xs md:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 shadow-sm"
                 />
               </div>
             </div>
