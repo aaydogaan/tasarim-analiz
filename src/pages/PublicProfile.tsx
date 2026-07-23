@@ -3,8 +3,6 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { Trophy, Calendar, Link as LinkIcon, Twitter, Briefcase, Award, Star, Activity, ArrowLeft } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { tr } from 'date-fns/locale';
 
 export default function PublicProfile() {
     const { slug } = useParams();
@@ -140,7 +138,7 @@ export default function PublicProfile() {
                                 {profile.created_at && (
                                     <div className="flex items-center gap-2 text-[var(--text-secondary)] bg-[var(--bg-primary)] px-4 py-2 rounded-xl">
                                         <Calendar className="w-4 h-4" /> 
-                                        {formatDistanceToNow(new Date(profile.created_at), { addSuffix: true, locale: tr })} katıldı
+                                        {new Date(profile.created_at).toLocaleDateString('tr-TR')} tarihinde katıldı
                                     </div>
                                 )}
                                 {profile.website && (
