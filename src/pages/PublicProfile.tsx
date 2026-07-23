@@ -263,15 +263,19 @@ export default function PublicProfile() {
                         >
                             <X className="w-6 h-6" />
                         </button>
-                        <motion.img
+                        <motion.div
                             initial={{ scale: 0.95, y: 20 }}
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.95, y: 20 }}
-                            src={seciliGorsel}
-                            alt="Tasarım Görseli"
-                            className="max-w-[95vw] max-h-[90vh] rounded-2xl shadow-2xl object-contain border border-white/10"
-                            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the image itself
-                        />
+                            className="w-full max-w-3xl max-h-[70vh] relative flex justify-center items-center pointer-events-none"
+                        >
+                            <img
+                                src={seciliGorsel}
+                                alt="Tasarım Görseli"
+                                className="w-auto h-auto max-w-full max-h-[70vh] rounded-2xl shadow-2xl object-contain border border-white/10 pointer-events-auto"
+                                onClick={(e) => e.stopPropagation()}
+                            />
+                        </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
