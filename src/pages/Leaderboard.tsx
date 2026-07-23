@@ -17,7 +17,8 @@ import {
   Medal, 
   Info,
   ShieldCheck,
-  Check
+  Check,
+  PlusCircle
 } from 'lucide-react';
 
 interface LeaderboardUser {
@@ -45,8 +46,8 @@ export function Leaderboard() {
   const [loading, setLoading] = useState(true);
   
   // Real statistics counters
-  const [realMemberCount, setRealMemberCount] = useState<number>(2);
-  const [realGoalCount, setRealGoalCount] = useState<number>(10);
+  const [realMemberCount, setRealMemberCount] = useState<number>(0);
+  const [realGoalCount, setRealGoalCount] = useState<number>(0);
 
   // Custom Dropdown State
   const [overallFilter, setOverallFilter] = useState('Genel Bakış');
@@ -84,20 +85,16 @@ export function Leaderboard() {
         .from('profiles')
         .select('*', { count: 'exact', head: true });
 
-      if (memberCount !== null && memberCount > 0) {
-        setRealMemberCount(memberCount);
-      }
+      setRealMemberCount(memberCount || 0);
 
       // 2. Fetch exact real total analyses count
       const { count: goalCount } = await supabase
         .from('analizler')
         .select('*', { count: 'exact', head: true });
 
-      if (goalCount !== null && goalCount > 0) {
-        setRealGoalCount(goalCount);
-      }
+      setRealGoalCount(goalCount || 0);
 
-      // 3. Fetch real user profiles sorted by xp
+      // 3. Fetch ONLY real registered user profiles sorted by xp
       const { data: profilesData } = await supabase
         .from('profiles')
         .select('*')
@@ -117,104 +114,32 @@ export function Leaderboard() {
         });
       }
 
-      // Base Community Designers list to ensure rich, never-empty leaderboard experience
-      const defaultCommunityUsers: LeaderboardUser[] = [
-        {
-          rank: 1,
-          id: 'dev-1',
-          name: 'Theresa Webb',
-          userIdTag: 'ID 1591245',
-          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-          tasksCompleted: 236,
-          spentTime: '36:40',
-          victories: 43,
-          achievements: 476,
-          totalPoints: '5.67532',
-          pointsNum: 5675.32,
-          trend: 'up'
-        },
-        {
-          rank: 2,
-          id: 'dev-2',
-          name: 'Floyd Miles',
-          userIdTag: 'ID 1391245',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-          tasksCompleted: 167,
-          spentTime: '28:16',
-          victories: 37,
-          achievements: 237,
-          totalPoints: '4.47512',
-          pointsNum: 4475.12,
-          trend: 'up'
-        },
-        {
-          rank: 3,
-          id: 'dev-3',
-          name: 'Jacob Jones',
-          userIdTag: 'ID 1892245',
-          avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-          tasksCompleted: 146,
-          spentTime: '27:15',
-          victories: 35,
-          achievements: 178,
-          totalPoints: '4.21484',
-          pointsNum: 4214.84,
-          trend: 'down'
-        },
-        {
-          rank: 4,
-          id: 'dev-4',
-          name: 'Courtney Henry',
-          userIdTag: 'ID 1928341',
-          avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-          tasksCompleted: 128,
-          spentTime: '24:10',
-          victories: 29,
-          achievements: 142,
-          totalPoints: '3.98210',
-          pointsNum: 3982.10,
-          trend: 'up'
-        },
-        {
-          rank: 5,
-          id: 'dev-5',
-          name: 'Albert Flores',
-          userIdTag: 'ID 1102934',
-          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
-          tasksCompleted: 114,
-          spentTime: '21:45',
-          victories: 24,
-          achievements: 119,
-          totalPoints: '3.65420',
-          pointsNum: 3654.20,
-          trend: 'up'
-        },
-        {
-          rank: 6,
-          id: 'dev-6',
-          name: 'Eleanor Pena',
-          userIdTag: 'ID 1445920',
-          avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-          tasksCompleted: 98,
-          spentTime: '19:30',
-          victories: 21,
-          achievements: 95,
-          totalPoints: '3.12050',
-          pointsNum: 3120.50,
-          trend: 'down'
-        }
-      ];
+      // Fetch showcase/post votes per user
+      const { data: userBegeniler } = await supabase
+        .from('begeniler')
+        .select('user_id');
+
+      const victoriesMap: Record<string, number> = {};
+      if (userBegeniler) {
+        userBegeniler.forEach(b => {
+          if (b.user_id) {
+            victoriesMap[b.user_id] = (victoriesMap[b.user_id] || 0) + 1;
+          }
+        });
+      }
 
       const liveList: LeaderboardUser[] = [];
       const addedIds = new Set<string>();
 
-      // A) Process profiles from Supabase
+      // A) Process real profiles from Supabase ONLY
       if (profilesData && profilesData.length > 0) {
         profilesData.forEach((p, idx) => {
           if (!p.id) return;
           addedIds.add(p.id);
-          const xp = p.xp || (3000 - idx * 250);
-          const realTasks = analizCountMap[p.id] || Math.floor(xp / 20) || 12;
+          const xp = p.xp || (p.total_xp ? p.total_xp : (analizCountMap[p.id] || 1) * 250);
+          const realTasks = analizCountMap[p.id] || (p.analiz_sayisi ? p.analiz_sayisi : Math.floor(xp / 100) || 1);
+          const realVictories = victoriesMap[p.id] || Math.floor(xp / 250) || 0;
+          
           liveList.push({
             rank: 0,
             id: p.id,
@@ -222,9 +147,9 @@ export function Leaderboard() {
             userIdTag: `ID ${p.id.slice(0, 7).toUpperCase()}`,
             avatar: p.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${p.id}`,
             tasksCompleted: realTasks,
-            spentTime: `${Math.floor(xp / 80) + 12}:${((idx + 1) * 17) % 60}`,
-            victories: Math.floor(xp / 120) || 5,
-            achievements: Math.floor(xp / 12) || 42,
+            spentTime: `${Math.floor(xp / 80) + 10}:${((idx + 1) * 17) % 60}`,
+            victories: realVictories,
+            achievements: Math.floor(xp / 30) || (realTasks > 0 ? 5 : 1),
             totalPoints: (xp / 1000).toFixed(5),
             pointsNum: xp,
             trend: idx % 2 === 0 ? 'up' : 'down',
@@ -233,35 +158,28 @@ export function Leaderboard() {
         });
       }
 
-      // B) If current logged-in user is not in list yet, append current user
+      // B) If current logged-in user is not in profiles list yet, include current user
       if (currentUser && !addedIds.has(currentUser.id)) {
-        const userXP = 2500;
+        const userTasks = analizCountMap[currentUser.id] || 0;
+        const userXP = (userTasks * 250) || 500;
         liveList.push({
           rank: 0,
           id: currentUser.id,
-          name: currentUser.user_metadata?.display_name || currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Ben',
+          name: currentUser.user_metadata?.display_name || currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Tasarımcı',
           userIdTag: `ID ${currentUser.id.slice(0, 7).toUpperCase()}`,
           avatar: currentUser.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${currentUser.id}`,
-          tasksCompleted: analizCountMap[currentUser.id] || 18,
-          spentTime: '22:15',
-          victories: 8,
-          achievements: 64,
+          tasksCompleted: userTasks,
+          spentTime: `${Math.floor(userXP / 80) + 10}:15`,
+          victories: victoriesMap[currentUser.id] || 0,
+          achievements: Math.floor(userXP / 30) || 2,
           totalPoints: (userXP / 1000).toFixed(5),
           pointsNum: userXP,
           trend: 'up',
           isCurrentUser: true
         });
-        addedIds.add(currentUser.id);
       }
 
-      // C) Merge with base community list so leaderboard has full 6+ rankings
-      defaultCommunityUsers.forEach(dev => {
-        if (!addedIds.has(dev.id)) {
-          liveList.push(dev);
-        }
-      });
-
-      // Sort by initial pointsNum
+      // Sort by pointsNum initially
       liveList.sort((a, b) => b.pointsNum - a.pointsNum);
       liveList.forEach((u, index) => {
         u.rank = index + 1;
@@ -277,12 +195,19 @@ export function Leaderboard() {
 
   const topThree = users.slice(0, 3);
 
-  // Sorting and Search filtering according to Revizelesene system options
+  // Sorting and Search filtering across real registered users
   const filteredUsers = [...users]
-    .filter(u => 
-      u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      u.userIdTag.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    .filter(u => {
+      // Category Filter
+      if (overallFilter === 'Topluluk Liderleri' && u.rank > 5) return false;
+      if (overallFilter === 'Kurucu Üyeler' && u.rank > 3) return false;
+
+      // Search Query
+      return (
+        u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        u.userIdTag.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    })
     .sort((a, b) => {
       if (sortOption === 'tasks') return b.tasksCompleted - a.tasksCompleted;
       if (sortOption === 'victories') return b.victories - a.victories;
@@ -304,7 +229,7 @@ export function Leaderboard() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Liderlik Tablosu</h1>
-            <p className="text-slate-500 text-sm font-medium mt-1">Topluluk içerisindeki en aktif tasarımcılar ve derece alanlar.</p>
+            <p className="text-slate-500 text-sm font-medium mt-1">Sisteme kayıtlı aktif kullanıcılar ve dereceleri.</p>
           </div>
 
           {/* Custom Animated Overall Filter Dropdown */}
@@ -465,7 +390,7 @@ export function Leaderboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             {/* Rank 1 Card */}
-            {topThree[0] && (
+            {topThree[0] ? (
               <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-6 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -508,10 +433,16 @@ export function Leaderboard() {
                   </div>
                 </div>
               </div>
+            ) : (
+              <div className="bg-white/60 border border-dashed border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-3 min-h-[200px]">
+                <Trophy className="w-8 h-8 text-amber-400 opacity-60" />
+                <p className="font-bold text-slate-700 text-sm">1. Sıra Boş</p>
+                <p className="text-slate-400 text-xs">Analiz yaparak 1. sıraya yüksel!</p>
+              </div>
             )}
 
             {/* Rank 2 Card */}
-            {topThree[1] && (
+            {topThree[1] ? (
               <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-6 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -554,10 +485,16 @@ export function Leaderboard() {
                   </div>
                 </div>
               </div>
+            ) : (
+              <div className="bg-white/60 border border-dashed border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-3 min-h-[200px]">
+                <Medal className="w-8 h-8 text-slate-400 opacity-60" />
+                <p className="font-bold text-slate-700 text-sm">2. Sıra Boş</p>
+                <p className="text-slate-400 text-xs">Analiz yaparak dereceye gir!</p>
+              </div>
             )}
 
             {/* Rank 3 Card */}
-            {topThree[2] && (
+            {topThree[2] ? (
               <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-6 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -599,6 +536,12 @@ export function Leaderboard() {
                     <span className="text-base font-extrabold text-slate-900">{topThree[2].achievements}</span>
                   </div>
                 </div>
+              </div>
+            ) : (
+              <div className="bg-white/60 border border-dashed border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-3 min-h-[200px]">
+                <Award className="w-8 h-8 text-amber-600 opacity-60" />
+                <p className="font-bold text-slate-700 text-sm">3. Sıra Boş</p>
+                <p className="text-slate-400 text-xs">Puan kazan ve podyuma çık!</p>
               </div>
             )}
 
@@ -694,7 +637,7 @@ export function Leaderboard() {
                   ) : filteredUsers.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="text-center py-12 text-slate-400 font-medium">
-                        Aramaya uygun kullanıcı bulunamadı.
+                        Aramaya uygun kayıtlı kullanıcı bulunamadı.
                       </td>
                     </tr>
                   ) : (
