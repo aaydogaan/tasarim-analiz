@@ -183,7 +183,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                 if (userIds.length > 0) {
                     const { data: profilesData } = await supabase
                         .from('profiles')
-                        .select('id, display_name, avatar_url, founder_number')
+                        .select('id, display_name, avatar_url, founder_number, slug')
                         .in('id', userIds);
                     
                     if (profilesData) {
