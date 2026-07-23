@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import { 
@@ -11,12 +11,8 @@ import {
   MoreHorizontal, 
   ArrowUp, 
   ArrowDown, 
-  Clock, 
-  Sparkles, 
-  CheckCircle2, 
   Medal, 
   Info,
-  ShieldCheck,
   Check
 } from 'lucide-react';
 
@@ -26,33 +22,27 @@ interface LeaderboardUser {
   name: string;
   avatar: string;
   userIdTag: string;
-  tasksCompleted: number;
-  spentTime: string;
-  victories: number;
-  achievements: number;
-  totalPoints: string;
-  pointsNum: number;
+  tasksCompleted: number;  // number of analyses in selected period
+  totalPoints: string;     // formatted XP string
+  pointsNum: number;       // raw XP for sorting
   trend: 'up' | 'down';
   isCurrentUser?: boolean;
 }
 
 export function Leaderboard() {
   const [activeTab, setActiveTab] = useState<'week' | 'month' | 'all'>('all');
-  const [sortOption, setSortOption] = useState<'tasks' | 'points' | 'victories'>('tasks');
+  const [sortOption, setSortOption] = useState<'tasks' | 'points'>('points');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Real statistics counters
   const [realMemberCount, setRealMemberCount] = useState<number>(0);
-  const [realGoalCount, setRealGoalCount] = useState<number>(0);
+  const [realAnalysisCount, setRealAnalysisCount] = useState<number>(0);
 
-  // Custom Dropdown State
   const [overallFilter, setOverallFilter] = useState('Genel Bakış');
   const [isOverallOpen, setIsOverallOpen] = useState(false);
 
-  // Countdown timer state for completion banner
   const [timeLeft, setTimeLeft] = useState({ days: 12, hours: 6, minutes: 42, seconds: 15 });
 
   useEffect(() => {
@@ -68,60 +58,52 @@ export function Leaderboard() {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    fetchLeaderboardData();
-  }, []);
-
-  const fetchLeaderboardData = async () => {
+  const fetchLeaderboardData = useCallback(async (tab: 'week' | 'month' | 'all') => {
     setLoading(true);
     try {
-      // Get current logged-in user session
       const { data: { session } } = await supabase.auth.getSession();
       const currentUser = session?.user;
 
-      // 1. Fetch total analyses count
-      const { count: goalCount } = await supabase
+      // 1. Total analysis count (all time) for the stat card
+      const { count: totalAnalysisCount } = await supabase
         .from('analizler')
         .select('*', { count: 'exact', head: true });
 
-      setRealGoalCount(goalCount || 0);
+      setRealAnalysisCount(totalAnalysisCount || 0);
 
-      // 2. PRIMARY SOURCE: user_xp_stats view — same as Community page
-      //    This is the canonical authoritative XP ranking data
+      // 2. Canonical XP data from user_xp_stats view (same as Community page)
       const { data: xpStatsData } = await supabase
         .from('user_xp_stats')
         .select('*')
         .order('total_xp', { ascending: false });
 
-      // 3. Fetch analyses count per user
-      const { data: userAnalizler } = await supabase
-        .from('analizler')
-        .select('user_id');
+      // 3. Fetch analyses with date filter for the selected period
+      let analysesQuery = supabase.from('analizler').select('user_id, created_at');
+      
+      const now = new Date();
+      if (tab === 'week') {
+        const weekAgo = new Date(now);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        analysesQuery = analysesQuery.gte('created_at', weekAgo.toISOString());
+      } else if (tab === 'month') {
+        const monthAgo = new Date(now);
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        analysesQuery = analysesQuery.gte('created_at', monthAgo.toISOString());
+      }
 
-      const analizCountMap: Record<string, number> = {};
-      if (userAnalizler) {
-        userAnalizler.forEach(a => {
+      const { data: periodAnalizler } = await analysesQuery;
+
+      // Count analyses per user for the selected period
+      const periodAnalizCountMap: Record<string, number> = {};
+      if (periodAnalizler) {
+        periodAnalizler.forEach(a => {
           if (a.user_id) {
-            analizCountMap[a.user_id] = (analizCountMap[a.user_id] || 0) + 1;
+            periodAnalizCountMap[a.user_id] = (periodAnalizCountMap[a.user_id] || 0) + 1;
           }
         });
       }
 
-      // 4. Fetch likes/victories per user
-      const { data: userBegeniler } = await supabase
-        .from('begeniler')
-        .select('user_id');
-
-      const victoriesMap: Record<string, number> = {};
-      if (userBegeniler) {
-        userBegeniler.forEach(b => {
-          if (b.user_id) {
-            victoriesMap[b.user_id] = (victoriesMap[b.user_id] || 0) + 1;
-          }
-        });
-      }
-
-      // Build user registry from user_xp_stats
+      // 4. Build registry from user_xp_stats
       const userMetaRegistry: Record<string, { name: string; avatar: string; xp: number }> = {};
 
       if (xpStatsData) {
@@ -136,13 +118,13 @@ export function Leaderboard() {
         });
       }
 
-      // Ensure current user is included even if not yet in user_xp_stats
+      // Ensure current user is always included
       if (currentUser && !userMetaRegistry[currentUser.id]) {
-        const userTasks = analizCountMap[currentUser.id] || 0;
+        const periodTasks = periodAnalizCountMap[currentUser.id] || 0;
         userMetaRegistry[currentUser.id] = {
           name: currentUser.user_metadata?.display_name || currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Tasarımcı',
           avatar: currentUser.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${currentUser.id}`,
-          xp: userTasks * 250
+          xp: periodTasks * 250
         };
       }
 
@@ -151,32 +133,31 @@ export function Leaderboard() {
 
       const liveList: LeaderboardUser[] = allUserIds.map((userId, idx) => {
         const meta = userMetaRegistry[userId];
-        const realTasks = analizCountMap[userId] || 0;
-        const realVictories = victoriesMap[userId] || 0;
-        const xp = meta.xp > 0 ? meta.xp : (realTasks * 250 + realVictories * 150 + (userId === currentUser?.id ? 500 : 250));
-        
+        const periodTasks = periodAnalizCountMap[userId] || 0;
+
+        // For week/month: use period analysis count to determine XP shown in that period
+        // For all time: use canonical total_xp from user_xp_stats
+        const xp = tab === 'all'
+          ? meta.xp
+          : (periodTasks * 250);
+
         return {
           rank: 0,
           id: userId,
           name: meta.name,
           userIdTag: `ID ${userId.slice(0, 7).toUpperCase()}`,
           avatar: meta.avatar,
-          tasksCompleted: realTasks,
-          spentTime: `${Math.floor(xp / 80) + 10}:${((idx + 1) * 17) % 60}`,
-          victories: realVictories,
-          achievements: Math.floor(xp / 30) || (realTasks > 0 ? 5 : 1),
+          tasksCompleted: tab === 'all' ? (periodAnalizCountMap[userId] || 0) : periodTasks,
           totalPoints: `${xp.toLocaleString('tr-TR')} XP`,
           pointsNum: xp,
           trend: idx % 2 === 0 ? 'up' : 'down',
-          isCurrentUser: currentUser && currentUser.id === userId
+          isCurrentUser: currentUser ? currentUser.id === userId : false
         };
       });
 
-      // Sort by pointsNum initially
+      // Sort by XP descending, assign ranks
       liveList.sort((a, b) => b.pointsNum - a.pointsNum);
-      liveList.forEach((u, index) => {
-        u.rank = index + 1;
-      });
+      liveList.forEach((u, index) => { u.rank = index + 1; });
 
       setUsers(liveList);
     } catch (err) {
@@ -184,18 +165,19 @@ export function Leaderboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
+  useEffect(() => {
+    fetchLeaderboardData(activeTab);
+  }, [activeTab, fetchLeaderboardData]);
+
+  // Determine top three from XP-sorted list (always from full data)
   const topThree = users.slice(0, 3);
 
-  // Sorting and Search filtering across real registered users
   const filteredUsers = [...users]
     .filter(u => {
-      // Category Filter
       if (overallFilter === 'Topluluk Liderleri' && u.rank > 5) return false;
       if (overallFilter === 'Kurucu Üyeler' && u.rank > 3) return false;
-
-      // Search Query
       return (
         u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
         u.userIdTag.toLowerCase().includes(searchQuery.toLowerCase())
@@ -203,16 +185,68 @@ export function Leaderboard() {
     })
     .sort((a, b) => {
       if (sortOption === 'tasks') return b.tasksCompleted - a.tasksCompleted;
-      if (sortOption === 'victories') return b.victories - a.victories;
       return b.pointsNum - a.pointsNum;
     });
 
   const overallFilterOptions = ['Genel Bakış', 'Topluluk Liderleri', 'Kurucu Üyeler'];
   const sortOptionsConfig = [
-    { id: 'tasks', label: 'Sırala: Tamamlanan Analiz' },
     { id: 'points', label: 'Sırala: Toplam Puan (XP)' },
-    { id: 'victories', label: 'Sırala: Zaferler' },
+    { id: 'tasks', label: 'Sırala: Analiz Sayısı' },
   ];
+
+  const PodiumCard = ({ user, rank }: { user: LeaderboardUser; rank: 1 | 2 | 3 }) => {
+    const borderColor = rank === 1 ? 'border-amber-300' : rank === 2 ? 'border-slate-300' : 'border-amber-600/40';
+    const emblemClass = rank === 1
+      ? 'bg-gradient-to-br from-amber-100 to-amber-200 border-amber-300 text-amber-700'
+      : rank === 2
+        ? 'bg-gradient-to-br from-slate-100 to-slate-200 border-slate-300 text-slate-700'
+        : 'bg-gradient-to-br from-amber-50 to-orange-100 border-amber-600/30 text-amber-800';
+
+    const Icon = rank === 1 ? Trophy : rank === 2 ? Medal : Award;
+    const iconClass = rank === 1
+      ? 'text-amber-600 fill-amber-500'
+      : rank === 2
+        ? 'text-slate-500 fill-slate-300'
+        : 'text-amber-700 fill-amber-600';
+
+    return (
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-5 hover:shadow-md transition-shadow">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img
+              src={user.avatar}
+              alt={user.name}
+              className={`w-14 h-14 rounded-full object-cover border-2 ${borderColor} shadow-sm`}
+            />
+            <div>
+              <h3 className="font-bold text-slate-900 text-base flex items-center gap-1.5">
+                <span>{user.name}</span>
+                {user.isCurrentUser && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">SEN</span>}
+              </h3>
+              <div className="mt-0.5">
+                <span className="text-lg font-extrabold text-slate-900">{user.totalPoints}</span>
+              </div>
+            </div>
+          </div>
+          <div className={`w-10 h-10 rounded-full ${emblemClass} border flex items-center justify-center font-extrabold text-xs shadow-xs shrink-0 gap-1`}>
+            <Icon className={`w-4 h-4 ${iconClass}`} />
+            <span>{rank}</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-4 text-center">
+          <div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Analiz</span>
+            <span className="text-base font-extrabold text-slate-900">{user.tasksCompleted}</span>
+          </div>
+          <div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">XP Puanı</span>
+            <span className="text-base font-extrabold text-slate-900">{user.pointsNum.toLocaleString('tr-TR')}</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="w-full min-h-screen bg-[#f4f6f9] text-slate-800 pt-24 pb-20 px-4 md:px-8 lg:px-12 font-sans">
@@ -225,7 +259,6 @@ export function Leaderboard() {
             <p className="text-slate-500 text-sm font-medium mt-1">Sisteme kayıtlı aktif kullanıcılar ve dereceleri.</p>
           </div>
 
-          {/* Custom Animated Overall Filter Dropdown */}
           <div className="relative">
             <button
               type="button"
@@ -245,16 +278,13 @@ export function Leaderboard() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 6, scale: 0.96 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl z-30 p-1.5 space-y-1"
+                    className="absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-2xl shadow-xl z-30 p-1.5 space-y-1"
                   >
                     {overallFilterOptions.map((opt) => (
                       <button
                         key={opt}
                         type="button"
-                        onClick={() => {
-                          setOverallFilter(opt);
-                          setIsOverallOpen(false);
-                        }}
+                        onClick={() => { setOverallFilter(opt); setIsOverallOpen(false); }}
                         className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center justify-between ${
                           overallFilter === opt ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-50'
                         }`}
@@ -270,11 +300,10 @@ export function Leaderboard() {
           </div>
         </div>
 
-        {/* TOP SUMMARY CARDS (ROW 1) */}
+        {/* SUMMARY CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           
-          {/* Card 1: Katılan Üyeler */}
-          <div className="md:col-span-3 bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group">
+          <div className="md:col-span-3 bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between">
             <div className="flex items-center justify-between mb-6">
               <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shadow-sm">
                 <Users className="w-6 h-6" />
@@ -285,12 +314,11 @@ export function Leaderboard() {
             </div>
             <div>
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Katılan Üyeler</span>
-              <span className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">{realMemberCount}+</span>
+              <span className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">{realMemberCount}</span>
             </div>
           </div>
 
-          {/* Card 2: Tamamlanan Hedefler */}
-          <div className="md:col-span-3 bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group">
+          <div className="md:col-span-3 bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between">
             <div className="flex items-center justify-between mb-6">
               <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100 shadow-sm">
                 <Award className="w-6 h-6" />
@@ -300,43 +328,40 @@ export function Leaderboard() {
               </button>
             </div>
             <div>
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Tamamlanan Hedefler</span>
-              <span className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">{realGoalCount}+</span>
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Tamamlanan Analizler</span>
+              <span className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">{realAnalysisCount}</span>
             </div>
           </div>
 
-          {/* Card 3: Countdown Timer Banner */}
-          <div className="md:col-span-6 bg-amber-50/70 border border-amber-200/70 rounded-2xl p-6 shadow-sm flex flex-col justify-between relative overflow-hidden">
+          {/* Countdown Timer Banner */}
+          <div className="md:col-span-6 bg-amber-50/70 border border-amber-200/70 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-slate-900">Yarışma Bitimine Kalan Süre</span>
-                  <Flame className="w-4.5 h-4.5 text-amber-500 fill-amber-500 shrink-0" />
+                  <Flame className="w-4 h-4 text-amber-500 fill-amber-500 shrink-0" />
                 </div>
-
                 <div className="flex items-center gap-3 text-slate-900 font-extrabold text-2xl md:text-3xl tracking-tight">
                   <div className="flex flex-col items-center">
                     <span>{String(timeLeft.days).padStart(2, '0')}</span>
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest -mt-1">GÜN</span>
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest -mt-1">Gün</span>
                   </div>
                   <span className="text-slate-300 pb-2">:</span>
                   <div className="flex flex-col items-center">
                     <span>{String(timeLeft.hours).padStart(2, '0')}</span>
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest -mt-1">SAAT</span>
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest -mt-1">Saat</span>
                   </div>
                   <span className="text-slate-300 pb-2">:</span>
                   <div className="flex flex-col items-center">
                     <span>{String(timeLeft.minutes).padStart(2, '0')}</span>
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest -mt-1">DAKİKA</span>
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest -mt-1">Dakika</span>
                   </div>
                 </div>
               </div>
-
               <div className="w-14 h-14 bg-amber-100/80 border border-amber-200 rounded-2xl flex items-center justify-center text-amber-600 shadow-sm shrink-0 self-start sm:self-center">
                 <Trophy className="w-7 h-7" />
               </div>
             </div>
-
             <div className="mt-4 pt-3 border-t border-amber-200/50 flex items-center gap-1.5 text-xs text-amber-800/80 font-medium">
               <Info className="w-3.5 h-3.5 shrink-0" />
               <span>Sadece ilk üç dereceye giren tasarımcılara özel rozet ve ödüller verilecektir.</span>
@@ -345,206 +370,47 @@ export function Leaderboard() {
 
         </div>
 
-        {/* SECTION 2: MEVCUT LİDERLER PODIUM */}
+        {/* MEVCUT LİDERLER */}
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Mevcut Liderler</h2>
 
-            {/* Time Filter Pills */}
+            {/* Time Filter Pills — trigger real re-fetch */}
             <div className="bg-white border border-slate-200/80 p-1 rounded-2xl flex items-center gap-1 shadow-sm self-start sm:self-auto">
-              <button
-                onClick={() => setActiveTab('week')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                  activeTab === 'week' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                Bu Hafta
-              </button>
-              <button
-                onClick={() => setActiveTab('month')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                  activeTab === 'month' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                Bu Ay
-              </button>
-              <button
-                onClick={() => setActiveTab('all')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                  activeTab === 'all' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                Tüm Zamanlar
-              </button>
+              {(['week', 'month', 'all'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                    activeTab === tab ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  {tab === 'week' ? 'Bu Hafta' : tab === 'month' ? 'Bu Ay' : 'Tüm Zamanlar'}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* 3 TOP LEADER CARDS GRID */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* Rank 1 Card */}
-            {topThree[0] ? (
-              <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-6 hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={topThree[0].avatar}
-                      alt={topThree[0].name}
-                      className="w-14 h-14 rounded-full object-cover border-2 border-amber-300 shadow-sm"
-                    />
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-base flex items-center gap-1.5">
-                        <span>{topThree[0].name}</span>
-                        {topThree[0].isCurrentUser && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">SEN</span>}
-                      </h3>
-                      <div className="flex items-baseline gap-1 mt-0.5">
-                        <span className="text-xl font-extrabold text-slate-900">{topThree[0].totalPoints}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Gold Laurels Emblem */}
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 border border-amber-300 flex items-center justify-center text-amber-700 font-extrabold text-xs shadow-xs shrink-0 gap-1">
-                    <Trophy className="w-4 h-4 text-amber-600 fill-amber-500" />
-                    <span>1</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 border-t border-slate-100 pt-5 text-center">
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">ZAFER</span>
-                    <span className="text-base font-extrabold text-slate-900">{topThree[0].victories}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">ANALİZ</span>
-                    <span className="text-base font-extrabold text-slate-900">{topThree[0].tasksCompleted}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">ROZET</span>
-                    <span className="text-base font-extrabold text-slate-900">{topThree[0].achievements}</span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-white/60 border border-dashed border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-3 min-h-[200px]">
-                <Trophy className="w-8 h-8 text-amber-400 opacity-60" />
-                <p className="font-bold text-slate-700 text-sm">1. Sıra Boş</p>
-                <p className="text-slate-400 text-xs">Analiz yaparak 1. sıraya yüksel!</p>
-              </div>
+            {topThree[0] ? <PodiumCard user={topThree[0]} rank={1} /> : (
+              <EmptySlot rank={1} icon={<Trophy className="w-8 h-8 text-amber-400 opacity-60" />} msg="Analiz yaparak 1. sıraya yüksel!" />
             )}
-
-            {/* Rank 2 Card */}
-            {topThree[1] ? (
-              <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-6 hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={topThree[1].avatar}
-                      alt={topThree[1].name}
-                      className="w-14 h-14 rounded-full object-cover border-2 border-slate-300 shadow-sm"
-                    />
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-base flex items-center gap-1.5">
-                        <span>{topThree[1].name}</span>
-                        {topThree[1].isCurrentUser && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">SEN</span>}
-                      </h3>
-                      <div className="flex items-baseline gap-1 mt-0.5">
-                        <span className="text-xl font-extrabold text-slate-900">{topThree[1].totalPoints}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Silver Laurels Emblem */}
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-300 flex items-center justify-center text-slate-700 font-extrabold text-xs shadow-xs shrink-0 gap-1">
-                    <Medal className="w-4 h-4 text-slate-500 fill-slate-300" />
-                    <span>2</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 border-t border-slate-100 pt-5 text-center">
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">ZAFER</span>
-                    <span className="text-base font-extrabold text-slate-900">{topThree[1].victories}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">ANALİZ</span>
-                    <span className="text-base font-extrabold text-slate-900">{topThree[1].tasksCompleted}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">ROZET</span>
-                    <span className="text-base font-extrabold text-slate-900">{topThree[1].achievements}</span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-white/60 border border-dashed border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-3 min-h-[200px]">
-                <Medal className="w-8 h-8 text-slate-400 opacity-60" />
-                <p className="font-bold text-slate-700 text-sm">2. Sıra Boş</p>
-                <p className="text-slate-400 text-xs">Analiz yaparak dereceye gir!</p>
-              </div>
+            {topThree[1] ? <PodiumCard user={topThree[1]} rank={2} /> : (
+              <EmptySlot rank={2} icon={<Medal className="w-8 h-8 text-slate-400 opacity-60" />} msg="Analiz yaparak dereceye gir!" />
             )}
-
-            {/* Rank 3 Card */}
-            {topThree[2] ? (
-              <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-6 hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={topThree[2].avatar}
-                      alt={topThree[2].name}
-                      className="w-14 h-14 rounded-full object-cover border-2 border-amber-600/40 shadow-sm"
-                    />
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-base flex items-center gap-1.5">
-                        <span>{topThree[2].name}</span>
-                        {topThree[2].isCurrentUser && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">SEN</span>}
-                      </h3>
-                      <div className="flex items-baseline gap-1 mt-0.5">
-                        <span className="text-xl font-extrabold text-slate-900">{topThree[2].totalPoints}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Bronze Laurels Emblem */}
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-50 to-orange-100 border border-amber-600/30 flex items-center justify-center text-amber-800 font-extrabold text-xs shadow-xs shrink-0 gap-1">
-                    <Award className="w-4 h-4 text-amber-700 fill-amber-600" />
-                    <span>3</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 border-t border-slate-100 pt-5 text-center">
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">ZAFER</span>
-                    <span className="text-base font-extrabold text-slate-900">{topThree[2].victories}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">ANALİZ</span>
-                    <span className="text-base font-extrabold text-slate-900">{topThree[2].tasksCompleted}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">ROZET</span>
-                    <span className="text-base font-extrabold text-slate-900">{topThree[2].achievements}</span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-white/60 border border-dashed border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-3 min-h-[200px]">
-                <Award className="w-8 h-8 text-amber-600 opacity-60" />
-                <p className="font-bold text-slate-700 text-sm">3. Sıra Boş</p>
-                <p className="text-slate-400 text-xs">Puan kazan ve podyuma çık!</p>
-              </div>
+            {topThree[2] ? <PodiumCard user={topThree[2]} rank={3} /> : (
+              <EmptySlot rank={3} icon={<Award className="w-8 h-8 text-amber-600 opacity-60" />} msg="Puan kazan ve podyuma çık!" />
             )}
-
           </div>
         </div>
 
-        {/* SECTION 3: GENEL SIRALAMA TABLOSU */}
+        {/* GENEL SIRALAMA */}
         <div className="space-y-4 pt-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Genel Sıralama</h2>
 
             <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-              {/* Custom Animated Sort Selector - Extended width & single line text */}
+              {/* Sort Dropdown */}
               <div className="relative w-full sm:w-auto min-w-[240px]">
                 <button
                   type="button"
@@ -570,10 +436,7 @@ export function Leaderboard() {
                           <button
                             key={opt.id}
                             type="button"
-                            onClick={() => {
-                              setSortOption(opt.id as any);
-                              setIsSortOpen(false);
-                            }}
+                            onClick={() => { setSortOption(opt.id as any); setIsSortOpen(false); }}
                             className={`w-full whitespace-nowrap text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center justify-between gap-3 ${
                               sortOption === opt.id ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-50'
                             }`}
@@ -588,7 +451,7 @@ export function Leaderboard() {
                 </AnimatePresence>
               </div>
 
-              {/* Search input */}
+              {/* Search */}
               <div className="relative w-full sm:w-64">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
@@ -602,31 +465,28 @@ export function Leaderboard() {
             </div>
           </div>
 
-          {/* TABLE CARD */}
+          {/* TABLE */}
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[750px]">
+              <table className="w-full text-left border-collapse min-w-[560px]">
                 <thead>
-                  <tr className="border-b border-slate-200/80 bg-slate-50/50 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    <th className="py-4 px-6">SIRA</th>
-                    <th className="py-4 px-6">KULLANICI</th>
-                    <th className="py-4 px-6 text-center">TAMAMLANAN ANALİZ</th>
-                    <th className="py-4 px-6 text-center">GEÇİRİLEN SÜRE</th>
-                    <th className="py-4 px-6 text-center">ZAFERLER</th>
-                    <th className="py-4 px-6 text-center">BAŞARIMLAR</th>
-                    <th className="py-4 px-6 text-right">TOPLAM PUAN</th>
+                  <tr className="border-b border-slate-200/80 bg-slate-50/50 text-[11px] font-bold text-slate-400 tracking-wide">
+                    <th className="py-4 px-6">Sıra</th>
+                    <th className="py-4 px-6">Kullanıcı</th>
+                    <th className="py-4 px-6 text-center">Tamamlanan analiz</th>
+                    <th className="py-4 px-6 text-right">Toplam puan</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs md:text-sm font-semibold text-slate-700">
                   {loading ? (
                     <tr>
-                      <td colSpan={7} className="text-center py-12 text-slate-400 font-medium">
+                      <td colSpan={4} className="text-center py-12 text-slate-400 font-medium">
                         Liderlik verileri yükleniyor...
                       </td>
                     </tr>
                   ) : filteredUsers.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="text-center py-12 text-slate-400 font-medium">
+                      <td colSpan={4} className="text-center py-12 text-slate-400 font-medium">
                         Aramaya uygun kayıtlı kullanıcı bulunamadı.
                       </td>
                     </tr>
@@ -638,16 +498,15 @@ export function Leaderboard() {
                           user.isCurrentUser ? 'bg-blue-50/50 hover:bg-blue-50' : 'hover:bg-slate-50/70'
                         }`}
                       >
-                        
-                        {/* Rank + Circular Translucent Trend Badge */}
+                        {/* Rank + trend badge */}
                         <td className="py-4 px-6 whitespace-nowrap">
-                          <div className="flex items-center gap-3 font-bold text-slate-800">
+                          <div className="flex items-center gap-3">
                             {user.trend === 'up' ? (
-                              <div className="w-6 h-6 rounded-full bg-emerald-100/80 text-emerald-600 flex items-center justify-center shrink-0 shadow-2xs">
+                              <div className="w-6 h-6 rounded-full bg-emerald-100/80 text-emerald-600 flex items-center justify-center shrink-0">
                                 <ArrowUp className="w-3.5 h-3.5 stroke-[2.5]" />
                               </div>
                             ) : (
-                              <div className="w-6 h-6 rounded-full bg-rose-100/80 text-rose-500 flex items-center justify-center shrink-0 shadow-2xs">
+                              <div className="w-6 h-6 rounded-full bg-rose-100/80 text-rose-500 flex items-center justify-center shrink-0">
                                 <ArrowDown className="w-3.5 h-3.5 stroke-[2.5]" />
                               </div>
                             )}
@@ -655,13 +514,13 @@ export function Leaderboard() {
                           </div>
                         </td>
 
-                        {/* User name & avatar & ID tag */}
+                        {/* Avatar + name + ID */}
                         <td className="py-4 px-6 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <img
                               src={user.avatar}
                               alt={user.name}
-                              className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-2xs"
+                              className="w-10 h-10 rounded-full object-cover border border-slate-200"
                             />
                             <div>
                               <p className="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors flex items-center gap-1.5">
@@ -673,31 +532,15 @@ export function Leaderboard() {
                           </div>
                         </td>
 
-                        {/* Task completed */}
+                        {/* Analysis count */}
                         <td className="py-4 px-6 text-center whitespace-nowrap font-bold text-slate-800">
                           {user.tasksCompleted}
                         </td>
 
-                        {/* Spent time */}
-                        <td className="py-4 px-6 text-center whitespace-nowrap font-medium text-slate-600">
-                          {user.spentTime}
-                        </td>
-
-                        {/* Victories */}
-                        <td className="py-4 px-6 text-center whitespace-nowrap font-bold text-slate-800">
-                          {user.victories}
-                        </td>
-
-                        {/* Achievements */}
-                        <td className="py-4 px-6 text-center whitespace-nowrap font-medium text-slate-600">
-                          {user.achievements}
-                        </td>
-
-                        {/* Total points */}
+                        {/* Total XP */}
                         <td className="py-4 px-6 text-right whitespace-nowrap font-extrabold text-slate-900 text-sm md:text-base">
                           {user.totalPoints}
                         </td>
-
                       </tr>
                     ))
                   )}
@@ -709,6 +552,16 @@ export function Leaderboard() {
         </div>
 
       </div>
+    </div>
+  );
+}
+
+function EmptySlot({ rank, icon, msg }: { rank: number; icon: React.ReactNode; msg: string }) {
+  return (
+    <div className="bg-white/60 border border-dashed border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-3 min-h-[200px]">
+      {icon}
+      <p className="font-bold text-slate-700 text-sm">{rank}. Sıra Boş</p>
+      <p className="text-slate-400 text-xs">{msg}</p>
     </div>
   );
 }
