@@ -478,6 +478,10 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
             : `İlk ${FOUNDER_LIMIT} destekçiden biri ol`;
 
     const handleAvatarRefresh = () => {
+        if (profileData.avatarUrl && !profileData.avatarUrl.includes('dicebear')) {
+            const confirmed = window.confirm('Mevcut yüklenmiş görseliniz silinecek ve rastgele bir avatar üretilecek. Emin misiniz?');
+            if (!confirmed) return;
+        }
         const nextSeed = `${profileData.displayName || kullanici?.id || 'Revizele'}-${Date.now()}`;
         setProfileData((prev) => ({ ...prev, avatarUrl: buildAvatarUrl(nextSeed) }));
         setSaveState('idle');
@@ -676,10 +680,8 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                             )}
                             
                             {isEditing && (
-                                <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                                    <div className="flex items-center gap-1.5 text-white text-xs font-bold bg-black/50 px-3 py-1.5 rounded-full backdrop-blur-sm">
-                                        <UploadCloud className="w-3.5 h-3.5" /> Kapak Yükle
-                                    </div>
+                                <label className="absolute top-3 right-3 flex items-center gap-1.5 text-white text-xs font-bold bg-black/50 hover:bg-black/70 px-3 py-1.5 rounded-full backdrop-blur-sm transition-all cursor-pointer shadow-md border border-white/20 z-10">
+                                    <UploadCloud className="w-3.5 h-3.5" /> Kapak Yükle
                                     <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
                                 </label>
                             )}
@@ -831,23 +833,15 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                             {isEditing && (
                                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-full overflow-hidden">
                                     <label className="block col-span-1 md:col-span-2">
-                                        <span className="mb-1 block text-xs font-semibold text-[var(--text-secondary)]">Avatar URL</span>
-                                        <div className="flex flex-col sm:flex-row gap-2">
-                                            <input
-                                                type="text"
-                                                value={profileData.avatarUrl}
-                                                onChange={(e) => setProfileData({ ...profileData, avatarUrl: e.target.value })}
-                                                className="min-w-0 flex-1 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-xs outline-none focus:border-[var(--color-brand-orange)]"
-                                            />
-                                            <div className="flex gap-2 shrink-0">
-                                                <button type="button" onClick={handleAvatarRefresh} className="flex-1 sm:flex-initial rounded-xl border border-[var(--border-primary)] px-3 py-2 text-xs text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] flex items-center justify-center gap-1.5" title="Rastgele Avatar Üret">
-                                                    <RefreshCw className="h-3.5 w-3.5" /> Rastgele
-                                                </button>
-                                                <label className="flex-1 sm:flex-initial rounded-xl border border-[var(--border-primary)] px-3 py-2 text-xs text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] cursor-pointer flex items-center justify-center">
-                                                    Yükle
-                                                    <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-                                                </label>
-                                            </div>
+                                        <span className="mb-1 block text-xs font-semibold text-[var(--text-secondary)]">Profil Fotoğrafı</span>
+                                        <div className="flex gap-2">
+                                            <button type="button" onClick={handleAvatarRefresh} className="flex-1 rounded-xl border border-[var(--border-primary)] px-3 py-2 text-xs text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] flex items-center justify-center gap-1.5 transition-all bg-[var(--bg-secondary)]" title="Rastgele Avatar Üret">
+                                                <RefreshCw className="h-3.5 w-3.5" /> Rastgele
+                                            </button>
+                                            <label className="flex-1 rounded-xl border border-[var(--border-primary)] px-3 py-2 text-xs text-[var(--bg-primary)] bg-[var(--text-primary)] hover:opacity-90 cursor-pointer flex items-center justify-center gap-1.5 transition-all">
+                                                <UploadCloud className="h-3.5 w-3.5" /> Yükle
+                                                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                                            </label>
                                         </div>
                                     </label>
                                     <label className="block">
