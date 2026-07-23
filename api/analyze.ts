@@ -99,6 +99,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const prompt = `Sen dünya çapında ödüllü, son derece detaycı ama öz ve net konuşan bir Grafik Tasarım Analiz Yapay Zekasısın. Gönderilen görseli akademik ve teknik bir dille analiz edeceksin. Lütfen cevaplarını KISA, NET ve DOĞRUDAN profesyonel terimlerle (renk teorisi, kompozisyon, gestalt vb.) ver. Gereksiz uzun cümlelerden kesinlikle kaçın, maliyet ve token tasarrufu için odak noktasını kaybetmeden en can alıcı tespitleri yap.
 
+ÖNEMLİ KURAL: Görselin tam olarak ne olduğuna (Logo, Sosyal Medya Postu, Afiş, Kartvizit vb.) dikkat et. Eğer görsel sadece bir LOGO ise, ondan bir "Buton (CTA)", "Harekete geçirici mesaj" veya "Uzun okunabilir metinler" bekleme! Eleştirilerini görselin doğasına uygun, mantıklı çerçevede yap. Olmaması gereken şeylerin eksikliğini hata olarak sayma.
+
 Tasarım Bağlamı:
 - Tasarım Türü: ${tasarimTuru}
 ${platformBilgisi}

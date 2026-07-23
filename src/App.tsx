@@ -1420,24 +1420,6 @@ export default function App() {
                                         </button>
                                       );
                                     })}
-                                    
-                                    {/* Social Media Platform Specific Selector */}
-                                    {tasarimTuru === 'Sosyal Medya' && (
-                                      <div className="mt-2 pl-2 border-l-2 border-[#FF5500]/30 animate-in slide-in-from-top-2 duration-300">
-                                        <label className="text-[10px] font-bold text-[var(--text-secondary)] mb-1 block uppercase tracking-widest">Alt Format (Zorunlu Değil)</label>
-                                        <select
-                                          value={platform}
-                                          onChange={(e) => setPlatform(e.target.value)}
-                                          className="w-full bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-xl px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#FF5500] transition-all shadow-sm appearance-none cursor-pointer"
-                                        >
-                                          <option value="Instagram Post">Instagram Post</option>
-                                          <option value="Instagram Story">Instagram Story / Reels Kapağı</option>
-                                          <option value="Reklam Görseli">Sponsorlu Reklam Görseli</option>
-                                          <option value="Banner">Web / Kampanya Banner</option>
-                                          <option value="YouTube Thumbnail">YouTube Kapak Görseli</option>
-                                        </select>
-                                      </div>
-                                    )}
                                   </div>
 
                                   </div>
