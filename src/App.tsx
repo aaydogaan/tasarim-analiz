@@ -1397,8 +1397,8 @@ export default function App() {
                                 <div className="flex flex-col md:flex-row items-start justify-center gap-10 lg:gap-12 w-full">
                                 {/* Format Selection */}
                                 <div className="w-full md:w-1/2 max-w-[360px] flex flex-col">
-                                  <h4 className="text-xs font-bold text-slate-500 mb-4 uppercase tracking-wider flex items-center gap-2">
-                                    <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 shadow-sm">1</div>
+                                  <h4 className="text-sm font-bold text-slate-500 mb-4 tracking-wide flex items-center gap-2">
+                                    <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 shadow-sm text-xs">1</div>
                                     Tasarım Formatı
                                   </h4>
                                   <div className="flex flex-col gap-3">
@@ -1420,6 +1420,24 @@ export default function App() {
                                         </button>
                                       );
                                     })}
+                                    
+                                    {/* Social Media Platform Specific Selector */}
+                                    {tasarimTuru === 'Sosyal Medya' && (
+                                      <div className="mt-2 pl-2 border-l-2 border-[#FF5500]/30 animate-in slide-in-from-top-2 duration-300">
+                                        <label className="text-[10px] font-bold text-[var(--text-secondary)] mb-1 block uppercase tracking-widest">Alt Format (Zorunlu Değil)</label>
+                                        <select
+                                          value={platform}
+                                          onChange={(e) => setPlatform(e.target.value)}
+                                          className="w-full bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-xl px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#FF5500] transition-all shadow-sm appearance-none cursor-pointer"
+                                        >
+                                          <option value="Instagram Post">Instagram Post</option>
+                                          <option value="Instagram Story">Instagram Story / Reels Kapağı</option>
+                                          <option value="Reklam Görseli">Sponsorlu Reklam Görseli</option>
+                                          <option value="Banner">Web / Kampanya Banner</option>
+                                          <option value="YouTube Thumbnail">YouTube Kapak Görseli</option>
+                                        </select>
+                                      </div>
+                                    )}
                                   </div>
 
                                   </div>
@@ -1428,8 +1446,8 @@ export default function App() {
                                 {/* Dropzone */}
                                 <div className="w-full md:w-1/2 max-w-[400px] flex flex-col">
                                   <div className="flex items-center justify-between mb-4">
-                                    <h4 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-2">
-                                      <div className="w-6 h-6 rounded-full bg-[#FF5500] flex items-center justify-center text-white shadow-sm">2</div>
+                                    <h4 className="text-sm font-bold text-[var(--text-secondary)] tracking-wide flex items-center gap-2">
+                                      <div className="w-6 h-6 rounded-full bg-[#FF5500] flex items-center justify-center text-white shadow-sm text-xs">2</div>
                                       Dosya veya Link
                                     </h4>
                                     <div className="flex bg-[var(--bg-primary)] p-1 rounded-full">
