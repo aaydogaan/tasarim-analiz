@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Users, MessageCircle, Heart, Trophy, Zap, Share2, Crown, Star, Sparkles, ArrowRight, Award, X, Send, Loader2, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
@@ -176,7 +176,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         const fetchPosts = async () => {
             const { data, error } = await supabase
                 .from('community_posts')
-                .select(`*, analizler(id, gorsel_url, genel_puan, user_name, user_avatar, isletme)`)
+                .select(`*, analizler(id, gorsel_url, genel_puan, user_name, user_avatar, isletme), profiles:user_id(display_name, avatar_url, slug)`)
                 .order('created_at', { ascending: false });
             if (data && !error && isMounted) {
                 const userIds = [...new Set(data.map((p: any) => p.user_id).filter(Boolean))];
@@ -598,6 +598,8 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                 authorAvatar = `https://api.dicebear.com/7.x/notionists/svg?seed=${post.user_id || post.id}`;
                             }
 
+                            let authorSlug = post.profiles?.slug || 'tasarimci';
+
                             return (
                             <motion.div
                                 key={post.id}
@@ -607,15 +609,15 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                 className="bg-[var(--card-bg)] p-6 md:p-8 rounded-[40px] border border-[var(--border-primary)] shadow-sm hover:shadow-md transition-all group cursor-pointer"
                             >
                                 <div className="flex flex-col gap-4">
-                                    <div className="flex items-center gap-4">
+                                    <Link to={`/${authorSlug}`} className="flex items-center gap-4 group/profile">
                                         <img
                                             src={authorAvatar}
-                                            className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] object-cover shrink-0"
+                                            className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] object-cover shrink-0 group-hover/profile:border-[var(--color-brand-orange)] transition-colors"
                                             alt="Avatar"
                                         />
                                         <div className="flex-1 min-w-0 flex flex-col justify-center">
                                             <div className="flex items-center gap-2 mb-0.5">
-                                                <span className="font-bold text-base md:text-lg text-[var(--text-primary)] truncate">{authorName}</span>
+                                                <span className="font-bold text-base md:text-lg text-[var(--text-primary)] truncate group-hover/profile:text-[var(--color-brand-orange)] transition-colors">{authorName}</span>
                                                 {post.analizler?.genel_puan && (
                                                     <span className="ml-auto text-[10px] font-bold uppercase tracking-widest text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md shrink-0 flex items-center gap-1">
                                                         <Star className="w-3 h-3 fill-amber-500" /> {post.analizler.genel_puan} AI
@@ -624,7 +626,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                             </div>
                                             <span className="text-[var(--text-secondary)] text-xs">{new Date(post.created_at).toLocaleDateString('tr-TR')}</span>
                                         </div>
-                                    </div>
+                                    </Link>
                                     <div className="w-full">
                                         {post.title && <h3 className="font-bold text-[var(--text-primary)] mb-2">{post.title}</h3>}
                                         <p className="text-[var(--text-secondary)] leading-relaxed mb-6 whitespace-pre-wrap">

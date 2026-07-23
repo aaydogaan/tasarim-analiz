@@ -21,6 +21,7 @@ import Tools from "./pages/Tools";
 import TypographyLab from "./pages/TypographyLab";
 import HowItWorks from "./pages/HowItWorks";
 import { Leaderboard } from "./pages/Leaderboard";
+import PublicProfile from "./pages/PublicProfile";
 import LiveActivityFeed from "./components/ui/LiveActivityFeed";
 import AnalizEtButton from "./components/ui/AnalizEtButton";
 import ScanningOverlay from "./components/ui/ScanningOverlay";
@@ -558,9 +559,16 @@ export default function App() {
                 display_name: authAdSoyad || 'Tasarımcı'
               }
             });
+            const baseName = (authAdSoyad || 'Tasarimci').toLowerCase()
+              .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/^-+|-+$/g, '');
+            const slug = `${baseName || 'tasarimci'}-${userRecord.id.substring(0,4)}`;
+
             await supabase.from('profiles').upsert({
               id: userRecord.id,
               display_name: authAdSoyad || 'Tasarımcı',
+              slug: slug,
               avatar_url: `https://api.dicebear.com/7.x/notionists/svg?seed=${userRecord.id}`,
               updated_at: new Date().toISOString()
             }, { onConflict: 'id' });
@@ -2087,6 +2095,7 @@ export default function App() {
 
           </>
         } />
+        <Route path="/:slug" element={<PublicProfile />} />
       </Routes>
       
       {/* ── AUTH MODAL - Tüm sayfalardan erişilebilir ── */}

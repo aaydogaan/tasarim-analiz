@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { 
   Flame, 
@@ -31,6 +32,7 @@ interface LeaderboardUser {
   name: string;
   avatar: string;
   userIdTag: string;
+  slug: string;
   tasksCompleted: number;   // analyses in selected period
   totalScore: number;       // total hybrid score
   totalAiScore: number;     // sum of AI score from analizler.genel_puan
@@ -176,7 +178,7 @@ export function Leaderboard() {
       });
 
       // 5. Build user registry from user_xp_stats
-      const userMetaRegistry: Record<string, { name: string; avatar: string; xp: number }> = {};
+      const userMetaRegistry: Record<string, { name: string; avatar: string; xp: number; slug: string }> = {};
 
       if (xpStatsData) {
         xpStatsData.forEach(u => {
@@ -184,7 +186,8 @@ export function Leaderboard() {
             userMetaRegistry[u.id] = {
               name: u.display_name || u.full_name || 'Tasarımcı',
               avatar: u.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${u.id}`,
-              xp: u.total_xp || 0
+              xp: u.total_xp || 0,
+              slug: u.slug || 'tasarimci'
             };
           }
         });
@@ -196,7 +199,8 @@ export function Leaderboard() {
         userMetaRegistry[currentUser.id] = {
           name: currentUser.user_metadata?.display_name || currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Tasarımcı',
           avatar: currentUser.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${currentUser.id}`,
-          xp: periodTasks * 250
+          xp: periodTasks * 250,
+          slug: 'tasarimci'
         };
       }
 
@@ -222,6 +226,7 @@ export function Leaderboard() {
           rank: 0,
           id: userId,
           name: meta.name,
+          slug: meta.slug,
           userIdTag: `ID ${userId.slice(0, 7).toUpperCase()}`,
           avatar: meta.avatar,
           tasksCompleted: periodTasks,
@@ -598,20 +603,20 @@ export function Leaderboard() {
 
                           {/* Avatar + name + ID */}
                           <td className="py-4 px-6 whitespace-nowrap">
-                            <div className="flex items-center gap-3">
+                            <Link to={`/${user.slug}`} className="flex items-center gap-3 group/profile">
                               <img
                                 src={user.avatar}
                                 alt={user.name}
-                                className="w-10 h-10 rounded-full object-cover border border-slate-200"
+                                className="w-10 h-10 rounded-full object-cover border border-slate-200 group-hover/profile:border-blue-500 transition-colors"
                               />
                               <div>
-                                <p className="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors flex items-center gap-1.5">
+                                <p className="font-bold text-slate-900 text-sm group-hover/profile:text-blue-600 transition-colors flex items-center gap-1.5">
                                   <span>{user.name}</span>
                                   {user.isCurrentUser && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">SEN</span>}
                                 </p>
                                 <p className="text-[10px] font-medium text-slate-400">{user.userIdTag}</p>
                               </div>
-                            </div>
+                            </Link>
                           </td>
 
                           {/* Analysis count */}

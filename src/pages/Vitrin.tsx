@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { Heart, Maximize2, X, Star, Loader2, Search, ChevronDown, Filter, Sparkles, Trophy, Flame, Clock, ArrowBigUp, ArrowBigDown } from "lucide-react";
 import toast from "react-hot-toast";
@@ -16,8 +17,9 @@ interface VitrinItem {
     topluluk_puan: number;
     oy_sayisi: number;
     created_at: string;
-    user_name: string | null;
-    user_avatar: string | null;
+    user_name: string;
+    user_avatar?: string;
+    user_slug: string;
     user_vote: number | null;
     skor_detayi: any | null;
 }
@@ -90,7 +92,8 @@ export function Vitrin() {
                 user_id,
                 created_at,
                 likes_count,
-                analizler(*, begeniler(vote_type, user_id))
+                analizler(*, begeniler(vote_type, user_id)),
+                profiles:user_id(display_name, avatar_url, slug)
             `)
             .order("created_at", { ascending: false });
 
@@ -117,6 +120,8 @@ export function Vitrin() {
                     authorAvatar = `https://api.dicebear.com/7.x/notionists/svg?seed=${post.user_id || post.id}`;
                 }
 
+                let authorSlug = post.profiles?.slug || 'tasarimci';
+
                 const realAiPuan = post.analizler?.genel_puan ?? 75;
                 
                 const begeniler = post.analizler?.begeniler || [];
@@ -142,6 +147,7 @@ export function Vitrin() {
                     isletme: post.analizler?.isletme || post.title || 'Genel',
                     user_name: authorName,
                     user_avatar: authorAvatar,
+                    user_slug: authorSlug,
                     user_vote,
                     gorsel_url: formattedGorsel,
                     tasarim_turu: post.analizler?.tasarim_turu || 'Tasarım',
@@ -472,16 +478,16 @@ export function Vitrin() {
 
                             {/* Dribbble Style Footer Info */}
                             <div className="flex justify-between items-start mt-3 px-1.5 min-w-0 gap-2">
-                                <div className="flex items-start gap-2 min-w-0 flex-1">
+                                <Link to={`/${item.user_slug}`} className="flex items-start gap-2 min-w-0 flex-1 group/profile">
                                     <img
                                         src={item.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${item.id}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`}
                                         alt="Designer"
-                                        className="w-7 h-7 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] object-cover shrink-0 mt-0.5"
+                                        className="w-7 h-7 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] object-cover shrink-0 mt-0.5 group-hover/profile:border-[var(--color-brand-orange)] transition-colors"
                                     />
-                                    <span className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer transition-colors text-sm font-medium leading-snug">
+                                    <span className="text-[var(--text-secondary)] group-hover/profile:text-[var(--text-primary)] cursor-pointer transition-colors text-sm font-medium leading-snug">
                                         {item.user_name || "Tasarımcı"}
                                     </span>
-                                </div>
+                                </Link>
 
                                 <div className="flex flex-col items-end gap-1 shrink-0">
                                     <div className="flex items-center gap-1.5 group cursor-help" title="AI Puanı">
