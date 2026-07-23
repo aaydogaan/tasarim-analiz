@@ -19,6 +19,7 @@ import Pricing from "./pages/Pricing";
 import About from "./pages/About";
 import Tools from "./pages/Tools";
 import TypographyLab from "./pages/TypographyLab";
+import HowItWorks from "./pages/HowItWorks";
 import { Leaderboard } from "./pages/Leaderboard";
 import LiveActivityFeed from "./components/ui/LiveActivityFeed";
 import AnalizEtButton from "./components/ui/AnalizEtButton";
