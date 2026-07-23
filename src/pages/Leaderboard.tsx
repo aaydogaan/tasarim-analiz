@@ -32,8 +32,8 @@ interface LeaderboardUser {
   avatar: string;
   userIdTag: string;
   tasksCompleted: number;   // analyses in selected period
-  avgAiScore: number;       // avg AI score from analizler.genel_puan (0-100)
-  communityLikes: number;   // total beğeni received on community posts
+  totalAiScore: number;     // sum of AI score from analizler.genel_puan
+  communityLikes: number;   // total puan received on community posts
   totalPoints: string;      // formatted XP string
   pointsNum: number;        // raw XP for sorting
   trend: 'up' | 'down';
@@ -104,7 +104,7 @@ export function Leaderboard() {
       // 3. Analyses with date filter — count + AI score per user
       let analysesQuery = supabase
         .from('analizler')
-        .select('user_id, created_at, genel_puan');
+        .select('id, user_id, created_at, genel_puan');
 
       const now = new Date();
       if (tab === 'week') {
@@ -122,30 +122,33 @@ export function Leaderboard() {
       // Build per-user analysis count + cumulative AI score
       const periodAnalizCountMap: Record<string, number> = {};
       const aiScoreSumMap: Record<string, number> = {};   // sum of genel_puan
-      const aiScoreCountMap: Record<string, number> = {}; // count of scored analyses
+      const analizOwnerMap: Record<string, string> = {};  // analiz_id -> user_id
 
       if (periodAnalizler) {
         periodAnalizler.forEach(a => {
           if (!a.user_id) return;
+          analizOwnerMap[a.id] = a.user_id;
           periodAnalizCountMap[a.user_id] = (periodAnalizCountMap[a.user_id] || 0) + 1;
           if (a.genel_puan != null) {
             aiScoreSumMap[a.user_id] = (aiScoreSumMap[a.user_id] || 0) + a.genel_puan;
-            aiScoreCountMap[a.user_id] = (aiScoreCountMap[a.user_id] || 0) + 1;
           }
         });
       }
 
-      // 4. Community likes (begeniler) — total received per user
-      //    begeniler.user_id = the USER who received the like (owner of the post/analysis)
+      // 4. Community score (begeniler) — total received per user
+      //    begeniler.analiz_id -> look up owner in analizOwnerMap
       const { data: begenilerData } = await supabase
         .from('begeniler')
-        .select('user_id');
+        .select('analiz_id, puan');
 
-      const communityLikesMap: Record<string, number> = {};
+      const communityScoreMap: Record<string, number> = {};
       if (begenilerData) {
         begenilerData.forEach(b => {
-          if (b.user_id) {
-            communityLikesMap[b.user_id] = (communityLikesMap[b.user_id] || 0) + 1;
+          if (b.analiz_id && b.puan) {
+            const ownerId = analizOwnerMap[b.analiz_id];
+            if (ownerId) {
+              communityScoreMap[ownerId] = (communityScoreMap[ownerId] || 0) + b.puan;
+            }
           }
         });
       }
@@ -184,13 +187,11 @@ export function Leaderboard() {
 
         const xp = tab === 'all' ? meta.xp : (periodTasks * 250);
 
-        // Average AI score (0-100)
-        const aiSum = aiScoreSumMap[userId] || 0;
-        const aiCount = aiScoreCountMap[userId] || 0;
-        const avgAiScore = aiCount > 0 ? Math.round(aiSum / aiCount) : 0;
+        // Total AI score
+        const totalAiScore = aiScoreSumMap[userId] || 0;
 
-        // Community likes
-        const communityLikes = communityLikesMap[userId] || 0;
+        // Community score received
+        const communityLikes = communityScoreMap[userId] || 0;
 
         return {
           rank: 0,
@@ -199,7 +200,7 @@ export function Leaderboard() {
           userIdTag: `ID ${userId.slice(0, 7).toUpperCase()}`,
           avatar: meta.avatar,
           tasksCompleted: periodTasks,
-          avgAiScore,
+          totalAiScore,
           communityLikes,
           totalPoints: `${xp.toLocaleString('tr-TR')} XP`,
           pointsNum: xp,
@@ -209,7 +210,7 @@ export function Leaderboard() {
       });
 
       // Default sort: AI Score descending
-      liveList.sort((a, b) => b.avgAiScore - a.avgAiScore);
+      liveList.sort((a, b) => b.totalAiScore - a.totalAiScore);
       liveList.forEach((u, index) => { u.rank = index + 1; });
 
       setUsers(liveList);
@@ -227,7 +228,7 @@ export function Leaderboard() {
   // Top three always based on current sort
   const getSortValue = (u: LeaderboardUser) => {
     if (sortOption === 'community') return u.communityLikes;
-    return u.avgAiScore; // Default to AI score
+    return u.totalAiScore; // Default to AI score
   };
 
   const sortedUsers = [...users].sort((a, b) => getSortValue(b) - getSortValue(a));
@@ -260,9 +261,9 @@ export function Leaderboard() {
         : { bg: 'bg-gradient-to-br from-orange-50 to-amber-100 border border-orange-200', numColor: 'text-orange-700', icon: <CrownSimple size={28} weight="duotone" color="#f97316" /> };
 
     // Show score relevant to active sort
-    const scoreLabel = sortOption === 'community' ? 'Beğeni' : 'YZ Skoru';
+    const scoreLabel = sortOption === 'community' ? 'Topluluk Puanı' : 'Toplam YZ Puanı';
     const scoreValue = sortOption === 'ai_score'
-      ? (user.avgAiScore > 0 ? `${user.avgAiScore}/100` : '—')
+      ? user.totalAiScore.toLocaleString('tr-TR')
       : user.communityLikes.toLocaleString('tr-TR');
 
     return (
@@ -586,24 +587,8 @@ export function Leaderboard() {
 
                           {/* AI Score */}
                           <td className="py-4 px-6 text-center whitespace-nowrap">
-                            {user.avgAiScore > 0 ? (
-                              <div className="flex flex-col items-center gap-0.5">
-                                <span className={`font-extrabold text-sm ${
-                                  user.avgAiScore >= 75 ? 'text-emerald-600'
-                                  : user.avgAiScore >= 50 ? 'text-amber-500'
-                                  : 'text-rose-500'
-                                }`}>{user.avgAiScore}</span>
-                                <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                  <div
-                                    className={`h-full rounded-full transition-all ${
-                                      user.avgAiScore >= 75 ? 'bg-emerald-500'
-                                      : user.avgAiScore >= 50 ? 'bg-amber-400'
-                                      : 'bg-rose-400'
-                                    }`}
-                                    style={{ width: `${user.avgAiScore}%` }}
-                                  />
-                                </div>
-                              </div>
+                            {user.totalAiScore > 0 ? (
+                              <span className="font-extrabold text-slate-800 text-sm">{user.totalAiScore.toLocaleString('tr-TR')}</span>
                             ) : (
                               <span className="text-slate-300 font-medium">—</span>
                             )}
@@ -614,7 +599,7 @@ export function Leaderboard() {
                             {user.communityLikes > 0 ? (
                               <div className="flex items-center justify-center gap-1.5">
                                 <Heart className="w-4 h-4 text-slate-400 shrink-0" />
-                                <span className="font-bold text-slate-800">{user.communityLikes}</span>
+                                <span className="font-bold text-slate-800">{user.communityLikes.toLocaleString('tr-TR')}</span>
                               </div>
                             ) : (
                               <span className="text-slate-300 font-medium">—</span>
