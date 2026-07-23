@@ -251,11 +251,11 @@ export default function PublicProfile() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/95 backdrop-blur-md"
+                        className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-gray-900/95 backdrop-blur-md"
                         onClick={() => setSeciliGorsel(null)}
                     >
                         <button 
-                            className="absolute top-4 right-4 md:top-6 md:right-6 z-[101] p-2.5 md:p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all backdrop-blur-md border border-white/20"
+                            className="fixed top-20 right-4 md:top-6 md:right-6 z-[10000] p-2.5 md:p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all backdrop-blur-md border border-white/20"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setSeciliGorsel(null);
