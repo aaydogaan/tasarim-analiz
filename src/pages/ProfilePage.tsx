@@ -39,7 +39,8 @@ import {
     Trash2,
     ShieldCheck,
     KeyRound,
-    ChevronRight
+    ChevronRight,
+    AlertTriangle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
@@ -140,6 +141,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [changingPassword, setChangingPassword] = useState(false);
+    const [showAvatarConfirmModal, setShowAvatarConfirmModal] = useState(false);
 
     const handlePasswordChange = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -479,12 +481,17 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
 
     const handleAvatarRefresh = () => {
         if (profileData.avatarUrl && !profileData.avatarUrl.includes('dicebear')) {
-            const confirmed = window.confirm('Mevcut yüklenmiş görseliniz silinecek ve rastgele bir avatar üretilecek. Emin misiniz?');
-            if (!confirmed) return;
+            setShowAvatarConfirmModal(true);
+            return;
         }
+        executeAvatarRefresh();
+    };
+
+    const executeAvatarRefresh = () => {
         const nextSeed = `${profileData.displayName || kullanici?.id || 'Revizele'}-${Date.now()}`;
         setProfileData((prev) => ({ ...prev, avatarUrl: buildAvatarUrl(nextSeed) }));
         setSaveState('idle');
+        setShowAvatarConfirmModal(false);
     };
 
     const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1246,6 +1253,49 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                         </div>
                     </div>
                 )}
+
+                {/* Avatar Değişim Onay Modalı */}
+                <AnimatePresence>
+                    {showAvatarConfirmModal && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowAvatarConfirmModal(false)}>
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="bg-[var(--card-bg)] border border-[var(--border-primary)] p-6 rounded-3xl max-w-sm w-full shadow-2xl space-y-4" 
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <div className="flex items-start justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">
+                                            <AlertTriangle className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-black text-sm text-[var(--text-primary)]">Mevcut Görsel Silinecek</h3>
+                                            <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">
+                                                Yüklemiş olduğunuz profil fotoğrafı kalıcı olarak silinecek ve yerine rastgele bir avatar üretilecek. Onaylıyor musunuz?
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2 pt-2">
+                                    <button
+                                        onClick={() => setShowAvatarConfirmModal(false)}
+                                        className="flex-1 py-2.5 rounded-xl border border-[var(--border-primary)] text-xs font-bold text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-all"
+                                    >
+                                        İptal
+                                    </button>
+                                    <button
+                                        onClick={executeAvatarRefresh}
+                                        className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-all"
+                                    >
+                                        Evet, Değiştir
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
             </main>
         </div>
     );
