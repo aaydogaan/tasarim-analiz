@@ -487,11 +487,17 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
         executeAvatarRefresh();
     };
 
-    const executeAvatarRefresh = () => {
+    const executeAvatarRefresh = async () => {
         const nextSeed = `${profileData.displayName || kullanici?.id || 'Revizele'}-${Date.now()}`;
-        setProfileData((prev) => ({ ...prev, avatarUrl: buildAvatarUrl(nextSeed) }));
+        const newUrl = buildAvatarUrl(nextSeed);
+        setProfileData((prev) => ({ ...prev, avatarUrl: newUrl }));
         setSaveState('idle');
         setShowAvatarConfirmModal(false);
+        if (kullanici) {
+            await supabase.from('profiles').update({ avatar_url: newUrl }).eq('id', kullanici.id);
+            await supabase.auth.updateUser({ data: { avatar_url: newUrl } });
+            toast.success('Profil fotoğrafı yenilendi!');
+        }
     };
 
     const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -520,6 +526,10 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
             const r2PublicUrl = import.meta.env.VITE_R2_PUBLIC_URL.replace(/\/$/, "");
             const avatarUrl = `${r2PublicUrl}/${fileName}`;
             setProfileData((prev) => ({ ...prev, avatarUrl }));
+            
+            await supabase.from('profiles').update({ avatar_url: avatarUrl }).eq('id', kullanici.id);
+            await supabase.auth.updateUser({ data: { avatar_url: avatarUrl } });
+            toast.success('Profil fotoğrafı güncellendi!');
         } catch (err: any) {
             console.error('Avatar yükleme hatası:', err);
         }
@@ -551,6 +561,9 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
             const r2PublicUrl = import.meta.env.VITE_R2_PUBLIC_URL.replace(/\/$/, "");
             const coverUrl = `${r2PublicUrl}/${fileName}`;
             setProfileData((prev) => ({ ...prev, coverUrl }));
+            
+            await supabase.from('profiles').update({ cover_url: coverUrl }).eq('id', kullanici.id);
+            toast.success('Kapak fotoğrafı güncellendi!');
         } catch (err: any) {
             console.error('Kapak yükleme hatası:', err);
         }
@@ -683,7 +696,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                             {profileData.coverUrl ? (
                                 <img src={profileData.coverUrl} className="w-full h-full object-cover" alt="Kapak Fotoğrafı" />
                             ) : (
-                                <div className="w-full h-full opacity-40 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
+                                <img src="/revizelesene-kapak-görseli.webp" className="w-full h-full object-cover" alt="Varsayılan Kapak Fotoğrafı" />
                             )}
                             
                             {isEditing && (

@@ -119,12 +119,13 @@ export default function PublicProfile() {
                     className="bg-white border border-gray-200/60 rounded-[32px] overflow-hidden mb-8 shadow-sm"
                 >
                     {/* Cover Image */}
-                    <div className="h-32 md:h-48 w-full bg-gradient-to-r from-orange-100 to-amber-100 relative">
+                    <div className="h-32 md:h-48 w-full bg-gradient-to-r from-orange-100 to-amber-100 relative group overflow-hidden">
                         {profile.cover_url ? (
-                            <img src={profile.cover_url} alt="Kapak" className="w-full h-full object-cover" />
+                            <img src={profile.cover_url} className="w-full h-full object-cover" alt="Kapak Fotoğrafı" />
                         ) : (
-                            <div className="w-full h-full opacity-40 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
+                            <img src="/revizelesene-kapak-görseli.webp" className="w-full h-full object-cover" alt="Varsayılan Kapak Fotoğrafı" />
                         )}
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20"></div>
                     </div>
 
                     <div className="px-8 pb-8 md:px-12 md:pb-12">
