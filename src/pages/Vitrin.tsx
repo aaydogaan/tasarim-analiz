@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { supabase } from "../lib/supabase";
-import { Heart, Maximize2, X, Star, Loader2, Search, ChevronDown, Filter, Sparkles, Trophy, Flame, Clock } from "lucide-react";
+import { Heart, Maximize2, X, Star, Loader2, Search, ChevronDown, Filter, Sparkles, Trophy, Flame, Clock, ArrowBigUp, ArrowBigDown } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface VitrinItem {
@@ -19,6 +19,7 @@ interface VitrinItem {
     user_name: string | null;
     user_avatar: string | null;
     user_vote: number | null;
+    skor_detayi: any | null;
 }
 
 export function Vitrin() {
@@ -89,7 +90,7 @@ export function Vitrin() {
                 user_id,
                 created_at,
                 likes_count,
-                analizler(*, begeniler(puan, user_id))
+                analizler(*, begeniler(vote_type, user_id))
             `)
             .order("created_at", { ascending: false });
 
@@ -120,17 +121,18 @@ export function Vitrin() {
                 
                 const begeniler = post.analizler?.begeniler || [];
                 const oySayisi = begeniler.length;
+                let upvotes = 0;
                 let toplulukPuan = 0;
                 let user_vote = null;
                 
                 if (oySayisi > 0) {
-                    toplulukPuan = Math.round(begeniler.reduce((sum: number, b: any) => sum + b.puan, 0) / oySayisi);
-                    if (user) {
-                        const myVoteObj = begeniler.find((b: any) => b.user_id === user.id);
-                        if (myVoteObj) {
-                            user_vote = myVoteObj.puan;
+                    begeniler.forEach((b: any) => {
+                        if (b.vote_type === 1) upvotes++;
+                        if (user && b.user_id === user.id) {
+                            user_vote = b.vote_type;
                         }
-                    }
+                    });
+                    toplulukPuan = Math.round((upvotes / oySayisi) * 100);
                 }
 
                 return {
@@ -147,7 +149,8 @@ export function Vitrin() {
                     topluluk_puan: toplulukPuan,
                     oy_sayisi: oySayisi,
                     created_at: post.created_at,
-                    platform: ''
+                    platform: '',
+                    skor_detayi: post.analizler?.skor_detayi || null
                 };
             });
             setItems(formatted);
@@ -252,7 +255,7 @@ export function Vitrin() {
 
         const { error } = await supabase
             .from("begeniler")
-            .insert({ analiz_id, user_id: user.id, puan });
+            .insert({ analiz_id, user_id: user.id, vote_type: puan });
 
         if (!error) {
             toast.success("Oyunuz başarıyla kaydedildi!");
@@ -261,16 +264,20 @@ export function Vitrin() {
                 prev.map((item) => {
                     // Update matching analiz_id
                     if (item.analiz_id === analiz_id || item.id === analiz_id) {
+                        const eskiUpvote = Math.round((item.topluluk_puan * item.oy_sayisi) / 100);
                         const yeniOySayisi = item.oy_sayisi + 1;
-                        const yeniPuan = Math.round(((item.topluluk_puan * item.oy_sayisi) + puan) / yeniOySayisi);
+                        const yeniUpvote = eskiUpvote + (puan === 1 ? 1 : 0);
+                        const yeniPuan = Math.round((yeniUpvote / yeniOySayisi) * 100);
                         return { ...item, oy_sayisi: yeniOySayisi, topluluk_puan: yeniPuan, user_vote: puan };
                     }
                     return item;
                 })
             );
             if (seciliGorsel) {
+                 const eskiUpvote = Math.round((seciliGorsel.topluluk_puan * seciliGorsel.oy_sayisi) / 100);
                  const yeniOySayisi = seciliGorsel.oy_sayisi + 1;
-                 const yeniPuan = Math.round(((seciliGorsel.topluluk_puan * seciliGorsel.oy_sayisi) + puan) / yeniOySayisi);
+                 const yeniUpvote = eskiUpvote + (puan === 1 ? 1 : 0);
+                 const yeniPuan = Math.round((yeniUpvote / yeniOySayisi) * 100);
                  setSeciliGorsel({ ...seciliGorsel, oy_sayisi: yeniOySayisi, topluluk_puan: yeniPuan, user_vote: puan });
             }
         } else {
@@ -551,7 +558,7 @@ export function Vitrin() {
                                     <h4 className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mb-2">Marka / Şirket</h4>
                                     <h2 className="text-[var(--text-primary)] text-3xl font-black mb-8 leading-tight">{seciliGorsel.isletme}</h2>
 
-                                    <div className="flex gap-4 mb-10">
+                                    <div className="flex gap-4 mb-6">
                                         <div className="flex-1 p-5 rounded-[24px] bg-[var(--bg-secondary)] border border-[var(--border-primary)] flex flex-col items-center text-center shadow-sm relative overflow-hidden group">
                                             <div className="absolute inset-0 bg-[var(--color-brand-orange)]/5 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                                             <span className="text-[var(--text-secondary)] text-[10px] uppercase font-black tracking-widest mb-1 relative z-10">Yapay Zeka Puanı</span>
@@ -560,9 +567,67 @@ export function Vitrin() {
                                         <div className="flex-1 p-5 rounded-[24px] bg-[var(--bg-secondary)] border border-[var(--border-primary)] flex flex-col items-center text-center shadow-sm relative overflow-hidden group">
                                             <div className="absolute inset-0 bg-[#ff7b00]/5 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                                             <span className="text-[var(--text-secondary)] text-[10px] uppercase font-black tracking-widest mb-1 relative z-10">Topluluk ({seciliGorsel.oy_sayisi} Oy)</span>
-                                            <span className="text-4xl text-[#ff7b00] font-black tracking-tighter relative z-10">{seciliGorsel.oy_sayisi > 0 ? seciliGorsel.topluluk_puan : 0}</span>
+                                            <span className="text-4xl text-[#ff7b00] font-black tracking-tighter relative z-10">
+                                                {seciliGorsel.oy_sayisi > 0 ? `%${seciliGorsel.topluluk_puan}` : 0}
+                                            </span>
                                         </div>
                                     </div>
+
+                                    {/* 4 Bar AI Breakdown */}
+                                    {seciliGorsel.skor_detayi && (
+                                        <div className="mb-8 space-y-3 bg-[var(--bg-secondary)] p-5 rounded-[24px] border border-[var(--border-primary)]">
+                                            <span className="text-[var(--text-primary)] font-bold text-xs tracking-wide block mb-2">Detaylı Kriter Analizi</span>
+                                            
+                                            {/* Renk */}
+                                            {seciliGorsel.skor_detayi.renk && (
+                                                <div>
+                                                    <div className="flex justify-between items-end mb-1">
+                                                        <span className="text-[var(--text-secondary)] text-[11px] font-bold">Renk Paleti & Harmoni</span>
+                                                        <span className="text-[var(--text-primary)] text-[11px] font-black">{seciliGorsel.skor_detayi.renk.puan}/25</span>
+                                                    </div>
+                                                    <div className="h-1.5 w-full bg-[var(--text-primary)]/10 rounded-full overflow-hidden">
+                                                        <div className="h-full bg-[#FF5500] rounded-full" style={{ width: `${(seciliGorsel.skor_detayi.renk.puan / 25) * 100}%` }} />
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {/* Font */}
+                                            {seciliGorsel.skor_detayi.font && (
+                                                <div>
+                                                    <div className="flex justify-between items-end mb-1">
+                                                        <span className="text-[var(--text-secondary)] text-[11px] font-bold">Tipografi & Okunabilirlik</span>
+                                                        <span className="text-[var(--text-primary)] text-[11px] font-black">{seciliGorsel.skor_detayi.font.puan}/25</span>
+                                                    </div>
+                                                    <div className="h-1.5 w-full bg-[var(--text-primary)]/10 rounded-full overflow-hidden">
+                                                        <div className="h-full bg-[#FF5500] rounded-full" style={{ width: `${(seciliGorsel.skor_detayi.font.puan / 25) * 100}%` }} />
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {/* Bütünlük */}
+                                            {seciliGorsel.skor_detayi.butunluk && (
+                                                <div>
+                                                    <div className="flex justify-between items-end mb-1">
+                                                        <span className="text-[var(--text-secondary)] text-[11px] font-bold">Marka Uyumu & Bütünlük</span>
+                                                        <span className="text-[var(--text-primary)] text-[11px] font-black">{seciliGorsel.skor_detayi.butunluk.puan}/25</span>
+                                                    </div>
+                                                    <div className="h-1.5 w-full bg-[var(--text-primary)]/10 rounded-full overflow-hidden">
+                                                        <div className="h-full bg-[#FF5500] rounded-full" style={{ width: `${(seciliGorsel.skor_detayi.butunluk.puan / 25) * 100}%` }} />
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {/* Kompozisyon */}
+                                            {seciliGorsel.skor_detayi.kompozisyon && (
+                                                <div>
+                                                    <div className="flex justify-between items-end mb-1">
+                                                        <span className="text-[var(--text-secondary)] text-[11px] font-bold">Düzen & Kompozisyon</span>
+                                                        <span className="text-[var(--text-primary)] text-[11px] font-black">{seciliGorsel.skor_detayi.kompozisyon.puan}/25</span>
+                                                    </div>
+                                                    <div className="h-1.5 w-full bg-[var(--text-primary)]/10 rounded-full overflow-hidden">
+                                                        <div className="h-full bg-[#FF5500] rounded-full" style={{ width: `${(seciliGorsel.skor_detayi.kompozisyon.puan / 25) * 100}%` }} />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
 
                                     {/* Oylama Alanı veya Kendi Tasarımın Uyarısı */}
                                     {user && seciliGorsel.user_id === user.id ? (
@@ -570,23 +635,35 @@ export function Vitrin() {
                                             <p className="text-xs font-bold text-[var(--color-brand-orange)]">Kendi tasarımınıza puan veremezsiniz</p>
                                         </div>
                                     ) : (
-                                        <div className="space-y-4 bg-[var(--bg-secondary)] p-6 rounded-[24px] border border-[var(--border-primary)]">
-                                            <p className="text-[var(--text-secondary)] text-sm text-center font-medium">Bu tasarıma siz kaç puan verirsiniz?</p>
-                                            <div className="grid grid-cols-4 gap-2.5">
-                                                {[70, 80, 90, 100].map(pt => (
-                                                    <button
-                                                        key={pt}
-                                                        onClick={() => vote(seciliGorsel.analiz_id || seciliGorsel.id, pt)}
-                                                        disabled={seciliGorsel.user_vote != null}
-                                                        className={`py-3.5 border rounded-xl font-bold transition-all text-base shadow-sm ${
-                                                            seciliGorsel.user_vote === pt
-                                                                ? 'bg-[var(--color-brand-orange)] text-white border-[var(--color-brand-orange)] scale-[1.02]'
-                                                                : 'bg-[var(--bg-primary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)] border-[var(--border-primary)] text-[var(--text-primary)] disabled:opacity-50 disabled:hover:bg-[var(--bg-primary)] disabled:hover:text-[var(--text-primary)] disabled:cursor-not-allowed'
-                                                        }`}
-                                                    >
-                                                        {pt}
-                                                    </button>
-                                                ))}
+                                        <div className="flex justify-center pt-2 pb-4">
+                                            <div className="inline-flex items-center bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-full p-1.5 shadow-sm hover:shadow-md transition-shadow">
+                                                <button
+                                                    onClick={() => vote(seciliGorsel.analiz_id || seciliGorsel.id, 1)}
+                                                    disabled={seciliGorsel.user_vote != null}
+                                                    title="Beğendim"
+                                                    className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
+                                                        seciliGorsel.user_vote === 1
+                                                            ? 'bg-emerald-500 text-white shadow-md scale-105'
+                                                            : 'text-emerald-500/60 hover:bg-emerald-50/50 hover:text-emerald-600 disabled:opacity-50'
+                                                    }`}
+                                                >
+                                                    <ArrowBigUp className="w-6 h-6" fill={seciliGorsel.user_vote === 1 ? "currentColor" : "none"} />
+                                                </button>
+                                                
+                                                <div className="w-px h-6 bg-[var(--border-primary)] mx-3" />
+
+                                                <button
+                                                    onClick={() => vote(seciliGorsel.analiz_id || seciliGorsel.id, -1)}
+                                                    disabled={seciliGorsel.user_vote != null}
+                                                    title="Beğenmedim"
+                                                    className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
+                                                        seciliGorsel.user_vote === -1
+                                                            ? 'bg-rose-500 text-white shadow-md scale-105'
+                                                            : 'text-rose-500/60 hover:bg-rose-50/50 hover:text-rose-600 disabled:opacity-50'
+                                                    }`}
+                                                >
+                                                    <ArrowBigDown className="w-6 h-6" fill={seciliGorsel.user_vote === -1 ? "currentColor" : "none"} />
+                                                </button>
                                             </div>
                                         </div>
                                     )}

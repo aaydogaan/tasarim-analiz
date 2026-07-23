@@ -52,10 +52,10 @@ const VitrinCard: React.FC<{ item: VitrinItem }> = ({ item }) => (
                     <Star className="w-4 h-4 text-amber-500 fill-amber-500/20 group-hover:fill-amber-500 transition-colors" />
                     <span className="text-[var(--color-brand-dark)]/60 text-xs font-semibold tabular-nums">{item.ai_puan}</span>
                 </div>
-                <div className="flex items-center gap-1.5 group cursor-help">
-                    <Heart className="w-4 h-4 text-emerald-500 fill-emerald-500/20 group-hover:fill-emerald-500 transition-colors" />
-                    <span className="text-[var(--color-brand-dark)]/60 text-xs font-semibold tabular-nums tracking-tighter">{item.topluluk_puan || 0}</span>
-                </div>
+                  <div className="flex items-center gap-1.5 opacity-90 hover:opacity-100 transition-opacity">
+                    <Heart className="w-3.5 h-3.5 text-[var(--color-brand-dark)]" />
+                    <span className="text-[var(--color-brand-dark)]/60 text-xs font-semibold tabular-nums tracking-tighter">%{item.topluluk_puan || 0}</span>
+                  </div>
             </div>
         </div>
     </div>

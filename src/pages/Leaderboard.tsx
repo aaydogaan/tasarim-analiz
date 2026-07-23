@@ -32,32 +32,38 @@ interface LeaderboardUser {
   avatar: string;
   userIdTag: string;
   tasksCompleted: number;   // analyses in selected period
+  totalScore: number;       // total hybrid score
   totalAiScore: number;     // sum of AI score from analizler.genel_puan
-  communityLikes: number;   // total puan received on community posts
+  communityLikes: number;   // sum of community scores
   totalPoints: string;      // formatted XP string
   pointsNum: number;        // raw XP for sorting
   trend: 'up' | 'down';
   isCurrentUser?: boolean;
 }
 
-type SortOption = 'ai_score' | 'community';
+type SortOption = 'total_score' | 'ai_score' | 'community';
 
 const SORT_CONFIG: { id: SortOption; label: string; icon: React.ReactNode }[] = [
   {
+    id: 'total_score',
+    label: 'Total Skor',
+    icon: <TrophyLucide className="w-4 h-4" />,
+  },
+  {
     id: 'ai_score',
-    label: 'Yapay Zeka Puanı',
+    label: 'Yapay Zeka',
     icon: <Sparkles className="w-4 h-4" />,
   },
   {
     id: 'community',
-    label: 'Topluluk Puanı',
+    label: 'Topluluk',
     icon: <Heart className="w-4 h-4" />,
   },
 ];
 
 export function Leaderboard() {
   const [activeTab, setActiveTab] = useState<'week' | 'month' | 'all'>('all');
-  const [sortOption, setSortOption] = useState<SortOption>('ai_score');
+  const [sortOption, setSortOption] = useState<SortOption>('total_score');
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -120,38 +126,54 @@ export function Leaderboard() {
       const { data: periodAnalizler } = await analysesQuery;
 
       // Build per-user analysis count + cumulative AI score
+      // Calculate analysis stats
+      const analizOwnerMap: Record<string, string> = {};
       const periodAnalizCountMap: Record<string, number> = {};
-      const aiScoreSumMap: Record<string, number> = {};   // sum of genel_puan
-      const analizOwnerMap: Record<string, string> = {};  // analiz_id -> user_id
+      const analizStatsMap: Record<string, { aiPuan: number; upvotes: number; totalVotes: number }> = {};
 
       if (periodAnalizler) {
         periodAnalizler.forEach(a => {
           if (!a.user_id) return;
           analizOwnerMap[a.id] = a.user_id;
           periodAnalizCountMap[a.user_id] = (periodAnalizCountMap[a.user_id] || 0) + 1;
-          if (a.genel_puan != null) {
-            aiScoreSumMap[a.user_id] = (aiScoreSumMap[a.user_id] || 0) + a.genel_puan;
-          }
+          
+          analizStatsMap[a.id] = { aiPuan: a.genel_puan || 0, upvotes: 0, totalVotes: 0 };
         });
       }
 
-      // 4. Community score (begeniler) — total received per user
-      //    begeniler.analiz_id -> look up owner in analizOwnerMap
+      // 4. Community score (begeniler) via vote_type
       const { data: begenilerData } = await supabase
         .from('begeniler')
-        .select('analiz_id, puan');
+        .select('analiz_id, vote_type');
 
-      const communityScoreMap: Record<string, number> = {};
       if (begenilerData) {
         begenilerData.forEach(b => {
-          if (b.analiz_id && b.puan) {
-            const ownerId = analizOwnerMap[b.analiz_id];
-            if (ownerId) {
-              communityScoreMap[ownerId] = (communityScoreMap[ownerId] || 0) + b.puan;
+          if (b.analiz_id && b.vote_type) {
+            const stats = analizStatsMap[b.analiz_id];
+            if (stats) {
+                stats.totalVotes += 1;
+                if (b.vote_type === 1) stats.upvotes += 1;
             }
           }
         });
       }
+
+      const userHybridScoreMap: Record<string, number> = {};
+      const userTotalAiScoreMap: Record<string, number> = {};
+      const userTotalCommunityScoreMap: Record<string, number> = {};
+
+      Object.keys(analizStatsMap).forEach(analizId => {
+          const stats = analizStatsMap[analizId];
+          const ownerId = analizOwnerMap[analizId];
+          if (!ownerId) return;
+
+          const toplulukPuan = stats.totalVotes > 0 ? Math.round((stats.upvotes / stats.totalVotes) * 100) : 0;
+          const hybridPuan = Math.round((stats.aiPuan * 0.4) + (toplulukPuan * 0.6));
+
+          userHybridScoreMap[ownerId] = (userHybridScoreMap[ownerId] || 0) + hybridPuan;
+          userTotalAiScoreMap[ownerId] = (userTotalAiScoreMap[ownerId] || 0) + stats.aiPuan;
+          userTotalCommunityScoreMap[ownerId] = (userTotalCommunityScoreMap[ownerId] || 0) + stats.upvotes;
+      });
 
       // 5. Build user registry from user_xp_stats
       const userMetaRegistry: Record<string, { name: string; avatar: string; xp: number }> = {};
@@ -178,7 +200,7 @@ export function Leaderboard() {
         };
       }
 
-      const allUserIds = Object.keys(userMetaRegistry);
+      const allUserIds = Object.keys(userMetaRegistry).filter(id => (periodAnalizCountMap[id] || 0) > 0);
       setRealMemberCount(allUserIds.length);
 
       const liveList: LeaderboardUser[] = allUserIds.map((userId, idx) => {
@@ -187,11 +209,14 @@ export function Leaderboard() {
 
         const xp = tab === 'all' ? meta.xp : (periodTasks * 250);
 
-        // Total AI score
-        const totalAiScore = aiScoreSumMap[userId] || 0;
+        // Average AI score
+        const totalAiScore = periodTasks > 0 ? Math.round(userTotalAiScoreMap[userId] / periodTasks) : 0;
 
         // Community score received
-        const communityLikes = communityScoreMap[userId] || 0;
+        const communityLikes = userTotalCommunityScoreMap[userId] || 0;
+        
+        // Hybrid Total Score
+        const totalScore = userHybridScoreMap[userId] || 0;
 
         return {
           rank: 0,
@@ -200,6 +225,7 @@ export function Leaderboard() {
           userIdTag: `ID ${userId.slice(0, 7).toUpperCase()}`,
           avatar: meta.avatar,
           tasksCompleted: periodTasks,
+          totalScore,
           totalAiScore,
           communityLikes,
           totalPoints: `${xp.toLocaleString('tr-TR')} XP`,
@@ -209,8 +235,8 @@ export function Leaderboard() {
         };
       });
 
-      // Default sort: AI Score descending
-      liveList.sort((a, b) => b.totalAiScore - a.totalAiScore);
+      // Default sort: Total Score descending
+      liveList.sort((a, b) => b.totalScore - a.totalScore);
       liveList.forEach((u, index) => { u.rank = index + 1; });
 
       setUsers(liveList);
@@ -225,10 +251,10 @@ export function Leaderboard() {
     fetchLeaderboardData(activeTab);
   }, [activeTab, fetchLeaderboardData]);
 
-  // Top three always based on current sort
   const getSortValue = (u: LeaderboardUser) => {
     if (sortOption === 'community') return u.communityLikes;
-    return u.totalAiScore; // Default to AI score
+    if (sortOption === 'ai_score') return u.totalAiScore;
+    return u.totalScore; // Default to total_score
   };
 
   const sortedUsers = [...users].sort((a, b) => getSortValue(b) - getSortValue(a));
@@ -261,10 +287,12 @@ export function Leaderboard() {
         : { bg: 'bg-gradient-to-br from-orange-50 to-amber-100 border border-orange-200', numColor: 'text-orange-700', icon: <CrownSimple size={28} weight="duotone" color="#f97316" /> };
 
     // Show score relevant to active sort
-    const scoreLabel = sortOption === 'community' ? 'Topluluk Puanı' : 'Toplam YZ Puanı';
+    const scoreLabel = sortOption === 'community' ? 'Topluluk Beğenisi' : sortOption === 'ai_score' ? 'Toplam YZ Puanı' : 'Total Skor';
     const scoreValue = sortOption === 'ai_score'
       ? user.totalAiScore.toLocaleString('tr-TR')
-      : user.communityLikes.toLocaleString('tr-TR');
+      : sortOption === 'community'
+        ? '%' + user.communityLikes.toLocaleString('tr-TR')
+        : user.totalScore.toLocaleString('tr-TR');
 
     return (
       <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-5 hover:shadow-md transition-shadow">
@@ -281,7 +309,7 @@ export function Leaderboard() {
                 {user.isCurrentUser && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">SEN</span>}
               </h3>
               <div className="mt-0.5">
-                <span className="text-lg font-extrabold text-slate-900">{scoreValue} {sortOption === 'ai_score' ? 'Puan' : 'Beğeni'}</span>
+                <span className="text-lg font-extrabold text-slate-900">{scoreValue} {sortOption === 'community' ? '' : 'Puan'}</span>
               </div>
             </div>
           </div>
@@ -520,16 +548,22 @@ export function Leaderboard() {
                     <th className="py-4 px-6">Sıra</th>
                     <th className="py-4 px-6">Kullanıcı</th>
                     <th className="py-4 px-6 text-center">Tamamlanan analiz</th>
+                    <th className={`py-4 px-6 text-center ${sortOption === 'total_score' ? 'text-slate-800' : 'text-slate-400'}`}>
+                      <div className="flex items-center justify-center gap-1.5">
+                        {sortOption === 'total_score' && <TrophyLucide className="w-4 h-4 text-slate-700" />}
+                        Total Skor
+                      </div>
+                    </th>
                     <th className={`py-4 px-6 text-center ${sortOption === 'ai_score' ? 'text-slate-800' : 'text-slate-400'}`}>
                       <div className="flex items-center justify-center gap-1.5">
                         {sortOption === 'ai_score' && <Sparkles className="w-4 h-4 text-slate-700" />}
-                        Yapay zeka puanı
+                        Ort. Yapay Zeka
                       </div>
                     </th>
                     <th className={`py-4 px-6 text-center ${sortOption === 'community' ? 'text-slate-800' : 'text-slate-400'}`}>
                       <div className="flex items-center justify-center gap-1.5">
                         {sortOption === 'community' && <Heart className="w-4 h-4 text-slate-700" />}
-                        Topluluk beğenisi
+                        Toplam Beğeni
                       </div>
                     </th>
                   </tr>
@@ -585,10 +619,19 @@ export function Leaderboard() {
                             {user.tasksCompleted}
                           </td>
 
+                          {/* Total Score */}
+                          <td className="py-4 px-6 text-center whitespace-nowrap">
+                            {user.totalScore > 0 ? (
+                              <span className="font-extrabold text-blue-600 text-sm">{user.totalScore.toLocaleString('tr-TR')}</span>
+                            ) : (
+                              <span className="text-slate-300 font-medium">—</span>
+                            )}
+                          </td>
+
                           {/* AI Score */}
                           <td className="py-4 px-6 text-center whitespace-nowrap">
                             {user.totalAiScore > 0 ? (
-                              <span className="font-extrabold text-slate-800 text-sm">{user.totalAiScore.toLocaleString('tr-TR')}</span>
+                              <span className="font-bold text-slate-700 text-sm">{user.totalAiScore.toLocaleString('tr-TR')}</span>
                             ) : (
                               <span className="text-slate-300 font-medium">—</span>
                             )}
@@ -598,8 +641,8 @@ export function Leaderboard() {
                           <td className="py-4 px-6 text-center whitespace-nowrap">
                             {user.communityLikes > 0 ? (
                               <div className="flex items-center justify-center gap-1.5">
-                                <Heart className="w-4 h-4 text-slate-400 shrink-0" />
-                                <span className="font-bold text-slate-800">{user.communityLikes.toLocaleString('tr-TR')}</span>
+                                <Heart className="w-4 h-4 text-rose-500 fill-rose-500 shrink-0" />
+                                <span className="font-bold text-slate-700">{user.communityLikes.toLocaleString('tr-TR')}</span>
                               </div>
                             ) : (
                               <span className="text-slate-300 font-medium">—</span>
