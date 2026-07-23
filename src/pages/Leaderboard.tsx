@@ -2,19 +2,25 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import { 
-  Trophy, 
-  Users, 
-  Award, 
   Flame, 
   Search, 
   ChevronDown, 
   MoreHorizontal, 
   ArrowUp, 
   ArrowDown, 
-  Medal, 
   Info,
-  Check
+  Check,
+  Trophy as TrophyLucide,
+  Medal as MedalLucide,
+  Award as AwardLucide
 } from 'lucide-react';
+import {
+  Trophy,
+  Medal,
+  CrownSimple,
+  UsersThree,
+  ChartLineUp
+} from '@phosphor-icons/react';
 
 interface LeaderboardUser {
   rank: number;
@@ -195,17 +201,18 @@ export function Leaderboard() {
   ];
 
   const PodiumCard = ({ user, rank }: { user: LeaderboardUser; rank: 1 | 2 | 3 }) => {
-    const avatarBorder = rank === 1 ? 'ring-2 ring-amber-400 ring-offset-2' : rank === 2 ? 'ring-2 ring-slate-300 ring-offset-2' : 'ring-2 ring-orange-400/50 ring-offset-2';
-
-    // Clean rank badge: background color + Lucide icon (stroke only, no fill)
-    const badgeBg = rank === 1
-      ? 'bg-amber-50 border border-amber-200'
+    const avatarBorder = rank === 1
+      ? 'ring-2 ring-amber-400 ring-offset-2'
       : rank === 2
-        ? 'bg-slate-50 border border-slate-200'
-        : 'bg-orange-50 border border-orange-200';
-    const badgeNumColor = rank === 1 ? 'text-amber-700' : rank === 2 ? 'text-slate-600' : 'text-orange-700';
-    const badgeIconColor = rank === 1 ? 'text-amber-500' : rank === 2 ? 'text-slate-400' : 'text-orange-500';
-    const Icon = rank === 1 ? Trophy : rank === 2 ? Medal : Award;
+        ? 'ring-2 ring-slate-300 ring-offset-2'
+        : 'ring-2 ring-orange-300/60 ring-offset-2';
+
+    // Premium rank badge configs
+    const badgeConfig = rank === 1
+      ? { bg: 'bg-gradient-to-br from-amber-50 to-yellow-100 border border-amber-200', numColor: 'text-amber-700', icon: <Trophy size={28} weight="duotone" color="#f59e0b" /> }
+      : rank === 2
+        ? { bg: 'bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200', numColor: 'text-slate-600', icon: <Medal size={28} weight="duotone" color="#94a3b8" /> }
+        : { bg: 'bg-gradient-to-br from-orange-50 to-amber-100 border border-orange-200', numColor: 'text-orange-700', icon: <CrownSimple size={28} weight="duotone" color="#f97316" /> };
 
     return (
       <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-5 hover:shadow-md transition-shadow">
@@ -227,10 +234,10 @@ export function Leaderboard() {
             </div>
           </div>
 
-          {/* Clean rank badge: icon above number, no fill */}
-          <div className={`flex flex-col items-center justify-center w-12 h-12 rounded-2xl ${badgeBg} shrink-0 gap-0.5`}>
-            <Icon className={`w-4 h-4 ${badgeIconColor} shrink-0`} strokeWidth={2} />
-            <span className={`text-[11px] font-black ${badgeNumColor} leading-none`}>#{rank}</span>
+          {/* Premium Phosphor Duotone rank badge */}
+          <div className={`flex flex-col items-center justify-center w-14 h-14 rounded-2xl ${badgeConfig.bg} shrink-0 gap-0.5`}>
+            {badgeConfig.icon}
+            <span className={`text-[11px] font-black ${badgeConfig.numColor} leading-none`}>#{rank}</span>
           </div>
         </div>
 
@@ -305,8 +312,8 @@ export function Leaderboard() {
           
           <div className="md:col-span-3 bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between">
             <div className="flex items-center justify-between mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shadow-sm">
-                <Users className="w-6 h-6" />
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center border border-emerald-100 shadow-sm">
+                <UsersThree size={28} weight="duotone" color="#059669" />
               </div>
               <button className="text-slate-300 hover:text-slate-500 transition-colors">
                 <MoreHorizontal className="w-5 h-5" />
@@ -320,8 +327,8 @@ export function Leaderboard() {
 
           <div className="md:col-span-3 bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between">
             <div className="flex items-center justify-between mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100 shadow-sm">
-                <Award className="w-6 h-6" />
+              <div className="w-12 h-12 rounded-2xl bg-sky-50 flex items-center justify-center border border-sky-100 shadow-sm">
+                <ChartLineUp size={28} weight="duotone" color="#0284c7" />
               </div>
               <button className="text-slate-300 hover:text-slate-500 transition-colors">
                 <MoreHorizontal className="w-5 h-5" />
@@ -339,7 +346,7 @@ export function Leaderboard() {
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-slate-900">Yarışma Bitimine Kalan Süre</span>
-                  <Flame className="w-4 h-4 text-amber-500 fill-amber-500 shrink-0" />
+                  <Flame className="w-4 h-4 text-amber-500 shrink-0" />
                 </div>
                 <div className="flex items-center gap-3 text-slate-900 font-extrabold text-2xl md:text-3xl tracking-tight">
                   <div className="flex flex-col items-center">
@@ -393,13 +400,13 @@ export function Leaderboard() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {topThree[0] ? <PodiumCard user={topThree[0]} rank={1} /> : (
-              <EmptySlot rank={1} icon={<Trophy className="w-8 h-8 text-amber-400 opacity-60" />} msg="Analiz yaparak 1. sıraya yüksel!" />
+              <EmptySlot rank={1} icon={<TrophyLucide className="w-8 h-8 text-amber-400 opacity-60" />} msg="Analiz yaparak 1. sıraya yüksel!" />
             )}
             {topThree[1] ? <PodiumCard user={topThree[1]} rank={2} /> : (
-              <EmptySlot rank={2} icon={<Medal className="w-8 h-8 text-slate-400 opacity-60" />} msg="Analiz yaparak dereceye gir!" />
+              <EmptySlot rank={2} icon={<MedalLucide className="w-8 h-8 text-slate-400 opacity-60" />} msg="Analiz yaparak dereceye gir!" />
             )}
             {topThree[2] ? <PodiumCard user={topThree[2]} rank={3} /> : (
-              <EmptySlot rank={3} icon={<Award className="w-8 h-8 text-amber-600 opacity-60" />} msg="Puan kazan ve podyuma çık!" />
+              <EmptySlot rank={3} icon={<AwardLucide className="w-8 h-8 text-amber-600 opacity-60" />} msg="Puan kazan ve podyuma çık!" />
             )}
           </div>
         </div>
