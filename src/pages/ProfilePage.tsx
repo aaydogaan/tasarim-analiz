@@ -106,6 +106,7 @@ type ProfileForm = {
     behanceUrl: string;
     dribbbleUrl: string;
     twitterUrl: string;
+    coverUrl: string;
 };
 
 const defaultStats = {
@@ -182,6 +183,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
         behanceUrl: '',
         dribbbleUrl: '',
         twitterUrl: '',
+        coverUrl: normalizedProfile.coverUrl || '',
     });
 
     useEffect(() => {
@@ -508,7 +510,39 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
             const avatarUrl = `${r2PublicUrl}/${fileName}`;
             setProfileData((prev) => ({ ...prev, avatarUrl }));
         } catch (err: any) {
+        } catch (err: any) {
             console.error('Avatar yükleme hatası:', err);
+        }
+    };
+
+    const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !kullanici) return;
+        setSaveState('idle');
+        try {
+            const s3Client = new S3Client({
+                region: 'auto',
+                endpoint: `https://${import.meta.env.VITE_R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+                credentials: {
+                    accessKeyId: import.meta.env.VITE_R2_ACCESS_KEY_ID,
+                    secretAccessKey: import.meta.env.VITE_R2_SECRET_ACCESS_KEY,
+                },
+            });
+            const fileName = `covers/${kullanici.id}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+            const fileBuffer = await file.arrayBuffer();
+
+            await s3Client.send(new PutObjectCommand({
+                Bucket: import.meta.env.VITE_R2_BUCKET_NAME,
+                Key: fileName,
+                Body: new Uint8Array(fileBuffer),
+                ContentType: file.type,
+            }));
+
+            const r2PublicUrl = import.meta.env.VITE_R2_PUBLIC_URL.replace(/\/$/, "");
+            const coverUrl = `${r2PublicUrl}/${fileName}`;
+            setProfileData((prev) => ({ ...prev, coverUrl }));
+        } catch (err: any) {
+            console.error('Kapak yükleme hatası:', err);
         }
     };
 
@@ -553,6 +587,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                 specialty: payload.specialty,
                 experience_level: payload.experience_level,
                 avatar_url: payload.avatar_url,
+                cover_url: payload.cover_url,
                 public_visible: true,
                 behance_url: profileData.behanceUrl.trim() || null,
                 dribbble_url: profileData.dribbbleUrl.trim() || null,
@@ -631,10 +666,28 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
             <main className="mx-auto max-w-screen-xl px-4 py-5 md:px-8 md:py-7">
                 <section className="grid gap-5 lg:grid-cols-[320px_1fr]">
                     {/* LEFT COLUMN: Avatar & Profile Info */}
-                    <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-5 shadow-sm">
+                    <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] shadow-sm overflow-hidden">
+
+                        {/* Cover Image */}
+                        <div className="relative h-28 w-full bg-gradient-to-r from-orange-100 to-amber-100 group">
+                            {profileData.coverUrl ? (
+                                <img src={profileData.coverUrl} className="w-full h-full object-cover" alt="Kapak Fotoğrafı" />
+                            ) : (
+                                <div className="w-full h-full opacity-40 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
+                            )}
+                            
+                            {isEditing && (
+                                <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                    <div className="flex items-center gap-1.5 text-white text-xs font-bold bg-black/50 px-3 py-1.5 rounded-full backdrop-blur-sm">
+                                        <UploadCloud className="w-3.5 h-3.5" /> Kapak Yükle
+                                    </div>
+                                    <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+                                </label>
+                            )}
+                        </div>
 
                         {/* Avatar + Name centered */}
-                        <div className="flex flex-col items-center text-center gap-3 pb-5 border-b border-[var(--border-primary)]">
+                        <div className="flex flex-col items-center text-center gap-3 pb-5 px-5 border-b border-[var(--border-primary)] relative -mt-10">
                             <div className={`relative h-20 w-20 shrink-0 rounded-full p-[3px] ${normalizedProfile.isCoreFounder ? 'bg-gradient-to-br from-orange-300 via-[var(--color-brand-orange)] to-amber-500' : 'bg-[var(--border-primary)]'}`}>
                                 <div className="h-full w-full rounded-full border-2 border-[var(--card-bg)] bg-[var(--bg-secondary)] overflow-hidden"><img src={profileData.avatarUrl} className="h-full w-full object-cover" alt="Profil fotografi" /></div>
                                 {featuredBadgeDef ? (
@@ -751,7 +804,11 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     </button>
                                 </div>
                             </div>
+                                    </button>
+                                </div>
+                            </div>
                         )}
+                        </div>
                     </div>
 
                     {/* RIGHT COLUMN: Bio, Edit Fields, Stats, Badges & XP */}

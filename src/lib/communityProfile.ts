@@ -15,6 +15,7 @@ export type NormalizedCommunityProfile = {
     experienceId?: string;
     createdAt?: string;
     isCoreFounder?: boolean;
+    coverUrl?: string;
 };
 
 export type CommunityProfileRecord = {
@@ -34,6 +35,7 @@ export type CommunityProfileRecord = {
     dribbble_url?: string;
     twitter_url?: string;
     featured_badge?: string;
+    cover_url?: string;
 };
 
 export const CORE_FOUNDERS: NormalizedCommunityProfile[] = [];
@@ -247,6 +249,7 @@ export function normalizeCommunityProfile(authData: any, profile: any): Normaliz
         specialtyId: profile?.specialty || 'ui-ux',
         experienceId: profile?.experience_level || '0-1',
         createdAt: profile?.created_at,
-        isCoreFounder: isCore
+        isCoreFounder: isCore,
+        coverUrl: profile?.cover_url || ''
     };
 }

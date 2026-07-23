@@ -116,30 +116,43 @@ export default function PublicProfile() {
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white border border-gray-200/60 rounded-[32px] p-8 md:p-12 mb-8 shadow-sm flex flex-col md:flex-row items-center md:items-start gap-8"
+                    className="bg-white border border-gray-200/60 rounded-[32px] overflow-hidden mb-8 shadow-sm"
                 >
-                    <div className="relative">
-                        <img 
-                            src={profile.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.id}`} 
-                            alt={profile.display_name} 
-                            className="w-32 h-32 md:w-36 md:h-36 rounded-[28px] border border-gray-100 object-cover bg-gray-50"
-                        />
-                        <div className="absolute -bottom-3 -right-3 bg-gray-900 text-white text-[10px] font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-sm border-2 border-white uppercase tracking-wider">
-                            Level {userLevel}
-                        </div>
+                    {/* Cover Image */}
+                    <div className="h-32 md:h-48 w-full bg-gradient-to-r from-orange-100 to-amber-100 relative">
+                        {profile.cover_url ? (
+                            <img src={profile.cover_url} alt="Kapak" className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full opacity-40 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
+                        )}
                     </div>
 
-                    <div className="flex-1 text-center md:text-left flex flex-col justify-center h-full pt-2">
-                        <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-1 tracking-tight">
-                            {profile.display_name}
-                        </h1>
-                        <p className="text-gray-500 text-sm md:text-base font-medium flex items-center justify-center md:justify-start gap-1.5 mb-5">
-                            <Award className="w-4 h-4" /> 
-                            {levelTitle}
-                        </p>
+                    <div className="px-8 pb-8 md:px-12 md:pb-12">
+                        <div className="flex flex-col md:flex-row items-center md:items-end gap-6 relative -mt-16 md:-mt-20 mb-6">
+                            <div className="relative">
+                                <img 
+                                    src={profile.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.id}`} 
+                                    alt={profile.display_name} 
+                                    className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-sm object-cover bg-white"
+                                />
+                                <div className="absolute bottom-2 right-0 bg-gray-900 text-white text-[10px] font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-sm border-2 border-white uppercase tracking-wider">
+                                    Level {userLevel}
+                                </div>
+                            </div>
+
+                            <div className="flex-1 text-center md:text-left pb-2">
+                                <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-1 tracking-tight">
+                                    {profile.display_name}
+                                </h1>
+                                <p className="text-gray-500 text-sm md:text-base font-medium flex items-center justify-center md:justify-start gap-1.5">
+                                    <Award className="w-4 h-4" /> 
+                                    {levelTitle}
+                                </p>
+                            </div>
+                        </div>
                         
                         {profile.bio && (
-                            <p className="text-gray-600 text-sm leading-relaxed mb-6 max-w-2xl font-medium">
+                            <p className="text-gray-600 text-sm md:text-base leading-relaxed mb-6 max-w-2xl font-medium text-center md:text-left">
                                 {profile.bio}
                             </p>
                         )}
