@@ -79,38 +79,21 @@ export function Leaderboard() {
       const { data: { session } } = await supabase.auth.getSession();
       const currentUser = session?.user;
 
-      // 1. Fetch exact real total member count
-      const { count: memberCount } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
-
-      // 2. Fetch exact real total analyses count
+      // 1. Fetch total analyses count
       const { count: goalCount } = await supabase
         .from('analizler')
         .select('*', { count: 'exact', head: true });
 
       setRealGoalCount(goalCount || 0);
 
-      // 3. Fetch real user profiles sorted by xp
-      const { data: profilesData } = await supabase
-        .from('profiles')
+      // 2. PRIMARY SOURCE: user_xp_stats view — same as Community page
+      //    This is the canonical authoritative XP ranking data
+      const { data: xpStatsData } = await supabase
+        .from('user_xp_stats')
         .select('*')
-        .order('xp', { ascending: false });
+        .order('total_xp', { ascending: false });
 
-      // 4. Fetch community posts & comments to discover all registered platform users
-      const { data: postsData } = await supabase
-        .from('community_posts')
-        .select('user_id, user_name, user_avatar');
-
-      const { data: commentsData } = await supabase
-        .from('post_comments')
-        .select('user_id, user_name, user_avatar');
-
-      const { data: vitrinData } = await supabase
-        .from('vitrin_items')
-        .select('user_id');
-
-      // Fetch analyses count per user
+      // 3. Fetch analyses count per user
       const { data: userAnalizler } = await supabase
         .from('analizler')
         .select('user_id');
@@ -124,7 +107,7 @@ export function Leaderboard() {
         });
       }
 
-      // Fetch showcase/post votes per user
+      // 4. Fetch likes/victories per user
       const { data: userBegeniler } = await supabase
         .from('begeniler')
         .select('user_id');
@@ -138,68 +121,33 @@ export function Leaderboard() {
         });
       }
 
-      // User Metadata Registry
+      // Build user registry from user_xp_stats
       const userMetaRegistry: Record<string, { name: string; avatar: string; xp: number }> = {};
 
-      if (profilesData) {
-        profilesData.forEach(p => {
-          if (p.id) {
-            userMetaRegistry[p.id] = {
-              name: p.display_name || p.full_name || 'Tasarımcı',
-              avatar: p.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${p.id}`,
-              xp: p.xp || p.total_xp || 0
+      if (xpStatsData) {
+        xpStatsData.forEach(u => {
+          if (u.id) {
+            userMetaRegistry[u.id] = {
+              name: u.display_name || u.full_name || 'Tasarımcı',
+              avatar: u.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${u.id}`,
+              xp: u.total_xp || 0
             };
           }
         });
       }
 
-      if (postsData) {
-        postsData.forEach(post => {
-          if (post.user_id && !userMetaRegistry[post.user_id]) {
-            userMetaRegistry[post.user_id] = {
-              name: post.user_name || 'Tasarımcı',
-              avatar: post.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${post.user_id}`,
-              xp: 0
-            };
-          }
-        });
-      }
-
-      if (commentsData) {
-        commentsData.forEach(c => {
-          if (c.user_id && !userMetaRegistry[c.user_id]) {
-            userMetaRegistry[c.user_id] = {
-              name: c.user_name || 'Tasarımcı',
-              avatar: c.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${c.user_id}`,
-              xp: 0
-            };
-          }
-        });
-      }
-
-      if (vitrinData) {
-        vitrinData.forEach(v => {
-          if (v.user_id && !userMetaRegistry[v.user_id]) {
-            userMetaRegistry[v.user_id] = {
-              name: 'Tasarımcı',
-              avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${v.user_id}`,
-              xp: 0
-            };
-          }
-        });
-      }
-
-      // Ensure current user is in registry
+      // Ensure current user is included even if not yet in user_xp_stats
       if (currentUser && !userMetaRegistry[currentUser.id]) {
+        const userTasks = analizCountMap[currentUser.id] || 0;
         userMetaRegistry[currentUser.id] = {
           name: currentUser.user_metadata?.display_name || currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Tasarımcı',
           avatar: currentUser.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${currentUser.id}`,
-          xp: 0
+          xp: userTasks * 250
         };
       }
 
       const allUserIds = Object.keys(userMetaRegistry);
-      setRealMemberCount(Math.max(memberCount || 0, allUserIds.length));
+      setRealMemberCount(allUserIds.length);
 
       const liveList: LeaderboardUser[] = allUserIds.map((userId, idx) => {
         const meta = userMetaRegistry[userId];
