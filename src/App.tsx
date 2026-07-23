@@ -1503,7 +1503,7 @@ export default function App() {
 
                                   <div className="space-y-6">
                                     <div>
-                                      <label className="text-sm font-bold text-[var(--text-secondary)] mb-3 block uppercase tracking-wide">Hedef Sektör (Opsiyonel)</label>
+                                      <label className="text-sm font-bold text-[var(--text-secondary)] mb-3 block tracking-wide">Hedef Sektör (Opsiyonel)</label>
                                       <input
                                         type="text"
                                         value={isletme}

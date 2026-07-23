@@ -104,7 +104,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 Tasarım Bağlamı:
 - Tasarım Türü: ${tasarimTuru}
 ${platformBilgisi}
-- Sektör: ${isletme}
+- Sektör: ${isletme} (Tasarımı, bu sektörün dinamiklerine, kullanıcı psikolojisine ve rakip standartlarına göre değerlendir)
 - Marka Adı: ${sorular?.markaAdi || 'Belirtilmedi'}
 - Kurumsal Renkler: ${sorular?.kurumselRenk || 'Belirtilmedi'}
 - Hedef Kitle: ${sorular?.hedefKitle || 'Belirtilmedi'}
