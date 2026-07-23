@@ -552,6 +552,12 @@ export default function App() {
 
         // Update user metadata & profile client-side safely
         if (userRecord) {
+          // Ensure session is signed in
+          await supabase.auth.signInWithPassword({
+            email: cleanEmail,
+            password: authSifre
+          }).catch(() => {});
+
           try {
             await supabase.auth.updateUser({
               data: {
@@ -569,13 +575,12 @@ export default function App() {
             let success = false;
             
             while (!success && counter < 10) {
-                const { error } = await supabase.from('profiles').upsert({
-                  id: userRecord.id,
+                const { error } = await supabase.from('profiles').update({
                   display_name: authAdSoyad || 'Tasarımcı',
                   slug: finalSlug,
                   avatar_url: `https://api.dicebear.com/7.x/notionists/svg?seed=${userRecord.id}`,
                   updated_at: new Date().toISOString()
-                }, { onConflict: 'id' });
+                }).eq('id', userRecord.id);
                 
                 if (!error) {
                     success = true;
@@ -585,12 +590,6 @@ export default function App() {
                 }
             }
           } catch (_) {}
-
-          // Ensure session is signed in
-          await supabase.auth.signInWithPassword({
-            email: cleanEmail,
-            password: authSifre
-          }).catch(() => {});
         }
         
         // Step 1 done, move to Step 2
