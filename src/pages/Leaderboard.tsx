@@ -470,7 +470,7 @@ export function Leaderboard() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-[560px]">
                 <thead>
-                  <tr className="border-b border-slate-200/80 bg-slate-50/50 text-[11px] font-bold text-slate-400 tracking-wide">
+                  <tr className="border-b border-slate-200/80 bg-slate-50/50 text-sm font-bold text-slate-500 tracking-wide">
                     <th className="py-4 px-6">Sıra</th>
                     <th className="py-4 px-6">Kullanıcı</th>
                     <th className="py-4 px-6 text-center">Tamamlanan analiz</th>
