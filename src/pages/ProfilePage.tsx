@@ -510,7 +510,6 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
             const avatarUrl = `${r2PublicUrl}/${fileName}`;
             setProfileData((prev) => ({ ...prev, avatarUrl }));
         } catch (err: any) {
-        } catch (err: any) {
             console.error('Avatar yükleme hatası:', err);
         }
     };
@@ -587,7 +586,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                 specialty: payload.specialty,
                 experience_level: payload.experience_level,
                 avatar_url: payload.avatar_url,
-                cover_url: payload.cover_url,
+                cover_url: profileData.coverUrl,
                 public_visible: true,
                 behance_url: profileData.behanceUrl.trim() || null,
                 dribbble_url: profileData.dribbbleUrl.trim() || null,
@@ -723,8 +722,9 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                             </div>
                         </div>
 
-                        {/* Info grid */}
-                        <div className="mt-4 grid grid-cols-2 gap-2">
+                        <div className="px-5 pb-5">
+                            {/* Info grid */}
+                            <div className="mt-4 grid grid-cols-2 gap-2">
                             <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
                                 <p className="text-[10px] font-semibold text-[var(--text-secondary)]">Uzmanlık</p>
                                 <p className="mt-1 truncate text-sm font-black">{selectedSpecialty.label}</p>
@@ -801,9 +801,6 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                             Şifre Değiştir
                                         </span>
                                         <ChevronRight className="w-4 h-4 text-[var(--text-secondary)]" />
-                                    </button>
-                                </div>
-                            </div>
                                     </button>
                                 </div>
                             </div>
