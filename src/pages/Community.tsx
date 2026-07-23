@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Users, MessageCircle, Heart, Trophy, Zap, Share2, Crown, Star, Sparkles, ArrowRight, Award, X, Send, Loader2, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
@@ -50,6 +50,9 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
     const [postsLoading, setPostsLoading] = useState(true);
     const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
     const [postSort, setPostSort] = useState<'new' | 'popular'>('new');
+    
+    const [searchParams, setSearchParams] = useSearchParams();
+    const postIdFromUrl = searchParams.get('post');
 
     // Inline Instagram Style Comments State
     const [openInlinePostId, setOpenInlinePostId] = useState<string | null>(null);
@@ -83,6 +86,30 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
             window.removeEventListener("keydown", handleEsc);
         };
     }, []);
+
+    // Scroll to and open specific post from URL
+    useEffect(() => {
+        if (postIdFromUrl && posts.length > 0 && !openInlinePostId) {
+            const postExists = posts.some(p => p.id === postIdFromUrl);
+            if (postExists) {
+                // Remove url param
+                const newParams = new URLSearchParams(searchParams);
+                newParams.delete('post');
+                setSearchParams(newParams, { replace: true });
+                
+                // Open comments
+                toggleInlineComments(postIdFromUrl);
+                
+                // Scroll to post after a small delay
+                setTimeout(() => {
+                    const el = document.getElementById(`post-${postIdFromUrl}`);
+                    if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 100);
+            }
+        }
+    }, [posts, postIdFromUrl, openInlinePostId, searchParams, setSearchParams]);
 
     const toggleInlineComments = async (postId: string) => {
         if (openInlinePostId === postId) {
@@ -603,6 +630,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                             return (
                             <motion.div
                                 key={post.id}
+                                id={`post-${post.id}`}
                                 initial={{ opacity: 0, x: -20 }}
                                 whileInView={{ opacity: 1, x: 0 }}
                                 viewport={{ once: true }}

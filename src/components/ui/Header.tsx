@@ -90,9 +90,9 @@ export default function Header({
         setIsNotificationsOpen(false);
 
         if (notification.type === 'vote_design' && notification.analiz_id) {
-            navigate(`/vitrin`);
+            navigate(`/vitrin?design=${notification.analiz_id}`);
         } else if ((notification.type === 'like_post' || notification.type === 'comment_post') && notification.post_id) {
-            navigate(`/community`);
+            navigate(`/community?post=${notification.post_id}`);
         }
     };
 

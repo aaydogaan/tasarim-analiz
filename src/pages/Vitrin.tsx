@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { Heart, Maximize2, X, Star, Loader2, Search, ChevronDown, Filter, Sparkles, Trophy, Flame, Clock, ArrowBigUp, ArrowBigDown } from "lucide-react";
 import toast from "react-hot-toast";
@@ -29,6 +29,8 @@ export function Vitrin() {
     const [loading, setLoading] = useState(true);
     const [seciliGorsel, setSeciliGorsel] = useState<VitrinItem | null>(null);
     const [user, setUser] = useState<any>(null);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const designIdFromUrl = searchParams.get('design');
 
     // Modal Comments State
     const [modalComments, setModalComments] = useState<any[]>([]);
@@ -75,13 +77,29 @@ export function Vitrin() {
             document.body.style.overflow = "hidden";
         } else {
             document.body.style.overflow = "auto";
+            // Clear URL param when modal is closed
+            if (designIdFromUrl) {
+                const newParams = new URLSearchParams(searchParams);
+                newParams.delete('design');
+                setSearchParams(newParams, { replace: true });
+            }
         }
 
         return () => {
             window.removeEventListener("keydown", handleEsc);
             document.body.style.overflow = "auto";
         };
-    }, [seciliGorsel]);
+    }, [seciliGorsel, designIdFromUrl, searchParams, setSearchParams]);
+
+    // Open specific design if URL has ?design=id
+    useEffect(() => {
+        if (designIdFromUrl && items.length > 0 && !seciliGorsel) {
+            const itemToOpen = items.find(i => i.analiz_id === designIdFromUrl);
+            if (itemToOpen) {
+                setSeciliGorsel(itemToOpen);
+            }
+        }
+    }, [items, designIdFromUrl, seciliGorsel]);
 
     const fetchVitrin = async () => {
         setLoading(true);
