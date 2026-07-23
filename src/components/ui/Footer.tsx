@@ -5,7 +5,7 @@ export default function Footer({
     onNavClick 
 }: { 
     onLogoClick?: () => void,
-    onNavClick?: (view: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography') => void
+    onNavClick?: (view: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography' | 'nasil-calisir') => void
 }) {
 
     return (
