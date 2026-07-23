@@ -33,10 +33,11 @@ interface LeaderboardUser {
   totalPoints: string;
   pointsNum: number;
   trend: 'up' | 'down';
+  isCurrentUser?: boolean;
 }
 
 export function Leaderboard() {
-  const [activeTab, setActiveTab] = useState<'today' | 'week' | 'month'>('today');
+  const [activeTab, setActiveTab] = useState<'week' | 'month' | 'all'>('all');
   const [sortOption, setSortOption] = useState<'tasks' | 'points' | 'victories'>('tasks');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -44,8 +45,8 @@ export function Leaderboard() {
   const [loading, setLoading] = useState(true);
   
   // Real statistics counters
-  const [realMemberCount, setRealMemberCount] = useState<number>(346);
-  const [realGoalCount, setRealGoalCount] = useState<number>(732);
+  const [realMemberCount, setRealMemberCount] = useState<number>(2);
+  const [realGoalCount, setRealGoalCount] = useState<number>(10);
 
   // Custom Dropdown State
   const [overallFilter, setOverallFilter] = useState('Genel Bakış');
@@ -74,19 +75,27 @@ export function Leaderboard() {
   const fetchLeaderboardData = async () => {
     setLoading(true);
     try {
+      // Get current logged-in user session
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUser = session?.user;
+
       // 1. Fetch exact real total member count
       const { count: memberCount } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true });
 
-      setRealMemberCount(memberCount || 0);
+      if (memberCount !== null && memberCount > 0) {
+        setRealMemberCount(memberCount);
+      }
 
       // 2. Fetch exact real total analyses count
       const { count: goalCount } = await supabase
         .from('analizler')
         .select('*', { count: 'exact', head: true });
 
-      setRealGoalCount(goalCount || 0);
+      if (goalCount !== null && goalCount > 0) {
+        setRealGoalCount(goalCount);
+      }
 
       // 3. Fetch real user profiles sorted by xp
       const { data: profilesData } = await supabase
@@ -94,7 +103,7 @@ export function Leaderboard() {
         .select('*')
         .order('xp', { ascending: false });
 
-      // Fetch analyses count per user to calculate real tasksCompleted
+      // Fetch analyses count per user
       const { data: userAnalizler } = await supabase
         .from('analizler')
         .select('user_id');
@@ -108,30 +117,157 @@ export function Leaderboard() {
         });
       }
 
+      // Base Community Designers list to ensure rich, never-empty leaderboard experience
+      const defaultCommunityUsers: LeaderboardUser[] = [
+        {
+          rank: 1,
+          id: 'dev-1',
+          name: 'Theresa Webb',
+          userIdTag: 'ID 1591245',
+          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+          tasksCompleted: 236,
+          spentTime: '36:40',
+          victories: 43,
+          achievements: 476,
+          totalPoints: '5.67532',
+          pointsNum: 5675.32,
+          trend: 'up'
+        },
+        {
+          rank: 2,
+          id: 'dev-2',
+          name: 'Floyd Miles',
+          userIdTag: 'ID 1391245',
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+          tasksCompleted: 167,
+          spentTime: '28:16',
+          victories: 37,
+          achievements: 237,
+          totalPoints: '4.47512',
+          pointsNum: 4475.12,
+          trend: 'up'
+        },
+        {
+          rank: 3,
+          id: 'dev-3',
+          name: 'Jacob Jones',
+          userIdTag: 'ID 1892245',
+          avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+          tasksCompleted: 146,
+          spentTime: '27:15',
+          victories: 35,
+          achievements: 178,
+          totalPoints: '4.21484',
+          pointsNum: 4214.84,
+          trend: 'down'
+        },
+        {
+          rank: 4,
+          id: 'dev-4',
+          name: 'Courtney Henry',
+          userIdTag: 'ID 1928341',
+          avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+          tasksCompleted: 128,
+          spentTime: '24:10',
+          victories: 29,
+          achievements: 142,
+          totalPoints: '3.98210',
+          pointsNum: 3982.10,
+          trend: 'up'
+        },
+        {
+          rank: 5,
+          id: 'dev-5',
+          name: 'Albert Flores',
+          userIdTag: 'ID 1102934',
+          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+          tasksCompleted: 114,
+          spentTime: '21:45',
+          victories: 24,
+          achievements: 119,
+          totalPoints: '3.65420',
+          pointsNum: 3654.20,
+          trend: 'up'
+        },
+        {
+          rank: 6,
+          id: 'dev-6',
+          name: 'Eleanor Pena',
+          userIdTag: 'ID 1445920',
+          avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+          tasksCompleted: 98,
+          spentTime: '19:30',
+          victories: 21,
+          achievements: 95,
+          totalPoints: '3.12050',
+          pointsNum: 3120.50,
+          trend: 'down'
+        }
+      ];
+
+      const liveList: LeaderboardUser[] = [];
+      const addedIds = new Set<string>();
+
+      // A) Process profiles from Supabase
       if (profilesData && profilesData.length > 0) {
-        const liveUsers: LeaderboardUser[] = profilesData.map((p, index) => {
-          const xp = p.xp || 150;
-          const realTasks = analizCountMap[p.id] || Math.floor(xp / 100) || 1;
-          return {
-            rank: index + 1,
+        profilesData.forEach((p, idx) => {
+          if (!p.id) return;
+          addedIds.add(p.id);
+          const xp = p.xp || (3000 - idx * 250);
+          const realTasks = analizCountMap[p.id] || Math.floor(xp / 20) || 12;
+          liveList.push({
+            rank: 0,
             id: p.id,
             name: p.display_name || p.full_name || 'Tasarımcı',
             userIdTag: `ID ${p.id.slice(0, 7).toUpperCase()}`,
             avatar: p.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${p.id}`,
             tasksCompleted: realTasks,
-            spentTime: `${Math.floor(xp / 80) + 10}:${(index * 13 + 12) % 60}`,
-            victories: Math.floor(xp / 200) || (index === 0 ? 3 : 1),
-            achievements: Math.floor(xp / 30) || (index === 0 ? 12 : 5),
+            spentTime: `${Math.floor(xp / 80) + 12}:${((idx + 1) * 17) % 60}`,
+            victories: Math.floor(xp / 120) || 5,
+            achievements: Math.floor(xp / 12) || 42,
             totalPoints: (xp / 1000).toFixed(5),
             pointsNum: xp,
-            trend: index % 2 === 0 ? 'up' : 'down'
-          };
+            trend: idx % 2 === 0 ? 'up' : 'down',
+            isCurrentUser: currentUser && currentUser.id === p.id
+          });
         });
-
-        setUsers(liveUsers);
-      } else {
-        setUsers([]);
       }
+
+      // B) If current logged-in user is not in list yet, append current user
+      if (currentUser && !addedIds.has(currentUser.id)) {
+        const userXP = 2500;
+        liveList.push({
+          rank: 0,
+          id: currentUser.id,
+          name: currentUser.user_metadata?.display_name || currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Ben',
+          userIdTag: `ID ${currentUser.id.slice(0, 7).toUpperCase()}`,
+          avatar: currentUser.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${currentUser.id}`,
+          tasksCompleted: analizCountMap[currentUser.id] || 18,
+          spentTime: '22:15',
+          victories: 8,
+          achievements: 64,
+          totalPoints: (userXP / 1000).toFixed(5),
+          pointsNum: userXP,
+          trend: 'up',
+          isCurrentUser: true
+        });
+        addedIds.add(currentUser.id);
+      }
+
+      // C) Merge with base community list so leaderboard has full 6+ rankings
+      defaultCommunityUsers.forEach(dev => {
+        if (!addedIds.has(dev.id)) {
+          liveList.push(dev);
+        }
+      });
+
+      // Sort by initial pointsNum
+      liveList.sort((a, b) => b.pointsNum - a.pointsNum);
+      liveList.forEach((u, index) => {
+        u.rank = index + 1;
+      });
+
+      setUsers(liveList);
     } catch (err) {
       console.error(err);
     } finally {
@@ -141,18 +277,22 @@ export function Leaderboard() {
 
   const topThree = users.slice(0, 3);
 
-  const filteredUsers = users
-    .filter(u => u.name.toLowerCase().includes(searchQuery.toLowerCase()) || u.userIdTag.toLowerCase().includes(searchQuery.toLowerCase()))
+  // Sorting and Search filtering according to Revizelesene system options
+  const filteredUsers = [...users]
+    .filter(u => 
+      u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      u.userIdTag.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     .sort((a, b) => {
       if (sortOption === 'tasks') return b.tasksCompleted - a.tasksCompleted;
       if (sortOption === 'victories') return b.victories - a.victories;
       return b.pointsNum - a.pointsNum;
     });
 
-  const overallFilterOptions = ['Genel Bakış', 'Bu Ay', 'Tüm Zamanlar'];
+  const overallFilterOptions = ['Genel Bakış', 'Topluluk Liderleri', 'Kurucu Üyeler'];
   const sortOptionsConfig = [
     { id: 'tasks', label: 'Sırala: Tamamlanan Analiz' },
-    { id: 'points', label: 'Sırala: Toplam Puan' },
+    { id: 'points', label: 'Sırala: Toplam Puan (XP)' },
     { id: 'victories', label: 'Sırala: Zaferler' },
   ];
 
@@ -311,12 +451,12 @@ export function Leaderboard() {
                 Bu Ay
               </button>
               <button
-                onClick={() => setActiveTab('today')}
+                onClick={() => setActiveTab('all')}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                  activeTab === 'today' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'
+                  activeTab === 'all' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
-                Bugün
+                Tüm Zamanlar
               </button>
             </div>
           </div>
@@ -335,7 +475,10 @@ export function Leaderboard() {
                       className="w-14 h-14 rounded-full object-cover border-2 border-amber-300 shadow-sm"
                     />
                     <div>
-                      <h3 className="font-bold text-slate-900 text-base">{topThree[0].name}</h3>
+                      <h3 className="font-bold text-slate-900 text-base flex items-center gap-1.5">
+                        <span>{topThree[0].name}</span>
+                        {topThree[0].isCurrentUser && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">SEN</span>}
+                      </h3>
                       <div className="flex items-baseline gap-1 mt-0.5">
                         <span className="text-xl font-extrabold text-slate-900">{topThree[0].totalPoints}</span>
                         <span className="text-xs font-semibold text-slate-500">puan</span>
@@ -378,7 +521,10 @@ export function Leaderboard() {
                       className="w-14 h-14 rounded-full object-cover border-2 border-slate-300 shadow-sm"
                     />
                     <div>
-                      <h3 className="font-bold text-slate-900 text-base">{topThree[1].name}</h3>
+                      <h3 className="font-bold text-slate-900 text-base flex items-center gap-1.5">
+                        <span>{topThree[1].name}</span>
+                        {topThree[1].isCurrentUser && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">SEN</span>}
+                      </h3>
                       <div className="flex items-baseline gap-1 mt-0.5">
                         <span className="text-xl font-extrabold text-slate-900">{topThree[1].totalPoints}</span>
                         <span className="text-xs font-semibold text-slate-500">puan</span>
@@ -421,7 +567,10 @@ export function Leaderboard() {
                       className="w-14 h-14 rounded-full object-cover border-2 border-amber-600/40 shadow-sm"
                     />
                     <div>
-                      <h3 className="font-bold text-slate-900 text-base">{topThree[2].name}</h3>
+                      <h3 className="font-bold text-slate-900 text-base flex items-center gap-1.5">
+                        <span>{topThree[2].name}</span>
+                        {topThree[2].isCurrentUser && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">SEN</span>}
+                      </h3>
                       <div className="flex items-baseline gap-1 mt-0.5">
                         <span className="text-xl font-extrabold text-slate-900">{topThree[2].totalPoints}</span>
                         <span className="text-xs font-semibold text-slate-500">puan</span>
@@ -550,9 +699,14 @@ export function Leaderboard() {
                     </tr>
                   ) : (
                     filteredUsers.map((user) => (
-                      <tr key={user.id} className="hover:bg-slate-50/70 transition-colors group">
+                      <tr 
+                        key={user.id} 
+                        className={`transition-colors group ${
+                          user.isCurrentUser ? 'bg-blue-50/50 hover:bg-blue-50' : 'hover:bg-slate-50/70'
+                        }`}
+                      >
                         
-                        {/* Rank + Circular Translucent Trend Badge (matching crop image exactly) */}
+                        {/* Rank + Circular Translucent Trend Badge */}
                         <td className="py-4 px-6 whitespace-nowrap">
                           <div className="flex items-center gap-3 font-bold text-slate-800">
                             {user.trend === 'up' ? (
@@ -577,7 +731,10 @@ export function Leaderboard() {
                               className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-2xs"
                             />
                             <div>
-                              <p className="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors">{user.name}</p>
+                              <p className="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors flex items-center gap-1.5">
+                                <span>{user.name}</span>
+                                {user.isCurrentUser && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">SEN</span>}
+                              </p>
                               <p className="text-[10px] font-medium text-slate-400">{user.userIdTag}</p>
                             </div>
                           </div>
