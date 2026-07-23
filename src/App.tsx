@@ -783,6 +783,19 @@ export default function App() {
       console.error('Analiz update hatası:', updateErr);
     }
     
+    // Check if already shared
+    const { data: existingPost } = await supabase
+      .from('community_posts')
+      .select('id')
+      .eq('analiz_id', targetAnalizId)
+      .maybeSingle();
+
+    if (existingPost) {
+      setYayinlaniyor(false);
+      toast.error('Bu analiz zaten keşfette paylaşılmış!');
+      return;
+    }
+    
     // Insert into community_posts
     const { error } = await supabase.from('community_posts').insert({
       user_id: kullanici.id,
