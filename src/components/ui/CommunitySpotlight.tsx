@@ -96,8 +96,10 @@ export default function CommunitySpotlight({ onExploreClick }: { onExploreClick:
                 .from("community_posts")
                 .select(`
                     id,
+                    user_id,
                     likes_count,
-                    analizler(isletme, tasarim_turu, gorsel_url, genel_puan, user_name, user_avatar)
+                    analizler(isletme, tasarim_turu, gorsel_url, genel_puan, user_name, user_avatar),
+                    profiles:user_id(display_name, avatar_url)
                 `)
                 .order("likes_count", { ascending: false })
                 .limit(10);
@@ -106,8 +108,8 @@ export default function CommunitySpotlight({ onExploreClick }: { onExploreClick:
                 const formatted = data.map((post: any) => ({
                     id: post.id,
                     isletme: post.analizler?.isletme || 'Bilinmeyen Tasarım',
-                    user_name: post.analizler?.user_name,
-                    user_avatar: post.analizler?.user_avatar,
+                    user_name: post.profiles?.display_name || post.analizler?.user_name,
+                    user_avatar: post.profiles?.avatar_url || post.analizler?.user_avatar,
                     gorsel_url: post.analizler?.gorsel_url,
                     tasarim_turu: post.analizler?.tasarim_turu || 'Tasarım',
                     ai_puan: post.analizler?.genel_puan || 0,
