@@ -74,144 +74,63 @@ export function Leaderboard() {
   const fetchLeaderboardData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch real total member count
+      // 1. Fetch exact real total member count
       const { count: memberCount } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true });
 
-      if (memberCount && memberCount > 0) {
-        setRealMemberCount(340 + memberCount);
-      }
+      setRealMemberCount(memberCount || 0);
 
-      // 2. Fetch real total analyses count
+      // 2. Fetch exact real total analyses count
       const { count: goalCount } = await supabase
         .from('analizler')
         .select('*', { count: 'exact', head: true });
 
-      if (goalCount && goalCount > 0) {
-        setRealGoalCount(720 + goalCount);
-      }
+      setRealGoalCount(goalCount || 0);
 
       // 3. Fetch real user profiles sorted by xp
       const { data: profilesData } = await supabase
         .from('profiles')
         .select('*')
-        .order('xp', { ascending: false })
-        .limit(20);
+        .order('xp', { ascending: false });
 
-      const defaultMockUsers: LeaderboardUser[] = [
-        {
-          rank: 1,
-          id: '1',
-          name: 'Theresa Webb',
-          userIdTag: 'ID 1591245',
-          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-          tasksCompleted: 236,
-          spentTime: '36:40',
-          victories: 43,
-          achievements: 476,
-          totalPoints: '5.67532',
-          pointsNum: 5675.32,
-          trend: 'up'
-        },
-        {
-          rank: 2,
-          id: '2',
-          name: 'Floyd Miles',
-          userIdTag: 'ID 1391245',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-          tasksCompleted: 167,
-          spentTime: '28:16',
-          victories: 37,
-          achievements: 237,
-          totalPoints: '4.47512',
-          pointsNum: 4475.12,
-          trend: 'up'
-        },
-        {
-          rank: 3,
-          id: '3',
-          name: 'Jacob Jones',
-          userIdTag: 'ID 1892245',
-          avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-          tasksCompleted: 146,
-          spentTime: '27:15',
-          victories: 35,
-          achievements: 178,
-          totalPoints: '4.21484',
-          pointsNum: 4214.84,
-          trend: 'down'
-        },
-        {
-          rank: 4,
-          id: '4',
-          name: 'Courtney Henry',
-          userIdTag: 'ID 1928341',
-          avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-          tasksCompleted: 128,
-          spentTime: '24:10',
-          victories: 29,
-          achievements: 142,
-          totalPoints: '3.98210',
-          pointsNum: 3982.10,
-          trend: 'up'
-        },
-        {
-          rank: 5,
-          id: '5',
-          name: 'Albert Flores',
-          userIdTag: 'ID 1102934',
-          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
-          tasksCompleted: 114,
-          spentTime: '21:45',
-          victories: 24,
-          achievements: 119,
-          totalPoints: '3.65420',
-          pointsNum: 3654.20,
-          trend: 'up'
-        },
-        {
-          rank: 6,
-          id: '6',
-          name: 'Eleanor Pena',
-          userIdTag: 'ID 1445920',
-          avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-          tasksCompleted: 98,
-          spentTime: '19:30',
-          victories: 21,
-          achievements: 95,
-          totalPoints: '3.12050',
-          pointsNum: 3120.50,
-          trend: 'down'
-        }
-      ];
+      // Fetch analyses count per user to calculate real tasksCompleted
+      const { data: userAnalizler } = await supabase
+        .from('analizler')
+        .select('user_id');
+
+      const analizCountMap: Record<string, number> = {};
+      if (userAnalizler) {
+        userAnalizler.forEach(a => {
+          if (a.user_id) {
+            analizCountMap[a.user_id] = (analizCountMap[a.user_id] || 0) + 1;
+          }
+        });
+      }
 
       if (profilesData && profilesData.length > 0) {
         const liveUsers: LeaderboardUser[] = profilesData.map((p, index) => {
-          const xp = p.xp || (1000 - index * 100);
+          const xp = p.xp || 150;
+          const realTasks = analizCountMap[p.id] || Math.floor(xp / 100) || 1;
           return {
             rank: index + 1,
             id: p.id,
             name: p.display_name || p.full_name || 'Tasarımcı',
             userIdTag: `ID ${p.id.slice(0, 7).toUpperCase()}`,
             avatar: p.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${p.id}`,
-            tasksCompleted: Math.floor(xp / 15) || 12,
-            spentTime: `${Math.floor(xp / 100) + 12}:${(index * 7 + 15) % 60}`,
-            victories: Math.floor(xp / 100) || 4,
-            achievements: Math.floor(xp / 10) || 35,
+            tasksCompleted: realTasks,
+            spentTime: `${Math.floor(xp / 80) + 10}:${(index * 13 + 12) % 60}`,
+            victories: Math.floor(xp / 200) || (index === 0 ? 3 : 1),
+            achievements: Math.floor(xp / 30) || (index === 0 ? 12 : 5),
             totalPoints: (xp / 1000).toFixed(5),
             pointsNum: xp,
             trend: index % 2 === 0 ? 'up' : 'down'
           };
         });
 
-        if (liveUsers.length >= 3) {
-          setUsers(liveUsers);
-        } else {
-          setUsers([...liveUsers, ...defaultMockUsers.slice(liveUsers.length)]);
-        }
+        setUsers(liveUsers);
       } else {
-        setUsers(defaultMockUsers);
+        setUsers([]);
       }
     } catch (err) {
       console.error(err);
