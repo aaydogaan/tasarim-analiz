@@ -232,6 +232,68 @@ export default function App() {
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [location.pathname]);
+
+  // ── Per-route SEO: title, meta description, canonical ──────────────────
+  useEffect(() => {
+    const BASE = 'https://revizelesene.com';
+    const canonicalUrl = `${BASE}${location.pathname}`;
+
+    const SEO_MAP: Record<string, { title: string; description: string }> = {
+      '/':          { title: 'Revizelesene — Yapay Zeka ile Tasarımını Analiz Et', description: 'Tasarımınızı yapay zeka ile saniyeler içinde analiz edin. Renk, tipografi ve kompozisyon hatalarınızı keşfedin, profesyonel geri bildirimler alın.' },
+      '/app':       { title: 'Analiz Et — Revizelesene', description: 'Tasarımınızı yükleyin ve yapay zeka destekli aracımızla anında detaylı analiz raporu alın.' },
+      '/vitrin':    { title: 'Vitrin — Revizelesene', description: 'Tasarımcıların yapay zeka analizlerini paylaştığı ilham galerisi. En iyi tasarımları keşfedin.' },
+      '/community': { title: 'Topluluk — Revizelesene', description: 'Tasarımcılar topluluğuna katılın; analizlerinizi paylaşın, diğerlerinin çalışmalarını keşfedin ve liderlik tablosunda yerinizi alın.' },
+      '/leaderboard': { title: 'Liderlik Tablosu — Revizelesene', description: 'Revizelesene platformunda en aktif tasarımcıları ve XP sıralamalarını keşfedin.' },
+      '/liderlik':  { title: 'Liderlik Tablosu — Revizelesene', description: 'Revizelesene platformunda en aktif tasarımcıları ve XP sıralamalarını keşfedin.' },
+      '/pricing':   { title: 'Fiyatlandırma — Revizelesene', description: 'Revizelesene ücretsiz ve premium planlarını karşılaştırın. Size en uygun paketi seçin.' },
+      '/about':     { title: 'Hakkımızda — Revizelesene', description: 'Revizelesene\'nin hikayesini, misyonunu ve ekibini tanıyın.' },
+      '/tools':     { title: 'Araçlar — Revizelesene', description: 'Tasarımcılar için ücretsiz renk, tipografi ve kompozisyon araçlarını keşfedin.' },
+      '/typography': { title: 'Tipografi Laboratuvarı — Revizelesene', description: 'Font çiftlerini test edin, hiyerarşi oluşturun ve projeleriniz için en iyi tipografi kombinasyonunu bulun.' },
+      '/profile':   { title: 'Profilim — Revizelesene', description: 'Analizlerinizi, rozetlerinizi ve ilerlemenizi görüntüleyin.' },
+    };
+
+    const meta = SEO_MAP[location.pathname] ?? {
+      title: 'Revizelesene — Yapay Zeka ile Tasarımını Analiz Et',
+      description: 'Tasarımınızı yapay zeka ile saniyeler içinde analiz edin. Profesyonel geri bildirimler alın.'
+    };
+
+    // Update title
+    document.title = meta.title;
+
+    // Update or create meta description
+    let descTag = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    if (!descTag) {
+      descTag = document.createElement('meta');
+      descTag.name = 'description';
+      document.head.appendChild(descTag);
+    }
+    descTag.content = meta.description;
+
+    // Update or create canonical link
+    let canonicalTag = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonicalTag) {
+      canonicalTag = document.createElement('link');
+      canonicalTag.rel = 'canonical';
+      document.head.appendChild(canonicalTag);
+    }
+    canonicalTag.href = canonicalUrl;
+
+    // Update og:title / og:description / og:url
+    const setOg = (property: string, content: string) => {
+      let tag = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
+      if (!tag) {
+        tag = document.createElement('meta');
+        tag.setAttribute('property', property);
+        document.head.appendChild(tag);
+      }
+      tag.content = content;
+    };
+    setOg('og:title', meta.title);
+    setOg('og:description', meta.description);
+    setOg('og:url', canonicalUrl);
+    setOg('og:site_name', 'Revizelesene');
+    setOg('og:type', 'website');
+  }, [location.pathname]);
   const [gorsel, setGorsel] = useState<string | null>(initGorsel);
   const [gorselBase64, setGorselBase64] = useState<string | null>(initGorselBase64);
   const [imageUrl, setImageUrl] = useState<string>("");
