@@ -14,6 +14,7 @@ export default function LiveActivityFeed() {
     const [activities, setActivities] = useState<any[]>([]);
     const [index, setIndex] = useState(0);
     const [isVisible, setIsVisible] = useState(false);
+    const [autoClose, setAutoClose] = useState(true);
 
     // Fetch initial activities and setup realtime
     useEffect(() => {
@@ -65,10 +66,16 @@ export default function LiveActivityFeed() {
 
                 if (isMounted) {
                     setActivities(mixed.length > 0 ? mixed.slice(0, 10) : DEMO_ACTIVITIES);
+                    setIsVisible(true);
+                    setAutoClose(true);
                 }
             } catch (error) {
                 console.error("Live feed error:", error);
-                if (isMounted) setActivities(DEMO_ACTIVITIES);
+                if (isMounted) {
+                    setActivities(DEMO_ACTIVITIES);
+                    setIsVisible(true);
+                    setAutoClose(true);
+                }
             }
         };
 
@@ -87,6 +94,7 @@ export default function LiveActivityFeed() {
                 setActivities(prev => [newActivity, ...prev].slice(0, 10));
                 setIndex(0); // Reset index to show newest
                 setIsVisible(true); // Auto-open on new activity
+                setAutoClose(true);
             })
             .subscribe();
 
@@ -102,6 +110,7 @@ export default function LiveActivityFeed() {
                 setActivities(prev => [newActivity, ...prev].slice(0, 10));
                 setIndex(0);
                 setIsVisible(true);
+                setAutoClose(true);
             })
             .subscribe();
 
@@ -112,14 +121,24 @@ export default function LiveActivityFeed() {
         };
     }, []);
 
-    // Rotate activities
+    // Rotate activities if not auto-closing (i.e. user manually opened it)
     useEffect(() => {
-        if (!isVisible || activities.length === 0) return;
+        if (!isVisible || activities.length === 0 || autoClose) return;
         const timer = setInterval(() => {
             setIndex((prev) => (prev + 1) % activities.length);
         }, 6000);
         return () => clearInterval(timer);
-    }, [isVisible, activities.length]);
+    }, [isVisible, activities.length, autoClose]);
+
+    // Auto-close logic for new events
+    useEffect(() => {
+        if (isVisible && autoClose) {
+            const timer = setTimeout(() => {
+                setIsVisible(false);
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [isVisible, autoClose, index]);
 
     const current = activities[index] || DEMO_ACTIVITIES[0];
 
@@ -168,7 +187,7 @@ export default function LiveActivityFeed() {
                         initial={{ opacity: 0, scale: 0.5, rotate: -45 }}
                         animate={{ opacity: 1, scale: 1, rotate: 0 }}
                         exit={{ opacity: 0, scale: 0.5, rotate: 45 }}
-                        onClick={() => setIsVisible(true)}
+                        onClick={() => { setIsVisible(true); setAutoClose(false); }}
                         className="w-12 h-12 bg-[var(--card-bg)]/90 backdrop-blur-xl border border-[var(--color-brand-dark)]/5 rounded-2xl flex items-center justify-center shadow-xl shadow-black/5 text-[var(--color-brand-orange)] transition-all hover:scale-105 active:scale-95 group"
                     >
                         <Bell size={20} className="group-hover:animate-bounce" />
