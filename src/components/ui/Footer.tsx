@@ -216,6 +216,7 @@ export default function Footer({
                             <div className="footer-link-list">
                                 {[
                                     { label: 'Hakkımızda', view: 'about' as const },
+                                    { label: 'Nasıl Çalışır?', view: 'nasil-calisir' as const },
                                     { label: 'Keşfet', view: 'vitrin' as const },
                                     { label: 'Araçlar', view: 'tools' as const },
                                     { label: 'Topluluk', view: 'community' as const },

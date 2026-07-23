@@ -25,23 +25,13 @@ export default function HowItWorks() {
         
         {/* Hero Section */}
         <div className="text-center max-w-3xl mx-auto mb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--color-brand-orange)]/10 text-[var(--color-brand-orange)] text-sm font-bold mb-6"
-          >
-            Revizelesene Rehberi
-          </motion.div>
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="text-4xl md:text-6xl font-black text-[var(--text-primary)] tracking-tight leading-tight mb-6"
           >
-            Tasarım Sürecini <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF5500] to-amber-500">
-              Oyunlaştır.
-            </span>
+            Tasarım Sürecini Oyunlaştır.
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -242,8 +232,8 @@ export default function HowItWorks() {
           {/* 4. Sıkça Sorulan Sorular (FAQ) & Derinlemesine Bilgi */}
           <div className="max-w-4xl mx-auto pt-10">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-black text-[var(--text-primary)] mb-4">Detaylı Bilgi & SSS</h2>
-              <p className="text-[var(--text-secondary)]">Sistem hakkında en çok merak edilenler ve arka planda çalışan yapay zeka teknolojimiz.</p>
+              <h2 className="text-3xl md:text-4xl font-black text-[var(--text-primary)] mb-4">Sıkça Sorulan Sorular</h2>
+              <p className="text-[var(--text-secondary)]">Revizelesene sistemi hakkında en çok merak edilenler ve arka planda çalışan yapay zeka teknolojimizin detayları.</p>
             </div>
             
             <div className="space-y-6">
@@ -262,6 +252,22 @@ export default function HowItWorks() {
               <FaqItem 
                 question="Analiz ettiğim tasarımlar herkes tarafından görülür mü?"
                 answer="Hayır. Analiz ettiğiniz tüm tasarımlar varsayılan olarak gizlidir ve sadece Profilinizdeki 'Analizlerim' sekmesinden sizin tarafınızdan görülebilir. Eğer isterseniz, bu tasarımları 'Keşfette Paylaş' butonuna basarak topluluğun görebileceği Vitrin sayfasına (ve liderlik yarışına) dahil edebilirsiniz."
+              />
+              <FaqItem 
+                question="Tasarım analizi yapmak ücretli mi?"
+                answer="Hayır, Revizelesene platformunda tasarım analizleri yapmak, vitrinde paylaşmak ve toplulukla etkileşime geçmek tamamen ücretsizdir. Tüm temel işlevleri (ve Liderlik yarışını) bedava kullanabilirsiniz."
+              />
+              <FaqItem 
+                question="Hangi formatlarda tasarım yükleyebilirim?"
+                answer="Şu anda standart görsel formatları olan JPG, PNG, WEBP ve HEIC desteklenmektedir. Maksimum dosya boyutu görsel başına 5 MB ile sınırlandırılmıştır."
+              />
+              <FaqItem 
+                question="Sadece UI/UX tasarımları mı analiz ediliyor?"
+                answer="Kesinlikle hayır! Sosyal medya postları, basılı materyaller (afiş, el ilanı), logolar ve hatta kurumsal kimlik çalışmaları da yapay zeka tarafından formatına uygun kriterlerle analiz edilmektedir. Sadece analiz öncesi doğru formatı seçtiğinizden emin olun."
+              />
+              <FaqItem 
+                question="Kazandığım XP'ler zamanla silinir mi?"
+                answer="Kazandığınız XP'ler kalıcıdır ve silinmez. Sadece topluluk kurallarını ihlal edip vitrinden spam/uygunsuz olduğu gerekçesiyle kaldırılan paylaşımların (ve o paylaşımlardan alınan beğenilerin) XP'leri sistem tarafından otomatik olarak geri alınır."
               />
             </div>
           </div>
