@@ -543,21 +543,23 @@ export function Vitrin() {
 
                                 {/* Üst Profil Bölümü */}
                                 <div className="flex items-center gap-4 mb-8 relative z-10 pb-6 border-b border-[var(--color-brand-dark)]/5">
-                                    <img
-                                        src={seciliGorsel.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${seciliGorsel.id}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`}
-                                        alt="Designer"
-                                        className="w-14 h-14 rounded-full border border-[var(--border-primary)] object-cover bg-[var(--bg-secondary)]"
-                                    />
-                                    <div>
-                                        <h3 className="text-[var(--text-primary)] text-lg font-bold leading-tight mb-1">
-                                            {seciliGorsel.user_name || "Tasarımcı"}
-                                        </h3>
-                                        <div className="flex items-center gap-2 text-[var(--text-secondary)] text-[10px] uppercase font-bold tracking-widest">
-                                            <span>{seciliGorsel.tasarim_turu}</span>
-                                            <span className="w-1 h-1 rounded-full bg-[var(--text-secondary)]/20" />
-                                            <span>{new Date(seciliGorsel.created_at).toLocaleDateString('tr-TR')}</span>
+                                    <Link to={`/${seciliGorsel.user_slug}`} className="flex items-center gap-4 group/profile" onClick={() => setSeciliGorsel(null)}>
+                                        <img
+                                            src={seciliGorsel.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${seciliGorsel.id}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`}
+                                            alt="Designer"
+                                            className="w-14 h-14 rounded-full border border-[var(--border-primary)] object-cover bg-[var(--bg-secondary)] group-hover/profile:border-[var(--color-brand-orange)] transition-colors"
+                                        />
+                                        <div>
+                                            <h3 className="text-[var(--text-primary)] text-lg font-bold leading-tight mb-1 group-hover/profile:text-[var(--color-brand-orange)] transition-colors">
+                                                {seciliGorsel.user_name || "Tasarımcı"}
+                                            </h3>
+                                            <div className="flex items-center gap-2 text-[var(--text-secondary)] text-[10px] uppercase font-bold tracking-widest">
+                                                <span>{seciliGorsel.tasarim_turu}</span>
+                                                <span className="w-1 h-1 rounded-full bg-[var(--text-secondary)]/20" />
+                                                <span>{new Date(seciliGorsel.created_at).toLocaleDateString('tr-TR')}</span>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </Link>
                                 </div>
 
                                 <div className="relative z-10">

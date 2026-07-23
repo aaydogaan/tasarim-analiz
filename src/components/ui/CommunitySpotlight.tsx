@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
+import { Link } from 'react-router-dom';
 import { Heart, Star, ArrowUpRight } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
@@ -12,6 +13,7 @@ interface VitrinItem {
     topluluk_puan: number;
     user_name: string | null;
     user_avatar: string | null;
+    user_slug: string | null;
 }
 
 const VitrinCard: React.FC<{ item: VitrinItem }> = ({ item }) => (
@@ -36,16 +38,16 @@ const VitrinCard: React.FC<{ item: VitrinItem }> = ({ item }) => (
 
         {/* Info Area matches Vitrin.tsx (Explore) page exactly */}
         <div className="flex justify-between items-center mt-3 px-1.5">
-            <div className="flex items-center gap-3">
+            <Link to={`/${item.user_slug || 'tasarimci'}`} className="flex items-center gap-3 group/profile">
                 <img
                     src={item.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${item.id}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`}
                     alt="Designer"
-                    className="w-7 h-7 rounded-full bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5 object-cover"
+                    className="w-7 h-7 rounded-full bg-[var(--color-brand-light)] border border-[var(--color-brand-dark)]/5 object-cover group-hover/profile:border-[var(--color-brand-orange)] transition-colors"
                 />
-                <span className="text-[var(--color-brand-dark)]/80 hover:text-[var(--color-brand-dark)] cursor-pointer transition-colors text-sm font-medium leading-none">
+                <span className="text-[var(--color-brand-dark)]/80 group-hover/profile:text-[var(--color-brand-dark)] cursor-pointer transition-colors text-sm font-medium leading-none">
                     {item.user_name || "Gizli Tasarımcı"}
                 </span>
-            </div>
+            </Link>
 
             <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1.5 group cursor-help">
@@ -99,7 +101,7 @@ export default function CommunitySpotlight({ onExploreClick }: { onExploreClick:
                     user_id,
                     likes_count,
                     analizler(isletme, tasarim_turu, gorsel_url, genel_puan, user_name, user_avatar),
-                    profiles:user_id(display_name, avatar_url)
+                    profiles:user_id(display_name, avatar_url, slug)
                 `)
                 .order("likes_count", { ascending: false })
                 .limit(10);
@@ -110,6 +112,7 @@ export default function CommunitySpotlight({ onExploreClick }: { onExploreClick:
                     isletme: post.analizler?.isletme || 'Bilinmeyen Tasarım',
                     user_name: post.profiles?.display_name || post.analizler?.user_name,
                     user_avatar: post.profiles?.avatar_url || post.analizler?.user_avatar,
+                    user_slug: post.profiles?.slug || 'tasarimci',
                     gorsel_url: post.analizler?.gorsel_url,
                     tasarim_turu: post.analizler?.tasarim_turu || 'Tasarım',
                     ai_puan: post.analizler?.genel_puan || 0,
