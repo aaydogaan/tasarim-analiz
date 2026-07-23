@@ -713,7 +713,7 @@ export default function App() {
 
     setYayinlaniyor(true);
 
-    let targetAnalizId = sonuc?._analiz_id;
+    let targetAnalizId = sonuc?._analiz_id || sonuc?.id;
 
     // Get exact user display name and avatar
     const userName = kullanici.user_metadata?.display_name || kullanici.user_metadata?.full_name || kullanici.email?.split('@')[0] || 'Tasarımcı';
