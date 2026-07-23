@@ -1257,8 +1257,10 @@ export default function App() {
                                            genelPuan: analiz.genel_puan,
                                            genelYorum: analiz.genel_yorum,
                                            gucluYon: analiz.guclu_yon,
-                                           zayifYon: analiz.zayif_yon
+                                           zayifYon: analiz.zayif_yon,
+                                           ...(analiz.skor_detayi || {})
                                          });
+                                         setImageUrl(analiz.gorsel_url);
                                          setAdim(3); // Result view
                                          setDashboardTab('genel');
                                       }}
