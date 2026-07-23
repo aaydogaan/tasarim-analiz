@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../lib/supabase';
-import { Trophy, Calendar, Link as LinkIcon, Twitter, Briefcase, Award, Star, Activity, ArrowLeft } from 'lucide-react';
+import { Trophy, Calendar, Link as LinkIcon, Twitter, Briefcase, Award, Star, Activity, ArrowLeft, X } from 'lucide-react';
 
 export default function PublicProfile() {
     const { slug } = useParams();
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [seciliGorsel, setSeciliGorsel] = useState<string | null>(null);
     
     // XP and Stats
     const [xpData, setXpData] = useState({ total: 0, posts: 0, comments: 0, analizler: 0, challenges: 0 });
@@ -52,7 +53,7 @@ export default function PublicProfile() {
                 // Fetch showcases
                 const { data: showcaseData } = await supabase
                     .from('community_posts')
-                    .select('*, analizler(gorsel_url, isletme, tasarim_turu)')
+                    .select('*, analizler(gorsel_url, isletme, tasarim_turu, genel_puan)')
                     .eq('user_id', profData.id)
                     .order('created_at', { ascending: false });
                 
@@ -63,7 +64,8 @@ export default function PublicProfile() {
                         ...post,
                         image_url: imageSrc,
                         isletme: post.analizler?.isletme || post.title || 'Genel',
-                        tasarim_turu: post.analizler?.tasarim_turu || 'Tasarım'
+                        tasarim_turu: post.analizler?.tasarim_turu || 'Tasarım',
+                        genel_puan: post.analizler?.genel_puan || 0
                     };
                 });
 
@@ -142,26 +144,26 @@ export default function PublicProfile() {
                             </p>
                         )}
 
-                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs font-semibold uppercase tracking-wider">
+                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs font-medium text-gray-500">
                             {profile.created_at && (
-                                <div className="flex items-center gap-1.5 text-gray-500 bg-gray-100/80 px-4 py-2.5 rounded-xl">
+                                <div className="flex items-center gap-1.5 bg-gray-100/80 px-4 py-2.5 rounded-xl">
                                     <Calendar className="w-3.5 h-3.5" /> 
-                                    {new Date(profile.created_at).toLocaleDateString('tr-TR')} KATILDI
+                                    {new Date(profile.created_at).toLocaleDateString('tr-TR')} katıldı
                                 </div>
                             )}
                             {profile.website && (
                                 <a href={profile.website} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 px-4 py-2.5 rounded-xl transition-colors">
-                                    <LinkIcon className="w-3.5 h-3.5" /> WEBSITE
+                                    <LinkIcon className="w-3.5 h-3.5" /> Web Sitesi
                                 </a>
                             )}
                             {profile.twitter_url && (
                                 <a href={profile.twitter_url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-sky-600 bg-sky-50 hover:bg-sky-100 px-4 py-2.5 rounded-xl transition-colors">
-                                    <Twitter className="w-3.5 h-3.5" /> TWITTER
+                                    <Twitter className="w-3.5 h-3.5" /> Twitter
                                 </a>
                             )}
                             {profile.dribbble_url && (
                                 <a href={profile.dribbble_url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-pink-600 bg-pink-50 hover:bg-pink-100 px-4 py-2.5 rounded-xl transition-colors">
-                                    <Briefcase className="w-3.5 h-3.5" /> DRIBBBLE
+                                    <Briefcase className="w-3.5 h-3.5" /> Dribbble
                                 </a>
                             )}
                         </div>
@@ -204,7 +206,11 @@ export default function PublicProfile() {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {showcases.map((post) => (
-                            <Link to={`/community?post=${post.id}`} key={post.id} className="bg-white border border-gray-200/60 rounded-[24px] overflow-hidden hover:border-gray-300 transition-all group block shadow-sm hover:shadow-md">
+                            <div 
+                                key={post.id} 
+                                onClick={() => { if (post.image_url) setSeciliGorsel(post.image_url); }}
+                                className="bg-white border border-gray-200/60 rounded-[24px] overflow-hidden hover:border-gray-300 transition-all group block shadow-sm hover:shadow-md cursor-pointer"
+                            >
                                 <div className="aspect-[4/3] bg-gray-50 relative overflow-hidden">
                                     {post.image_url ? (
                                         <img 
@@ -219,16 +225,56 @@ export default function PublicProfile() {
                                     )}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                 </div>
-                                <div className="p-5 border-t border-gray-100">
-                                    <h3 className="text-base font-bold text-gray-900 mb-1 truncate">{post.isletme}</h3>
-                                    <p className="text-gray-500 text-sm font-medium">{post.tasarim_turu}</p>
+                                <div className="p-5 border-t border-gray-100 flex items-start justify-between gap-4">
+                                    <div>
+                                        <h3 className="text-base font-bold text-gray-900 mb-1 truncate">{post.isletme}</h3>
+                                        <p className="text-gray-500 text-sm font-medium">{post.tasarim_turu}</p>
+                                    </div>
+                                    {post.genel_puan > 0 && (
+                                        <div className="flex items-center gap-1 bg-amber-50 text-amber-600 font-bold px-2.5 py-1 rounded-lg text-sm shrink-0 border border-amber-100">
+                                            <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                                            {post.genel_puan}
+                                        </div>
+                                    )}
                                 </div>
-                            </Link>
+                            </div>
                         ))}
                     </div>
                 )}
 
             </div>
+
+            {/* Modal for viewing image */}
+            <AnimatePresence>
+                {seciliGorsel && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/95 backdrop-blur-md"
+                        onClick={() => setSeciliGorsel(null)}
+                    >
+                        <button 
+                            className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors backdrop-blur-sm"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setSeciliGorsel(null);
+                            }}
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                        <motion.img
+                            initial={{ scale: 0.95, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.95, y: 20 }}
+                            src={seciliGorsel}
+                            alt="Tasarım Görseli"
+                            className="max-w-[95vw] max-h-[90vh] rounded-2xl shadow-2xl object-contain border border-white/10"
+                            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the image itself
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

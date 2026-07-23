@@ -563,15 +563,27 @@ export default function App() {
               .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
               .replace(/[^a-z0-9]+/g, '-')
               .replace(/^-+|-+$/g, '');
-            const slug = `${baseName || 'tasarimci'}-${userRecord.id.substring(0,4)}`;
-
-            await supabase.from('profiles').upsert({
-              id: userRecord.id,
-              display_name: authAdSoyad || 'Tasarımcı',
-              slug: slug,
-              avatar_url: `https://api.dicebear.com/7.x/notionists/svg?seed=${userRecord.id}`,
-              updated_at: new Date().toISOString()
-            }, { onConflict: 'id' });
+            
+            let finalSlug = baseName || 'tasarimci';
+            let counter = 1;
+            let success = false;
+            
+            while (!success && counter < 10) {
+                const { error } = await supabase.from('profiles').upsert({
+                  id: userRecord.id,
+                  display_name: authAdSoyad || 'Tasarımcı',
+                  slug: finalSlug,
+                  avatar_url: `https://api.dicebear.com/7.x/notionists/svg?seed=${userRecord.id}`,
+                  updated_at: new Date().toISOString()
+                }, { onConflict: 'id' });
+                
+                if (!error) {
+                    success = true;
+                } else {
+                    finalSlug = `${baseName}-${counter}`;
+                    counter++;
+                }
+            }
           } catch (_) {}
 
           // Ensure session is signed in
