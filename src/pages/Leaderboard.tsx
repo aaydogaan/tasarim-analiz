@@ -42,22 +42,16 @@ interface LeaderboardUser {
 
 type SortOption = 'ai_score' | 'community';
 
-const SORT_CONFIG: { id: SortOption; label: string; sublabel: string; icon: React.ReactNode; color: string; activeClass: string }[] = [
+const SORT_CONFIG: { id: SortOption; label: string; icon: React.ReactNode }[] = [
   {
     id: 'ai_score',
     label: 'Yapay Zeka Puanı',
-    sublabel: 'Analiz ortalama skoru',
     icon: <Sparkles className="w-4 h-4" />,
-    color: 'text-slate-600',
-    activeClass: 'bg-slate-800 text-white border-slate-800 shadow-sm'
   },
   {
     id: 'community',
     label: 'Topluluk Puanı',
-    sublabel: 'Keşfet beğenileri',
     icon: <Heart className="w-4 h-4" />,
-    color: 'text-slate-600',
-    activeClass: 'bg-slate-800 text-white border-slate-800 shadow-sm'
   },
 ];
 
@@ -488,30 +482,25 @@ export function Leaderboard() {
             {/* Sort Pill Filters */}
             <div className="flex flex-col sm:flex-row gap-3">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider self-center shrink-0 hidden sm:block">Sırala:</span>
-              <div className="flex flex-wrap gap-2">
+              
+              {/* Segmented Control Container */}
+              <div className="flex bg-slate-100 p-1 rounded-xl shadow-inner border border-slate-200/50">
                 {SORT_CONFIG.map((opt) => {
                   const isActive = sortOption === opt.id;
                   return (
-                    <motion.button
+                    <button
                       key={opt.id}
                       type="button"
                       onClick={() => setSortOption(opt.id)}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border font-bold text-sm transition-all shadow-sm ${
+                      className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-bold text-sm transition-all ${
                         isActive
-                          ? `${opt.activeClass} shadow-md`
-                          : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                          ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60'
+                          : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 border border-transparent'
                       }`}
                     >
-                      <span className={isActive ? 'text-white' : opt.color}>{opt.icon}</span>
-                      <div className="text-left">
-                        <span className="block leading-tight">{opt.label}</span>
-                        <span className={`text-[10px] font-medium leading-tight ${isActive ? 'text-white/70' : 'text-slate-400'}`}>
-                          {opt.sublabel}
-                        </span>
-                      </div>
-                    </motion.button>
+                      <span className={isActive ? 'text-slate-800' : 'text-slate-400'}>{opt.icon}</span>
+                      <span>{opt.label}</span>
+                    </button>
                   );
                 })}
               </div>
