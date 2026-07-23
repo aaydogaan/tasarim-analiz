@@ -1764,8 +1764,8 @@ export default function App() {
                             <span className="text-[var(--text-primary)] font-bold text-sm tracking-wide">Yüklediğiniz Tasarım</span>
                           </div>
                         </div>
-                        <div className="p-4 flex flex-col justify-center items-center bg-[var(--bg-primary)]/50 group cursor-zoom-in min-h-[240px]" onClick={() => gorsel && setSeciliGorsel(gorsel)}>
-                          <img src={gorsel!} alt="Orijinal" className="max-w-full max-h-[300px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform duration-500 shadow-sm" />
+                        <div className="p-4 flex flex-col justify-center items-center bg-[var(--bg-primary)]/50 group cursor-zoom-in min-h-[240px]" onClick={() => (gorsel || imageUrl) && setSeciliGorsel(gorsel || imageUrl)}>
+                          <img src={gorsel || imageUrl} alt="Orijinal" className="max-w-full max-h-[300px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform duration-500 shadow-sm" />
                         </div>
 
                         {/* Color Palette Chips */}
