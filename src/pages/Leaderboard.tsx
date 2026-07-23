@@ -12,7 +12,10 @@ import {
   Check,
   Trophy as TrophyLucide,
   Medal as MedalLucide,
-  Award as AwardLucide
+  Award as AwardLucide,
+  Sparkles,
+  Heart,
+  Star
 } from 'lucide-react';
 import {
   Trophy,
@@ -28,17 +31,47 @@ interface LeaderboardUser {
   name: string;
   avatar: string;
   userIdTag: string;
-  tasksCompleted: number;  // number of analyses in selected period
-  totalPoints: string;     // formatted XP string
-  pointsNum: number;       // raw XP for sorting
+  tasksCompleted: number;   // analyses in selected period
+  avgAiScore: number;       // avg AI score from analizler.genel_puan (0-100)
+  communityLikes: number;   // total beğeni received on community posts
+  totalPoints: string;      // formatted XP string
+  pointsNum: number;        // raw XP for sorting
   trend: 'up' | 'down';
   isCurrentUser?: boolean;
 }
 
+type SortOption = 'xp' | 'ai_score' | 'community';
+
+const SORT_CONFIG: { id: SortOption; label: string; sublabel: string; icon: React.ReactNode; color: string; activeClass: string }[] = [
+  {
+    id: 'xp',
+    label: 'XP Puanı',
+    sublabel: 'Toplam deneyim puanı',
+    icon: <Star className="w-4 h-4" />,
+    color: 'text-amber-600',
+    activeClass: 'bg-amber-500 text-white border-amber-500 shadow-amber-200'
+  },
+  {
+    id: 'ai_score',
+    label: 'Yapay Zeka Puanı',
+    sublabel: 'Analiz ortalama skoru',
+    icon: <Sparkles className="w-4 h-4" />,
+    color: 'text-violet-600',
+    activeClass: 'bg-violet-500 text-white border-violet-500 shadow-violet-200'
+  },
+  {
+    id: 'community',
+    label: 'Topluluk Puanı',
+    sublabel: 'Keşfet beğenileri',
+    icon: <Heart className="w-4 h-4" />,
+    color: 'text-rose-500',
+    activeClass: 'bg-rose-500 text-white border-rose-500 shadow-rose-200'
+  },
+];
+
 export function Leaderboard() {
   const [activeTab, setActiveTab] = useState<'week' | 'month' | 'all'>('all');
-  const [sortOption, setSortOption] = useState<'tasks' | 'points'>('points');
-  const [isSortOpen, setIsSortOpen] = useState(false);
+  const [sortOption, setSortOption] = useState<SortOption>('xp');
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,22 +103,23 @@ export function Leaderboard() {
       const { data: { session } } = await supabase.auth.getSession();
       const currentUser = session?.user;
 
-      // 1. Total analysis count (all time) for the stat card
+      // 1. Total analysis count for stat card
       const { count: totalAnalysisCount } = await supabase
         .from('analizler')
         .select('*', { count: 'exact', head: true });
-
       setRealAnalysisCount(totalAnalysisCount || 0);
 
-      // 2. Canonical XP data from user_xp_stats view (same as Community page)
+      // 2. Canonical XP data from user_xp_stats view
       const { data: xpStatsData } = await supabase
         .from('user_xp_stats')
         .select('*')
         .order('total_xp', { ascending: false });
 
-      // 3. Fetch analyses with date filter for the selected period
-      let analysesQuery = supabase.from('analizler').select('user_id, created_at');
-      
+      // 3. Analyses with date filter — count + AI score per user
+      let analysesQuery = supabase
+        .from('analizler')
+        .select('user_id, created_at, genel_puan');
+
       const now = new Date();
       if (tab === 'week') {
         const weekAgo = new Date(now);
@@ -99,17 +133,38 @@ export function Leaderboard() {
 
       const { data: periodAnalizler } = await analysesQuery;
 
-      // Count analyses per user for the selected period
+      // Build per-user analysis count + cumulative AI score
       const periodAnalizCountMap: Record<string, number> = {};
+      const aiScoreSumMap: Record<string, number> = {};   // sum of genel_puan
+      const aiScoreCountMap: Record<string, number> = {}; // count of scored analyses
+
       if (periodAnalizler) {
         periodAnalizler.forEach(a => {
-          if (a.user_id) {
-            periodAnalizCountMap[a.user_id] = (periodAnalizCountMap[a.user_id] || 0) + 1;
+          if (!a.user_id) return;
+          periodAnalizCountMap[a.user_id] = (periodAnalizCountMap[a.user_id] || 0) + 1;
+          if (a.genel_puan != null) {
+            aiScoreSumMap[a.user_id] = (aiScoreSumMap[a.user_id] || 0) + a.genel_puan;
+            aiScoreCountMap[a.user_id] = (aiScoreCountMap[a.user_id] || 0) + 1;
           }
         });
       }
 
-      // 4. Build registry from user_xp_stats
+      // 4. Community likes (begeniler) — total received per user
+      //    begeniler.user_id = the USER who received the like (owner of the post/analysis)
+      const { data: begenilerData } = await supabase
+        .from('begeniler')
+        .select('user_id');
+
+      const communityLikesMap: Record<string, number> = {};
+      if (begenilerData) {
+        begenilerData.forEach(b => {
+          if (b.user_id) {
+            communityLikesMap[b.user_id] = (communityLikesMap[b.user_id] || 0) + 1;
+          }
+        });
+      }
+
+      // 5. Build user registry from user_xp_stats
       const userMetaRegistry: Record<string, { name: string; avatar: string; xp: number }> = {};
 
       if (xpStatsData) {
@@ -141,11 +196,15 @@ export function Leaderboard() {
         const meta = userMetaRegistry[userId];
         const periodTasks = periodAnalizCountMap[userId] || 0;
 
-        // For week/month: use period analysis count to determine XP shown in that period
-        // For all time: use canonical total_xp from user_xp_stats
-        const xp = tab === 'all'
-          ? meta.xp
-          : (periodTasks * 250);
+        const xp = tab === 'all' ? meta.xp : (periodTasks * 250);
+
+        // Average AI score (0-100)
+        const aiSum = aiScoreSumMap[userId] || 0;
+        const aiCount = aiScoreCountMap[userId] || 0;
+        const avgAiScore = aiCount > 0 ? Math.round(aiSum / aiCount) : 0;
+
+        // Community likes
+        const communityLikes = communityLikesMap[userId] || 0;
 
         return {
           rank: 0,
@@ -153,7 +212,9 @@ export function Leaderboard() {
           name: meta.name,
           userIdTag: `ID ${userId.slice(0, 7).toUpperCase()}`,
           avatar: meta.avatar,
-          tasksCompleted: tab === 'all' ? (periodAnalizCountMap[userId] || 0) : periodTasks,
+          tasksCompleted: periodTasks,
+          avgAiScore,
+          communityLikes,
           totalPoints: `${xp.toLocaleString('tr-TR')} XP`,
           pointsNum: xp,
           trend: idx % 2 === 0 ? 'up' : 'down',
@@ -161,7 +222,7 @@ export function Leaderboard() {
         };
       });
 
-      // Sort by XP descending, assign ranks
+      // Default sort: XP descending
       liveList.sort((a, b) => b.pointsNum - a.pointsNum);
       liveList.forEach((u, index) => { u.rank = index + 1; });
 
@@ -177,28 +238,28 @@ export function Leaderboard() {
     fetchLeaderboardData(activeTab);
   }, [activeTab, fetchLeaderboardData]);
 
-  // Determine top three from XP-sorted list (always from full data)
-  const topThree = users.slice(0, 3);
+  // Top three always based on current sort
+  const getSortValue = (u: LeaderboardUser) => {
+    if (sortOption === 'ai_score') return u.avgAiScore;
+    if (sortOption === 'community') return u.communityLikes;
+    return u.pointsNum;
+  };
 
-  const filteredUsers = [...users]
+  const sortedUsers = [...users].sort((a, b) => getSortValue(b) - getSortValue(a));
+  const topThree = sortedUsers.slice(0, 3);
+
+  const filteredUsers = sortedUsers
     .filter(u => {
       if (overallFilter === 'Topluluk Liderleri' && u.rank > 5) return false;
       if (overallFilter === 'Kurucu Üyeler' && u.rank > 3) return false;
       return (
-        u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         u.userIdTag.toLowerCase().includes(searchQuery.toLowerCase())
       );
-    })
-    .sort((a, b) => {
-      if (sortOption === 'tasks') return b.tasksCompleted - a.tasksCompleted;
-      return b.pointsNum - a.pointsNum;
     });
 
   const overallFilterOptions = ['Genel Bakış', 'Topluluk Liderleri', 'Kurucu Üyeler'];
-  const sortOptionsConfig = [
-    { id: 'points', label: 'Sırala: Toplam Puan (XP)' },
-    { id: 'tasks', label: 'Sırala: Analiz Sayısı' },
-  ];
+  const activeSortConfig = SORT_CONFIG.find(s => s.id === sortOption)!;
 
   const PodiumCard = ({ user, rank }: { user: LeaderboardUser; rank: 1 | 2 | 3 }) => {
     const avatarBorder = rank === 1
@@ -207,12 +268,19 @@ export function Leaderboard() {
         ? 'ring-2 ring-slate-300 ring-offset-2'
         : 'ring-2 ring-orange-300/60 ring-offset-2';
 
-    // Premium rank badge configs
     const badgeConfig = rank === 1
       ? { bg: 'bg-gradient-to-br from-amber-50 to-yellow-100 border border-amber-200', numColor: 'text-amber-700', icon: <Trophy size={28} weight="duotone" color="#f59e0b" /> }
       : rank === 2
         ? { bg: 'bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200', numColor: 'text-slate-600', icon: <Medal size={28} weight="duotone" color="#94a3b8" /> }
         : { bg: 'bg-gradient-to-br from-orange-50 to-amber-100 border border-orange-200', numColor: 'text-orange-700', icon: <CrownSimple size={28} weight="duotone" color="#f97316" /> };
+
+    // Show score relevant to active sort
+    const scoreLabel = sortOption === 'ai_score' ? 'YZ Skoru' : sortOption === 'community' ? 'Beğeni' : 'XP Puanı';
+    const scoreValue = sortOption === 'ai_score'
+      ? (user.avgAiScore > 0 ? `${user.avgAiScore}/100` : '—')
+      : sortOption === 'community'
+        ? user.communityLikes.toLocaleString('tr-TR')
+        : user.pointsNum.toLocaleString('tr-TR');
 
     return (
       <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-5 hover:shadow-md transition-shadow">
@@ -234,7 +302,6 @@ export function Leaderboard() {
             </div>
           </div>
 
-          {/* Premium Phosphor Duotone rank badge */}
           <div className={`flex flex-col items-center justify-center w-14 h-14 rounded-2xl ${badgeConfig.bg} shrink-0 gap-0.5`}>
             {badgeConfig.icon}
             <span className={`text-[11px] font-black ${badgeConfig.numColor} leading-none`}>#{rank}</span>
@@ -247,8 +314,8 @@ export function Leaderboard() {
             <span className="text-base font-extrabold text-slate-900">{user.tasksCompleted}</span>
           </div>
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">XP Puanı</span>
-            <span className="text-base font-extrabold text-slate-900">{user.pointsNum.toLocaleString('tr-TR')}</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">{scoreLabel}</span>
+            <span className="text-base font-extrabold text-slate-900">{scoreValue}</span>
           </div>
         </div>
       </div>
@@ -366,7 +433,7 @@ export function Leaderboard() {
                 </div>
               </div>
               <div className="w-14 h-14 bg-amber-100/80 border border-amber-200 rounded-2xl flex items-center justify-center text-amber-600 shadow-sm shrink-0 self-start sm:self-center">
-                <Trophy className="w-7 h-7" />
+                <TrophyLucide className="w-7 h-7" />
               </div>
             </div>
             <div className="mt-4 pt-3 border-t border-amber-200/50 flex items-center gap-1.5 text-xs text-amber-800/80 font-medium">
@@ -382,7 +449,6 @@ export function Leaderboard() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Mevcut Liderler</h2>
 
-            {/* Time Filter Pills — trigger real re-fetch */}
             <div className="bg-white border border-slate-200/80 p-1 rounded-2xl flex items-center gap-1 shadow-sm self-start sm:self-auto">
               {(['week', 'month', 'all'] as const).map((tab) => (
                 <button
@@ -412,54 +478,13 @@ export function Leaderboard() {
         </div>
 
         {/* GENEL SIRALAMA */}
-        <div className="space-y-4 pt-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Genel Sıralama</h2>
-
-            <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-              {/* Sort Dropdown */}
-              <div className="relative w-full sm:w-auto min-w-[240px]">
-                <button
-                  type="button"
-                  onClick={() => setIsSortOpen(!isSortOpen)}
-                  className="w-full whitespace-nowrap flex items-center justify-between gap-4 bg-white border border-slate-200 rounded-xl px-5 py-3 text-xs md:text-sm font-bold text-slate-800 shadow-sm hover:border-slate-300 transition-colors"
-                >
-                  <span>{sortOptionsConfig.find(s => s.id === sortOption)?.label}</span>
-                  <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-300 shrink-0 ${isSortOpen ? 'rotate-180 text-slate-700' : ''}`} />
-                </button>
-
-                <AnimatePresence>
-                  {isSortOpen && (
-                    <>
-                      <div className="fixed inset-0 z-20" onClick={() => setIsSortOpen(false)} />
-                      <motion.div
-                        initial={{ opacity: 0, y: 6, scale: 0.96 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 6, scale: 0.96 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute right-0 mt-2 min-w-full w-max bg-white border border-slate-200 rounded-2xl shadow-xl z-30 p-1.5 space-y-1"
-                      >
-                        {sortOptionsConfig.map((opt) => (
-                          <button
-                            key={opt.id}
-                            type="button"
-                            onClick={() => { setSortOption(opt.id as any); setIsSortOpen(false); }}
-                            className={`w-full whitespace-nowrap text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center justify-between gap-3 ${
-                              sortOption === opt.id ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-50'
-                            }`}
-                          >
-                            <span>{opt.label}</span>
-                            {sortOption === opt.id && <Check className="w-3.5 h-3.5 text-slate-900 shrink-0" />}
-                          </button>
-                        ))}
-                      </motion.div>
-                    </>
-                  )}
-                </AnimatePresence>
-              </div>
+        <div className="space-y-5 pt-4">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Genel Sıralama</h2>
 
               {/* Search */}
-              <div className="relative w-full sm:w-64">
+              <div className="relative w-full md:w-72">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
@@ -470,86 +495,182 @@ export function Leaderboard() {
                 />
               </div>
             </div>
+
+            {/* Sort Pill Filters */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider self-center shrink-0 hidden sm:block">Sırala:</span>
+              <div className="flex flex-wrap gap-2">
+                {SORT_CONFIG.map((opt) => {
+                  const isActive = sortOption === opt.id;
+                  return (
+                    <motion.button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setSortOption(opt.id)}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border font-bold text-sm transition-all shadow-sm ${
+                        isActive
+                          ? `${opt.activeClass} shadow-md`
+                          : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className={isActive ? 'text-white' : opt.color}>{opt.icon}</span>
+                      <div className="text-left">
+                        <span className="block leading-tight">{opt.label}</span>
+                        <span className={`text-[10px] font-medium leading-tight ${isActive ? 'text-white/70' : 'text-slate-400'}`}>
+                          {opt.sublabel}
+                        </span>
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           {/* TABLE */}
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            {/* Active sort indicator bar */}
+            <div className={`h-1 w-full ${
+              sortOption === 'xp' ? 'bg-gradient-to-r from-amber-400 to-yellow-300'
+              : sortOption === 'ai_score' ? 'bg-gradient-to-r from-violet-500 to-purple-400'
+              : 'bg-gradient-to-r from-rose-500 to-pink-400'
+            }`} />
+
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[560px]">
+              <table className="w-full text-left border-collapse min-w-[600px]">
                 <thead>
                   <tr className="border-b border-slate-200/80 bg-slate-50/50 text-sm font-bold text-slate-500 tracking-wide">
                     <th className="py-4 px-6">Sıra</th>
                     <th className="py-4 px-6">Kullanıcı</th>
                     <th className="py-4 px-6 text-center">Tamamlanan analiz</th>
-                    <th className="py-4 px-6 text-right">Toplam puan</th>
+                    <th className={`py-4 px-6 text-center ${sortOption === 'ai_score' ? 'text-violet-600' : 'text-slate-500'}`}>
+                      <div className="flex items-center justify-center gap-1">
+                        {sortOption === 'ai_score' && <Sparkles className="w-3.5 h-3.5 text-violet-500" />}
+                        Yapay zeka puanı
+                      </div>
+                    </th>
+                    <th className={`py-4 px-6 text-center ${sortOption === 'community' ? 'text-rose-500' : 'text-slate-500'}`}>
+                      <div className="flex items-center justify-center gap-1">
+                        {sortOption === 'community' && <Heart className="w-3.5 h-3.5 text-rose-500" />}
+                        Topluluk beğenisi
+                      </div>
+                    </th>
+                    <th className={`py-4 px-6 text-right ${sortOption === 'xp' ? 'text-amber-600' : 'text-slate-500'}`}>
+                      <div className="flex items-center justify-end gap-1">
+                        {sortOption === 'xp' && <Star className="w-3.5 h-3.5 text-amber-500" />}
+                        Toplam puan
+                      </div>
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs md:text-sm font-semibold text-slate-700">
                   {loading ? (
                     <tr>
-                      <td colSpan={4} className="text-center py-12 text-slate-400 font-medium">
+                      <td colSpan={6} className="text-center py-12 text-slate-400 font-medium">
                         Liderlik verileri yükleniyor...
                       </td>
                     </tr>
                   ) : filteredUsers.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="text-center py-12 text-slate-400 font-medium">
+                      <td colSpan={6} className="text-center py-12 text-slate-400 font-medium">
                         Aramaya uygun kayıtlı kullanıcı bulunamadı.
                       </td>
                     </tr>
                   ) : (
-                    filteredUsers.map((user) => (
-                      <tr 
-                        key={user.id} 
-                        className={`transition-colors group ${
-                          user.isCurrentUser ? 'bg-blue-50/50 hover:bg-blue-50' : 'hover:bg-slate-50/70'
-                        }`}
-                      >
-                        {/* Rank + trend badge */}
-                        <td className="py-4 px-6 whitespace-nowrap">
-                          <div className="flex items-center gap-3">
-                            {user.trend === 'up' ? (
-                              <div className="w-6 h-6 rounded-full bg-emerald-100/80 text-emerald-600 flex items-center justify-center shrink-0">
-                                <ArrowUp className="w-3.5 h-3.5 stroke-[2.5]" />
+                    filteredUsers.map((user, i) => {
+                      const displayRank = i + 1;
+                      return (
+                        <tr
+                          key={user.id}
+                          className={`transition-colors group ${
+                            user.isCurrentUser ? 'bg-blue-50/50 hover:bg-blue-50' : 'hover:bg-slate-50/70'
+                          }`}
+                        >
+                          {/* Rank + trend */}
+                          <td className="py-4 px-6 whitespace-nowrap">
+                            <div className="flex items-center gap-3">
+                              {user.trend === 'up' ? (
+                                <div className="w-6 h-6 rounded-full bg-emerald-100/80 text-emerald-600 flex items-center justify-center shrink-0">
+                                  <ArrowUp className="w-3.5 h-3.5 stroke-[2.5]" />
+                                </div>
+                              ) : (
+                                <div className="w-6 h-6 rounded-full bg-rose-100/80 text-rose-500 flex items-center justify-center shrink-0">
+                                  <ArrowDown className="w-3.5 h-3.5 stroke-[2.5]" />
+                                </div>
+                              )}
+                              <span className="text-sm font-extrabold text-slate-900">{displayRank}</span>
+                            </div>
+                          </td>
+
+                          {/* Avatar + name + ID */}
+                          <td className="py-4 px-6 whitespace-nowrap">
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={user.avatar}
+                                alt={user.name}
+                                className="w-10 h-10 rounded-full object-cover border border-slate-200"
+                              />
+                              <div>
+                                <p className="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors flex items-center gap-1.5">
+                                  <span>{user.name}</span>
+                                  {user.isCurrentUser && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">SEN</span>}
+                                </p>
+                                <p className="text-[10px] font-medium text-slate-400">{user.userIdTag}</p>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Analysis count */}
+                          <td className="py-4 px-6 text-center whitespace-nowrap font-bold text-slate-800">
+                            {user.tasksCompleted}
+                          </td>
+
+                          {/* AI Score */}
+                          <td className="py-4 px-6 text-center whitespace-nowrap">
+                            {user.avgAiScore > 0 ? (
+                              <div className="flex flex-col items-center gap-0.5">
+                                <span className={`font-extrabold text-sm ${
+                                  user.avgAiScore >= 75 ? 'text-emerald-600'
+                                  : user.avgAiScore >= 50 ? 'text-amber-500'
+                                  : 'text-rose-500'
+                                }`}>{user.avgAiScore}</span>
+                                <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                  <div
+                                    className={`h-full rounded-full transition-all ${
+                                      user.avgAiScore >= 75 ? 'bg-emerald-500'
+                                      : user.avgAiScore >= 50 ? 'bg-amber-400'
+                                      : 'bg-rose-400'
+                                    }`}
+                                    style={{ width: `${user.avgAiScore}%` }}
+                                  />
+                                </div>
                               </div>
                             ) : (
-                              <div className="w-6 h-6 rounded-full bg-rose-100/80 text-rose-500 flex items-center justify-center shrink-0">
-                                <ArrowDown className="w-3.5 h-3.5 stroke-[2.5]" />
-                              </div>
+                              <span className="text-slate-300 font-medium">—</span>
                             )}
-                            <span className="text-sm font-extrabold text-slate-900">{user.rank}</span>
-                          </div>
-                        </td>
+                          </td>
 
-                        {/* Avatar + name + ID */}
-                        <td className="py-4 px-6 whitespace-nowrap">
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={user.avatar}
-                              alt={user.name}
-                              className="w-10 h-10 rounded-full object-cover border border-slate-200"
-                            />
-                            <div>
-                              <p className="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors flex items-center gap-1.5">
-                                <span>{user.name}</span>
-                                {user.isCurrentUser && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">SEN</span>}
-                              </p>
-                              <p className="text-[10px] font-medium text-slate-400">{user.userIdTag}</p>
-                            </div>
-                          </div>
-                        </td>
+                          {/* Community likes */}
+                          <td className="py-4 px-6 text-center whitespace-nowrap">
+                            {user.communityLikes > 0 ? (
+                              <div className="flex items-center justify-center gap-1.5">
+                                <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400 shrink-0" />
+                                <span className="font-bold text-slate-800">{user.communityLikes}</span>
+                              </div>
+                            ) : (
+                              <span className="text-slate-300 font-medium">—</span>
+                            )}
+                          </td>
 
-                        {/* Analysis count */}
-                        <td className="py-4 px-6 text-center whitespace-nowrap font-bold text-slate-800">
-                          {user.tasksCompleted}
-                        </td>
-
-                        {/* Total XP */}
-                        <td className="py-4 px-6 text-right whitespace-nowrap font-extrabold text-slate-900 text-sm md:text-base">
-                          {user.totalPoints}
-                        </td>
-                      </tr>
-                    ))
+                          {/* Total XP */}
+                          <td className="py-4 px-6 text-right whitespace-nowrap font-extrabold text-slate-900 text-sm md:text-base">
+                            {user.totalPoints}
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
