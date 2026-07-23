@@ -280,7 +280,7 @@ export function Leaderboard() {
                 {user.isCurrentUser && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">SEN</span>}
               </h3>
               <div className="mt-0.5">
-                <span className="text-lg font-extrabold text-slate-900">{user.totalPoints}</span>
+                <span className="text-lg font-extrabold text-slate-900">{scoreValue} {sortOption === 'ai_score' ? 'Puan' : 'Beğeni'}</span>
               </div>
             </div>
           </div>
@@ -556,20 +556,9 @@ export function Leaderboard() {
                             user.isCurrentUser ? 'bg-blue-50/50 hover:bg-blue-50' : 'hover:bg-slate-50/70'
                           }`}
                         >
-                          {/* Rank + trend */}
+                          {/* Rank */}
                           <td className="py-4 px-6 whitespace-nowrap">
-                            <div className="flex items-center gap-3">
-                              {user.trend === 'up' ? (
-                                <div className="w-6 h-6 rounded-full bg-emerald-100/80 text-emerald-600 flex items-center justify-center shrink-0">
-                                  <ArrowUp className="w-3.5 h-3.5 stroke-[2.5]" />
-                                </div>
-                              ) : (
-                                <div className="w-6 h-6 rounded-full bg-rose-100/80 text-rose-500 flex items-center justify-center shrink-0">
-                                  <ArrowDown className="w-3.5 h-3.5 stroke-[2.5]" />
-                                </div>
-                              )}
-                              <span className="text-sm font-extrabold text-slate-900">{displayRank}</span>
-                            </div>
+                            <span className="text-sm font-extrabold text-slate-900 ml-2">{displayRank}</span>
                           </td>
 
                           {/* Avatar + name + ID */}
