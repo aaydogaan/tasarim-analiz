@@ -897,33 +897,6 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                             )}
                         </div>
 
-                        {/* Design Trend — Bu Ay Ne Popüler? */}
-                        {trendData.length > 0 && (
-                            <div className="space-y-4">
-                                <h3 className="font-bold text-lg px-1 text-[var(--text-primary)]">Bu Ay Trend</h3>
-                                <div className="bg-[var(--card-bg)] p-6 rounded-[32px] border border-[var(--border-primary)]">
-                                    <div className="space-y-3">
-                                        {trendData.map((t, i) => (
-                                            <div key={t.type} className="flex items-center gap-3">
-                                                <span className="text-[10px] font-black text-[var(--text-secondary)] w-4">#{i + 1}</span>
-                                                <div className="flex-1">
-                                                    <div className="flex justify-between mb-1">
-                                                        <span className="text-xs font-bold text-[var(--text-primary)]">{t.type}</span>
-                                                        <span className="text-xs text-[var(--text-secondary)]">{t.count}</span>
-                                                    </div>
-                                                    <div className="h-1.5 rounded-full bg-[var(--bg-secondary)]">
-                                                        <div
-                                                            className="h-full rounded-full bg-gradient-to-r from-[var(--color-brand-orange)] to-amber-400"
-                                                            style={{ width: `${Math.min((t.count / (trendData[0]?.count || 1)) * 100, 100)}%` }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
 
                         {/* Quick Tips */}
                         <div className="space-y-4">
