@@ -116,35 +116,51 @@ function GlassCard({ children, className = "", glowColor = "blue", delay = 0 }: 
 }
 
 function ScoreRing({ score }: { score: number }) {
-  const r = 54, cx = 70, cy = 70;
+  const r = 58, cx = 70, cy = 70;
   const circ = 2 * Math.PI * r;
-  const halfCirc = circ / 2;
-  const color = score >= 75 ? "#10b981" : score >= 50 ? "#f59e0b" : "#ef4444"; // Modern green/yellow/red
-
+  
+  // High-quality colors
+  const color = score >= 80 ? "#10b981" : score >= 60 ? "#FF5500" : "#ef4444"; 
+  
   return (
-    <div className="flex flex-col items-center">
-      <div className="relative w-[140px] h-[70px] overflow-hidden">
-        <svg width={140} height={140} viewBox="0 0 140 140" className="transform rotate-180">
-          <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--color-brand-dark)" strokeOpacity="0.05" strokeWidth="14" strokeDasharray={`${halfCirc} ${halfCirc}`} />
+    <div className="flex flex-col items-center justify-center relative">
+      <div className="relative w-[140px] h-[140px] flex items-center justify-center">
+        {/* Glow behind the ring */}
+        <div className="absolute inset-0 rounded-full blur-xl opacity-20" style={{ backgroundColor: color }}></div>
+        
+        <svg width={140} height={140} viewBox="0 0 140 140" className="transform -rotate-90 relative z-10">
+          <defs>
+            <linearGradient id={`gradient-${score}`} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={color} />
+              <stop offset="100%" stopColor={color} stopOpacity="0.7" />
+            </linearGradient>
+            <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor={color} floodOpacity="0.3" />
+            </filter>
+          </defs>
+          <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--border-primary)" strokeWidth="12" />
           <motion.circle
-            cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="14"
-            strokeDasharray={`${halfCirc} ${halfCirc}`}
-            initial={{ strokeDashoffset: halfCirc }}
-            animate={{ strokeDashoffset: halfCirc - (score / 100) * halfCirc }}
-            transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
+            cx={cx} cy={cy} r={r} fill="none" stroke={`url(#gradient-${score})`} strokeWidth="12"
+            strokeDasharray={circ}
+            initial={{ strokeDashoffset: circ }}
+            animate={{ strokeDashoffset: circ - (score / 100) * circ }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
             strokeLinecap="round"
+            filter="url(#dropShadow)"
           />
         </svg>
-        <div className="absolute left-0 right-0 bottom-0 flex flex-col items-center justify-end">
+        
+        {/* Inner Text */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-20">
           <motion.span
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="text-[var(--color-brand-dark)] text-4xl font-extrabold leading-none tracking-tighter"
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="text-[var(--text-primary)] text-[42px] font-black leading-none tracking-tighter"
           >
             {score}
           </motion.span>
-          <span className="text-[var(--color-brand-dark)]/40 text-[8px] font-black uppercase tracking-widest mt-1 mb-1">TOPLAM PUAN</span>
+          <span className="text-[var(--text-secondary)] text-[10px] font-bold tracking-widest mt-1 uppercase">Puan</span>
         </div>
       </div>
     </div>
@@ -1099,10 +1115,7 @@ export default function App() {
               <aside className="w-[260px] hidden lg:flex flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-primary)] sticky top-0 h-screen">
                 <div className="p-6 pb-2">
                   <div onClick={goHome} className="flex items-center gap-2 cursor-pointer mb-8">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FF5500] to-[#FF8800] flex items-center justify-center shadow-lg shadow-[#FF5500]/20">
-                      <Sparkles className="w-4 h-4 text-white" />
-                    </div>
-                    <span className="text-xl font-bold tracking-tight text-[var(--text-primary)]">Revizelesene</span>
+                    <img src="/Revizelesene-logo.png" alt="Revizelesene" className="h-8 w-auto" />
                   </div>
                 </div>
 
@@ -1238,8 +1251,14 @@ export default function App() {
                                    </h3>
                                    <button 
                                       onClick={() => {
-                                         // Show report logic can be expanded later
-                                         setSonuc(analiz);
+                                         // Map DB snake_case to state camelCase for the report view
+                                         setSonuc({
+                                           ...analiz,
+                                           genelPuan: analiz.genel_puan,
+                                           genelYorum: analiz.genel_yorum,
+                                           gucluYon: analiz.guclu_yon,
+                                           zayifYon: analiz.zayif_yon
+                                         });
                                          setAdim(3); // Result view
                                          setDashboardTab('genel');
                                       }}
@@ -1620,7 +1639,7 @@ export default function App() {
                           
                           {/* Score Ring (Left) */}
                           <div className="lg:col-span-5 flex flex-col items-center justify-center border-b lg:border-b-0 lg:border-r border-[var(--border-primary)] pb-6 lg:pb-0 lg:pr-6">
-                            <span className="text-[var(--text-secondary)] font-bold text-xs uppercase tracking-wider mb-6">Tasarım Puanı</span>
+                            <span className="text-[var(--text-secondary)] font-bold text-sm tracking-wide mb-6">Tasarım Puanı</span>
                             <ScoreRing score={sonuc.genelPuan} />
                             <div className="mt-6 flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200/50">
                               <Check className="w-4 h-4" />
