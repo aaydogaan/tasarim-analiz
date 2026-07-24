@@ -86,7 +86,8 @@ export default function AdminUsers() {
     const handleBadgeChange = async (userId: string, newBadge: string | null) => {
         const { error } = await supabase.from('profiles').update({ verification_badge: newBadge }).eq('id', userId);
         if (error) {
-            toast.error('Rozet güncellenemedi');
+            console.error('Rozet güncelleme hatası:', error);
+            toast.error(`Rozet güncellenemedi: ${error.message}`);
         } else {
             toast.success('Doğrulama rozeti güncellendi');
             fetchUsers();
