@@ -283,8 +283,7 @@ export default function Header({
                                             initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                             animate={{ opacity: 1, y: 0, scale: 1 }}
                                             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                                            className="absolute top-full -right-[60px] sm:right-0 mt-3 w-[320px] max-w-[calc(100vw-32px)] sm:w-80 sm:max-w-none bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-2xl shadow-xl overflow-hidden py-1 z-50 flex flex-col max-h-[400px]"
+                                            className="fixed top-[70px] left-4 right-4 sm:absolute sm:top-full sm:left-auto sm:right-0 sm:mt-3 w-auto sm:w-80 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-2xl shadow-xl overflow-hidden py-1 z-50 flex flex-col max-h-[80vh] sm:max-h-[400px]"
                                         >
                                             <div className="px-4 py-3 border-b border-[var(--border-primary)] flex justify-between items-center bg-[var(--bg-secondary)]/50">
                                                 <h3 className="text-sm font-bold text-[var(--text-primary)]">Bildirimler</h3>
