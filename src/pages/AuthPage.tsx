@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
-import { User, X, Eye, EyeOff } from 'lucide-react';
+import { User, X, Eye, EyeOff, MailCheck, RefreshCw, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import CustomSelect from '../components/ui/CustomSelect';
 
@@ -41,7 +41,7 @@ export default function AuthPage() {
     const searchParams = new URLSearchParams(location.search);
     const initialMode = searchParams.get('mode') as 'giris' | 'kayit' | 'sifremi-unuttum' | 'sifre-yenile' || 'giris';
 
-    const [authMod, setAuthMod] = useState<'giris' | 'kayit' | 'sifremi-unuttum' | 'sifre-yenile'>(initialMode);
+    const [authMod, setAuthMod] = useState<'giris' | 'kayit' | 'sifremi-unuttum' | 'sifre-yenile' | 'eposta-dogrulama'>(initialMode);
     const [authAdim, setAuthAdim] = useState<1 | 2>(1);
     const [authEmail, setAuthEmail] = useState('');
     const [authAdSoyad, setAuthAdSoyad] = useState('');
@@ -62,12 +62,17 @@ export default function AuthPage() {
     const [authYukleniyor, setAuthYukleniyor] = useState(false);
     const [authHata, setAuthHata] = useState<string | null>(null);
 
+    // Email verification state
+    const [cooldown, setCooldown] = useState(0);
+    const [resendLoading, setResendLoading] = useState(false);
+    const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
+
     // Avatar state
     const [seciliAvatar, setSeciliAvatar] = useState<string>('');
     const [avatarYukleniyor, setAvatarYukleniyor] = useState(false);
     const [avatarOnayAcik, setAvatarOnayAcik] = useState(false);
 
-    // Şifre sıfırlama linkinden dönünce
+    // Şifre sıfırlama veya e-posta doğrulama linkinden dönünce
     useEffect(() => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
             if (_e === 'PASSWORD_RECOVERY') {
@@ -76,6 +81,44 @@ export default function AuthPage() {
         });
         return () => subscription.unsubscribe();
     }, []);
+
+    useEffect(() => {
+        if (cooldown > 0) {
+            const timer = setInterval(() => {
+                setCooldown((prev) => prev - 1);
+            }, 1000);
+            return () => clearInterval(timer);
+        }
+    }, [cooldown]);
+
+    useEffect(() => {
+        const verified = searchParams.get('verified');
+        if (verified === 'true') {
+            toast.success('🎉 E-posta adresiniz başarıyla doğrulandı! Lütfen giriş yapın.');
+            setAuthMod('giris');
+        }
+    }, [location.search]);
+
+    const resendVerificationEmail = async () => {
+        const targetEmail = (unconfirmedEmail || authEmail).trim();
+        if (!targetEmail) return;
+        setResendLoading(true);
+        const emailRedirectUrl = `${window.location.origin}/auth?verified=true`;
+        const { error } = await supabase.auth.resend({
+            type: 'signup',
+            email: targetEmail,
+            options: {
+                emailRedirectTo: emailRedirectUrl,
+            }
+        });
+        setResendLoading(false);
+        if (error) {
+            toast.error(`E-posta gönderilemedi: ${error.message}`);
+        } else {
+            toast.success('Doğrulama e-postası tekrar gönderildi!');
+            setCooldown(60);
+        }
+    };
 
     const girisYap = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -97,7 +140,13 @@ export default function AuthPage() {
         try {
             if (authMod === 'giris') {
                 const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authSifre });
-                if (error) throw error;
+                if (error) {
+                    if (error.message?.includes('Email not confirmed') || (error.status === 400 && error.message?.toLowerCase().includes('confirm'))) {
+                        setUnconfirmedEmail(authEmail);
+                        throw new Error('E-posta adresiniz henüz doğrulanmamış. Lütfen e-postanıza gelen doğrulama bağlantısına tıklayın.');
+                    }
+                    throw error;
+                }
                 navigate(-1); // Önceki sayfaya dön
             } else if (authMod === 'sifremi-unuttum') {
                 const { error } = await supabase.auth.resetPasswordForEmail(authEmail, {
@@ -122,10 +171,12 @@ export default function AuthPage() {
                     throw new Error('Şifreniz en az 6 karakter olmalıdır.');
                 }
                 const cleanEmail = authEmail.trim();
+                const emailRedirectUrl = `${window.location.origin}/auth?verified=true`;
                 let signUpRes = await supabase.auth.signUp({
                     email: cleanEmail,
                     password: authSifre,
                     options: {
+                        emailRedirectTo: emailRedirectUrl,
                         data: {
                             full_name: authAdSoyad || 'Tasarımcı',
                             display_name: authAdSoyad || 'Tasarımcı'
@@ -133,43 +184,17 @@ export default function AuthPage() {
                     }
                 });
 
-                if (signUpRes.error && (signUpRes.error.message?.includes('Database error') || signUpRes.error.status === 500)) {
-                    console.warn("Retrying clean signUp without metadata...");
-                    signUpRes = await supabase.auth.signUp({
-                        email: cleanEmail,
-                        password: authSifre
-                    });
+                if (signUpRes.error) {
+                    if (signUpRes.error.message?.includes('already registered') || signUpRes.error.message?.includes('user_already_exists')) {
+                        throw new Error('Bu e-posta adresi zaten kayıtlı. Lütfen giriş yapın.');
+                    }
+                    throw signUpRes.error;
                 }
 
                 let userRecord = signUpRes.data?.user;
 
-                if (signUpRes.error) {
-                    console.error("Supabase Auth SignUp hatası:", signUpRes.error);
-                    const signInRes = await supabase.auth.signInWithPassword({
-                        email: cleanEmail,
-                        password: authSifre
-                    });
-
-                    if (!signInRes.error && signInRes.data.user) {
-                        userRecord = signInRes.data.user;
-                    } else {
-                        throw new Error(`Kayıt Hatası (${signUpRes.error.status || 500}): ${signUpRes.error.message}`);
-                    }
-                }
-
                 if (userRecord) {
-                    await supabase.auth.signInWithPassword({
-                        email: cleanEmail,
-                        password: authSifre
-                    }).catch(() => { });
-
                     try {
-                        await supabase.auth.updateUser({
-                            data: {
-                                full_name: authAdSoyad || 'Tasarımcı',
-                                display_name: authAdSoyad || 'Tasarımcı'
-                            }
-                        });
                         const baseName = (authAdSoyad || 'Tasarimci').toLowerCase()
                             .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
                             .replace(/[^a-z0-9]+/g, '-')
@@ -180,16 +205,17 @@ export default function AuthPage() {
                         let success = false;
 
                         while (!success && counter < 10) {
-                            const { error } = await supabase.from('profiles').update({
+                            const { error } = await supabase.from('profiles').upsert({
+                                id: userRecord.id,
                                 display_name: authAdSoyad || 'Tasarımcı',
                                 slug: finalSlug,
                                 avatar_url: `https://api.dicebear.com/7.x/notionists/svg?seed=${userRecord.id}`,
-                                marketing_opt_in: kabulPazarlama, // Kaydediyoruz
+                                marketing_opt_in: kabulPazarlama,
                                 design_rank: authDesignRank,
                                 specialty: authSpecialty,
                                 experience_level: authExperienceLevel,
                                 updated_at: new Date().toISOString()
-                            }).eq('id', userRecord.id);
+                            });
 
                             if (!error) {
                                 success = true;
@@ -199,6 +225,14 @@ export default function AuthPage() {
                             }
                         }
                     } catch (_) { }
+
+                    // Eğer e-posta doğrulaması gerekiyorsa
+                    if (!signUpRes.data?.session || !userRecord.confirmed_at) {
+                        setAuthMod('eposta-dogrulama');
+                        setCooldown(60);
+                        toast.success('Kayıt başarılı! Lütfen e-posta adresinizi doğrulayın.');
+                        return;
+                    }
                 }
 
                 setAuthAdim(2);
@@ -330,6 +364,7 @@ export default function AuthPage() {
                         
                         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight mb-2">
                             {authAdim === 1 ? (
+                                authMod === 'eposta-dogrulama' ? 'E-postanı Doğrula' :
                                 authMod === 'sifre-yenile' ? 'Şifreni Yenile' :
                                 authMod === 'sifremi-unuttum' ? 'Şifremi Unuttum' :
                                 authMod === 'giris' ? 'Tekrar Hoş Geldin!' : 'Hesap Oluştur'
@@ -339,6 +374,7 @@ export default function AuthPage() {
                         </h2>
                         <p className="text-sm text-gray-500">
                             {authAdim === 1 ? (
+                                authMod === 'eposta-dogrulama' ? 'Hesabını aktifleştirmek için e-postanı kontrol et.' :
                                 authMod === 'sifre-yenile' ? 'Yeni şifreni belirleyerek devam et.' :
                                 authMod === 'sifremi-unuttum' ? 'E-posta adresini gir, sıfırlama linki gönderelim.' :
                                 authMod === 'giris' ? 'Hesabına giriş yap ve kaldığın yerden devam et.' : 'Hemen ücretsiz bir hesap oluştur.'
@@ -348,16 +384,16 @@ export default function AuthPage() {
                         </p>
                     </div>
 
-                    {authAdim === 1 && authMod !== 'sifre-yenile' && authMod !== 'sifremi-unuttum' && (
+                    {authAdim === 1 && authMod !== 'sifre-yenile' && authMod !== 'sifremi-unuttum' && authMod !== 'eposta-dogrulama' && (
                         <div className="flex p-1 bg-gray-100 rounded-xl mb-8">
                             <button
-                                onClick={() => setAuthMod('giris')}
+                                onClick={() => { setAuthMod('giris'); setAuthHata(null); }}
                                 className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${authMod === 'giris' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                             >
                                 Giriş Yap
                             </button>
                             <button
-                                onClick={() => setAuthMod('kayit')}
+                                onClick={() => { setAuthMod('kayit'); setAuthHata(null); }}
                                 className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${authMod === 'kayit' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                             >
                                 Kayıt Ol
@@ -469,16 +505,81 @@ export default function AuthPage() {
                             )}
 
                             {authHata && (
-                                <div className="bg-red-50 text-red-600 p-3 rounded-xl text-[13px] font-medium border border-red-100 leading-snug">
-                                    {authHata}
+                                <div className="bg-red-50 text-red-600 p-3.5 rounded-xl text-[13px] font-medium border border-red-100 leading-snug space-y-2">
+                                    <p>{authHata}</p>
+                                    {unconfirmedEmail && (
+                                        <button
+                                            type="button"
+                                            onClick={resendVerificationEmail}
+                                            disabled={resendLoading || cooldown > 0}
+                                            className="text-xs font-bold text-[#FF5500] hover:underline flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                                        >
+                                            {resendLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                                            {cooldown > 0 ? `Doğrulama Bağlantısını Tekrar Gönder (${cooldown}s)` : 'Doğrulama Bağlantısını Tekrar Gönder'}
+                                        </button>
+                                    )}
                                 </div>
                             )}
 
-                            <button type="submit" disabled={authYukleniyor}
-                                className="w-full bg-[var(--color-brand-orange)] text-white text-[13px] font-bold py-3 px-4 rounded-xl shadow-md shadow-[var(--color-brand-orange)]/20 hover:shadow-lg hover:shadow-[var(--color-brand-orange)]/30 transition-all hover:-translate-y-0.5 flex justify-center disabled:opacity-50 disabled:hover:translate-y-0">
-                                {authYukleniyor ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> :
-                                    (authMod === 'giris' ? 'Giriş Yap' : authMod === 'sifremi-unuttum' ? 'Sıfırlama Linki Gönder' : authMod === 'sifre-yenile' ? 'Şifremi Yenile' : 'Kayıt Ol')}
-                            </button>
+                            {authMod === 'eposta-dogrulama' ? (
+                                <motion.div 
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="text-center py-4 space-y-6"
+                                >
+                                    <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
+                                        <div className="absolute inset-0 bg-[#FF5500]/20 rounded-full animate-ping opacity-75" />
+                                        <div className="relative w-20 h-20 bg-gradient-to-tr from-[#FF5500] to-orange-400 rounded-full flex items-center justify-center text-white shadow-lg shadow-[#FF5500]/30">
+                                            <MailCheck className="w-10 h-10" />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <p className="text-sm text-gray-600 max-w-sm mx-auto leading-relaxed">
+                                            <strong className="text-gray-900 block text-base mb-1">{authEmail}</strong>
+                                            adresine bir doğrulama bağlantısı gönderdik. Lütfen e-posta kutunu kontrol et.
+                                        </p>
+                                    </div>
+
+                                    <div className="p-4 bg-orange-50/80 border border-orange-100 rounded-2xl text-xs text-gray-600 text-left flex items-start gap-3">
+                                        <Sparkles className="w-5 h-5 text-[#FF5500] shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="font-bold text-gray-900 mb-0.5">Spam / Önemsiz Kutusunu Kontrol Et</p>
+                                            <p>E-posta birkaç dakika içinde ulaşmazsa spam/junk klasörüne bakmayı unutma.</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-2 space-y-3">
+                                        <button
+                                            type="button"
+                                            onClick={resendVerificationEmail}
+                                            disabled={resendLoading || cooldown > 0}
+                                            className="w-full py-3.5 px-4 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white font-bold text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+                                        >
+                                            {resendLoading ? (
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                            ) : (
+                                                <RefreshCw className="w-4 h-4" />
+                                            )}
+                                            {cooldown > 0 ? `Tekrar Gönder (${cooldown}s)` : 'Doğrulama E-postasını Tekrar Gönder'}
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => { setAuthMod('giris'); setAuthHata(null); }}
+                                            className="w-full py-3 px-4 bg-transparent hover:bg-gray-100 text-gray-600 font-bold text-xs rounded-xl transition-colors"
+                                        >
+                                            Giriş Yap Ekranına Dön
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            ) : (
+                                <button type="submit" disabled={authYukleniyor}
+                                    className="w-full bg-[var(--color-brand-orange)] text-white text-[13px] font-bold py-3 px-4 rounded-xl shadow-md shadow-[var(--color-brand-orange)]/20 hover:shadow-lg hover:shadow-[var(--color-brand-orange)]/30 transition-all hover:-translate-y-0.5 flex justify-center disabled:opacity-50 disabled:hover:translate-y-0">
+                                    {authYukleniyor ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> :
+                                        (authMod === 'giris' ? 'Giriş Yap' : authMod === 'sifremi-unuttum' ? 'Sıfırlama Linki Gönder' : authMod === 'sifre-yenile' ? 'Şifremi Yenile' : 'Kayıt Ol')}
+                                </button>
+                            )}
 
                             {authMod === 'giris' && (
                                 <button type="button" onClick={() => setAuthMod('sifremi-unuttum')} className="w-full text-[12px] font-medium text-gray-500 hover:text-gray-900 transition-colors">
