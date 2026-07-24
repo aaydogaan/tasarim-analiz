@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { User, X, Eye, EyeOff, MailCheck, RefreshCw, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import CustomSelect from '../components/ui/CustomSelect';
+import { generateUniqueSlug } from '../lib/communityProfile';
 
 const RANK_OPTIONS = [
     { value: 'stajyer', label: 'Stajyer Tasarımcı' },
@@ -199,35 +200,18 @@ export default function AuthPage() {
 
                 if (userRecord) {
                     try {
-                        const baseName = (authAdSoyad || 'Tasarimci').toLowerCase()
-                            .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
-                            .replace(/[^a-z0-9]+/g, '-')
-                            .replace(/^-+|-+$/g, '');
-
-                        let finalSlug = baseName || 'tasarimci';
-                        let counter = 1;
-                        let success = false;
-
-                        while (!success && counter < 10) {
-                            const { error } = await supabase.from('profiles').upsert({
-                                id: userRecord.id,
-                                display_name: authAdSoyad || 'Tasarımcı',
-                                slug: finalSlug,
-                                avatar_url: `https://api.dicebear.com/7.x/notionists/svg?seed=${userRecord.id}`,
-                                marketing_opt_in: kabulPazarlama,
-                                design_rank: authDesignRank,
-                                specialty: authSpecialty,
-                                experience_level: authExperienceLevel,
-                                updated_at: new Date().toISOString()
-                            });
-
-                            if (!error) {
-                                success = true;
-                            } else {
-                                finalSlug = `${baseName}-${counter}`;
-                                counter++;
-                            }
-                        }
+                        const finalSlug = await generateUniqueSlug(authAdSoyad || 'Tasarımcı', userRecord.id);
+                        await supabase.from('profiles').upsert({
+                            id: userRecord.id,
+                            display_name: authAdSoyad || 'Tasarımcı',
+                            slug: finalSlug,
+                            avatar_url: `https://api.dicebear.com/7.x/notionists/svg?seed=${userRecord.id}`,
+                            marketing_opt_in: kabulPazarlama,
+                            design_rank: authDesignRank,
+                            specialty: authSpecialty,
+                            experience_level: authExperienceLevel,
+                            updated_at: new Date().toISOString()
+                        });
                     } catch (_) { }
                 }
 

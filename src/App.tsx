@@ -28,6 +28,7 @@ import ScanningOverlay from "./components/ui/ScanningOverlay";
 import KVKK from "./pages/KVKK";
 import Gizlilik from "./pages/Gizlilik";
 import Kosullar from "./pages/Kosullar";
+import { generateUniqueSlug } from "./lib/communityProfile";
 import AuthPage from "./pages/AuthPage";
 import CerezPolitikasi from "./pages/CerezPolitikasi";
 
@@ -398,48 +399,47 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch user profile and check for bans (creates profile only after email confirmation)
+  // Fetch user profile, auto-correct UUID slugs, and check for bans
   useEffect(() => {
     if (kullanici) {
       supabase.from('profiles').select('*').eq('id', kullanici.id).maybeSingle().then(async ({ data }) => {
         let profile = data;
         if (!profile) {
-          // Profile does not exist yet! Create it now.
+          // Profile does not exist yet! Create it now with a clean unique slug.
           const meta = kullanici.user_metadata || {};
           const displayName = meta.display_name || meta.full_name || kullanici.email?.split('@')[0] || 'Tasarımcı';
-          const baseName = displayName.toLowerCase()
-            .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '');
+          const finalSlug = await generateUniqueSlug(displayName, kullanici.id);
 
-          let finalSlug = baseName || 'tasarimci';
-          let counter = 1;
-          let success = false;
+          const { data: newProf } = await supabase.from('profiles').upsert({
+            id: kullanici.id,
+            display_name: displayName,
+            slug: finalSlug,
+            avatar_url: meta.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici.id}`,
+            marketing_opt_in: Boolean(meta.marketing_opt_in),
+            design_rank: meta.design_rank || '',
+            specialty: meta.specialty || '',
+            experience_level: meta.experience_level || '',
+            updated_at: new Date().toISOString()
+          }).select().maybeSingle();
 
-          while (!success && counter < 10) {
-            const { data: newProf, error } = await supabase.from('profiles').upsert({
-              id: kullanici.id,
-              display_name: displayName,
-              slug: finalSlug,
-              avatar_url: meta.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici.id}`,
-              marketing_opt_in: Boolean(meta.marketing_opt_in),
-              design_rank: meta.design_rank || '',
-              specialty: meta.specialty || '',
-              experience_level: meta.experience_level || '',
-              updated_at: new Date().toISOString()
-            }).select().maybeSingle();
-
-            if (!error) {
-              success = true;
-              profile = newProf;
-            } else {
-              finalSlug = `${baseName}-${counter}`;
-              counter++;
-            }
-          }
+          if (newProf) profile = newProf;
         }
 
         if (profile) {
+          // Auto-fix profile if slug is missing or currently set to UUID
+          const isUuidSlug = !profile.slug || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(profile.slug);
+          if (isUuidSlug) {
+            const cleanSlug = await generateUniqueSlug(profile.display_name || 'Tasarımcı', profile.id);
+            const { data: updatedProf } = await supabase
+              .from('profiles')
+              .update({ slug: cleanSlug })
+              .eq('id', profile.id)
+              .select()
+              .maybeSingle();
+
+            if (updatedProf) profile = updatedProf;
+          }
+
           setKullaniciProfile(profile);
           if (profile.is_banned) {
             supabase.auth.signOut();

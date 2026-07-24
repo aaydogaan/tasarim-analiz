@@ -1,3 +1,5 @@
+import { supabase } from './supabase';
+
 export const CORE_FOUNDER_COUNT = 0;
 export const FOUNDER_LIMIT = 100;
 export const MEMBER_FOUNDER_LIMIT = FOUNDER_LIMIT - CORE_FOUNDER_COUNT;
@@ -58,6 +60,34 @@ export const DESIGN_SPECIALTIES = [
     { id: 'illustrasyon', label: 'İllüstrasyon' },
     { id: 'basili', label: 'Basılı Tasarım' },
 ];
+
+export const generateUniqueSlug = async (displayName: string, userId: string): Promise<string> => {
+    const baseName = (displayName || 'tasarimci').toLowerCase()
+        .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+    let candidateSlug = baseName || 'tasarimci';
+    let counter = 1;
+
+    while (counter < 50) {
+        const { data: existing } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('slug', candidateSlug)
+            .neq('id', userId)
+            .maybeSingle();
+
+        if (!existing) {
+            return candidateSlug;
+        }
+
+        candidateSlug = `${baseName}-${counter}`;
+        counter++;
+    }
+
+    return `${baseName}-${Date.now().toString().slice(-4)}`;
+};
 
 export const EXPERIENCE_LEVELS = [
     { id: '0-1', label: '0-1 yıl' },
