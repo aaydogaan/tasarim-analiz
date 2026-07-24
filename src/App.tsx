@@ -25,6 +25,9 @@ import PublicProfile from "./pages/PublicProfile";
 import LiveActivityFeed from "./components/ui/LiveActivityFeed";
 import AnalizEtButton from "./components/ui/AnalizEtButton";
 import ScanningOverlay from "./components/ui/ScanningOverlay";
+import KVKK from "./pages/KVKK";
+import Gizlilik from "./pages/Gizlilik";
+import Kosullar from "./pages/Kosullar";
 
 declare global {
   interface Window {
@@ -2106,6 +2109,9 @@ export default function App() {
 
           </>
         } />
+        <Route path="/kvkk" element={<KVKK />} />
+        <Route path="/gizlilik" element={<Gizlilik />} />
+        <Route path="/kosullar" element={<Kosullar />} />
         <Route path="/:slug" element={<PublicProfile />} />
       </Routes>
       

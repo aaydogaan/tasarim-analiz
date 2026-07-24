@@ -257,10 +257,11 @@ export default function Footer({
                             <p className="footer-cat-title">Yasal</p>
                             <div className="footer-link-list">
                                 {[
-                                    { label: 'Gizlilik', href: '#' },
-                                    { label: 'Koşullar', href: '#' },
+                                    { label: 'KVKK Metni', href: '/kvkk' },
+                                    { label: 'Gizlilik Sözleşmesi', href: '/gizlilik' },
+                                    { label: 'Kullanım Koşulları', href: '/kosullar' },
                                 ].map((item) => (
-                                    <a key={item.label} href={item.href} className="footer-link">
+                                    <a key={item.label} href={item.href} onClick={(e) => { e.preventDefault(); onNavClick?.(item.href.replace('/', '') as any); }} className="footer-link">
                                         <h6 className="footer-link-text">{item.label}</h6>
                                     </a>
                                 ))}
@@ -280,13 +281,6 @@ export default function Footer({
                         >
                             Başa Dön
                         </button>
-                    </div>
-
-                    <div
-                        className="footer-giant-wrapper cursor-pointer"
-                        onClick={onLogoClick || (() => window.scrollTo({ top: 0, behavior: 'smooth' }))}
-                    >
-                        <h1 className="footer-giant-text">REVİZELE</h1>
                     </div>
                 </div>
             </div>
