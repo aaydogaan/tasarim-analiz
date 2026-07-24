@@ -1,8 +1,62 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Loader2, ShieldBan, CheckCircle2, Award } from 'lucide-react';
+import { Loader2, ShieldBan, CheckCircle2, ChevronDown } from 'lucide-react';
 import { VerifiedBadge } from '../../components/ui/VerifiedBadge';
 import toast from 'react-hot-toast';
+
+function BadgeSelectDropdown({ value, onChange }: { value: string | null, onChange: (val: string | null) => void }) {
+    const [open, setOpen] = useState(false);
+
+    const options = [
+        { id: null, label: 'Rozet Yok', badge: null },
+        { id: 'gold', label: 'Altın Tik (Kurucu)', badge: 'gold' },
+        { id: 'blue', label: 'Mavi Tik (Tasarımcı)', badge: 'blue' },
+    ];
+
+    const currentOption = options.find(o => o.id === (value || null)) || options[0];
+
+    return (
+        <div className="relative">
+            <button
+                type="button"
+                onClick={() => setOpen(!open)}
+                className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-[var(--bg-secondary)] hover:bg-[var(--bg-primary)] border border-[var(--border-primary)] text-xs font-bold text-[var(--text-primary)] transition-all shadow-sm w-44"
+            >
+                <div className="flex items-center gap-1.5 truncate">
+                    {currentOption.badge && <VerifiedBadge badge={currentOption.badge} size="xs" />}
+                    <span>{currentOption.label}</span>
+                </div>
+                <ChevronDown className={`w-3.5 h-3.5 text-[var(--text-secondary)] transition-transform ${open ? 'rotate-180' : ''}`} />
+            </button>
+
+            {open && (
+                <>
+                    <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
+                    <div className="absolute left-0 mt-1 w-48 bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-xl shadow-xl z-40 p-1 space-y-1">
+                        {options.map((opt) => (
+                            <button
+                                key={String(opt.id)}
+                                type="button"
+                                onClick={() => {
+                                    onChange(opt.id);
+                                    setOpen(false);
+                                }}
+                                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all text-left ${
+                                    (value || null) === opt.id 
+                                    ? 'bg-[#FF5500]/10 text-[#FF5500]' 
+                                    : 'text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]'
+                                }`}
+                            >
+                                {opt.badge && <VerifiedBadge badge={opt.badge} size="xs" />}
+                                <span>{opt.label}</span>
+                            </button>
+                        ))}
+                    </div>
+                </>
+            )}
+        </div>
+    );
+}
 
 export default function AdminUsers() {
     const [users, setUsers] = useState<any[]>([]);
@@ -50,7 +104,7 @@ export default function AdminUsers() {
                             <tr>
                                 <th className="p-4">Kullanıcı</th>
                                 <th className="p-4">Unvan</th>
-                                <th className="p-4">Doğrulama Tikı</th>
+                                <th className="p-4">Doğrulama Rozeti</th>
                                 <th className="p-4">Kayıt Tarihi</th>
                                 <th className="p-4">Durum</th>
                                 <th className="p-4 text-right">İşlem</th>
@@ -87,15 +141,10 @@ export default function AdminUsers() {
                                     </td>
                                     <td className="p-4 text-[var(--text-secondary)]">{user.design_rank || 'Tasarımcı'}</td>
                                     <td className="p-4">
-                                        <select
-                                            value={user.verification_badge || ''}
-                                            onChange={(e) => handleBadgeChange(user.id, e.target.value || null)}
-                                            className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg text-xs p-1.5 font-bold text-[var(--text-primary)] outline-none cursor-pointer hover:border-[var(--color-brand-orange)] transition-colors"
-                                        >
-                                            <option value="">Yok (Standart)</option>
-                                            <option value="gold">🏆 Altın Tik (Kurucu/Ekip)</option>
-                                            <option value="blue">🔷 Mavi Tik (Tasarımcı)</option>
-                                        </select>
+                                        <BadgeSelectDropdown 
+                                            value={user.verification_badge} 
+                                            onChange={(val) => handleBadgeChange(user.id, val)} 
+                                        />
                                     </td>
                                     <td className="p-4 text-[var(--text-secondary)]">{new Date(user.created_at).toLocaleDateString('tr-TR')}</td>
                                     <td className="p-4">

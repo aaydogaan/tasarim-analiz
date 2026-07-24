@@ -23,11 +23,9 @@ export default function AdminLayout() {
         <div className="min-h-screen bg-[var(--bg-primary)] flex">
             {/* Sidebar */}
             <aside className="w-64 bg-[var(--card-bg)] border-r border-[var(--border-primary)] flex flex-col fixed h-full z-20">
-                <div className="p-6 border-b border-[var(--border-primary)]">
-                    <h2 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-2">
-                        <span>Revizelesene</span>
-                        <span className="text-[10px] bg-[#FF5500] text-white px-2 py-0.5 rounded-full">ADMIN</span>
-                    </h2>
+                <div className="p-6 border-b border-[var(--border-primary)] flex items-center gap-3">
+                    <img src="/Revizelesene-logo.png" alt="Revizelesene" className="h-7 w-auto object-contain" />
+                    <span className="text-[10px] bg-[#FF5500] text-white font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">ADMIN</span>
                 </div>
 
                 <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
