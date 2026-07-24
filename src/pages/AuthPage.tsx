@@ -42,7 +42,9 @@ export default function AuthPage() {
     const searchParams = new URLSearchParams(location.search);
     const initialMode = searchParams.get('mode') as 'giris' | 'kayit' | 'sifremi-unuttum' | 'sifre-yenile' || 'giris';
 
-    const [authMod, setAuthMod] = useState<'giris' | 'kayit' | 'sifremi-unuttum' | 'sifre-yenile' | 'eposta-dogrulama'>(initialMode);
+    const [authMod, setAuthMod] = useState<'giris' | 'kayit' | 'sifremi-unuttum' | 'sifre-yenile'>(
+        initialMode === 'sifre-yenile' || initialMode === 'sifremi-unuttum' || initialMode === 'kayit' ? initialMode : 'giris'
+    );
     const [authAdim, setAuthAdim] = useState<1 | 2>(1);
     const [authEmail, setAuthEmail] = useState('');
     const [authAdSoyad, setAuthAdSoyad] = useState('');
@@ -63,11 +65,6 @@ export default function AuthPage() {
     const [authYukleniyor, setAuthYukleniyor] = useState(false);
     const [authHata, setAuthHata] = useState<string | null>(null);
 
-    // Email verification state
-    const [cooldown, setCooldown] = useState(0);
-    const [resendLoading, setResendLoading] = useState(false);
-    const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
-
     // Avatar state
     const [seciliAvatar, setSeciliAvatar] = useState<string>('');
     const [avatarYukleniyor, setAvatarYukleniyor] = useState(false);
@@ -82,44 +79,6 @@ export default function AuthPage() {
         });
         return () => subscription.unsubscribe();
     }, []);
-
-    useEffect(() => {
-        if (cooldown > 0) {
-            const timer = setInterval(() => {
-                setCooldown((prev) => prev - 1);
-            }, 1000);
-            return () => clearInterval(timer);
-        }
-    }, [cooldown]);
-
-    useEffect(() => {
-        const verified = searchParams.get('verified');
-        if (verified === 'true') {
-            toast.success('🎉 E-posta adresiniz başarıyla doğrulandı! Lütfen giriş yapın.');
-            setAuthMod('giris');
-        }
-    }, [location.search]);
-
-    const resendVerificationEmail = async () => {
-        const targetEmail = (unconfirmedEmail || authEmail).trim();
-        if (!targetEmail) return;
-        setResendLoading(true);
-        const emailRedirectUrl = `${window.location.origin}/auth?verified=true`;
-        const { error } = await supabase.auth.resend({
-            type: 'signup',
-            email: targetEmail,
-            options: {
-                emailRedirectTo: emailRedirectUrl,
-            }
-        });
-        setResendLoading(false);
-        if (error) {
-            toast.error(`E-posta gönderilemedi: ${error.message}`);
-        } else {
-            toast.success('Doğrulama e-postası tekrar gönderildi!');
-            setCooldown(60);
-        }
-    };
 
     const girisYap = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -142,9 +101,8 @@ export default function AuthPage() {
             if (authMod === 'giris') {
                 const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authSifre });
                 if (error) {
-                    if (error.message?.includes('Email not confirmed') || (error.status === 400 && error.message?.toLowerCase().includes('confirm'))) {
-                        setUnconfirmedEmail(authEmail);
-                        throw new Error('E-posta adresiniz henüz doğrulanmamış. Lütfen e-postanıza gelen doğrulama bağlantısına tıklayın.');
+                    if (error.message?.includes('Email not confirmed')) {
+                        throw new Error('Giriş yapılamadı: E-posta adresi doğrulanmamış. Supabase panelinden Confirm Email ayarını kapatabilirsiniz.');
                     }
                     throw error;
                 }
@@ -172,12 +130,10 @@ export default function AuthPage() {
                     throw new Error('Şifreniz en az 6 karakter olmalıdır.');
                 }
                 const cleanEmail = authEmail.trim();
-                const emailRedirectUrl = `${window.location.origin}/auth?verified=true`;
                 let signUpRes = await supabase.auth.signUp({
                     email: cleanEmail,
                     password: authSifre,
                     options: {
-                        emailRedirectTo: emailRedirectUrl,
                         data: {
                             full_name: authAdSoyad || 'Tasarımcı',
                             display_name: authAdSoyad || 'Tasarımcı',
@@ -197,6 +153,12 @@ export default function AuthPage() {
                 }
 
                 let userRecord = signUpRes.data?.user;
+                if (!signUpRes.data?.session) {
+                    const signInRes = await supabase.auth.signInWithPassword({ email: cleanEmail, password: authSifre });
+                    if (signInRes.data?.user) {
+                        userRecord = signInRes.data.user;
+                    }
+                }
 
                 if (userRecord) {
                     try {
