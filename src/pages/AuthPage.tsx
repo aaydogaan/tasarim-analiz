@@ -402,7 +402,59 @@ export default function AuthPage() {
                     )}
 
                 <div className="space-y-4">
-                    {authAdim === 1 ? (
+                    {authMod === 'eposta-dogrulama' ? (
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="text-center py-4 space-y-6"
+                        >
+                            <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
+                                <div className="absolute inset-0 bg-[#FF5500]/20 rounded-full animate-ping opacity-75" />
+                                <div className="relative w-20 h-20 bg-gradient-to-tr from-[#FF5500] to-orange-400 rounded-full flex items-center justify-center text-white shadow-lg shadow-[#FF5500]/30">
+                                    <MailCheck className="w-10 h-10" />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <p className="text-sm text-gray-600 max-w-sm mx-auto leading-relaxed">
+                                    <strong className="text-gray-900 block text-base mb-1">{authEmail}</strong>
+                                    adresine bir doğrulama bağlantısı gönderdik. Lütfen e-posta kutunu kontrol et.
+                                </p>
+                            </div>
+
+                            <div className="p-4 bg-orange-50/80 border border-orange-100 rounded-2xl text-xs text-gray-600 text-left flex items-start gap-3">
+                                <Sparkles className="w-5 h-5 text-[#FF5500] shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-bold text-gray-900 mb-0.5">Spam / Önemsiz Kutusunu Kontrol Et</p>
+                                    <p>E-posta birkaç dakika içinde ulaşmazsa spam/junk klasörüne bakmayı unutma.</p>
+                                </div>
+                            </div>
+
+                            <div className="pt-2 space-y-3">
+                                <button
+                                    type="button"
+                                    onClick={resendVerificationEmail}
+                                    disabled={resendLoading || cooldown > 0}
+                                    className="w-full py-3.5 px-4 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white font-bold text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+                                >
+                                    {resendLoading ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <RefreshCw className="w-4 h-4" />
+                                    )}
+                                    {cooldown > 0 ? `Tekrar Gönder (${cooldown}s)` : 'Doğrulama E-postasını Tekrar Gönder'}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => { setAuthMod('giris'); setAuthHata(null); }}
+                                    className="w-full py-3 px-4 bg-transparent hover:bg-gray-100 text-gray-600 font-bold text-xs rounded-xl transition-colors"
+                                >
+                                    Giriş Yap Ekranına Dön
+                                </button>
+                            </div>
+                        </motion.div>
+                    ) : authAdim === 1 ? (
                         <form onSubmit={girisYap} className="space-y-4">
                             {authMod !== 'sifre-yenile' && authMod !== 'kayit' && (
                                 <input type="email" placeholder="E-posta" value={authEmail} onChange={e => setAuthEmail(e.target.value)} required
@@ -521,65 +573,11 @@ export default function AuthPage() {
                                 </div>
                             )}
 
-                            {authMod === 'eposta-dogrulama' ? (
-                                <motion.div 
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className="text-center py-4 space-y-6"
-                                >
-                                    <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
-                                        <div className="absolute inset-0 bg-[#FF5500]/20 rounded-full animate-ping opacity-75" />
-                                        <div className="relative w-20 h-20 bg-gradient-to-tr from-[#FF5500] to-orange-400 rounded-full flex items-center justify-center text-white shadow-lg shadow-[#FF5500]/30">
-                                            <MailCheck className="w-10 h-10" />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <p className="text-sm text-gray-600 max-w-sm mx-auto leading-relaxed">
-                                            <strong className="text-gray-900 block text-base mb-1">{authEmail}</strong>
-                                            adresine bir doğrulama bağlantısı gönderdik. Lütfen e-posta kutunu kontrol et.
-                                        </p>
-                                    </div>
-
-                                    <div className="p-4 bg-orange-50/80 border border-orange-100 rounded-2xl text-xs text-gray-600 text-left flex items-start gap-3">
-                                        <Sparkles className="w-5 h-5 text-[#FF5500] shrink-0 mt-0.5" />
-                                        <div>
-                                            <p className="font-bold text-gray-900 mb-0.5">Spam / Önemsiz Kutusunu Kontrol Et</p>
-                                            <p>E-posta birkaç dakika içinde ulaşmazsa spam/junk klasörüne bakmayı unutma.</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="pt-2 space-y-3">
-                                        <button
-                                            type="button"
-                                            onClick={resendVerificationEmail}
-                                            disabled={resendLoading || cooldown > 0}
-                                            className="w-full py-3.5 px-4 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white font-bold text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
-                                        >
-                                            {resendLoading ? (
-                                                <Loader2 className="w-4 h-4 animate-spin" />
-                                            ) : (
-                                                <RefreshCw className="w-4 h-4" />
-                                            )}
-                                            {cooldown > 0 ? `Tekrar Gönder (${cooldown}s)` : 'Doğrulama E-postasını Tekrar Gönder'}
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => { setAuthMod('giris'); setAuthHata(null); }}
-                                            className="w-full py-3 px-4 bg-transparent hover:bg-gray-100 text-gray-600 font-bold text-xs rounded-xl transition-colors"
-                                        >
-                                            Giriş Yap Ekranına Dön
-                                        </button>
-                                    </div>
-                                </motion.div>
-                            ) : (
-                                <button type="submit" disabled={authYukleniyor}
-                                    className="w-full bg-[var(--color-brand-orange)] text-white text-[13px] font-bold py-3 px-4 rounded-xl shadow-md shadow-[var(--color-brand-orange)]/20 hover:shadow-lg hover:shadow-[var(--color-brand-orange)]/30 transition-all hover:-translate-y-0.5 flex justify-center disabled:opacity-50 disabled:hover:translate-y-0">
-                                    {authYukleniyor ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> :
-                                        (authMod === 'giris' ? 'Giriş Yap' : authMod === 'sifremi-unuttum' ? 'Sıfırlama Linki Gönder' : authMod === 'sifre-yenile' ? 'Şifremi Yenile' : 'Kayıt Ol')}
-                                </button>
-                            )}
+                            <button type="submit" disabled={authYukleniyor}
+                                className="w-full bg-[var(--color-brand-orange)] text-white text-[13px] font-bold py-3 px-4 rounded-xl shadow-md shadow-[var(--color-brand-orange)]/20 hover:shadow-lg hover:shadow-[var(--color-brand-orange)]/30 transition-all hover:-translate-y-0.5 flex justify-center disabled:opacity-50 disabled:hover:translate-y-0">
+                                {authYukleniyor ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> :
+                                    (authMod === 'giris' ? 'Giriş Yap' : authMod === 'sifremi-unuttum' ? 'Sıfırlama Linki Gönder' : authMod === 'sifre-yenile' ? 'Şifremi Yenile' : 'Kayıt Ol')}
+                            </button>
 
                             {authMod === 'giris' && (
                                 <button type="button" onClick={() => setAuthMod('sifremi-unuttum')} className="w-full text-[12px] font-medium text-gray-500 hover:text-gray-900 transition-colors">
