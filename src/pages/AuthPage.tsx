@@ -179,7 +179,11 @@ export default function AuthPage() {
                         emailRedirectTo: emailRedirectUrl,
                         data: {
                             full_name: authAdSoyad || 'Tasarımcı',
-                            display_name: authAdSoyad || 'Tasarımcı'
+                            display_name: authAdSoyad || 'Tasarımcı',
+                            design_rank: authDesignRank,
+                            specialty: authSpecialty,
+                            experience_level: authExperienceLevel,
+                            marketing_opt_in: kabulPazarlama
                         }
                     }
                 });
@@ -194,6 +198,15 @@ export default function AuthPage() {
                 let userRecord = signUpRes.data?.user;
 
                 if (userRecord) {
+                    // Eğer e-posta doğrulaması gerekiyorsa (oturum açılmamışsa veya e-posta onaylanmamışsa)
+                    if (!signUpRes.data?.session || !userRecord.confirmed_at) {
+                        setAuthMod('eposta-dogrulama');
+                        setCooldown(60);
+                        toast.success('Kayıt başarılı! Lütfen e-posta adresinizi doğrulayın.');
+                        return;
+                    }
+
+                    // E-posta doğrulanmış ise profil oluştur ve devam et
                     try {
                         const baseName = (authAdSoyad || 'Tasarimci').toLowerCase()
                             .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
@@ -225,14 +238,6 @@ export default function AuthPage() {
                             }
                         }
                     } catch (_) { }
-
-                    // Eğer e-posta doğrulaması gerekiyorsa
-                    if (!signUpRes.data?.session || !userRecord.confirmed_at) {
-                        setAuthMod('eposta-dogrulama');
-                        setCooldown(60);
-                        toast.success('Kayıt başarılı! Lütfen e-posta adresinizi doğrulayın.');
-                        return;
-                    }
                 }
 
                 setAuthAdim(2);

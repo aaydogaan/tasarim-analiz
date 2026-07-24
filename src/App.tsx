@@ -398,13 +398,50 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch user profile and check for bans
+  // Fetch user profile and check for bans (creates profile only after email confirmation)
   useEffect(() => {
     if (kullanici) {
-      supabase.from('profiles').select('*').eq('id', kullanici.id).single().then(({ data }) => {
-        if (data) {
-          setKullaniciProfile(data);
-          if (data.is_banned) {
+      supabase.from('profiles').select('*').eq('id', kullanici.id).maybeSingle().then(async ({ data }) => {
+        let profile = data;
+        if (!profile && (kullanici.email_confirmed_at || (kullanici as any).confirmed_at)) {
+          // Profile does not exist yet & email is confirmed! Create it now.
+          const meta = kullanici.user_metadata || {};
+          const displayName = meta.display_name || meta.full_name || kullanici.email?.split('@')[0] || 'Tasarımcı';
+          const baseName = displayName.toLowerCase()
+            .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+
+          let finalSlug = baseName || 'tasarimci';
+          let counter = 1;
+          let success = false;
+
+          while (!success && counter < 10) {
+            const { data: newProf, error } = await supabase.from('profiles').upsert({
+              id: kullanici.id,
+              display_name: displayName,
+              slug: finalSlug,
+              avatar_url: meta.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici.id}`,
+              marketing_opt_in: Boolean(meta.marketing_opt_in),
+              design_rank: meta.design_rank || '',
+              specialty: meta.specialty || '',
+              experience_level: meta.experience_level || '',
+              updated_at: new Date().toISOString()
+            }).select().maybeSingle();
+
+            if (!error) {
+              success = true;
+              profile = newProf;
+            } else {
+              finalSlug = `${baseName}-${counter}`;
+              counter++;
+            }
+          }
+        }
+
+        if (profile) {
+          setKullaniciProfile(profile);
+          if (profile.is_banned) {
             supabase.auth.signOut();
             toast.error('Hesabınız topluluk kurallarını ihlal ettiği için yasaklanmıştır.', { duration: 5000 });
             window.location.href = '/';
