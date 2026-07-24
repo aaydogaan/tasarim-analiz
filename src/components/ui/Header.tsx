@@ -93,8 +93,9 @@ export default function Header({
             navigate(`/vitrin?design=${notification.analiz_id}`);
         } else if ((notification.type === 'like_post' || notification.type === 'comment_post') && notification.post_id) {
             navigate(`/community?post=${notification.post_id}`);
-        } else if (notification.type === 'follow_user' && notification.actor?.slug) {
-            navigate(`/tasarimci/${notification.actor.slug}`);
+        } else if (notification.type === 'follow_user') {
+            const target = notification.actor?.slug || notification.actor_id;
+            if (target) navigate(`/${target}`);
         } else if (notification.type === 'new_post') {
             if (notification.post_id) navigate(`/community?post=${notification.post_id}`);
             else if (notification.analiz_id) navigate(`/vitrin?design=${notification.analiz_id}`);

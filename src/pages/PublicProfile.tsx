@@ -55,12 +55,12 @@ export default function PublicProfile() {
         const fetchProfile = async () => {
             setLoading(true);
             try {
-                // Fetch profile by slug
+                // Fetch profile by slug or id
                 const { data: profData, error: profErr } = await supabase
                     .from('profiles')
                     .select('*')
-                    .eq('slug', slug)
-                    .single();
+                    .or(`slug.eq.${slug},id.eq.${slug}`)
+                    .maybeSingle();
 
                 if (profErr || !profData) throw new Error('Profil bulunamadı');
                 setProfile(profData);
