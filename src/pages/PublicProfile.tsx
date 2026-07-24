@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 import { Trophy, Calendar, Link as LinkIcon, Briefcase, Award, Star, Activity, ArrowLeft, X, Bell, BellOff, Users } from 'lucide-react';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import { getDesignRankById } from '../lib/communityProfile';
