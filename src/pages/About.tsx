@@ -8,6 +8,7 @@ export default function About() {
     const [wordIndex, setWordIndex] = useState(0);
 
     useEffect(() => {
+        document.title = 'Hakkımızda - Revizelesene';
         const interval = setInterval(() => {
             setWordIndex((prev) => (prev + 1) % ROTATING_WORDS.length);
         }, 2500);

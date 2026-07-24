@@ -28,6 +28,16 @@ import ScanningOverlay from "./components/ui/ScanningOverlay";
 import KVKK from "./pages/KVKK";
 import Gizlilik from "./pages/Gizlilik";
 import Kosullar from "./pages/Kosullar";
+import AuthPage from "./pages/AuthPage";
+import CerezPolitikasi from "./pages/CerezPolitikasi";
+
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminUsers from "./pages/admin/Users";
+import AdminPosts from "./pages/admin/Posts";
+import AdminComments from "./pages/admin/Comments";
+import AdminReports from "./pages/admin/Reports";
+import AdminProtectedRoute from "./pages/admin/AdminProtectedRoute";
 
 declare global {
   interface Window {
@@ -360,45 +370,51 @@ export default function App() {
   const [shareTitle, setShareTitle] = useState('');
   const [shareContent, setShareContent] = useState('');
 
-  // Auth
-  const [authAcik, setAuthAcik] = useState(false);
-  const [authMod, setAuthMod] = useState<'giris' | 'kayit' | 'sifremi-unuttum' | 'sifre-yenile'>('giris');
-  const [authEmail, setAuthEmail] = useState('');
-  const [authAdSoyad, setAuthAdSoyad] = useState('');
-  const [authDesignRank, setAuthDesignRank] = useState('stajyer');
-  const [authSpecialty, setAuthSpecialty] = useState('ui-ux');
-  const [authExperienceLevel, setAuthExperienceLevel] = useState('0-1');
-  const [authSifre, setAuthSifre] = useState('');
-  const [authSifreTekrar, setAuthSifreTekrar] = useState('');
-  // Auth Adım 2 (Avatar)
-  const [authAdim, setAuthAdim] = useState<1 | 2>(1);
-  const [seciliAvatar, setSeciliAvatar] = useState<string>('');
-  const [avatarYukleniyor, setAvatarYukleniyor] = useState(false);
-  const [avatarOnayAcik, setAvatarOnayAcik] = useState(false);
-  
+  const isMutfak = location.pathname.startsWith('/mutfak');
+
   // Profile Modal (Kaldırıldı)
 
-  const [authYukleniyor, setAuthYukleniyor] = useState(false);
+  const [authYukleniyor, setAuthYukleniyor] = useState(true);
   const [authHata, setAuthHata] = useState<string | null>(null);
   const [kullanici, setKullanici] = useState<any>(null);
   const [authUyariAcik, setAuthUyariAcik] = useState(false);
   const [pastAnalyses, setPastAnalyses] = useState<any[]>([]);
   const [analysesLoading, setAnalysesLoading] = useState(false);
+  const [kullaniciProfile, setKullaniciProfile] = useState<any>(null);
 
   // Auth session listener
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setKullanici(session?.user ?? null);
+      setAuthYukleniyor(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setKullanici(session?.user ?? null);
+      setAuthYukleniyor(false);
       if (_e === 'PASSWORD_RECOVERY') {
-        setAuthMod('sifre-yenile');
-        setAuthAcik(true);
+        window.location.href = '/auth?mode=sifre-yenile';
       }
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  // Fetch user profile and check for bans
+  useEffect(() => {
+    if (kullanici) {
+      supabase.from('profiles').select('*').eq('id', kullanici.id).single().then(({ data }) => {
+        if (data) {
+          setKullaniciProfile(data);
+          if (data.is_banned) {
+            supabase.auth.signOut();
+            toast.error('Hesabınız topluluk kurallarını ihlal ettiği için yasaklanmıştır.', { duration: 5000 });
+            window.location.href = '/';
+          }
+        }
+      });
+    } else {
+      setKullaniciProfile(null);
+    }
+  }, [kullanici]);
 
   // Auto-award badges for logged-in users
   useEffect(() => {
@@ -484,191 +500,6 @@ export default function App() {
     return () => clearInterval(interval);
   }, [yukleniyor]);
 
-  const girisYap = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    setAuthYukleniyor(true); setAuthHata(null);
-    try {
-      if (authMod === 'giris') {
-        const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authSifre });
-        if (error) throw error;
-        setAuthAcik(false);
-      } else if (authMod === 'sifremi-unuttum') {
-        const { error } = await supabase.auth.resetPasswordForEmail(authEmail, {
-          redirectTo: window.location.origin,
-        });
-        if (error) throw error;
-        toast.success('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.');
-        setAuthMod('giris');
-      } else if (authMod === 'sifre-yenile') {
-        if (authSifre !== authSifreTekrar) throw new Error('Şifreler uyuşmuyor.');
-        if (authSifre.length < 6) throw new Error('Şifreniz en az 6 karakter olmalıdır.');
-        const { error } = await supabase.auth.updateUser({ password: authSifre });
-        if (error) throw error;
-        toast.success('Şifreniz başarıyla güncellendi.');
-        setAuthAcik(false);
-        setAuthMod('giris');
-      } else {
-        if (authSifreTekrar && authSifre !== authSifreTekrar) {
-          throw new Error('Şifreler uyuşmuyor.');
-        }
-        if (authSifre.length < 6) {
-          throw new Error('Şifreniz en az 6 karakter olmalıdır.');
-        }
-        const cleanEmail = authEmail.trim();
-        let signUpRes = await supabase.auth.signUp({
-          email: cleanEmail,
-          password: authSifre,
-          options: {
-            data: { 
-              full_name: authAdSoyad || 'Tasarımcı',
-              display_name: authAdSoyad || 'Tasarımcı'
-            }
-          }
-        });
-
-        // If custom metadata triggered a DB error on Postgres, retry without metadata
-        if (signUpRes.error && (signUpRes.error.message?.includes('Database error') || signUpRes.error.status === 500)) {
-          console.warn("Retrying clean signUp without metadata...");
-          signUpRes = await supabase.auth.signUp({
-            email: cleanEmail,
-            password: authSifre
-          });
-        }
-
-        let userRecord = signUpRes.data?.user;
-
-        if (signUpRes.error) {
-          console.error("Supabase Auth SignUp hatası:", signUpRes.error);
-          
-          // Check if user was actually created or already exists
-          const signInRes = await supabase.auth.signInWithPassword({
-            email: cleanEmail,
-            password: authSifre
-          });
-
-          if (!signInRes.error && signInRes.data.user) {
-            userRecord = signInRes.data.user;
-          } else {
-            throw new Error(`Kayıt Hatası (${signUpRes.error.status || 500}): ${signUpRes.error.message}`);
-          }
-        }
-
-        // Update user metadata & profile client-side safely
-        if (userRecord) {
-          // Ensure session is signed in
-          await supabase.auth.signInWithPassword({
-            email: cleanEmail,
-            password: authSifre
-          }).catch(() => {});
-
-          try {
-            await supabase.auth.updateUser({
-              data: {
-                full_name: authAdSoyad || 'Tasarımcı',
-                display_name: authAdSoyad || 'Tasarımcı'
-              }
-            });
-            const baseName = (authAdSoyad || 'Tasarimci').toLowerCase()
-              .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
-              .replace(/[^a-z0-9]+/g, '-')
-              .replace(/^-+|-+$/g, '');
-            
-            let finalSlug = baseName || 'tasarimci';
-            let counter = 1;
-            let success = false;
-            
-            while (!success && counter < 10) {
-                const { error } = await supabase.from('profiles').update({
-                  display_name: authAdSoyad || 'Tasarımcı',
-                  slug: finalSlug,
-                  avatar_url: `https://api.dicebear.com/7.x/notionists/svg?seed=${userRecord.id}`,
-                  updated_at: new Date().toISOString()
-                }).eq('id', userRecord.id);
-                
-                if (!error) {
-                    success = true;
-                } else {
-                    finalSlug = `${baseName}-${counter}`;
-                    counter++;
-                }
-            }
-          } catch (_) {}
-        }
-        
-        // Step 1 done, move to Step 2
-        setAuthAdim(2);
-        setSeciliAvatar(`https://api.dicebear.com/7.x/notionists/svg?seed=${userRecord?.id || Date.now()}`);
-      }
-    } catch (error: any) {
-      setAuthHata(error.message || 'Kayıt sırasında bir hata oluştu.');
-    } finally {
-      setAuthYukleniyor(false);
-    }
-  };
-
-  const rastgeleAvatarUret = () => {
-    if (seciliAvatar && !seciliAvatar.includes('dicebear.com')) {
-      setAvatarOnayAcik(true);
-      return;
-    }
-    rastgeleAvatarUygula();
-  };
-
-  const rastgeleAvatarUygula = () => {
-    setAvatarOnayAcik(false);
-    setSeciliAvatar(`https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.random().toString(36).substring(7)}`);
-  };
-
-  const avatarYukle = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setAvatarYukleniyor(true);
-    try {
-      const s3Client = new S3Client({
-        region: 'auto',
-        endpoint: `https://${import.meta.env.VITE_R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-        credentials: {
-          accessKeyId: import.meta.env.VITE_R2_ACCESS_KEY_ID,
-          secretAccessKey: import.meta.env.VITE_R2_SECRET_ACCESS_KEY,
-        },
-      });
-
-      const fileName = `avatars/${kullanici?.id || Date.now()}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
-
-      const fileBuffer = await file.arrayBuffer();
-
-      await s3Client.send(new PutObjectCommand({
-        Bucket: import.meta.env.VITE_R2_BUCKET_NAME,
-        Key: fileName,
-        Body: new Uint8Array(fileBuffer),
-        ContentType: file.type,
-      }));
-
-      const r2PublicUrl = import.meta.env.VITE_R2_PUBLIC_URL.replace(/\/$/, "");
-      const avatarUrl = `${r2PublicUrl}/${fileName}`;
-      setSeciliAvatar(avatarUrl);
-    } catch (err: any) {
-      console.error('Yükleme hatası:', err);
-      toast.error('Avatar yüklenirken bir hata oluştu: ' + err.message);
-    } finally {
-      setAvatarYukleniyor(false);
-    }
-  };
-
-  const avatarTamamla = async () => {
-    setAvatarYukleniyor(true);
-    try {
-      await supabase.auth.updateUser({
-        data: { avatar_url: seciliAvatar }
-      });
-      setAuthAcik(false);
-    } catch (err: any) {
-      toast.error('Avatar kaydedilirken hata: ' + err.message);
-    } finally {
-      setAvatarYukleniyor(false);
-    }
-  };
-
   const cikisYap = async () => { await supabase.auth.signOut(); };
 
   const statsAc = async () => {
@@ -739,7 +570,7 @@ export default function App() {
   const submitCommunityPost = async () => {
     if (!kullanici) {
       toast.error('Keşfette paylaşmak için giriş yapmalısınız.');
-      setAuthAcik(true);
+      navigate('/auth?mode=kayit');
       return;
     }
 
@@ -1078,12 +909,14 @@ export default function App() {
         />
       )}
 
-      <Header
-        kullanici={kullanici}
-        onStatsClick={statsAc}
-        onLogoutClick={cikisYap}
-        onAuthClick={() => setAuthAcik(true)}
-      />
+      {!isMutfak && gorunum !== 'auth' && (
+        <Header
+          kullanici={kullanici}
+          onStatsClick={statsAc}
+          onLogoutClick={cikisYap}
+          onAuthClick={() => navigate('/auth?mode=kayit')}
+        />
+      )}
 
       <Routes>
         <Route path="/" element={
@@ -1091,7 +924,7 @@ export default function App() {
             onStart={() => {
               if (!kullanici) {
                 toast.error('Analiz yapmak için kayıt olmanız veya giriş yapmanız gerekmektedir.');
-                setAuthAcik(true);
+                navigate('/auth?mode=kayit');
                 return;
               }
               sessionStorage.clear();
@@ -1120,7 +953,7 @@ export default function App() {
         } />
         <Route path="/community" element={
           <main className="flex-1 w-full mt-20">
-            <Community kullanici={kullanici} onAuthClick={() => setAuthAcik(true)} />
+            <Community kullanici={kullanici} onAuthClick={() => navigate('/auth?mode=kayit')} />
           </main>
         } />
         <Route path="/pricing" element={
@@ -1567,7 +1400,7 @@ export default function App() {
                                         yukleniyor={yukleniyor}
                                         metin="Yapay Zeka ile Analizi Başlat"
                                         kullanici={kullanici}
-                                        authAc={() => setAuthAcik(true)}
+                                        authAc={() => navigate('/auth?mode=kayit')}
                                         disabled={!(gorsel || gorselBase64 || imageUrl) || !tasarimTuru}
                                       />
                                   </div>
@@ -1974,8 +1807,7 @@ export default function App() {
                     <button
                       onClick={() => {
                         setAuthUyariAcik(false);
-                        setAuthAcik(true);
-                        setAuthMod('kayit');
+                        navigate('/auth?mode=kayit');
                       }}
                       className="w-full py-3 rounded-xl bg-[#FF5500] hover:bg-[#e64d00] text-white font-bold transition-colors shadow-md shadow-[#FF5500]/20"
                     >
@@ -2112,232 +1944,24 @@ export default function App() {
         <Route path="/kvkk" element={<KVKK />} />
         <Route path="/gizlilik" element={<Gizlilik />} />
         <Route path="/kosullar" element={<Kosullar />} />
+        <Route path="/cerez-politikasi" element={<CerezPolitikasi />} />
+        <Route path="/auth" element={<AuthPage />} />
+
+        {/* Admin Routes */}
+        <Route path="/mutfak" element={<AdminProtectedRoute authYukleniyor={authYukleniyor} kullanici={kullanici} kullaniciProfile={kullaniciProfile}><AdminLayout /></AdminProtectedRoute>}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="posts" element={<AdminPosts />} />
+          <Route path="comments" element={<AdminComments />} />
+          <Route path="reports" element={<AdminReports />} />
+        </Route>
+
         <Route path="/:slug" element={<PublicProfile />} />
       </Routes>
-      
-      {/* ── AUTH MODAL - Tüm sayfalardan erişilebilir ── */}
-      <AnimatePresence>
-        {authAcik && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
-            onClick={() => setAuthAcik(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ ease: [0.22, 1, 0.36, 1] }}
-              onClick={e => e.stopPropagation()}
-              className="w-full max-w-sm bg-white border border-gray-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
-            >
-              <div className="p-5 border-b border-gray-100 flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-2.5">
-                  <User className="w-4 h-4 text-[var(--color-brand-orange)]" />
-                  <div className="flex gap-1">
-                    {authAdim === 1 ? (
-                      authMod === 'sifre-yenile' ? (
-                        <span className="text-[13px] font-bold text-gray-900">Şifre Yenileme</span>
-                      ) : authMod === 'sifremi-unuttum' ? (
-                        <span className="text-[13px] font-bold text-gray-900">Şifremi Unuttum</span>
-                      ) : (
-                        (['giris', 'kayit'] as const).map(m => (
-                          <button key={m} onClick={() => setAuthMod(m)}
-                            className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${authMod === m ? 'bg-[var(--color-brand-orange)] text-white shadow-sm' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}>
-                            {m === 'giris' ? 'Giriş Yap' : 'Kayıt Ol'}
-                          </button>
-                        ))
-                      )
-                    ) : (
-                      <span className="text-[13px] font-bold text-gray-900">Profilini Tamamla</span>
-                    )}
-                  </div>
-                </div>
-                <button onClick={() => setAuthAcik(false)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
 
-              <div className="p-5 space-y-3 overflow-y-auto">
-                {authAdim === 1 ? (
-                  <form onSubmit={girisYap} className="space-y-3">
-                    {authMod !== 'sifre-yenile' && authMod !== 'kayit' && (
-                      <input type="email" placeholder="E-posta" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
-                        className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
-                    )}
-                    
-                    {authMod === 'kayit' && (
-                      <>
-                        <input type="text" placeholder="Profil adın" value={authAdSoyad} onChange={e => setAuthAdSoyad(e.target.value)}
-                          className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
-                        
-                        <select value={authDesignRank} onChange={e => setAuthDesignRank(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors">
-                          <option value="stajyer">Stajyer Tasarımcı</option>
-                          <option value="junior">Junior Tasarımcı</option>
-                          <option value="tasarimci">Tasarımcı</option>
-                          <option value="senior">Senior Tasarımcı</option>
-                          <option value="art-direktor">Art Direktör</option>
-                          <option value="tasarim-direktoru">Tasarım Direktörü</option>
-                        </select>
-                        
-                        <div className="flex gap-3">
-                          <select value={authSpecialty} onChange={e => setAuthSpecialty(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors flex-1">
-                            <option value="ui-ux">UI/UX Tasarım</option>
-                            <option value="marka">Marka Kimliği</option>
-                            <option value="sosyal-medya">Sosyal Medya Tasarımı</option>
-                            <option value="e-ticaret">E-ticaret Tasarımı</option>
-                            <option value="hareketli">Hareketli Grafik</option>
-                            <option value="illustrasyon">İllüstrasyon</option>
-                            <option value="basili">Basılı Tasarım</option>
-                          </select>
-                          <select value={authExperienceLevel} onChange={e => setAuthExperienceLevel(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors flex-1">
-                            <option value="0-1">0-1 yıl</option>
-                            <option value="1-3">1-3 yıl</option>
-                            <option value="3-5">3-5 yıl</option>
-                            <option value="5+">5+ yıl</option>
-                          </select>
-                        </div>
-                        
-                        <input type="email" placeholder="E-posta" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
-                          className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
-                      </>
-                    )}
 
-                    {authMod !== 'sifremi-unuttum' && (
-                      <input type="password" placeholder={authMod === 'sifre-yenile' ? "Yeni Şifre" : "Şifre"} value={authSifre} onChange={e => setAuthSifre(e.target.value)}
-                        className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
-                    )}
-
-                    {(authMod === 'sifre-yenile' || authMod === 'kayit') && (
-                      <input type="password" placeholder="Şifre (Tekrar)" value={authSifreTekrar} onChange={e => setAuthSifreTekrar(e.target.value)}
-                        className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
-                    )}
-
-                    {authHata && <p className="text-red-500 text-[11px] px-1">{authHata}</p>}
-
-                    <button type="submit" disabled={authYukleniyor || (authMod !== 'sifre-yenile' && !authEmail) || (authMod !== 'sifremi-unuttum' && !authSifre)}
-                      className={`w-full py-3.5 rounded-xl text-white text-sm font-bold shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${authMod === 'kayit' ? 'bg-[var(--color-brand-orange)] hover:bg-[#e64500]' : 'bg-gray-900 hover:bg-black'}`}>
-                      {authYukleniyor ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
-                      {authMod === 'giris' ? 'Giriş Yap' : authMod === 'kayit' ? 'Hesap Oluştur' : authMod === 'sifremi-unuttum' ? 'Sıfırlama Bağlantısı Gönder' : 'Şifreyi Yenile'}
-                    </button>
-                    
-                    {authMod === 'kayit' && (
-                      <p className="text-[10px] text-gray-400 text-center mt-2">Kayıt olduktan sonra e-postanı doğrulamanı isteyebilir.</p>
-                    )}
-
-                    {authMod === 'giris' && (
-                      <div className="flex justify-center pt-2">
-                        <button type="button" onClick={() => setAuthMod('sifremi-unuttum')} className="text-xs text-gray-500 hover:text-[var(--color-brand-orange)] font-medium transition-colors">
-                          Şifremi unuttum
-                        </button>
-                      </div>
-                    )}
-                    {(authMod === 'sifremi-unuttum' || authMod === 'sifre-yenile') && (
-                      <div className="flex justify-center pt-2">
-                        <button type="button" onClick={() => setAuthMod('giris')} className="text-xs text-gray-500 hover:text-[var(--color-brand-orange)] font-medium transition-colors">
-                          Giriş Ekranına Dön
-                        </button>
-                      </div>
-                    )}
-                  </form>
-                ) : (
-                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center">
-                    <h2 className="text-xl font-bold text-gray-900 tracking-tight mb-2 text-center">
-                      Hoş Geldin, {authAdSoyad.split(' ')[0]}!
-                    </h2>
-                    <p className="text-xs text-gray-500 mb-6 text-center">
-                      Profilini tamamlamak için harika bir avatar seç veya kendi fotoğrafını yükle.
-                    </p>
-
-                    <div className="relative w-28 h-28 mb-6">
-                      <div className="w-full h-full rounded-full border-4 border-white shadow-xl overflow-hidden bg-white">
-                        {avatarYukleniyor ? (
-                          <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                            <div className="w-8 h-8 border-4 border-orange-200 border-t-[var(--color-brand-orange)] rounded-full animate-spin" />
-                          </div>
-                        ) : (
-                          <img src={seciliAvatar} alt="Profil Avatar" className="w-full h-full object-cover" />
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3 w-full mb-6">
-                      <button onClick={rastgeleAvatarUret} disabled={avatarYukleniyor}
-                        className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-                        <Shuffle className="w-4 h-4" /> Rastgele
-                      </button>
-                      <label className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer">
-                        <Upload className="w-4 h-4" /> Yükle
-                        <input type="file" accept="image/*" className="hidden" onChange={avatarYukle} disabled={avatarYukleniyor} />
-                      </label>
-                    </div>
-
-                    <button onClick={avatarTamamla} disabled={avatarYukleniyor}
-                      className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[var(--color-brand-orange)] to-orange-500 text-white text-sm font-bold transition-all flex items-center justify-center gap-2">
-                      <Check className="w-5 h-5" /> Harika Görünüyor, Tamamla
-                    </button>
-                  </motion.div>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Avatar Onay Modalı */}
-      <AnimatePresence>
-        {avatarOnayAcik && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-3xl p-6 md:p-8 max-w-sm w-full shadow-2xl relative"
-            >
-              <button
-                onClick={() => setAvatarOnayAcik(false)}
-                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-              
-              <div className="flex flex-col items-center text-center mt-2">
-                <div className="w-16 h-16 bg-orange-100 text-[var(--color-brand-orange)] rounded-full flex items-center justify-center mb-4">
-                  <AlertCircle className="w-8 h-8" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Emin misiniz?</h3>
-                <p className="text-gray-500 text-sm mb-6 leading-relaxed">
-                  Şu anda özel olarak yüklediğiniz bir profil fotoğrafınız var. Onay verirseniz bu fotoğraf silinecek ve rastgele bir avatar ile değiştirilecektir.
-                </p>
-                <div className="flex w-full gap-3">
-                  <button
-                    onClick={() => setAvatarOnayAcik(false)}
-                    className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-colors"
-                  >
-                    Vazgeç
-                  </button>
-                  <button
-                    onClick={rastgeleAvatarUygula}
-                    className="flex-1 py-3 px-4 bg-[var(--color-brand-orange)] hover:bg-orange-600 text-white rounded-xl font-semibold transition-colors shadow-sm"
-                  >
-                    Değiştir
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <LiveActivityFeed />
-      <Footer onLogoClick={goHome} onNavClick={(v: string) => navigate(`/${v}`)} />
+      {!isMutfak && kullanici && <LiveActivityFeed />}
+      {!isMutfak && gorunum !== 'auth' && <Footer onLogoClick={goHome} onNavClick={(v: string) => navigate(`/${v}`)} />}
       {/* Share Modal */}
       <AnimatePresence>
         {shareModalAcik && (

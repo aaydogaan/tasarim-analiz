@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import { Heart, Maximize2, X, Star, Loader2, Search, ChevronDown, Filter, Sparkles, Trophy, Flame, Clock, ArrowBigUp, ArrowBigDown } from "lucide-react";
+import { Heart, Maximize2, X, Star, Loader2, Search, ChevronDown, Filter, Sparkles, Trophy, Flame, Clock, ArrowBigUp, ArrowBigDown, Flag } from "lucide-react";
 import toast from "react-hot-toast";
+import ReportModal from '../components/ui/ReportModal';
 
 interface VitrinItem {
     id: string;
@@ -35,6 +36,7 @@ export function Vitrin() {
     // Modal Comments State
     const [modalComments, setModalComments] = useState<any[]>([]);
     const [modalCommentsLoading, setModalCommentsLoading] = useState(false);
+    const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
     const [commentInput, setCommentInput] = useState('');
     const [submittingComment, setSubmittingComment] = useState(false);
 
@@ -43,6 +45,36 @@ export function Vitrin() {
     const [siralama, setSiralama] = useState<'yeni' | 'topluluk' | 'ai' | 'oy'>('yeni');
     const [siralamaAcik, setSiralamaAcik] = useState(false);
     const [aramaMetni, setAramaMetni] = useState('');
+
+    // Report State
+    const [reportModalOpen, setReportModalOpen] = useState(false);
+    const [reportItem, setReportItem] = useState<{ id: string, type: 'post' | 'comment' } | null>(null);
+
+    const handleReportClick = (itemId: string, type: 'post' | 'comment') => {
+        if (!user) {
+            toast.error('Şikayet etmek için giriş yapmalısınız');
+            return;
+        }
+        setReportItem({ id: itemId, type });
+        setReportModalOpen(true);
+    };
+
+    const submitReport = async (reason: string) => {
+        if (!reportItem || !user) return;
+
+        const { error } = await supabase.from('reports').insert([{
+            reporter_id: user.id,
+            reported_item_id: reportItem.id,
+            item_type: reportItem.type,
+            reason: reason
+        }]);
+
+        if (error) {
+            toast.error('Şikayet gönderilemedi');
+        } else {
+            toast.success('Şikayetiniz yönetime iletildi');
+        }
+    };
 
     const siralamaSecenekleri = [
         { id: 'yeni', label: 'En Yeni', icon: <Clock className="w-4 h-4 text-[var(--text-secondary)] shrink-0" /> },
@@ -60,11 +92,30 @@ export function Vitrin() {
     }, []);
 
     useEffect(() => {
-        // Oturum değiştiğinde (login olduğunda) verileri tekrar çek ki puanlar güncellensin
-        if (user) {
-            fetchVitrin();
-        }
+        const fetchUserData = async () => {
+            if (user) {
+                fetchVitrin();
+                const { data } = await supabase.from('user_follows').select('following_id').eq('follower_id', user.id);
+                if (data) setFollowedUsers(new Set(data.map(d => d.following_id)));
+            }
+        };
+        fetchUserData();
     }, [user]);
+
+    const handleFollow = async (e: React.MouseEvent, targetUserId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!user) return toast.error("Takip etmek için giriş yapmalısınız.");
+        try {
+            await supabase.from('user_follows').insert({ follower_id: user.id, following_id: targetUserId });
+            setFollowedUsers(prev => new Set([...prev, targetUserId]));
+            await supabase.from('notifications').insert({ user_id: targetUserId, type: 'follow_user', actor_id: user.id });
+            toast.success("Takip edildi!");
+        } catch (err) {
+            console.error(err);
+            toast.error("Takip edilemedi");
+        }
+    };
 
     useEffect(() => {
         const handleEsc = (event: KeyboardEvent) => {
@@ -219,6 +270,17 @@ export function Vitrin() {
             setModalCommentsLoading(false);
         };
         fetchComments();
+
+        const commentsSubscription = supabase
+            .channel(`vitrin_comments_${seciliGorsel.id}`)
+            .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'post_comments' }, (payload) => {
+                setModalComments(prev => prev.filter(c => c.id !== payload.old.id));
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(commentsSubscription);
+        };
     }, [seciliGorsel?.id]);
 
     const handleAddComment = async (e: React.FormEvent) => {
@@ -496,15 +558,23 @@ export function Vitrin() {
 
                             {/* Dribbble Style Footer Info */}
                             <div className="flex justify-between items-start mt-3 px-1.5 min-w-0 gap-2">
-                                <Link to={`/${item.user_slug}`} className="flex items-start gap-2 min-w-0 flex-1 group/profile">
+                                <Link to={`/${item.user_slug}`} className="flex items-center gap-2 min-w-0 flex-1 group/profile">
                                     <img
                                         src={item.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${item.id}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`}
                                         alt="Designer"
-                                        className="w-7 h-7 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] object-cover shrink-0 mt-0.5 group-hover/profile:border-[var(--color-brand-orange)] transition-colors"
+                                        className="w-7 h-7 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] object-cover shrink-0 group-hover/profile:border-[var(--color-brand-orange)] transition-colors"
                                     />
-                                    <span className="text-[var(--text-secondary)] group-hover/profile:text-[var(--text-primary)] cursor-pointer transition-colors text-sm font-medium leading-snug">
+                                    <span className="text-[var(--text-secondary)] group-hover/profile:text-[var(--text-primary)] cursor-pointer transition-colors text-sm font-medium leading-snug truncate">
                                         {item.user_name || "Tasarımcı"}
                                     </span>
+                                    {item.user_id && user && user.id !== item.user_id && !followedUsers.has(item.user_id) && (
+                                        <button 
+                                            onClick={(e) => handleFollow(e, item.user_id)}
+                                            className="ml-1 text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-1.5 py-0.5 rounded transition-colors shrink-0"
+                                        >
+                                            Takip Et
+                                        </button>
+                                    )}
                                 </Link>
 
                                 <div className="flex flex-col items-end gap-1 shrink-0">
@@ -698,6 +768,12 @@ export function Vitrin() {
                                     <div className="mt-6 pt-6 border-t border-[var(--border-primary)] space-y-4">
                                         <h4 className="text-[var(--text-primary)] text-xs font-black uppercase tracking-wider flex items-center justify-between">
                                             <span>Yorumlar ({modalComments.length})</span>
+                                            <button 
+                                                onClick={() => handleReportClick(seciliGorsel.id, 'post')} 
+                                                className="text-[10px] text-[var(--text-secondary)]/60 hover:text-amber-500 transition-colors flex items-center gap-1"
+                                            >
+                                                <Flag size={10} /> Gönderiyi Şikayet Et
+                                            </button>
                                         </h4>
 
                                         <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
@@ -715,6 +791,14 @@ export function Vitrin() {
                                                                 <span className="text-[9px] text-[var(--text-secondary)] shrink-0">{new Date(c.created_at).toLocaleDateString('tr-TR')}</span>
                                                             </div>
                                                             <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed break-words">{c.content}</p>
+                                                            <div className="mt-1.5 flex justify-end">
+                                                                <button 
+                                                                    onClick={() => handleReportClick(c.id, 'comment')} 
+                                                                    className="text-[9px] font-bold text-[var(--text-secondary)]/40 hover:text-amber-500 transition-colors flex items-center gap-1"
+                                                                >
+                                                                    <Flag size={9} /> Şikayet
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 ))
@@ -748,6 +832,11 @@ export function Vitrin() {
                     </motion.div>
                 )}
             </AnimatePresence>
+            <ReportModal
+                isOpen={reportModalOpen}
+                onClose={() => { setReportModalOpen(false); setReportItem(null); }}
+                onSubmit={submitReport}
+            />
         </div>
     );
 }

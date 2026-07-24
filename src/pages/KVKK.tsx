@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 export default function KVKK() {
+    useEffect(() => {
+        document.title = 'KVKK - Revizelesene';
+    }, []);
+
     return (
         <div className="w-full min-h-screen bg-[var(--bg-primary)] pt-32 pb-20 px-6 font-sans">
             <div className="max-w-4xl mx-auto">

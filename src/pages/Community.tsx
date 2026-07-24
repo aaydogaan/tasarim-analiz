@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Users, MessageCircle, Heart, Trophy, Zap, Share2, Crown, Star, Sparkles, ArrowRight, Award, X, Send, Loader2, ChevronDown } from 'lucide-react';
+import { Users, MessageCircle, Heart, Trophy, Zap, Share2, Crown, Star, Sparkles, ArrowRight, Award, X, Send, Loader2, ChevronDown, Flag } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import {
@@ -15,8 +15,9 @@ import {
     normalizeCommunityProfile,
     type NormalizedCommunityProfile,
 } from '../lib/communityProfile';
+import ReportModal from '../components/ui/ReportModal';
 
-const CHANGING_WORDS = ["Revize", "Analiz", "Tasarım", "Gelişim"];
+const CHANGING_WORDS = ['İlham', 'Eleştiri', 'Yaratıcılık', 'Perspektif'];
 
 const STATS = [
     { label: 'Aktif Üye', value: '1.2k+', icon: Users, color: 'text-blue-500' },
@@ -24,6 +25,15 @@ const STATS = [
     { label: 'Revize Edilen', value: '3.4k+', icon: Zap, color: 'text-amber-500' },
     { label: 'Tasarım Paylaşımı', value: '12k+', icon: Heart, color: 'text-emerald-500' }
 ];
+
+const RANK_DISPLAY_MAP: Record<string, string> = {
+    'stajyer': 'Stajyer Tasarımcı',
+    'junior': 'Junior Tasarımcı',
+    'tasarimci': 'Tasarımcı',
+    'senior': 'Senior Tasarımcı',
+    'art-direktor': 'Art Direktör',
+    'tasarim-direktoru': 'Tasarım Direktörü'
+};
 
 type CommunityProps = {
     kullanici?: any;
@@ -49,16 +59,20 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
     const [posts, setPosts] = useState<any[]>([]);
     const [postsLoading, setPostsLoading] = useState(true);
     const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+    const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
     const [postSort, setPostSort] = useState<'new' | 'popular'>('new');
     
     const [searchParams, setSearchParams] = useSearchParams();
     const postIdFromUrl = searchParams.get('post');
 
     // Inline Instagram Style Comments State
-    const [openInlinePostId, setOpenInlinePostId] = useState<string | null>(null);
+    const [openInlinePostId, setOpenInlinePostId] = useState<string | null>(postIdFromUrl || null);
     const [commentInput, setCommentInput] = useState('');
     const [inlineComments, setInlineComments] = useState<Record<string, any[]>>({});
     const [inlineLoading, setInlineLoading] = useState<Record<string, boolean>>({});
+
+    const [reportModalOpen, setReportModalOpen] = useState(false);
+    const [reportItem, setReportItem] = useState<{ id: string, type: 'post' | 'comment' } | null>(null);
     const [submittingComment, setSubmittingComment] = useState(false);
     const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
     const [seciliGorsel, setSeciliGorsel] = useState<string | null>(null);
@@ -190,6 +204,32 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         setSubmittingComment(false);
     };
 
+    const handleReportClick = (itemId: string, type: 'post' | 'comment') => {
+        if (!kullanici) {
+            toast.error('Şikayet etmek için giriş yapmalısınız');
+            return;
+        }
+        setReportItem({ id: itemId, type });
+        setReportModalOpen(true);
+    };
+
+    const submitReport = async (reason: string) => {
+        if (!reportItem || !kullanici) return;
+
+        const { error } = await supabase.from('reports').insert([{
+            reporter_id: kullanici.id,
+            reported_item_id: reportItem.id,
+            item_type: reportItem.type,
+            reason: reason
+        }]);
+
+        if (error) {
+            toast.error('Şikayet gönderilemedi');
+        } else {
+            toast.success('Şikayetiniz yönetime iletildi');
+        }
+    };
+
     useEffect(() => {
         const interval = setInterval(() => {
             setWordIndex((prev) => (prev + 1) % CHANGING_WORDS.length);
@@ -243,23 +283,60 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
             })
             .subscribe();
 
+        const commentsSubscription = supabase
+            .channel('community_comments_channel')
+            .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'post_comments' }, (payload) => {
+                setInlineComments(prev => {
+                    const next = { ...prev };
+                    for (const postId in next) {
+                        if (next[postId]) {
+                            next[postId] = next[postId].filter(c => c.id !== payload.old.id);
+                        }
+                    }
+                    return next;
+                });
+            })
+            .subscribe();
+
         return () => {
             isMounted = false;
             supabase.removeChannel(postsSubscription);
+            supabase.removeChannel(commentsSubscription);
         };
     }, []);
 
-    // Load liked posts for user
+    // Load liked posts and followed users for user
     useEffect(() => {
         if (!kullanici) return;
-        const fetchLikes = async () => {
-            const { data } = await supabase.from('post_likes').select('post_id').eq('user_id', kullanici.id);
-            if (data) {
-                setLikedPosts(new Set(data.map(d => d.post_id)));
+        const fetchUserData = async () => {
+            const [likesRes, followsRes] = await Promise.all([
+                supabase.from('post_likes').select('post_id').eq('user_id', kullanici.id),
+                supabase.from('user_follows').select('following_id').eq('follower_id', kullanici.id)
+            ]);
+            if (likesRes.data) {
+                setLikedPosts(new Set(likesRes.data.map(d => d.post_id)));
+            }
+            if (followsRes.data) {
+                setFollowedUsers(new Set(followsRes.data.map(d => d.following_id)));
             }
         };
-        fetchLikes();
+        fetchUserData();
     }, [kullanici]);
+
+    const handleFollow = async (e: React.MouseEvent, targetUserId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!kullanici) return toast.error("Takip etmek için giriş yapmalısınız.");
+        try {
+            await supabase.from('user_follows').insert({ follower_id: kullanici.id, following_id: targetUserId });
+            setFollowedUsers(prev => new Set([...prev, targetUserId]));
+            await supabase.from('notifications').insert({ user_id: targetUserId, type: 'follow_user', actor_id: kullanici.id });
+            toast.success("Takip edildi!");
+        } catch (err) {
+            console.error(err);
+            toast.error("Takip edilemedi");
+        }
+    };
 
     const handleLike = async (postId: string) => {
         if (!kullanici) {
@@ -421,6 +498,12 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
 
     return (
         <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
+            <ReportModal 
+                isOpen={reportModalOpen} 
+                onClose={() => setReportModalOpen(false)} 
+                onSubmit={submitReport}
+            />
+
             {/* Wall of Fame / Kurucu Üyeler Hero Section */}
             <section className="relative w-full bg-[var(--bg-secondary)] pt-24 pb-32 md:pb-40 overflow-hidden border-b border-[var(--border-primary)]">
                 {/* Background Decor */}
@@ -646,6 +729,19 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                         <div className="flex-1 min-w-0 flex flex-col justify-center">
                                             <div className="flex items-center gap-2 mb-0.5">
                                                 <span className="font-bold text-base md:text-lg text-[var(--text-primary)] truncate group-hover/profile:text-[var(--color-brand-orange)] transition-colors">{authorName}</span>
+                                                {post.user_id && kullanici && kullanici.id !== post.user_id && !followedUsers.has(post.user_id) && (
+                                                    <button 
+                                                        onClick={(e) => handleFollow(e, post.user_id)}
+                                                        className="ml-2 text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-md transition-colors"
+                                                    >
+                                                        Takip Et
+                                                    </button>
+                                                )}
+                                                {post.is_featured && (
+                                                    <span className="ml-2 text-[10px] font-bold uppercase tracking-widest text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md shrink-0 flex items-center gap-1" title="Keşfette Öne Çıkan">
+                                                        <Sparkles className="w-3 h-3 fill-amber-500" /> Öne Çıkan
+                                                    </span>
+                                                )}
                                                 {post.analizler?.genel_puan && (
                                                     <span className="ml-auto text-[10px] font-bold uppercase tracking-widest text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md shrink-0 flex items-center gap-1">
                                                         <Star className="w-3 h-3 fill-amber-500" /> {post.analizler.genel_puan} AI
@@ -675,18 +771,26 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                             </div>
                                         )}
                                         
-                                        <div className="flex items-center gap-6 mt-6">
+                                        <div className="flex items-center justify-between mt-6">
+                                            <div className="flex items-center gap-6">
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); handleLike(post.id); }}
+                                                    className={`flex items-center gap-2 transition-colors text-sm font-bold ${likedPosts.has(post.id) ? 'text-red-500' : 'text-[var(--text-secondary)] hover:text-red-500'}`}
+                                                >
+                                                    <Heart size={18} className={likedPosts.has(post.id) ? 'fill-red-500' : ''} /> {post.likes_count}
+                                                </button>
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); toggleInlineComments(post.id); }}
+                                                    className={`flex items-center gap-2 transition-colors text-sm font-bold ${openInlinePostId === post.id ? 'text-[var(--color-brand-orange)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                                                >
+                                                    <MessageCircle size={18} /> {post.comments_count}
+                                                </button>
+                                            </div>
                                             <button 
-                                                onClick={(e) => { e.stopPropagation(); handleLike(post.id); }}
-                                                className={`flex items-center gap-2 transition-colors text-sm font-bold ${likedPosts.has(post.id) ? 'text-red-500' : 'text-[var(--text-secondary)] hover:text-red-500'}`}
+                                                onClick={(e) => { e.stopPropagation(); handleReportClick(post.id, 'post'); }}
+                                                className="flex items-center gap-2 text-xs font-bold text-[var(--text-secondary)]/50 hover:text-amber-500 transition-colors"
                                             >
-                                                <Heart size={18} className={likedPosts.has(post.id) ? 'fill-red-500' : ''} /> {post.likes_count}
-                                            </button>
-                                            <button 
-                                                onClick={(e) => { e.stopPropagation(); toggleInlineComments(post.id); }}
-                                                className={`flex items-center gap-2 transition-colors text-sm font-bold ${openInlinePostId === post.id ? 'text-[var(--color-brand-orange)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
-                                            >
-                                                <MessageCircle size={18} /> {post.comments_count}
+                                                <Flag size={14} /> Şikayet Et
                                             </button>
                                         </div>
 
@@ -724,6 +828,14 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                                                     <span className="text-[10px] text-[var(--text-secondary)]">{new Date(c.created_at).toLocaleDateString('tr-TR')}</span>
                                                                                 </div>
                                                                                 <p className="text-[var(--text-secondary)] leading-relaxed">{c.content}</p>
+                                                                                <div className="mt-2 flex">
+                                                                                    <button 
+                                                                                        onClick={(e) => { e.stopPropagation(); handleReportClick(c.id, 'comment'); }}
+                                                                                        className="text-[10px] font-bold text-[var(--text-secondary)]/40 hover:text-amber-500 transition-colors flex items-center gap-1"
+                                                                                    >
+                                                                                        <Flag size={10} /> Şikayet
+                                                                                    </button>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
                                                                         );
@@ -778,18 +890,13 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                     <div className="space-y-12">
 
                         {/* Leaderboard */}
-                        <div className="bg-[var(--card-bg)] p-8 rounded-[40px] border border-[var(--border-primary)] shadow-sm">
-                            <div className="flex items-center gap-3 mb-8">
-                                <Trophy className="text-amber-500 w-6 h-6" />
-                                <h3 className="font-bold text-xl tracking-tight text-[var(--text-primary)]">Liderlik Tablosu</h3>
+                        <div className="bg-[var(--card-bg)] p-6 rounded-2xl border border-[var(--border-primary)] shadow-sm">
+                            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[var(--border-primary)]">
+                                <Trophy className="text-[var(--color-brand-orange)] w-5 h-5" />
+                                <h3 className="font-semibold text-lg text-[var(--text-primary)]">Liderlik Tablosu</h3>
                             </div>
-                            <div className="space-y-6">
-                                {leaderboard.map((user, i) => {
-                                    const gradient = i === 0 ? 'from-amber-400 via-orange-500 to-red-500' 
-                                                   : i === 1 ? 'from-blue-400 to-indigo-500' 
-                                                   : i === 2 ? 'from-emerald-400 to-teal-500' 
-                                                   : 'from-[var(--border-primary)] to-[var(--text-secondary)]';
-
+                            <div className="space-y-3">
+                                {leaderboard.slice(0, 5).map((user, i) => {
                                     const isLeaderCurrent = kullanici && kullanici.id === user.id;
 
                                     return (
@@ -798,33 +905,30 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                             displayName: isLeaderCurrent ? (kullanici?.user_metadata?.display_name || user.display_name) : user.display_name,
                                             avatarUrl: isLeaderCurrent ? (kullanici?.user_metadata?.avatar_url || user.avatar_url) : user.avatar_url,
                                             founderNumber: user.founder_number
-                                        })} className="flex items-center gap-4 group cursor-pointer p-3 -mx-3 rounded-2xl hover:bg-[var(--bg-secondary)] transition-colors transform-gpu will-change-transform">
-                                            <div className="relative">
-                                                {/* Level Glow */}
-                                                <div className={`absolute -inset-1 rounded-full bg-gradient-to-br ${gradient} opacity-40 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300 blur-[3px]`}></div>
-                                                <div className={`w-12 h-12 rounded-full p-[2px] bg-gradient-to-br ${gradient} relative z-10`}>
+                                        })} className="flex items-center gap-3 group cursor-pointer p-2 -mx-2 rounded-xl hover:bg-[var(--bg-secondary)] transition-colors">
+                                            <div className="relative flex-shrink-0">
+                                                <div className="w-10 h-10 rounded-full border border-[var(--border-primary)] relative z-10 overflow-hidden shadow-sm">
                                                     <img
                                                         src={isLeaderCurrent && kullanici?.user_metadata?.avatar_url ? kullanici.user_metadata.avatar_url : (user.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`)}
-                                                        style={{ backfaceVisibility: 'hidden', transform: 'translateZ(0)' }}
-                                                        className="w-full h-full rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--bg-primary)] object-cover transform-gpu"
+                                                        className="w-full h-full object-cover"
                                                         alt="Avatar"
                                                     />
                                                 </div>
                                                 {i === 0 && (
-                                                    <Crown className="absolute -top-3 -right-2 text-amber-500 fill-amber-500 w-6 h-6 drop-shadow-sm z-20 animate-bounce" />
+                                                    <Crown className="absolute -top-2.5 -right-2 text-amber-500 w-5 h-5 drop-shadow-sm z-20" />
                                                 )}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-bold text-sm tracking-tight leading-none mb-1 text-[var(--text-primary)] group-hover:text-[var(--color-brand-orange)] transition-colors truncate">
+                                                <p className="font-medium text-sm text-[var(--text-primary)] group-hover:text-[var(--color-brand-orange)] transition-colors truncate">
                                                     {isLeaderCurrent ? (kullanici?.user_metadata?.display_name || kullanici?.user_metadata?.full_name || user.display_name || 'Tasarımcı') : (user.display_name || 'Tasarımcı')}
                                                 </p>
-                                                <p className={`text-[9px] uppercase font-black tracking-widest bg-gradient-to-r ${gradient} bg-clip-text text-transparent truncate`}>
-                                                    {user.design_rank || 'Tasarımcı'}
+                                                <p className="text-[11px] text-[var(--text-secondary)] font-normal truncate">
+                                                    {RANK_DISPLAY_MAP[user.design_rank || ''] || user.design_rank || 'Tasarımcı'}
                                                 </p>
                                             </div>
                                             <div className="flex flex-col items-end flex-shrink-0">
-                                                <span className="text-lg font-black text-[var(--text-secondary)] italic">#{i + 1}</span>
-                                                <span className="text-[10px] font-bold text-[var(--text-secondary)]">{user.total_xp?.toLocaleString('tr-TR')} XP</span>
+                                                <span className="text-sm font-semibold text-[var(--text-primary)]">#{i + 1}</span>
+                                                <span className="text-xs text-[var(--text-secondary)]">{user.total_xp?.toLocaleString('tr-TR')} XP</span>
                                             </div>
                                         </div>
                                     );
@@ -836,10 +940,10 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                     navigate('/leaderboard');
                                     window.scrollTo({ top: 0, behavior: 'smooth' });
                                 }}
-                                className="w-full mt-6 py-3 px-4 bg-[var(--bg-secondary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)] border border-[var(--border-primary)] rounded-2xl text-xs font-extrabold text-[var(--text-primary)] transition-all flex items-center justify-center gap-2 shadow-xs group"
+                                className="w-full mt-6 py-3 px-4 bg-transparent hover:bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl text-[13px] font-medium text-[var(--text-primary)] transition-colors flex items-center justify-center gap-2 group"
                             >
-                                <span>Detaylı Liderlik Tablosunu Gör</span>
-                                <ArrowRight className="w-4 h-4 text-[var(--color-brand-orange)] group-hover:translate-x-0.5 transition-transform" />
+                                <span>Tüm Sıralamayı Gör</span>
+                                <ArrowRight className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors" />
                             </button>
                         </div>
 
@@ -978,6 +1082,11 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                     </motion.div>
                 )}
             </AnimatePresence>
+            <ReportModal
+                isOpen={reportModalOpen}
+                onClose={() => { setReportModalOpen(false); setReportItem(null); }}
+                onSubmit={submitReport}
+            />
         </div>
     );
 }

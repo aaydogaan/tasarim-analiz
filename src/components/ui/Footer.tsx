@@ -260,6 +260,7 @@ export default function Footer({
                                     { label: 'KVKK Metni', href: '/kvkk' },
                                     { label: 'Gizlilik Sözleşmesi', href: '/gizlilik' },
                                     { label: 'Kullanım Koşulları', href: '/kosullar' },
+                                    { label: 'Çerez Politikası', href: '/cerez-politikasi' },
                                 ].map((item) => (
                                     <a key={item.label} href={item.href} onClick={(e) => { e.preventDefault(); onNavClick?.(item.href.replace('/', '') as any); }} className="footer-link">
                                         <h6 className="footer-link-text">{item.label}</h6>
@@ -271,6 +272,9 @@ export default function Footer({
                 </div>
 
                 <div className="footer-bottom">
+                    <p className="text-center text-[11px] sm:text-xs text-white/30 max-w-5xl mx-auto mb-8 px-4 leading-relaxed font-sans">
+                        Revizelesene yapay zeka destekli bir topluluktur. Yüklenen tasarımların telif ve yasal sorumluluğu tamamen kullanıcıya aittir. Platform dışı bağlantıların (link) içeriklerinden Revizelesene sorumlu tutulamaz. Yapay zeka analiz ve puanları tavsiye niteliğindedir.
+                    </p>
                     <div className="footer-content-row">
                         <p className="footer-copyright">
                             © 2026 Revizelesene. Tüm hakları saklıdır.

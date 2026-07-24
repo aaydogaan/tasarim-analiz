@@ -42,6 +42,13 @@ export default function PublicProfile() {
     const [xpData, setXpData] = useState({ total: 0, posts: 0, comments: 0, analizler: 0, challenges: 0 });
     const [showcases, setShowcases] = useState<any[]>([]);
 
+    // Follow system
+    const [currentUser, setCurrentUser] = useState<any>(null);
+    const [followersCount, setFollowersCount] = useState(0);
+    const [followingCount, setFollowingCount] = useState(0);
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [followLoading, setFollowLoading] = useState(false);
+
     useEffect(() => {
         const fetchProfile = async () => {
             setLoading(true);
@@ -55,6 +62,27 @@ export default function PublicProfile() {
 
                 if (profErr || !profData) throw new Error('Profil bulunamadı');
                 setProfile(profData);
+
+                // Fetch current user and follow status
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    setCurrentUser(user);
+                    const { data: followData } = await supabase
+                        .from('user_follows')
+                        .select('id')
+                        .eq('follower_id', user.id)
+                        .eq('following_id', profData.id)
+                        .maybeSingle();
+                    if (followData) setIsFollowing(true);
+                }
+
+                // Fetch follower counts
+                const [followersRes, followingRes] = await Promise.all([
+                    supabase.from('user_follows').select('id', { count: 'exact', head: true }).eq('following_id', profData.id),
+                    supabase.from('user_follows').select('id', { count: 'exact', head: true }).eq('follower_id', profData.id)
+                ]);
+                setFollowersCount(followersRes.count || 0);
+                setFollowingCount(followingRes.count || 0);
 
                 // Fetch XP stats
                 const [postsRes, commentsRes, analizRes, challengeRes] = await Promise.all([
@@ -118,15 +146,54 @@ export default function PublicProfile() {
 
     if (error || !profile) {
         return (
-            <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
-                    <Activity className="w-10 h-10 text-red-500" />
+            <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-6 text-center overflow-hidden relative">
+                {/* Background ambient effects */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-br from-[#FF5500]/5 to-purple-500/5 blur-[100px] rounded-full pointer-events-none"></div>
+                
+                <div className="relative z-10 flex flex-col items-center">
+                    <motion.div 
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: 'spring', bounce: 0.5 }}
+                        className="relative mb-8"
+                    >
+                        <h1 className="text-[120px] md:text-[180px] font-black leading-none text-transparent bg-clip-text bg-gradient-to-br from-[var(--text-primary)] to-[var(--text-secondary)] opacity-10 select-none">
+                            404
+                        </h1>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-24 h-24 bg-red-500/10 rounded-3xl flex items-center justify-center shadow-[0_0_40px_rgba(239,68,68,0.2)] border border-red-500/20 backdrop-blur-sm transform -rotate-6">
+                                <Activity className="w-12 h-12 text-red-500 transform rotate-6" />
+                            </div>
+                        </div>
+                    </motion.div>
+                    
+                    <motion.div
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.1 }}
+                        className="max-w-md"
+                    >
+                        <h2 className="text-3xl font-black text-[var(--text-primary)] mb-4 tracking-tight">Tasarımcı Bulunamadı</h2>
+                        <p className="text-[var(--text-secondary)] mb-8 leading-relaxed text-base">
+                            Aradığınız tasarımcı profili mevcut değil, silinmiş veya URL adresi değiştirilmiş olabilir.
+                        </p>
+                        
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                            <Link 
+                                to="/vitrin" 
+                                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[var(--text-primary)] text-[var(--bg-primary)] font-bold flex items-center justify-center gap-3 transition-transform hover:scale-105 hover:shadow-xl"
+                            >
+                                <ArrowLeft className="w-5 h-5" /> Vitrine Dön
+                            </Link>
+                            <Link 
+                                to="/" 
+                                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[var(--bg-secondary)] text-[var(--text-primary)] border border-[var(--border-primary)] font-bold flex items-center justify-center transition-colors hover:bg-[var(--border-primary)]"
+                            >
+                                Ana Sayfa
+                            </Link>
+                        </div>
+                    </motion.div>
                 </div>
-                <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Tasarımcı Bulunamadı</h1>
-                <p className="text-[var(--text-secondary)] mb-8 max-w-md">Aradığınız profil mevcut değil veya silinmiş olabilir.</p>
-                <Link to="/vitrin" className="bg-[var(--color-brand-orange)] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2">
-                    <ArrowLeft className="w-5 h-5" /> Vitrine Dön
-                </Link>
             </div>
         );
     }
@@ -134,6 +201,32 @@ export default function PublicProfile() {
     // Calculate level based on XP
     const userLevel = Math.floor(xpData.total / 1000) + 1;
     const levelTitle = getDesignRankById(profile.design_rank).title;
+
+    const handleFollowToggle = async () => {
+        if (!currentUser || followLoading) return;
+        setFollowLoading(true);
+        try {
+            if (isFollowing) {
+                await supabase.from('user_follows').delete().match({ follower_id: currentUser.id, following_id: profile.id });
+                setIsFollowing(false);
+                setFollowersCount(prev => Math.max(0, prev - 1));
+            } else {
+                await supabase.from('user_follows').insert({ follower_id: currentUser.id, following_id: profile.id });
+                setIsFollowing(true);
+                setFollowersCount(prev => prev + 1);
+                
+                await supabase.from('notifications').insert({
+                    user_id: profile.id,
+                    type: 'follow_user',
+                    actor_id: currentUser.id
+                });
+            }
+        } catch (error) {
+            console.error("Takip işlemi hatası:", error);
+        } finally {
+            setFollowLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-[#fafafa] pt-24 pb-20">
@@ -156,8 +249,9 @@ export default function PublicProfile() {
                     </div>
 
                     <div className="px-8 pb-8 md:px-12 md:pb-12">
-                        <div className="flex flex-col md:flex-row items-center md:items-end gap-6 relative -mt-16 md:-mt-20 mb-6">
-                            <div className="relative">
+                        <div className="flex flex-col md:flex-row gap-6 md:gap-8 relative mb-6">
+                            {/* Avatar */}
+                            <div className="relative -mt-16 md:-mt-20 shrink-0 self-center md:self-start">
                                 <img 
                                     src={profile.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.id}`} 
                                     alt={profile.display_name} 
@@ -168,14 +262,45 @@ export default function PublicProfile() {
                                 </div>
                             </div>
 
-                            <div className="flex-1 text-center md:text-left pb-2">
-                                <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-1 tracking-tight">
-                                    {profile.display_name}
-                                </h1>
-                                <p className="text-gray-500 text-sm md:text-base font-medium flex items-center justify-center md:justify-start gap-1.5">
-                                    <Award className="w-4 h-4" /> 
-                                    {levelTitle}
-                                </p>
+                            {/* Info */}
+                            <div className="flex-1 text-center md:text-left pt-2 md:pt-4 pb-2 flex flex-col md:items-start justify-center gap-4 w-full">
+                                
+                                {/* Üst Satır: İsim ve Buton */}
+                                <div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-4 md:gap-6 w-full">
+                                    <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
+                                        {profile.display_name}
+                                    </h1>
+                                    {currentUser && currentUser.id !== profile.id && (
+                                        <button
+                                            onClick={handleFollowToggle}
+                                            disabled={followLoading}
+                                            className={`px-8 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm w-full sm:w-auto ${
+                                                isFollowing 
+                                                ? 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200' 
+                                                : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md'
+                                            } disabled:opacity-50`}
+                                        >
+                                            {followLoading ? 'Bekleniyor...' : isFollowing ? 'Takipten Çık' : 'Takip Et'}
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Alt Satır: Rozet ve İstatistikler */}
+                                <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-gray-500 font-medium">
+                                    <span className="flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-lg text-sm">
+                                        <Award className="w-4 h-4" /> {levelTitle}
+                                    </span>
+                                    <div className="flex items-center gap-6">
+                                        <div className="flex items-baseline gap-1.5">
+                                            <span className="text-xl font-bold text-gray-900">{followersCount}</span>
+                                            <span className="text-sm">takipçi</span>
+                                        </div>
+                                        <div className="flex items-baseline gap-1.5">
+                                            <span className="text-xl font-bold text-gray-900">{followingCount}</span>
+                                            <span className="text-sm">takip</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         

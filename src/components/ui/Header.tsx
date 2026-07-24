@@ -57,7 +57,7 @@ export default function Header({
         const fetchNotifications = async () => {
             const { data } = await supabase
                 .from('notifications')
-                .select('*, actor:profiles!notifications_actor_id_fkey(display_name, avatar_url)')
+                .select('*, actor:profiles!notifications_actor_id_fkey(display_name, avatar_url, slug)')
                 .order('created_at', { ascending: false })
                 .limit(20);
             
@@ -93,6 +93,8 @@ export default function Header({
             navigate(`/vitrin?design=${notification.analiz_id}`);
         } else if ((notification.type === 'like_post' || notification.type === 'comment_post') && notification.post_id) {
             navigate(`/community?post=${notification.post_id}`);
+        } else if (notification.type === 'follow_user' && notification.actor?.slug) {
+            navigate(`/tasarimci/${notification.actor.slug}`);
         }
     };
 
@@ -311,15 +313,25 @@ export default function Header({
                                                                     {notif.type === 'like_post' && <Heart className="w-2.5 h-2.5 text-red-500 fill-red-500" />}
                                                                     {notif.type === 'comment_post' && <MessageCircle className="w-2.5 h-2.5 text-blue-500 fill-blue-500" />}
                                                                     {notif.type === 'vote_design' && <Star className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />}
+                                                                    {notif.type === 'report_resolved' && <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500" />}
+                                                                    {notif.type === 'report_dismissed' && <AlertCircle className="w-2.5 h-2.5 text-red-500" />}
+                                                                    {notif.type === 'follow_user' && <svg className="w-2.5 h-2.5 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>}
                                                                 </div>
                                                             </div>
                                                             <div className="flex-1 min-w-0 pt-0.5">
                                                                 <p className="text-[13px] text-[var(--text-primary)] leading-tight">
-                                                                    <span className="font-bold mr-1">{notif.actor?.display_name || 'Birisi'}</span>
+                                                                    {notif.type.startsWith('report_') ? (
+                                                                        <span className="font-bold mr-1">Yönetim Ekibi</span>
+                                                                    ) : (
+                                                                        <span className="font-bold mr-1">{notif.actor?.display_name || 'Birisi'}</span>
+                                                                    )}
                                                                     <span className="text-[var(--text-secondary)]">
                                                                         {notif.type === 'like_post' && 'gönderini beğendi.'}
                                                                         {notif.type === 'comment_post' && 'gönderine yorum yaptı.'}
                                                                         {notif.type === 'vote_design' && 'tasarımına oy verdi.'}
+                                                                        {notif.type === 'report_resolved' && 'yaptığın şikayeti inceledi ve haklı bularak gereken işlemi uyguladı.'}
+                                                                        {notif.type === 'report_dismissed' && 'yaptığın şikayeti inceledi ancak kurallara aykırı bir durum bulamadı.'}
+                                                                        {notif.type === 'follow_user' && 'seni takip etmeye başladı.'}
                                                                     </span>
                                                                 </p>
                                                                 <span className="text-[10px] text-[var(--text-secondary)] font-medium mt-1 block">
@@ -507,20 +519,45 @@ export default function Header({
                             </button>
 
                             <div className="flex flex-col gap-3">
-                                <span className="text-[13px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Hakkımızda</span>
+                                <span className="text-[13px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Kurumsal</span>
                                 <button
-                                    onClick={() => handleNavClick('app?tab=analizlerim')}
-                                    className={`text-left pl-4 transition-colors ${gorunum === 'app' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                                    onClick={() => handleNavClick('about')}
+                                    className={`text-left pl-4 transition-colors ${gorunum === 'about' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
                                 >
-                                    Analizlerim
+                                    Hakkımızda
                                 </button>
                                 <button
-                                    onClick={() => handleNavClick('pricing')}
-                                    className={`text-left pl-4 transition-colors ${gorunum === 'pricing' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                                    onClick={() => handleNavClick('iletisim')}
+                                    className={`text-left pl-4 transition-colors ${gorunum === 'iletisim' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
                                 >
-                                    Planlar (Pro)
+                                    İletişim
+                                </button>
+                                <button
+                                    onClick={() => handleNavClick('nasil-calisir')}
+                                    className={`text-left pl-4 transition-colors ${gorunum === 'nasil-calisir' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                                >
+                                    SSS
                                 </button>
                             </div>
+
+                            <button
+                                onClick={() => handleNavClick('pricing')}
+                                className={`text-left transition-colors ${gorunum === 'pricing' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                            >
+                                Planlar (Pro)
+                            </button>
+
+                            {kullanici && (
+                                <div className="flex flex-col gap-3">
+                                    <span className="text-[13px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Hesabım</span>
+                                    <button
+                                        onClick={() => handleNavClick('app?tab=analizlerim')}
+                                        className={`text-left pl-4 transition-colors ${gorunum === 'app' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                                    >
+                                        Analizlerim
+                                    </button>
+                                </div>
+                            )}
 
                             {gorunum !== 'app' && (
                                 <button

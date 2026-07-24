@@ -8,6 +8,7 @@ export default function HowItWorks() {
 
   // Auto-play AI Demo
   useEffect(() => {
+    document.title = 'Nasıl Çalışır - Revizelesene';
     const timer = setInterval(() => {
       setDemoStep((prev) => (prev >= 3 ? 0 : prev + 1));
     }, 2500);
