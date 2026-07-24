@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../lib/supabase';
-import { Trophy, Calendar, Link as LinkIcon, Briefcase, Award, Star, Activity, ArrowLeft, X } from 'lucide-react';
+import { Trophy, Calendar, Link as LinkIcon, Briefcase, Award, Star, Activity, ArrowLeft, X, Bell, BellOff, Users } from 'lucide-react';
 import { getDesignRankById } from '../lib/communityProfile';
 
 const BehanceIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
@@ -47,6 +47,8 @@ export default function PublicProfile() {
     const [followersCount, setFollowersCount] = useState(0);
     const [followingCount, setFollowingCount] = useState(0);
     const [isFollowing, setIsFollowing] = useState(false);
+    const [notifyPosts, setNotifyPosts] = useState(true);
+    const [mutualFollowers, setMutualFollowers] = useState<any[]>([]);
     const [followLoading, setFollowLoading] = useState(false);
 
     useEffect(() => {
@@ -69,11 +71,36 @@ export default function PublicProfile() {
                     setCurrentUser(user);
                     const { data: followData } = await supabase
                         .from('user_follows')
-                        .select('id')
+                        .select('id, notify_posts')
                         .eq('follower_id', user.id)
                         .eq('following_id', profData.id)
                         .maybeSingle();
-                    if (followData) setIsFollowing(true);
+                    if (followData) {
+                        setIsFollowing(true);
+                        setNotifyPosts(followData.notify_posts ?? true);
+                    }
+
+                    // Fetch mutual followers
+                    if (user.id !== profData.id) {
+                        const { data: userFollowing } = await supabase
+                            .from('user_follows')
+                            .select('following_id')
+                            .eq('follower_id', user.id);
+                        
+                        if (userFollowing && userFollowing.length > 0) {
+                            const followingIds = userFollowing.map(f => f.following_id);
+                            const { data: mutuals } = await supabase
+                                .from('user_follows')
+                                .select('follower_id, profiles:follower_id(display_name, avatar_url, slug)')
+                                .eq('following_id', profData.id)
+                                .in('follower_id', followingIds)
+                                .limit(3);
+                            
+                            if (mutuals) {
+                                setMutualFollowers(mutuals.map((m: any) => m.profiles).filter(Boolean));
+                            }
+                        }
+                    }
                 }
 
                 // Fetch follower counts
@@ -211,8 +238,9 @@ export default function PublicProfile() {
                 setIsFollowing(false);
                 setFollowersCount(prev => Math.max(0, prev - 1));
             } else {
-                await supabase.from('user_follows').insert({ follower_id: currentUser.id, following_id: profile.id });
+                await supabase.from('user_follows').insert({ follower_id: currentUser.id, following_id: profile.id, notify_posts: true });
                 setIsFollowing(true);
+                setNotifyPosts(true);
                 setFollowersCount(prev => prev + 1);
                 
                 await supabase.from('notifications').insert({
@@ -226,6 +254,17 @@ export default function PublicProfile() {
         } finally {
             setFollowLoading(false);
         }
+    };
+
+    const handleBellToggle = async () => {
+        if (!currentUser || !isFollowing) return;
+        const nextVal = !notifyPosts;
+        setNotifyPosts(nextVal);
+        await supabase
+            .from('user_follows')
+            .update({ notify_posts: nextVal })
+            .match({ follower_id: currentUser.id, following_id: profile.id });
+        toast.success(nextVal ? "Gönderi bildirimleri açıldı!" : "Gönderi bildirimleri sessize alındı.");
     };
 
     return (
@@ -271,17 +310,32 @@ export default function PublicProfile() {
                                         {profile.display_name}
                                     </h1>
                                     {currentUser && currentUser.id !== profile.id && (
-                                        <button
-                                            onClick={handleFollowToggle}
-                                            disabled={followLoading}
-                                            className={`px-8 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm w-full sm:w-auto ${
-                                                isFollowing 
-                                                ? 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200' 
-                                                : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md'
-                                            } disabled:opacity-50`}
-                                        >
-                                            {followLoading ? 'Bekleniyor...' : isFollowing ? 'Takipten Çık' : 'Takip Et'}
-                                        </button>
+                                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                                            <button
+                                                onClick={handleFollowToggle}
+                                                disabled={followLoading}
+                                                className={`px-8 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm flex-1 sm:flex-initial ${
+                                                    isFollowing 
+                                                    ? 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200' 
+                                                    : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md'
+                                                } disabled:opacity-50`}
+                                            >
+                                                {followLoading ? 'Bekleniyor...' : isFollowing ? 'Takipten Çık' : 'Takip Et'}
+                                            </button>
+                                            {isFollowing && (
+                                                <button
+                                                    onClick={handleBellToggle}
+                                                    title={notifyPosts ? "Bildirimleri kapat" : "Bildirimleri aç"}
+                                                    className={`p-2.5 rounded-xl border transition-all ${
+                                                        notifyPosts 
+                                                        ? 'bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100' 
+                                                        : 'bg-gray-100 text-gray-400 border-gray-200 hover:bg-gray-200'
+                                                    }`}
+                                                >
+                                                    {notifyPosts ? <Bell className="w-4 h-4 fill-amber-500" /> : <BellOff className="w-4 h-4" />}
+                                                </button>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
 
@@ -305,9 +359,30 @@ export default function PublicProfile() {
                         </div>
                         
                         {profile.bio && (
-                            <p className="text-gray-600 text-sm md:text-base leading-relaxed mb-6 max-w-2xl font-medium text-center md:text-left">
+                            <p className="text-gray-600 text-sm md:text-base leading-relaxed mb-4 max-w-2xl font-medium text-center md:text-left">
                                 {profile.bio}
                             </p>
+                        )}
+
+                        {/* Mutual Followers Social Proof */}
+                        {mutualFollowers.length > 0 && (
+                            <div className="flex items-center gap-2 mb-6 text-xs text-gray-600 bg-gray-50/80 px-3.5 py-2 rounded-xl border border-gray-200/60 w-fit">
+                                <div className="flex -space-x-2 overflow-hidden">
+                                    {mutualFollowers.map((m, idx) => (
+                                        <img
+                                            key={idx}
+                                            src={m.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${m.display_name}`}
+                                            alt={m.display_name}
+                                            className="inline-block h-5 w-5 rounded-full ring-2 ring-white object-cover"
+                                        />
+                                    ))}
+                                </div>
+                                <span>
+                                    <strong className="text-gray-900 font-bold">{mutualFollowers[0]?.display_name}</strong>
+                                    {mutualFollowers.length > 1 && `, ${mutualFollowers[1]?.display_name}`}
+                                    {mutualFollowers.length > 2 ? ' ve diğer takip ettiğin kişiler' : ''} bu tasarımcıyı takip ediyor.
+                                </span>
+                            </div>
                         )}
 
                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs font-medium text-gray-500">

@@ -311,6 +311,29 @@ JSON Formatı Şablonu:
         if (dbData?.id) {
           parsed._analiz_id = dbData.id;
           parsed._gorsel_url = gorselUrl;
+
+          // Notify followers who enabled post notifications
+          if (userId) {
+            try {
+              const { data: followers } = await dbClient
+                .from('user_follows')
+                .select('follower_id')
+                .eq('following_id', userId)
+                .eq('notify_posts', true);
+              
+              if (followers && followers.length > 0) {
+                const notifications = followers.map((f: any) => ({
+                  user_id: f.follower_id,
+                  actor_id: userId,
+                  type: 'new_post',
+                  analiz_id: dbData.id
+                }));
+                await dbClient.from('notifications').insert(notifications);
+              }
+            } catch (notifErr) {
+              console.error('Follower bildirim hatası:', notifErr);
+            }
+          }
         }
       }
     } catch (dbErr) {

@@ -61,6 +61,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
     const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
     const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
     const [postSort, setPostSort] = useState<'new' | 'popular'>('new');
+    const [feedSource, setFeedSource] = useState<'all' | 'following'>('all');
     
     const [searchParams, setSearchParams] = useSearchParams();
     const postIdFromUrl = searchParams.get('post');
@@ -660,7 +661,28 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                     {/* Left: Latest Activity */}
                     <div className="lg:col-span-2 space-y-12">
                         <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4 md:gap-0">
-                            <h2 className="text-3xl font-bold tracking-tight text-center md:text-left">Topluluk Akışı</h2>
+                            <div className="flex flex-wrap items-center gap-3 justify-center md:justify-start">
+                                <h2 className="text-3xl font-bold tracking-tight">Topluluk Akışı</h2>
+                                <div className="flex items-center gap-1 p-1 bg-[var(--card-bg)] rounded-full border border-[var(--border-primary)] shadow-sm">
+                                    <button
+                                        onClick={() => setFeedSource('all')}
+                                        className={`px-3 py-1 text-xs font-bold rounded-full transition-colors ${feedSource === 'all' ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                                    >
+                                        Genel
+                                    </button>
+                                    <button
+                                        onClick={() => setFeedSource('following')}
+                                        className={`px-3 py-1 text-xs font-bold rounded-full transition-colors flex items-center gap-1.5 ${feedSource === 'following' ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                                    >
+                                        <span>Takip Ettiklerim</span>
+                                        {followedUsers.size > 0 && (
+                                            <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-extrabold ${feedSource === 'following' ? 'bg-[var(--bg-primary)] text-[var(--text-primary)]' : 'bg-gray-200 text-gray-700'}`}>
+                                                {followedUsers.size}
+                                            </span>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
                             <div className="flex gap-2 justify-center">
                                 <span 
                                     onClick={() => setPostSort('new')}
@@ -682,12 +704,17 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                 <div className="w-8 h-8 border-4 border-[#FF5500]/30 border-t-[#FF5500] rounded-full animate-spin mb-4" />
                                 Gönderiler yükleniyor...
                             </div>
-                        ) : posts.length === 0 ? (
-                            <div className="text-center py-20 text-[var(--text-secondary)] bg-[var(--card-bg)] rounded-[40px] border border-[var(--border-primary)] shadow-sm">
-                                <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                <p>Toplulukta henüz gönderi yok. İlk paylaşan sen ol!</p>
+                        ) : posts.filter(p => feedSource === 'all' || (p.user_id && followedUsers.has(p.user_id))).length === 0 ? (
+                            <div className="text-center py-20 text-[var(--text-secondary)] bg-[var(--card-bg)] rounded-[40px] border border-[var(--border-primary)] shadow-sm px-6">
+                                <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50 text-[var(--color-brand-orange)]" />
+                                <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1">
+                                    {feedSource === 'following' ? 'Takip ettiğin kişilerin henüz bir gönderisi yok' : 'Henüz gönderi yok'}
+                                </h3>
+                                <p className="text-xs md:text-sm text-[var(--text-secondary)] max-w-sm mx-auto">
+                                    {feedSource === 'following' ? 'Beğendiğin tasarımcıları takip ederek aksiyonlarını buradan anlık izleyebilirsin.' : 'Toplulukta ilk paylaşan sen ol!'}
+                                </p>
                             </div>
-                        ) : [...posts].sort((a, b) => postSort === 'popular' ? b.likes_count - a.likes_count : new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map((post) => {
+                        ) : [...posts].filter(p => feedSource === 'all' || (p.user_id && followedUsers.has(p.user_id))).sort((a, b) => postSort === 'popular' ? b.likes_count - a.likes_count : new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map((post) => {
                             const rawGorsel = post.analizler?.gorsel_url || post.gorsel_url;
                             const imageSrc = rawGorsel ? (rawGorsel.startsWith('http') || rawGorsel.startsWith('data:') ? rawGorsel : `data:image/jpeg;base64,${rawGorsel}`) : null;
 

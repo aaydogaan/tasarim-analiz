@@ -40,8 +40,9 @@ export function Vitrin() {
     const [commentInput, setCommentInput] = useState('');
     const [submittingComment, setSubmittingComment] = useState(false);
 
-    // Filter & Sort State
+    // Filter & Search State
     const [kategoriFiltre, setKategoriFiltre] = useState<string>('Tümü');
+    const [feedTab, setFeedTab] = useState<'all' | 'following'>('all');
     const [siralama, setSiralama] = useState<'yeni' | 'topluluk' | 'ai' | 'oy'>('yeni');
     const [siralamaAcik, setSiralamaAcik] = useState(false);
     const [aramaMetni, setAramaMetni] = useState('');
@@ -372,21 +373,25 @@ export function Vitrin() {
         }
     };
 
-    const filtrelenmisItems = items
-        .filter((item) => {
-            if (kategoriFiltre !== 'Tümü' && item.tasarim_turu !== kategoriFiltre) {
-                return false;
-            }
-            if (aramaMetni.trim()) {
-                const query = aramaMetni.toLowerCase().trim();
-                const isletmeMatch = item.isletme.toLowerCase().includes(query);
-                const userMatch = item.user_name?.toLowerCase().includes(query) || false;
-                const turMatch = item.tasarim_turu.toLowerCase().includes(query);
-                return isletmeMatch || userMatch || turMatch;
-            }
-            return true;
-        })
-        .sort((a, b) => {
+    // Filter items based on Category, Search & FeedTab
+    const filtrelenmisTasarimlar = items.filter((item) => {
+        if (feedTab === 'following' && (!item.user_id || !followedUsers.has(item.user_id))) {
+            return false;
+        }
+
+        const matchesCategory =
+            kategoriFiltre === 'Tümü' ||
+            (item.tasarim_turu && item.tasarim_turu.toLowerCase() === kategoriFiltre.toLowerCase());
+
+        const query = aramaMetni.toLowerCase().trim();
+        const matchesSearch =
+            !query ||
+            (item.isletme && item.isletme.toLowerCase().includes(query)) ||
+            (item.tasarim_turu && item.tasarim_turu.toLowerCase().includes(query)) ||
+            (item.user_name && item.user_name.toLowerCase().includes(query));
+
+        return matchesCategory && matchesSearch;
+    }).sort((a, b) => {
             if (siralama === 'topluluk') {
                 return b.topluluk_puan - a.topluluk_puan;
             } else if (siralama === 'ai') {
@@ -409,8 +414,37 @@ export function Vitrin() {
                 </p>
             </div>
 
-            {/* Filter & Search Control Bar */}
+            {/* Feed Tab Switcher & Filter Control Bar */}
             <div className="mb-8 space-y-4">
+                {/* Main Feed Tabs */}
+                <div className="flex items-center gap-1.5 p-1.5 bg-[var(--card-bg)] rounded-2xl border border-[var(--border-primary)] w-fit shadow-sm">
+                    <button
+                        onClick={() => setFeedTab('all')}
+                        className={`px-5 py-2 rounded-xl text-xs md:text-sm font-bold transition-all ${
+                            feedTab === 'all' 
+                                ? 'bg-[var(--text-primary)] text-[var(--bg-primary)] shadow-sm' 
+                                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                        }`}
+                    >
+                        Genel Keşfet
+                    </button>
+                    <button
+                        onClick={() => setFeedTab('following')}
+                        className={`px-5 py-2 rounded-xl text-xs md:text-sm font-bold transition-all flex items-center gap-2 ${
+                            feedTab === 'following' 
+                                ? 'bg-[var(--text-primary)] text-[var(--bg-primary)] shadow-sm' 
+                                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                        }`}
+                    >
+                        <span>Takip Ettiklerim</span>
+                        {followedUsers.size > 0 && (
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-extrabold ${feedTab === 'following' ? 'bg-[var(--bg-primary)] text-[var(--text-primary)]' : 'bg-gray-200 text-gray-700'}`}>
+                                {followedUsers.size}
+                            </span>
+                        )}
+                    </button>
+                </div>
+
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-4 bg-[var(--card-bg)] p-4 rounded-2xl border border-[var(--border-primary)] shadow-sm">
                     
                     {/* Category Filter Pills */}
@@ -510,14 +544,21 @@ export function Vitrin() {
                     <div className="w-8 h-8 border-4 border-[var(--border-primary)] border-t-[var(--color-brand-orange)] rounded-full animate-spin" />
                     <span className="text-[var(--text-secondary)] font-medium">Vitrin yükleniyor...</span>
                 </div>
-            ) : filtrelenmisItems.length === 0 ? (
-                <div className="text-center py-20 bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-3xl shadow-sm space-y-2">
-                    <p className="text-[var(--text-primary)] font-bold text-base">Aradığınız kriterlere uygun tasarım bulunamadı.</p>
-                    <p className="text-[var(--text-secondary)] text-xs">Filtreleri veya arama kelimenizi değiştirmeyi deneyebilirsiniz.</p>
+            ) : filtrelenmisTasarimlar.length === 0 ? (
+                <div className="py-20 text-center bg-[var(--card-bg)] rounded-3xl border border-[var(--border-primary)] my-8">
+                    <Sparkles className="w-10 h-10 text-[var(--text-secondary)] mx-auto mb-3 opacity-40" />
+                    <h3 className="text-lg font-bold text-[var(--text-primary)]">
+                        {feedTab === 'following' ? 'Takip ettiğin tasarımcıların paylaşımı bulunamadı' : 'Tasarım bulunamadı'}
+                    </h3>
+                    <p className="text-xs md:text-sm text-[var(--text-secondary)] mt-1 max-w-sm mx-auto">
+                        {feedTab === 'following' 
+                            ? 'Toplulukta beğendiğin tasarımcıları takip ederek akışını özelleştirebilirsin.' 
+                            : 'Arama terimlerinizi veya filtrelerinizi değiştirmeyi deneyin.'}
+                    </p>
                 </div>
             ) : (
                 <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-4 space-y-4">
-                    {filtrelenmisItems.map((item, idx) => (
+                    {filtrelenmisTasarimlar.map((item, idx) => (
                         <motion.div
                             key={item.id}
                             initial={{ opacity: 0, y: 20 }}
