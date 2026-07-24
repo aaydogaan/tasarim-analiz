@@ -132,9 +132,11 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
     const [showBadgePicker, setShowBadgePicker] = useState(false);
     const [badgesExpanded, setBadgesExpanded] = useState(false);
 
-    // XP Data States
+    // XP & Follow States
     const [xpData, setXpData] = useState({ posts: 0, comments: 0, analizler: 0, challenges: 0, total: 100 });
     const [xpLoading, setXpLoading] = useState(false);
+    const [followersCount, setFollowersCount] = useState(0);
+    const [followingCount, setFollowingCount] = useState(0);
 
     // Password Change Modal States
     const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -237,6 +239,18 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
         if (!targetUserId || targetUserId === 'anonymous') return;
 
         let aktif = true;
+        const loadFollowStats = async () => {
+            const [followersRes, followingRes] = await Promise.all([
+                supabase.from('user_follows').select('id', { count: 'exact', head: true }).eq('following_id', targetUserId),
+                supabase.from('user_follows').select('id', { count: 'exact', head: true }).eq('follower_id', targetUserId)
+            ]);
+            if (aktif) {
+                setFollowersCount(followersRes.count || 0);
+                setFollowingCount(followingRes.count || 0);
+            }
+        };
+        loadFollowStats();
+
         const loadStats = async () => {
             try {
                 const { data, error } = await supabase
@@ -754,6 +768,14 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                             <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
                                 <p className="text-[10px] font-semibold text-[var(--text-secondary)]">Deneyim</p>
                                 <p className="mt-1 text-sm font-black">{selectedExperience?.label || '-'}</p>
+                            </div>
+                            <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
+                                <p className="text-[10px] font-semibold text-[var(--text-secondary)]">Takipçi</p>
+                                <p className="mt-1 text-xl font-black">{followersCount}</p>
+                            </div>
+                            <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
+                                <p className="text-[10px] font-semibold text-[var(--text-secondary)]">Takip Edilen</p>
+                                <p className="mt-1 text-xl font-black">{followingCount}</p>
                             </div>
                             <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
                                 <p className="text-[10px] font-semibold text-[var(--text-secondary)]">Sıradaki Yeri</p>
