@@ -403,8 +403,8 @@ export default function App() {
     if (kullanici) {
       supabase.from('profiles').select('*').eq('id', kullanici.id).maybeSingle().then(async ({ data }) => {
         let profile = data;
-        if (!profile && (kullanici.email_confirmed_at || (kullanici as any).confirmed_at)) {
-          // Profile does not exist yet & email is confirmed! Create it now.
+        if (!profile) {
+          // Profile does not exist yet! Create it now.
           const meta = kullanici.user_metadata || {};
           const displayName = meta.display_name || meta.full_name || kullanici.email?.split('@')[0] || 'Tasarımcı';
           const baseName = displayName.toLowerCase()

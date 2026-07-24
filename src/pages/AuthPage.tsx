@@ -198,15 +198,6 @@ export default function AuthPage() {
                 let userRecord = signUpRes.data?.user;
 
                 if (userRecord) {
-                    // Eğer e-posta doğrulaması gerekiyorsa (oturum açılmamışsa veya e-posta onaylanmamışsa)
-                    if (!signUpRes.data?.session || !userRecord.confirmed_at) {
-                        setAuthMod('eposta-dogrulama');
-                        setCooldown(60);
-                        toast.success('Kayıt başarılı! Lütfen e-posta adresinizi doğrulayın.');
-                        return;
-                    }
-
-                    // E-posta doğrulanmış ise profil oluştur ve devam et
                     try {
                         const baseName = (authAdSoyad || 'Tasarimci').toLowerCase()
                             .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
@@ -369,7 +360,6 @@ export default function AuthPage() {
                         
                         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight mb-2">
                             {authAdim === 1 ? (
-                                authMod === 'eposta-dogrulama' ? 'E-postanı Doğrula' :
                                 authMod === 'sifre-yenile' ? 'Şifreni Yenile' :
                                 authMod === 'sifremi-unuttum' ? 'Şifremi Unuttum' :
                                 authMod === 'giris' ? 'Tekrar Hoş Geldin!' : 'Hesap Oluştur'
@@ -379,7 +369,6 @@ export default function AuthPage() {
                         </h2>
                         <p className="text-sm text-gray-500">
                             {authAdim === 1 ? (
-                                authMod === 'eposta-dogrulama' ? 'Hesabını aktifleştirmek için e-postanı kontrol et.' :
                                 authMod === 'sifre-yenile' ? 'Yeni şifreni belirleyerek devam et.' :
                                 authMod === 'sifremi-unuttum' ? 'E-posta adresini gir, sıfırlama linki gönderelim.' :
                                 authMod === 'giris' ? 'Hesabına giriş yap ve kaldığın yerden devam et.' : 'Hemen ücretsiz bir hesap oluştur.'
@@ -389,7 +378,7 @@ export default function AuthPage() {
                         </p>
                     </div>
 
-                    {authAdim === 1 && authMod !== 'sifre-yenile' && authMod !== 'sifremi-unuttum' && authMod !== 'eposta-dogrulama' && (
+                    {authAdim === 1 && authMod !== 'sifre-yenile' && authMod !== 'sifremi-unuttum' && (
                         <div className="flex p-1 bg-gray-100 rounded-xl mb-8">
                             <button
                                 onClick={() => { setAuthMod('giris'); setAuthHata(null); }}
@@ -407,59 +396,7 @@ export default function AuthPage() {
                     )}
 
                 <div className="space-y-4">
-                    {authMod === 'eposta-dogrulama' ? (
-                        <motion.div 
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="text-center py-4 space-y-6"
-                        >
-                            <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
-                                <div className="absolute inset-0 bg-[#FF5500]/20 rounded-full animate-ping opacity-75" />
-                                <div className="relative w-20 h-20 bg-gradient-to-tr from-[#FF5500] to-orange-400 rounded-full flex items-center justify-center text-white shadow-lg shadow-[#FF5500]/30">
-                                    <MailCheck className="w-10 h-10" />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <p className="text-sm text-gray-600 max-w-sm mx-auto leading-relaxed">
-                                    <strong className="text-gray-900 block text-base mb-1">{authEmail}</strong>
-                                    adresine bir doğrulama bağlantısı gönderdik. Lütfen e-posta kutunu kontrol et.
-                                </p>
-                            </div>
-
-                            <div className="p-4 bg-orange-50/80 border border-orange-100 rounded-2xl text-xs text-gray-600 text-left flex items-start gap-3">
-                                <Sparkles className="w-5 h-5 text-[#FF5500] shrink-0 mt-0.5" />
-                                <div>
-                                    <p className="font-bold text-gray-900 mb-0.5">Spam / Önemsiz Kutusunu Kontrol Et</p>
-                                    <p>E-posta birkaç dakika içinde ulaşmazsa spam/junk klasörüne bakmayı unutma.</p>
-                                </div>
-                            </div>
-
-                            <div className="pt-2 space-y-3">
-                                <button
-                                    type="button"
-                                    onClick={resendVerificationEmail}
-                                    disabled={resendLoading || cooldown > 0}
-                                    className="w-full py-3.5 px-4 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white font-bold text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
-                                >
-                                    {resendLoading ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                        <RefreshCw className="w-4 h-4" />
-                                    )}
-                                    {cooldown > 0 ? `Tekrar Gönder (${cooldown}s)` : 'Doğrulama E-postasını Tekrar Gönder'}
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={() => { setAuthMod('giris'); setAuthHata(null); }}
-                                    className="w-full py-3 px-4 bg-transparent hover:bg-gray-100 text-gray-600 font-bold text-xs rounded-xl transition-colors"
-                                >
-                                    Giriş Yap Ekranına Dön
-                                </button>
-                            </div>
-                        </motion.div>
-                    ) : authAdim === 1 ? (
+                    {authAdim === 1 ? (
                         <form onSubmit={girisYap} className="space-y-4">
                             {authMod !== 'sifre-yenile' && authMod !== 'kayit' && (
                                 <input type="email" placeholder="E-posta" value={authEmail} onChange={e => setAuthEmail(e.target.value)} required
