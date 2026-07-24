@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Loader2, ShieldBan, CheckCircle2 } from 'lucide-react';
+import { Loader2, ShieldBan, CheckCircle2, Award } from 'lucide-react';
+import { VerifiedBadge } from '../../components/ui/VerifiedBadge';
 import toast from 'react-hot-toast';
 
 export default function AdminUsers() {
@@ -28,6 +29,16 @@ export default function AdminUsers() {
         }
     };
 
+    const handleBadgeChange = async (userId: string, newBadge: string | null) => {
+        const { error } = await supabase.from('profiles').update({ verification_badge: newBadge }).eq('id', userId);
+        if (error) {
+            toast.error('Rozet güncellenemedi');
+        } else {
+            toast.success('Doğrulama rozeti güncellendi');
+            fetchUsers();
+        }
+    };
+
     return (
         <div className="space-y-6">
             <h1 className="text-2xl font-bold text-[var(--text-primary)]">Kullanıcı Yönetimi</h1>
@@ -39,6 +50,7 @@ export default function AdminUsers() {
                             <tr>
                                 <th className="p-4">Kullanıcı</th>
                                 <th className="p-4">Unvan</th>
+                                <th className="p-4">Doğrulama Tikı</th>
                                 <th className="p-4">Kayıt Tarihi</th>
                                 <th className="p-4">Durum</th>
                                 <th className="p-4 text-right">İşlem</th>
@@ -64,8 +76,9 @@ export default function AdminUsers() {
                                                 )}
                                             </div>
                                             <div>
-                                                <p className="font-bold text-[var(--text-primary)] flex items-center gap-2">
-                                                    {user.display_name}
+                                                <p className="font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                                                    <span>{user.display_name}</span>
+                                                    <VerifiedBadge badge={user.verification_badge} size="xs" />
                                                     {user.is_admin && <span className="text-[9px] uppercase tracking-widest bg-amber-500/10 text-amber-500 px-1.5 py-0.5 rounded font-black">ADMİN</span>}
                                                 </p>
                                                 <p className="text-xs text-[var(--text-secondary)]">{user.email || 'Email yok'}</p>
@@ -73,6 +86,17 @@ export default function AdminUsers() {
                                         </div>
                                     </td>
                                     <td className="p-4 text-[var(--text-secondary)]">{user.design_rank || 'Tasarımcı'}</td>
+                                    <td className="p-4">
+                                        <select
+                                            value={user.verification_badge || ''}
+                                            onChange={(e) => handleBadgeChange(user.id, e.target.value || null)}
+                                            className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg text-xs p-1.5 font-bold text-[var(--text-primary)] outline-none cursor-pointer hover:border-[var(--color-brand-orange)] transition-colors"
+                                        >
+                                            <option value="">Yok (Standart)</option>
+                                            <option value="gold">🏆 Altın Tik (Kurucu/Ekip)</option>
+                                            <option value="blue">🔷 Mavi Tik (Tasarımcı)</option>
+                                        </select>
+                                    </td>
                                     <td className="p-4 text-[var(--text-secondary)]">{new Date(user.created_at).toLocaleDateString('tr-TR')}</td>
                                     <td className="p-4">
                                         {user.is_banned ? (

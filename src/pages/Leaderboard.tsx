@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import { 
   Flame, 
   Search, 
@@ -41,6 +42,7 @@ interface LeaderboardUser {
   pointsNum: number;        // raw XP for sorting
   trend: 'up' | 'down';
   isCurrentUser?: boolean;
+  verificationBadge?: string | null;
 }
 
 type SortOption = 'total_score' | 'ai_score' | 'community';
@@ -178,7 +180,7 @@ export function Leaderboard() {
       });
 
       // 5. Build user registry from user_xp_stats
-      const userMetaRegistry: Record<string, { name: string; avatar: string; xp: number; slug: string }> = {};
+      const userMetaRegistry: Record<string, { name: string; avatar: string; xp: number; slug: string; verificationBadge?: string | null }> = {};
 
       if (xpStatsData) {
         xpStatsData.forEach(u => {
@@ -187,7 +189,8 @@ export function Leaderboard() {
               name: u.display_name || u.full_name || 'Tasarımcı',
               avatar: u.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${u.id}`,
               xp: u.total_xp || 0,
-              slug: u.slug || 'tasarimci'
+              slug: u.slug || 'tasarimci',
+              verificationBadge: u.verification_badge
             };
           }
         });
@@ -236,7 +239,8 @@ export function Leaderboard() {
           totalPoints: `${xp.toLocaleString('tr-TR')} XP`,
           pointsNum: xp,
           trend: idx % 2 === 0 ? 'up' : 'down',
-          isCurrentUser: currentUser ? currentUser.id === userId : false
+          isCurrentUser: currentUser ? currentUser.id === userId : false,
+          verificationBadge: meta.verificationBadge
         };
       });
 
@@ -612,6 +616,7 @@ export function Leaderboard() {
                               <div>
                                 <p className="font-bold text-slate-900 text-sm group-hover/profile:text-blue-600 transition-colors flex items-center gap-1.5">
                                   <span>{user.name}</span>
+                                  <VerifiedBadge badge={user.verificationBadge} size="xs" />
                                   {user.isCurrentUser && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">SEN</span>}
                                 </p>
                                 <p className="text-[10px] font-medium text-slate-400">{user.userIdTag}</p>

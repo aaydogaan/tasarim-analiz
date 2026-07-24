@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import { Trophy, Calendar, Link as LinkIcon, Briefcase, Award, Star, Activity, ArrowLeft, X, Bell, BellOff, Users } from 'lucide-react';
+import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import { getDesignRankById } from '../lib/communityProfile';
 
 const BehanceIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
@@ -310,8 +311,9 @@ export default function PublicProfile() {
                                 
                                 {/* Üst Satır: İsim ve Buton */}
                                 <div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-4 md:gap-6 w-full">
-                                    <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
-                                        {profile.display_name}
+                                    <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight flex items-center gap-2">
+                                        <span>{profile.display_name}</span>
+                                        <VerifiedBadge badge={profile.verification_badge} size="md" />
                                     </h1>
                                     {currentUser && currentUser.id !== profile.id && (
                                         <div className="flex items-center gap-2 w-full sm:w-auto">

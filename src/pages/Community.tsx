@@ -4,6 +4,7 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Users, MessageCircle, Heart, Trophy, Zap, Share2, Crown, Star, Sparkles, ArrowRight, Award, X, Send, Loader2, ChevronDown, Flag } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
+import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import {
     CORE_FOUNDERS,
     CORE_FOUNDER_COUNT,
@@ -244,14 +245,14 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         const fetchPosts = async () => {
             const { data, error } = await supabase
                 .from('community_posts')
-                .select(`*, analizler(id, gorsel_url, genel_puan, user_name, user_avatar, isletme), profiles:user_id(display_name, avatar_url, slug)`)
+                .select(`*, analizler(id, gorsel_url, genel_puan, user_name, user_avatar, isletme), profiles:user_id(display_name, avatar_url, slug, verification_badge)`)
                 .order('created_at', { ascending: false });
             if (data && !error && isMounted) {
                 const userIds = [...new Set(data.map((p: any) => p.user_id).filter(Boolean))];
                 if (userIds.length > 0) {
                     const { data: profilesData } = await supabase
                         .from('profiles')
-                        .select('id, display_name, avatar_url, founder_number, slug')
+                        .select('id, display_name, avatar_url, founder_number, slug, verification_badge')
                         .in('id', userIds);
                     
                     if (profilesData) {
@@ -755,7 +756,10 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                         />
                                         <div className="flex-1 min-w-0 flex flex-col justify-center">
                                             <div className="flex items-center gap-2 mb-0.5">
-                                                <span className="font-bold text-base md:text-lg text-[var(--text-primary)] truncate group-hover/profile:text-[var(--color-brand-orange)] transition-colors">{authorName}</span>
+                                                <span className="font-bold text-base md:text-lg text-[var(--text-primary)] truncate group-hover/profile:text-[var(--color-brand-orange)] transition-colors flex items-center gap-1.5">
+                                                    <span>{authorName}</span>
+                                                    <VerifiedBadge badge={post.profiles?.verification_badge} size="xs" />
+                                                </span>
                                                 {post.user_id && kullanici && kullanici.id !== post.user_id && !followedUsers.has(post.user_id) && (
                                                     <button 
                                                         onClick={(e) => handleFollow(e, post.user_id)}

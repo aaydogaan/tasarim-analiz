@@ -45,6 +45,7 @@ import {
 import toast from 'react-hot-toast';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { supabase } from '../lib/supabase';
+import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import {
     buildAvatarUrl,
     BADGE_DEFINITIONS,
@@ -744,7 +745,10 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                         className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-lg font-black outline-none focus:border-[var(--color-brand-orange)] text-center"
                                     />
                                 ) : (
-                                    <h1 className="truncate text-xl font-black tracking-tight">{profileData.displayName}</h1>
+                                    <h1 className="truncate text-xl font-black tracking-tight flex items-center justify-center gap-1.5">
+                                        <span>{profileData.displayName}</span>
+                                        <VerifiedBadge badge={(profileRecord as any)?.verification_badge || (publicProfile as any)?.verification_badge} size="sm" />
+                                    </h1>
                                 )}
                                 <p className="mt-1 text-xs font-semibold text-[var(--text-secondary)]">
                                     {normalizedProfile.isCoreFounder ? 'Kurucu Üye' : selectedRank.title}

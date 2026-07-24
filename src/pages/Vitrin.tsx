@@ -5,6 +5,7 @@ import { supabase } from "../lib/supabase";
 import { Heart, Maximize2, X, Star, Loader2, Search, ChevronDown, Filter, Sparkles, Trophy, Flame, Clock, ArrowBigUp, ArrowBigDown, Flag } from "lucide-react";
 import toast from "react-hot-toast";
 import ReportModal from '../components/ui/ReportModal';
+import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 
 interface VitrinItem {
     id: string;
@@ -22,6 +23,7 @@ interface VitrinItem {
     user_avatar?: string;
     user_slug: string;
     user_vote: number | null;
+    verification_badge?: boolean;
     skor_detayi: any | null;
 }
 
@@ -163,7 +165,7 @@ export function Vitrin() {
                 created_at,
                 likes_count,
                 analizler(*, begeniler(vote_type, user_id)),
-                profiles:user_id(display_name, avatar_url, slug)
+                profiles:user_id(display_name, avatar_url, slug, verification_badge)
             `)
             .order("created_at", { ascending: false });
 
@@ -226,6 +228,7 @@ export function Vitrin() {
                     oy_sayisi: oySayisi,
                     created_at: post.created_at,
                     platform: '',
+                    verification_badge: post.profiles?.verification_badge,
                     skor_detayi: post.analizler?.skor_detayi || null
                 };
             });
@@ -605,8 +608,9 @@ export function Vitrin() {
                                         alt="Designer"
                                         className="w-7 h-7 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] object-cover shrink-0 group-hover/profile:border-[var(--color-brand-orange)] transition-colors"
                                     />
-                                    <span className="text-[var(--text-secondary)] group-hover/profile:text-[var(--text-primary)] cursor-pointer transition-colors text-sm font-medium leading-snug truncate">
-                                        {item.user_name || "Tasarımcı"}
+                                    <span className="text-[var(--text-secondary)] group-hover/profile:text-[var(--text-primary)] cursor-pointer transition-colors text-sm font-medium leading-snug truncate flex items-center gap-1">
+                                        <span>{item.user_name || "Tasarımcı"}</span>
+                                        <VerifiedBadge badge={item.verification_badge} size="xs" />
                                     </span>
                                 </Link>
 
@@ -671,8 +675,9 @@ export function Vitrin() {
                                             className="w-14 h-14 rounded-full border border-[var(--border-primary)] object-cover bg-[var(--bg-secondary)] group-hover/profile:border-[var(--color-brand-orange)] transition-colors"
                                         />
                                         <div>
-                                            <h3 className="text-[var(--text-primary)] text-lg font-bold leading-tight mb-1 group-hover/profile:text-[var(--color-brand-orange)] transition-colors">
-                                                {seciliGorsel.user_name || "Tasarımcı"}
+                                            <h3 className="text-[var(--text-primary)] text-lg font-bold leading-tight mb-1 group-hover/profile:text-[var(--color-brand-orange)] transition-colors flex items-center gap-1.5">
+                                                <span>{seciliGorsel.user_name || "Tasarımcı"}</span>
+                                                <VerifiedBadge badge={seciliGorsel.verification_badge} size="xs" />
                                             </h3>
                                             <div className="flex items-center gap-2 text-[var(--text-secondary)] text-[10px] uppercase font-bold tracking-widest">
                                                 <span>{seciliGorsel.tasarim_turu}</span>
