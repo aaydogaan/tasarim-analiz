@@ -608,14 +608,6 @@ export function Vitrin() {
                                     <span className="text-[var(--text-secondary)] group-hover/profile:text-[var(--text-primary)] cursor-pointer transition-colors text-sm font-medium leading-snug truncate">
                                         {item.user_name || "Tasarımcı"}
                                     </span>
-                                    {item.user_id && user && user.id !== item.user_id && !followedUsers.has(item.user_id) && (
-                                        <button 
-                                            onClick={(e) => handleFollow(e, item.user_id)}
-                                            className="ml-1 text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-1.5 py-0.5 rounded transition-colors shrink-0"
-                                        >
-                                            Takip Et
-                                        </button>
-                                    )}
                                 </Link>
 
                                 <div className="flex flex-col items-end gap-1 shrink-0">
@@ -671,7 +663,7 @@ export function Vitrin() {
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-brand-orange)]/5 blur-[100px] rounded-full pointer-events-none" />
 
                                 {/* Üst Profil Bölümü */}
-                                <div className="flex items-center gap-4 mb-8 relative z-10 pb-6 border-b border-[var(--color-brand-dark)]/5">
+                                <div className="flex items-center justify-between gap-4 mb-8 relative z-10 pb-6 border-b border-[var(--color-brand-dark)]/5">
                                     <Link to={`/${seciliGorsel.user_slug}`} className="flex items-center gap-4 group/profile" onClick={() => setSeciliGorsel(null)}>
                                         <img
                                             src={seciliGorsel.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${seciliGorsel.id}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`}
@@ -689,6 +681,14 @@ export function Vitrin() {
                                             </div>
                                         </div>
                                     </Link>
+                                    {seciliGorsel.user_id && user && user.id !== seciliGorsel.user_id && !followedUsers.has(seciliGorsel.user_id) && (
+                                        <button 
+                                            onClick={(e) => handleFollow(e, seciliGorsel.user_id)}
+                                            className="px-4 py-2 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors shrink-0 shadow-sm"
+                                        >
+                                            Takip Et
+                                        </button>
+                                    )}
                                 </div>
 
                                 <div className="relative z-10">
