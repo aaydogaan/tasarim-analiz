@@ -55,12 +55,16 @@ export default function PublicProfile() {
         const fetchProfile = async () => {
             setLoading(true);
             try {
-                // Fetch profile by slug or id
-                const { data: profData, error: profErr } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .or(`slug.eq.${slug},id.eq.${slug}`)
-                    .maybeSingle();
+                // Fetch profile by slug or id cleanly
+                const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug || '');
+                let query = supabase.from('profiles').select('*');
+                if (isUuid) {
+                    query = query.or(`slug.eq.${slug},id.eq.${slug}`);
+                } else {
+                    query = query.eq('slug', slug);
+                }
+
+                const { data: profData, error: profErr } = await query.maybeSingle();
 
                 if (profErr || !profData) throw new Error('Profil bulunamadı');
                 setProfile(profData);
