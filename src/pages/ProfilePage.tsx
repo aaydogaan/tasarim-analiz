@@ -750,8 +750,18 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     {normalizedProfile.isCoreFounder ? 'Kurucu Üye' : selectedRank.title}
                                     {normalizedProfile.founderNumber ? ` · #${normalizedProfile.founderNumber}` : ''}
                                 </p>
+                                <div className="flex items-center justify-center gap-5 mt-2.5 text-sm font-medium">
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="font-bold text-[var(--text-primary)]">{followersCount}</span>
+                                        <span className="text-[var(--text-secondary)] font-normal">Takipçi</span>
+                                    </div>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="font-bold text-[var(--text-primary)]">{followingCount}</span>
+                                        <span className="text-[var(--text-secondary)] font-normal">Takip</span>
+                                    </div>
+                                </div>
                                 {featuredBadgeDef && (
-                                    <span className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black border ${featuredBadgeDef.bg} ${featuredBadgeDef.border} ${featuredBadgeDef.color}`}>
+                                    <span className={`mt-2.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black border ${featuredBadgeDef.bg} ${featuredBadgeDef.border} ${featuredBadgeDef.color}`}>
                                         {renderBadgeIcon(featuredBadgeDef.emoji, "w-3 h-3")} {featuredBadgeDef.label}
                                     </span>
                                 )}
@@ -768,14 +778,6 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                             <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
                                 <p className="text-[10px] font-semibold text-[var(--text-secondary)]">Deneyim</p>
                                 <p className="mt-1 text-sm font-black">{selectedExperience?.label || '-'}</p>
-                            </div>
-                            <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
-                                <p className="text-[10px] font-semibold text-[var(--text-secondary)]">Takipçi</p>
-                                <p className="mt-1 text-xl font-black">{followersCount}</p>
-                            </div>
-                            <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
-                                <p className="text-[10px] font-semibold text-[var(--text-secondary)]">Takip Edilen</p>
-                                <p className="mt-1 text-xl font-black">{followingCount}</p>
                             </div>
                             <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3">
                                 <p className="text-[10px] font-semibold text-[var(--text-secondary)]">Sıradaki Yeri</p>
