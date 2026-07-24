@@ -36,8 +36,8 @@ export default function Footer({
                     width: 100%;
                     border-radius: 32px;
                     overflow: hidden;
-                    gap: 120px;
-                    padding: 112px 148px 0;
+                    gap: 64px;
+                    padding: 64px 80px 0;
                     box-sizing: border-box;
                     z-index: 2;
                 }
@@ -113,7 +113,7 @@ export default function Footer({
 
                 .footer-link-text {
                     font-family: 'Cal Sans', 'Inter', sans-serif;
-                    font-size: 24px;
+                    font-size: 18px;
                     font-weight: 600;
                     line-height: 1.2;
                     color: rgb(255, 255, 255);
@@ -176,7 +176,7 @@ export default function Footer({
                 }
                 .footer-giant-text {
                     font-family: 'Cal Sans', 'Inter', sans-serif;
-                    font-size: clamp(80px, 20vw, 320px);
+                    font-size: clamp(60px, 15vw, 240px);
                     font-weight: 800;
                     line-height: 0.74;
                     letter-spacing: -0.05em;
@@ -190,7 +190,7 @@ export default function Footer({
                 }
 
                 @media (max-width: 1024px) {
-                    .footer-container { padding: 60px 40px 0; gap: 80px; }
+                    .footer-container { padding: 48px 32px 0; gap: 48px; }
                     .footer-menu-row { gap: 32px; }
                 }
 
@@ -237,9 +237,7 @@ export default function Footer({
                             <p className="footer-cat-title">Sosyal Medya</p>
                             <div className="footer-link-list">
                                 {[
-                                    { label: 'Instagram', href: 'https://www.instagram.com/_selmanaydgn/' },
-                                    { label: 'Twitter(X)', href: 'https://x.com' },
-                                    { label: 'LinkedIn', href: 'https://linkedin.com' },
+                                    { label: 'Instagram', href: 'https://instagram.com/revizelesene' },
                                 ].map((item) => (
                                     <a
                                         key={item.label}
