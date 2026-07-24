@@ -311,9 +311,9 @@ export default function PublicProfile() {
                                 
                                 {/* Üst Satır: İsim ve Buton */}
                                 <div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-4 md:gap-6 w-full">
-                                    <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight flex items-center gap-2">
+                                    <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight flex items-center gap-1.5">
                                         <span>{profile.display_name}</span>
-                                        <VerifiedBadge badge={profile.verification_badge} size="md" />
+                                        <VerifiedBadge badge={profile.verification_badge} size="sm" />
                                     </h1>
                                     {currentUser && currentUser.id !== profile.id && (
                                         <div className="flex items-center gap-2 w-full sm:w-auto">
