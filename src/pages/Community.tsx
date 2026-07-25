@@ -606,7 +606,11 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                             return (
                                 <div
                                     key={founder.id}
-                                    onClick={() => onProfileOpen?.(founder)}
+                                    onClick={() => {
+                                        if (founder.id && !founder.id.startsWith('preview-')) {
+                                            navigate(`/${founder.id}`);
+                                        }
+                                    }}
                                     className="relative group cursor-pointer hover:scale-110 hover:z-50 transition-transform duration-300 transform-gpu will-change-transform"
                                     role="button"
                                     tabIndex={0}
@@ -873,13 +877,18 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                                         const isCAuthorCurrent = kullanici && kullanici.id === c.user_id;
                                                                         const cName = c.profiles?.display_name || c.user_name || (isCAuthorCurrent ? (kullanici.user_metadata?.display_name || 'Tasarımcı') : 'Tasarımcı');
                                                                         const cAvatar = (isCAuthorCurrent && kullanici.user_metadata?.avatar_url) ? kullanici.user_metadata.avatar_url : (c.profiles?.avatar_url || c.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${c.user_id}`);
+                                                                        const cSlug = c.profiles?.slug || c.user_id;
 
                                                                         return (
                                                                         <div key={c.id} className="flex gap-3 bg-[var(--bg-secondary)] p-3 rounded-2xl border border-[var(--border-primary)] text-xs">
-                                                                            <img src={cAvatar} className="w-7 h-7 rounded-full object-cover shrink-0" alt="" />
+                                                                            <Link to={`/${cSlug}`}>
+                                                                                <img src={cAvatar} className="w-7 h-7 rounded-full object-cover shrink-0 hover:opacity-80 transition-opacity" alt="" />
+                                                                            </Link>
                                                                             <div className="min-w-0 flex-1">
                                                                                 <div className="flex justify-between items-center mb-0.5">
-                                                                                    <span className="font-bold text-[var(--text-primary)]">{cName}</span>
+                                                                                    <Link to={`/${cSlug}`} className="font-bold text-[var(--text-primary)] hover:text-[var(--color-brand-orange)] transition-colors">
+                                                                                        {cName}
+                                                                                    </Link>
                                                                                     <span className="text-[10px] text-[var(--text-secondary)]">{new Date(c.created_at).toLocaleDateString('tr-TR')}</span>
                                                                                 </div>
                                                                                 <p className="text-[var(--text-secondary)] leading-relaxed">{c.content}</p>

@@ -830,10 +830,14 @@ export function Vitrin() {
                                             ) : (
                                                 modalComments.map((c) => (
                                                     <div key={c.id || c.created_at} className="flex gap-2.5 items-start bg-[var(--bg-secondary)] p-2.5 rounded-xl border border-[var(--border-primary)]">
-                                                        <img src={c.user_avatar} className="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5" alt={c.user_name} />
+                                                        <Link to={`/${c.user_slug || c.user_id}`} onClick={() => setSeciliGorsel(null)}>
+                                                            <img src={c.user_avatar} className="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5 hover:opacity-80 transition-opacity" alt={c.user_name} />
+                                                        </Link>
                                                         <div className="min-w-0 flex-1">
                                                             <div className="flex items-center justify-between gap-1">
-                                                                <span className="text-xs font-bold text-[var(--text-primary)] truncate">{c.user_name}</span>
+                                                                <Link to={`/${c.user_slug || c.user_id}`} onClick={() => setSeciliGorsel(null)} className="text-xs font-bold text-[var(--text-primary)] hover:text-[var(--color-brand-orange)] transition-colors truncate">
+                                                                    {c.user_name}
+                                                                </Link>
                                                                 <span className="text-[9px] text-[var(--text-secondary)] shrink-0">{new Date(c.created_at).toLocaleDateString('tr-TR')}</span>
                                                             </div>
                                                             <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed break-words">{c.content}</p>
