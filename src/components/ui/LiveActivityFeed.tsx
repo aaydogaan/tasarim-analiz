@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Users, Zap, X, Bell, UserPlus, UploadCloud, MessageCircle } from 'lucide-react';
+import { Sparkles, Users, Zap, X, Bell, UserPlus, UploadCloud, MessageCircle, Trophy } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 // Fallback demo activities if DB is empty or loading
