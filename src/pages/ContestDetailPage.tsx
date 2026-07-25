@@ -24,6 +24,9 @@ export default function ContestDetailPage() {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [joining, setJoining] = useState(false);
 
+  const [countdownText, setCountdownText] = useState('');
+  const [isExpired, setIsExpired] = useState(false);
+
   useEffect(() => {
     const fetchContestData = async () => {
       if (!id) return;
@@ -46,9 +49,13 @@ export default function ContestDetailPage() {
           contestData = data;
         }
 
-        if (!contestData) throw new Error('Yarışma bulunamadı');
-        setContest(contestData);
+        if (!contestData) {
+          setContest(null);
+          setLoading(false);
+          return;
+        }
 
+        setContest(contestData);
         const realContestId = contestData.id;
 
         // Check if user joined
@@ -82,7 +89,7 @@ export default function ContestDetailPage() {
           setWinners(winList);
         }
       } catch (err: any) {
-        toast.error('Yarışma verisi yüklenemedi.');
+        console.error('Yarışma verisi yükleme hatası:', err);
       } finally {
         setLoading(false);
       }
@@ -90,6 +97,40 @@ export default function ContestDetailPage() {
 
     fetchContestData();
   }, [id]);
+
+  useEffect(() => {
+    if (!contest?.end_date) return;
+    const update = () => {
+      const end = new Date(contest.end_date).getTime();
+      const now = Date.now();
+      const diff = end - now;
+
+      if (diff <= 0 || contest.status === 'ended') {
+        setIsExpired(true);
+        setCountdownText('Süresi Doldu • Jüri Değerlendirmesinde');
+        return;
+      }
+
+      setIsExpired(false);
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      if (days > 0) {
+        setCountdownText(`${days} gün kaldı`);
+      } else {
+        const h = String(hours).padStart(2, '0');
+        const m = String(minutes).padStart(2, '0');
+        const s = String(seconds).padStart(2, '0');
+        setCountdownText(`⏱️ ${h}:${m}:${s} kaldı`);
+      }
+    };
+
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [contest?.end_date, contest?.status]);
 
   const handleJoinContest = async () => {
     if (!currentUser) {
@@ -142,52 +183,16 @@ export default function ContestDetailPage() {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-6 text-center">
         <h2 className="text-2xl font-bold text-[var(--text-primary)]">Yarışma Bulunamadı</h2>
+        <p className="text-sm text-[var(--text-secondary)] mt-2">Aradığınız yarışma mevcut değil veya kaldırılmış olabilir.</p>
         <button
           onClick={() => navigate('/')}
-          className="mt-6 px-6 py-2.5 bg-zinc-900 text-white font-bold text-sm rounded-xl"
+          className="mt-6 px-6 py-2.5 bg-zinc-900 text-white font-bold text-sm rounded-xl cursor-pointer"
         >
           Ana Sayfaya Dön
         </button>
       </div>
     );
   }
-
-  const [countdownText, setCountdownText] = useState('');
-  const [isExpired, setIsExpired] = useState(false);
-
-  useEffect(() => {
-    if (!contest?.end_date) return;
-    const update = () => {
-      const end = new Date(contest.end_date).getTime();
-      const now = Date.now();
-      const diff = end - now;
-
-      if (diff <= 0 || contest.status === 'ended') {
-        setIsExpired(true);
-        setCountdownText('Süresi Doldu • Jüri Değerlendirmesinde');
-        return;
-      }
-
-      setIsExpired(false);
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-      if (days > 0) {
-        setCountdownText(`${days} gün kaldı`);
-      } else {
-        const h = String(hours).padStart(2, '0');
-        const m = String(minutes).padStart(2, '0');
-        const s = String(seconds).padStart(2, '0');
-        setCountdownText(`⏱️ ${h}:${m}:${s} kaldı`);
-      }
-    };
-
-    update();
-    const interval = setInterval(update, 1000);
-    return () => clearInterval(interval);
-  }, [contest?.end_date, contest?.status]);
 
   const coverImage = (contest?.cover_images && contest?.cover_images[0]) 
     ? contest.cover_images[0] 
