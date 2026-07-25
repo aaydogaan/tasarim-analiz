@@ -5,55 +5,18 @@ import { VerifiedBadge } from '../../components/ui/VerifiedBadge';
 import toast from 'react-hot-toast';
 
 function BadgeSelectDropdown({ value, onChange }: { value: string | null, onChange: (val: string | null) => void }) {
-    const [open, setOpen] = useState(false);
-
-    const options = [
-        { id: null, label: 'Rozet Yok', badge: null },
-        { id: 'gold', label: 'Altın Tik (Kurucu)', badge: 'gold' },
-        { id: 'blue', label: 'Mavi Tik (Tasarımcı)', badge: 'blue' },
-    ];
-
-    const currentOption = options.find(o => o.id === (value || null)) || options[0];
-
     return (
-        <div className="relative">
-            <button
-                type="button"
-                onClick={() => setOpen(!open)}
-                className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-[var(--bg-secondary)] hover:bg-[var(--bg-primary)] border border-[var(--border-primary)] text-xs font-bold text-[var(--text-primary)] transition-all shadow-sm w-44"
+        <div className="flex items-center gap-2">
+            <VerifiedBadge badge={value} size="xs" />
+            <select
+                value={value || ''}
+                onChange={(e) => onChange(e.target.value || null)}
+                className="px-3 py-1.5 rounded-xl bg-[var(--bg-secondary)] hover:bg-[var(--bg-primary)] border border-[var(--border-primary)] text-xs font-bold text-[var(--text-primary)] transition-all shadow-sm cursor-pointer outline-none focus:ring-2 focus:ring-[#FF5500] w-40"
             >
-                <div className="flex items-center gap-1.5 truncate">
-                    {currentOption.badge && <VerifiedBadge badge={currentOption.badge} size="xs" />}
-                    <span>{currentOption.label}</span>
-                </div>
-                <ChevronDown className={`w-3.5 h-3.5 text-[var(--text-secondary)] transition-transform ${open ? 'rotate-180' : ''}`} />
-            </button>
-
-            {open && (
-                <>
-                    <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-                    <div className="absolute left-0 mt-1 w-48 bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-xl shadow-xl z-40 p-1 space-y-1">
-                        {options.map((opt) => (
-                            <button
-                                key={String(opt.id)}
-                                type="button"
-                                onClick={() => {
-                                    onChange(opt.id);
-                                    setOpen(false);
-                                }}
-                                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all text-left ${
-                                    (value || null) === opt.id 
-                                    ? 'bg-[#FF5500]/10 text-[#FF5500]' 
-                                    : 'text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]'
-                                }`}
-                            >
-                                {opt.badge && <VerifiedBadge badge={opt.badge} size="xs" />}
-                                <span>{opt.label}</span>
-                            </button>
-                        ))}
-                    </div>
-                </>
-            )}
+                <option value="">Rozet Yok</option>
+                <option value="gold">🥇 Altın Tik (Kurucu)</option>
+                <option value="blue">🔹 Mavi Tik (Tasarımcı)</option>
+            </select>
         </div>
     );
 }
