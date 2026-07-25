@@ -31,6 +31,7 @@ import Kosullar from "./pages/Kosullar";
 import { generateUniqueSlug } from "./lib/communityProfile";
 import AuthPage from "./pages/AuthPage";
 import CerezPolitikasi from "./pages/CerezPolitikasi";
+import ContestDetailPage from "./pages/ContestDetailPage";
 
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -1984,6 +1985,7 @@ export default function App() {
         <Route path="/kosullar" element={<Kosullar />} />
         <Route path="/cerez-politikasi" element={<CerezPolitikasi />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/yarisma/:id" element={<ContestDetailPage />} />
 
         {/* Admin Routes */}
         <Route path="/mutfak" element={<AdminProtectedRoute authYukleniyor={authYukleniyor} kullanici={kullanici} kullaniciProfile={kullaniciProfile}><AdminLayout /></AdminProtectedRoute>}>

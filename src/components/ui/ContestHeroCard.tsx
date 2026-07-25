@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Crown, Sparkles, Check, Mail, Users, Trophy } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
@@ -29,6 +30,7 @@ export const ContestHeroCard: React.FC<ContestHeroCardProps> = ({
   onOpenDetail,
   onOpenSubmit,
 }) => {
+  const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState<{ text: string; isExpired: boolean }>({ text: '', isExpired: false });
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterLoading, setNewsletterLoading] = useState(false);
@@ -150,15 +152,15 @@ export const ContestHeroCard: React.FC<ContestHeroCardProps> = ({
           {!timeLeft.isExpired ? (
             <div className="w-full space-y-3 pt-1">
               <button
-                onClick={() => onOpenSubmit(contest)}
+                onClick={() => navigate(`/yarisma/${contest.id}`)}
                 className="w-full py-3.5 px-6 rounded-2xl bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 font-bold text-sm sm:text-base transition-all shadow-md active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-4 h-4 text-[#FF5500]" />
                 Yarışmaya Katıl
               </button>
 
               <button
-                onClick={() => onOpenDetail(contest)}
+                onClick={() => navigate(`/yarisma/${contest.id}`)}
                 className="w-full py-3.5 px-6 rounded-2xl bg-zinc-100 hover:bg-zinc-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-bold text-sm sm:text-base transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 Daha fazla bilgi al

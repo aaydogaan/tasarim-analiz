@@ -46,6 +46,7 @@ import toast from 'react-hot-toast';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { supabase } from '../lib/supabase';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
+import { ContestUploadModal } from '../components/ui/ContestUploadModal';
 import {
     buildAvatarUrl,
     BADGE_DEFINITIONS,
@@ -132,6 +133,32 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
     const [savingBadge, setSavingBadge] = useState(false);
     const [showBadgePicker, setShowBadgePicker] = useState(false);
     const [badgesExpanded, setBadgesExpanded] = useState(false);
+
+    // Contest Entries State
+    const [myContestEntries, setMyContestEntries] = useState<any[]>([]);
+    const [selectedUploadEntry, setSelectedUploadEntry] = useState<any | null>(null);
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
+    const fetchMyContestEntries = async () => {
+        if (!normalizedProfile.id || normalizedProfile.id === 'anonymous') return;
+        try {
+            const { data } = await supabase
+                .from('contest_entries')
+                .select(`
+                    *,
+                    contests:contest_id(title, end_date, reward_title, status)
+                `)
+                .eq('user_id', normalizedProfile.id)
+                .order('created_at', { ascending: false });
+            setMyContestEntries(data || []);
+        } catch (err) {
+            console.error('Fetch contest entries error:', err);
+        }
+    };
+
+    useEffect(() => {
+        fetchMyContestEntries();
+    }, [normalizedProfile.id]);
 
     // XP & Follow States
     const [xpData, setXpData] = useState({ posts: 0, comments: 0, analizler: 0, challenges: 0, total: 100 });
@@ -1011,6 +1038,93 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                 </div>
                             </div>
                         </div>
+
+                        {/* Katıldığım Yarışmalar Kartı */}
+                        {myContestEntries.length > 0 && (
+                            <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-5 shadow-sm space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-sm font-black tracking-tight flex items-center gap-2">
+                                        <Trophy className="w-4.5 h-4.5 text-[#FF5500]" />
+                                        Katıldığım Yarışmalar ({myContestEntries.length})
+                                    </h2>
+                                </div>
+
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    {myContestEntries.map((entry) => {
+                                        const contest = entry.contests;
+                                        const isExpired = contest?.end_date ? new Date(contest.end_date).getTime() <= Date.now() : false;
+                                        const hasDesign = Boolean(entry.design_url || entry.post_id);
+
+                                        return (
+                                            <div key={entry.id} className="p-4 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] space-y-3">
+                                                <div className="flex items-start justify-between">
+                                                    <div>
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF5500]">
+                                                            Yarışma
+                                                        </span>
+                                                        <h3 className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)]">
+                                                            {contest?.title || 'Tasarım Yarışması'}
+                                                        </h3>
+                                                    </div>
+
+                                                    {entry.is_winner ? (
+                                                        <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-extrabold">
+                                                            🏆 {entry.winner_rank ? `${entry.winner_rank}.` : 'Kazanan'}
+                                                        </span>
+                                                    ) : hasDesign ? (
+                                                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                                                            ✓ Gönderildi
+                                                        </span>
+                                                    ) : (
+                                                        <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 text-[10px] font-bold">
+                                                            Tasarım Bekleniyor
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {entry.design_url && (
+                                                    <div className="h-32 rounded-xl overflow-hidden bg-black/5">
+                                                        <img src={entry.design_url} alt="Submitted design" className="w-full h-full object-cover" />
+                                                    </div>
+                                                )}
+
+                                                <div className="text-[11px] text-[var(--text-secondary)] space-y-1">
+                                                    <div className="flex justify-between">
+                                                        <span>Ödül:</span>
+                                                        <strong className="text-[var(--text-primary)]">{contest?.reward_title}</strong>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span>Bitiş:</span>
+                                                        <strong>{new Date(contest?.end_date).toLocaleDateString('tr-TR')}</strong>
+                                                    </div>
+                                                </div>
+
+                                                {isOwnProfile && !isExpired && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedUploadEntry(entry);
+                                                            setIsUploadModalOpen(true);
+                                                        }}
+                                                        className="w-full py-2 bg-[#FF5500] hover:bg-[#e64d00] text-white font-bold text-xs rounded-xl shadow transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                                                    >
+                                                        <UploadCloud className="w-3.5 h-3.5" />
+                                                        {hasDesign ? 'Tasarımı Güncelle / Yükle' : 'PC\'den Tasarım Yükle'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Contest Upload Modal */}
+                        <ContestUploadModal
+                            isOpen={isUploadModalOpen}
+                            onClose={() => setIsUploadModalOpen(false)}
+                            entry={selectedUploadEntry}
+                            onSuccess={fetchMyContestEntries}
+                        />
 
                         {/* Paylaşılan Tasarımlar & Silme Alanı */}
                         <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-5 shadow-sm space-y-4">
