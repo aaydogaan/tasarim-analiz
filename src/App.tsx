@@ -32,6 +32,7 @@ import { generateUniqueSlug } from "./lib/communityProfile";
 import AuthPage from "./pages/AuthPage";
 import CerezPolitikasi from "./pages/CerezPolitikasi";
 import ContestDetailPage from "./pages/ContestDetailPage";
+import ContestAnnouncementBar from "./components/ui/ContestAnnouncementBar";
 
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -933,11 +934,34 @@ export default function App() {
     setImageUrl(""); setUploadMod('dosya');
   };
 
-  const goHome = () => {
-    navigate('/');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  // Check for winner / evaluation notifications
+  useEffect(() => {
+    if (!kullanici) return;
+    const checkWinnerNotifications = async () => {
+      try {
+        const { data } = await supabase
+          .from('user_notifications')
+          .select('*')
+          .eq('user_id', kullanici.id)
+          .eq('read', false)
+          .order('created_at', { ascending: false });
 
+        if (data && data.length > 0) {
+          data.forEach((n) => {
+            if (n.type === 'winner') {
+              toast.success(`${n.title}\n\n${n.message}`, { duration: 9000, icon: '🏆' });
+            } else {
+              toast.success(`${n.title}\n\n${n.message}`, { duration: 6000, icon: '⭐' });
+            }
+            supabase.from('user_notifications').update({ read: true }).eq('id', n.id);
+          });
+        }
+      } catch (err) {
+        console.error('Check winner notification error:', err);
+      }
+    };
+    checkWinnerNotifications();
+  }, [kullanici]);
 
   return (
     <div className="min-h-screen selection:bg-[#ff4d00] selection:text-white font-sans flex flex-col justify-between overflow-x-hidden" style={{ scrollBehavior: 'smooth' }}>
@@ -949,12 +973,15 @@ export default function App() {
       )}
 
       {!isMutfak && gorunum !== 'auth' && (
-        <Header
-          kullanici={kullanici}
-          onStatsClick={statsAc}
-          onLogoutClick={cikisYap}
-          onAuthClick={() => navigate('/auth?mode=kayit')}
-        />
+        <>
+          <ContestAnnouncementBar />
+          <Header
+            kullanici={kullanici}
+            onStatsClick={statsAc}
+            onLogoutClick={cikisYap}
+            onAuthClick={() => navigate('/auth?mode=kayit')}
+          />
+        </>
       )}
 
       <Routes>

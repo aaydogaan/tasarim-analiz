@@ -336,7 +336,18 @@ export default function Contests() {
         })
         .eq('id', selectedEntryForEvaluation.id);
 
-      if (error) throw error;
+      // Send notification to user
+      try {
+        await supabase.from('user_notifications').insert({
+          user_id: selectedEntryForEvaluation.user_id,
+          title: selectedWinnerRank 
+            ? `🎉 Tebrikler! Yarışmada ${selectedWinnerRank}.lik Kazandınız!` 
+            : `⭐ Yarışma Tasarımınız Puanlandı!`,
+          message: `${selectedEntryForEvaluation.contests?.title || 'Tasarım'} yarışmasında jüri puanınız: ${totalScore}/100. ${selectedWinnerRank ? `Derece: ${selectedWinnerRank}. Birinci!` : ''} ${juryNote ? `Jüri Notu: "${juryNote}"` : ''}`,
+          type: selectedWinnerRank ? 'winner' : 'evaluation',
+          link: `/yarisma/${selectedEntryForEvaluation.contests?.slug || selectedEntryForEvaluation.contest_id}`,
+        });
+      } catch (_) {}
 
       const designerName = selectedEntryForEvaluation.profiles?.display_name || 'Tasarımcı';
       

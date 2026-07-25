@@ -1056,8 +1056,25 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                         const hasDesign = Boolean(entry.design_url || entry.post_id);
 
                                         return (
-                                            <div key={entry.id} className="p-4 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] space-y-3">
-                                                <div className="flex items-start justify-between">
+                                            <div key={entry.id} className={`p-4 rounded-xl border space-y-3.5 ${
+                                                entry.is_winner 
+                                                    ? 'border-amber-400 bg-amber-500/5 ring-2 ring-amber-400/30' 
+                                                    : 'border-[var(--border-primary)] bg-[var(--bg-secondary)]'
+                                            }`}>
+                                                {/* Celebratory Winner Banner */}
+                                                {entry.is_winner && (
+                                                    <div className="p-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white space-y-1 shadow-sm">
+                                                        <div className="flex items-center gap-1.5 font-black text-xs sm:text-sm">
+                                                            <Trophy className="w-4 h-4 animate-bounce shrink-0" />
+                                                            <span>🎉 TEBRİKLER! {entry.winner_rank ? `${entry.winner_rank}.lik` : 'Kazanan'} Derecesi Kazandınız!</span>
+                                                        </div>
+                                                        <p className="text-[11px] text-amber-100 font-medium leading-tight">
+                                                            Tasarımınız jüri tarafından dereceye layık görüldü. Ödülünüz için tebrik ederiz!
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                <div className="flex items-start justify-between gap-2">
                                                     <div>
                                                         <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF5500]">
                                                             Yarışma
@@ -1068,23 +1085,43 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                                     </div>
 
                                                     {entry.is_winner ? (
-                                                        <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-extrabold">
-                                                            🏆 {entry.winner_rank ? `${entry.winner_rank}.` : 'Kazanan'}
+                                                        <span className="px-2.5 py-1 rounded-full bg-amber-500 text-white text-[10px] font-black shadow-xs shrink-0">
+                                                            🏆 {entry.winner_rank ? `${entry.winner_rank}. Derece` : 'Kazanan'}
                                                         </span>
                                                     ) : hasDesign ? (
-                                                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                                                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold shrink-0">
                                                             ✓ Gönderildi
                                                         </span>
                                                     ) : (
-                                                        <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 text-[10px] font-bold">
+                                                        <span className="px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-950/40 text-orange-800 dark:text-orange-300 text-[10px] font-bold shrink-0">
                                                             Tasarım Bekleniyor
                                                         </span>
                                                     )}
                                                 </div>
 
                                                 {entry.design_url && (
-                                                    <div className="h-32 rounded-xl overflow-hidden bg-black/5">
+                                                    <div className="h-36 rounded-xl overflow-hidden bg-black/5 border border-[var(--border-primary)]">
                                                         <img src={entry.design_url} alt="Submitted design" className="w-full h-full object-cover" />
+                                                    </div>
+                                                )}
+
+                                                {/* Jüri Skoru ve Notu */}
+                                                {entry.jury_score !== null && entry.jury_score !== undefined && (
+                                                    <div className="p-3 bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-xl space-y-1.5 text-xs">
+                                                        <div className="flex items-center justify-between font-extrabold">
+                                                            <span className="text-[var(--text-secondary)] flex items-center gap-1">
+                                                                ⭐ Jüri Değerlendirmesi:
+                                                            </span>
+                                                            <span className="text-[#FF5500] font-black text-sm">
+                                                                {entry.jury_score} / 100 Puan
+                                                            </span>
+                                                        </div>
+
+                                                        {entry.entry_note && (
+                                                            <p className="text-[11px] text-[var(--text-secondary)] italic border-t border-[var(--border-primary)] pt-1.5 mt-1">
+                                                                💬 <strong>Jüri Notu:</strong> "{entry.entry_note}"
+                                                            </p>
+                                                        )}
                                                     </div>
                                                 )}
 
