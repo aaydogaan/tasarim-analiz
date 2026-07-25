@@ -282,6 +282,7 @@ export function normalizeCommunityProfile(authData: any, profile: any): Normaliz
         experienceId: profile?.experience_level || '0-1',
         createdAt: profile?.created_at,
         isCoreFounder: isCore,
-        coverUrl: profile?.cover_url || ''
+        coverUrl: profile?.cover_url || '',
+        verificationBadge: profile?.verification_badge || null
     };
 }

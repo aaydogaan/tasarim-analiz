@@ -379,16 +379,30 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                 setFounderSource('preview');
             }
             
-            // Liderlik Tablosu için XP View'ını çek (Sadece XP > 0 olan gerçek aktif kullanıcılar)
-            const { data: xpData, error: xpError } = await supabase
-                .from('user_xp_stats')
-                .select('*')
-                .gt('total_xp', 0)
-                .order('total_xp', { ascending: false })
-                .limit(5);
-                
-            if (!xpError && xpData) {
-                setLeaderboard(xpData);
+            // Sadece gerçekten en az 1 analiz yapmış aktif kullanıcıları Liderlik Tablosuna getir
+            const { data: activeAnalizler } = await supabase.from('analizler').select('user_id');
+            const activeUserIds = [...new Set((activeAnalizler || []).map(a => a.user_id).filter(Boolean))];
+
+            if (activeUserIds.length > 0) {
+                const { data: xpData } = await supabase
+                    .from('user_xp_stats')
+                    .select('*')
+                    .in('id', activeUserIds)
+                    .order('total_xp', { ascending: false })
+                    .limit(5);
+                    
+                if (xpData && xpData.length > 0) {
+                    const leaderIds = xpData.map(u => u.id);
+                    const { data: leaderProfiles } = await supabase
+                        .from('profiles')
+                        .select('id, verification_badge')
+                        .in('id', leaderIds);
+
+                    const badgeMap = Object.fromEntries((leaderProfiles || []).map(p => [p.id, p.verification_badge]));
+                    setLeaderboard(xpData.map(u => ({ ...u, verification_badge: badgeMap[u.id] || null })));
+                } else {
+                    setLeaderboard([]);
+                }
             } else {
                 setLeaderboard([]);
             }
