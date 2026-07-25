@@ -974,13 +974,25 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                         return (
                                             <div key={user.id} onClick={() => navigate(`/${user.slug || user.id}`)} className="flex items-center gap-3 group cursor-pointer p-2 -mx-2 rounded-xl hover:bg-[var(--bg-secondary)] transition-colors">
                                                 <div className="relative flex-shrink-0">
-                                                    <div className="w-10 h-10 rounded-full border border-[var(--border-primary)] relative z-10 overflow-hidden shadow-sm">
-                                                        <img
-                                                            src={isLeaderCurrent && kullanici?.user_metadata?.avatar_url ? kullanici.user_metadata.avatar_url : (user.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`)}
-                                                            className="w-full h-full object-cover"
-                                                            alt="Avatar"
-                                                        />
-                                                    </div>
+                                                    {user.verification_badge === 'gold' ? (
+                                                        <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-br from-orange-300 via-orange-500 to-amber-500 shadow-[0_0_10px_rgba(255,120,0,0.4)]">
+                                                            <div className="w-full h-full rounded-full overflow-hidden border border-[var(--card-bg)]">
+                                                                <img
+                                                                    src={isLeaderCurrent && kullanici?.user_metadata?.avatar_url ? kullanici.user_metadata.avatar_url : (user.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`)}
+                                                                    className="w-full h-full object-cover"
+                                                                    alt="Avatar"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="w-10 h-10 rounded-full border border-[var(--border-primary)] relative z-10 overflow-hidden shadow-sm">
+                                                            <img
+                                                                src={isLeaderCurrent && kullanici?.user_metadata?.avatar_url ? kullanici.user_metadata.avatar_url : (user.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`)}
+                                                                className="w-full h-full object-cover"
+                                                                alt="Avatar"
+                                                            />
+                                                        </div>
+                                                    )}
                                                     {i === 0 && (
                                                         <Crown className="absolute -top-2.5 -right-2 text-amber-500 w-5 h-5 drop-shadow-sm z-20" />
                                                     )}
@@ -990,8 +1002,11 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                         <span>{isLeaderCurrent ? (kullanici?.user_metadata?.display_name || kullanici?.user_metadata?.full_name || user.display_name || 'Tasarımcı') : (user.display_name || 'Tasarımcı')}</span>
                                                         <VerifiedBadge badge={user.verification_badge} size="xs" />
                                                     </p>
-                                                    <p className="text-[11px] text-[var(--text-secondary)] font-normal truncate">
-                                                        {RANK_DISPLAY_MAP[user.design_rank || ''] || user.design_rank || 'Tasarımcı'}
+                                                    <p className="text-[11px] text-[var(--text-secondary)] font-normal truncate flex items-center gap-1">
+                                                        <span>{RANK_DISPLAY_MAP[user.design_rank || ''] || user.design_rank || 'Tasarımcı'}</span>
+                                                        {user.verification_badge === 'gold' && (
+                                                            <span className="inline-flex items-center text-[9px] font-black text-orange-500 bg-orange-50 px-1 py-0.5 rounded-full border border-orange-200 uppercase tracking-wide">✦ Kurucu</span>
+                                                        )}
                                                     </p>
                                                 </div>
                                                 <div className="flex flex-col items-end flex-shrink-0">

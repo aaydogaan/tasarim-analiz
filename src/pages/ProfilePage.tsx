@@ -754,18 +754,28 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
 
                         {/* Avatar + Name centered */}
                         <div className="flex flex-col items-center text-center gap-3 pb-5 px-5 border-b border-[var(--border-primary)] relative -mt-10">
-                            <div className={`relative h-20 w-20 shrink-0 rounded-full p-[3px] ${normalizedProfile.isCoreFounder ? 'bg-gradient-to-br from-orange-300 via-[var(--color-brand-orange)] to-amber-500' : 'bg-[var(--border-primary)]'}`}>
-                                <div className="h-full w-full rounded-full border-2 border-[var(--card-bg)] bg-[var(--bg-secondary)] overflow-hidden"><img src={profileData.avatarUrl} className="h-full w-full object-cover" alt="Profil fotografi" /></div>
-                                {featuredBadgeDef ? (
-                                    <div title={featuredBadgeDef.label} className={`absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-4 border-[var(--card-bg)] ${featuredBadgeDef.bg} ${featuredBadgeDef.color} shadow-lg`}>
-                                        {renderBadgeIcon(featuredBadgeDef.emoji, "w-3.5 h-3.5")}
+                            {/* Turuncu ring — gold badge (Kurucu) olan herkes için */}
+                            {(() => {
+                                const isFounder = ((profileRecord as any)?.verification_badge || (publicProfile as any)?.verification_badge) === 'gold';
+                                return (
+                                    <div className={`relative h-20 w-20 shrink-0 rounded-full p-[3px] ${
+                                        isFounder
+                                            ? 'bg-gradient-to-br from-orange-300 via-[var(--color-brand-orange)] to-amber-500 shadow-[0_0_20px_rgba(255,120,0,0.5)]'
+                                            : 'bg-[var(--border-primary)]'
+                                    }`}>
+                                        <div className="h-full w-full rounded-full border-2 border-[var(--card-bg)] bg-[var(--bg-secondary)] overflow-hidden"><img src={profileData.avatarUrl} className="h-full w-full object-cover" alt="Profil fotografi" /></div>
+                                        {featuredBadgeDef ? (
+                                            <div title={featuredBadgeDef.label} className={`absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-4 border-[var(--card-bg)] ${featuredBadgeDef.bg} ${featuredBadgeDef.color} shadow-lg`}>
+                                                {renderBadgeIcon(featuredBadgeDef.emoji, "w-3.5 h-3.5")}
+                                            </div>
+                                        ) : (
+                                            <div className="absolute -bottom-1 -right-1 rounded-full border-4 border-[var(--card-bg)] bg-[var(--color-brand-orange)] p-1.5 shadow-lg">
+                                                <Sparkles className="h-3.5 w-3.5 text-white" />
+                                            </div>
+                                        )}
                                     </div>
-                                ) : (
-                                    <div className="absolute -bottom-1 -right-1 rounded-full border-4 border-[var(--card-bg)] bg-[var(--color-brand-orange)] p-1.5 shadow-lg">
-                                        <Sparkles className="h-3.5 w-3.5 text-white" />
-                                    </div>
-                                )}
-                            </div>
+                                );
+                            })()}
                             <div className="min-w-0 w-full">
                                 {isEditing ? (
                                     <input
@@ -780,9 +790,14 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                         <VerifiedBadge badge={(profileRecord as any)?.verification_badge || (publicProfile as any)?.verification_badge} size="sm" />
                                     </h1>
                                 )}
-                                <p className="mt-1 text-xs font-semibold text-[var(--text-secondary)]">
-                                    {normalizedProfile.isCoreFounder ? 'Kurucu Üye' : selectedRank.title}
-                                    {normalizedProfile.founderNumber ? ` · #${normalizedProfile.founderNumber}` : ''}
+                                <p className="mt-1 text-xs font-semibold text-[var(--text-secondary)] flex items-center justify-center gap-1.5 flex-wrap">
+                                    <span>{normalizedProfile.isCoreFounder ? 'Kurucu Üye' : selectedRank.title}</span>
+                                    {((profileRecord as any)?.verification_badge || (publicProfile as any)?.verification_badge) === 'gold' && (
+                                        <span className="inline-flex items-center gap-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[9px] font-black px-1.5 py-0.5 rounded-full border border-orange-200 dark:border-orange-700 uppercase tracking-wider">
+                                            ✦ Kurucu
+                                        </span>
+                                    )}
+                                    {normalizedProfile.founderNumber ? <span className="text-[var(--text-secondary)] font-semibold">#{normalizedProfile.founderNumber}</span> : null}
                                 </p>
                                 <div className="flex items-center justify-center gap-5 mt-2.5 text-sm font-medium">
                                     <button

@@ -330,15 +330,27 @@ export function Leaderboard() {
       <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-5 hover:shadow-md transition-shadow">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img
-              src={user.avatar}
-              alt={user.name}
-              className={`w-14 h-14 rounded-full object-cover ${avatarBorder}`}
-            />
+            {user.verificationBadge === 'gold' ? (
+              <div className="w-14 h-14 rounded-full p-[3px] bg-gradient-to-br from-orange-300 via-orange-500 to-amber-500 shadow-[0_0_14px_rgba(255,120,0,0.4)]">
+                <div className="w-full h-full rounded-full overflow-hidden border-2 border-white">
+                  <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                </div>
+              </div>
+            ) : (
+              <img
+                src={user.avatar}
+                alt={user.name}
+                className={`w-14 h-14 rounded-full object-cover ${avatarBorder}`}
+              />
+            )}
             <div>
               <h3 className="font-bold text-slate-900 text-base flex items-center gap-1.5">
                 <span>{user.name}</span>
+                <VerifiedBadge badge={user.verificationBadge} size="xs" />
                 {user.isCurrentUser && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">SEN</span>}
+                {user.verificationBadge === 'gold' && (
+                  <span className="text-[9px] font-black text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded-full border border-orange-200 uppercase tracking-wide">✦ Kurucu</span>
+                )}
               </h3>
               <div className="mt-0.5">
                 <span className="text-lg font-extrabold text-slate-900">{scoreValue} {sortOption === 'community' ? '' : 'Puan'}</span>
@@ -636,16 +648,27 @@ export function Leaderboard() {
                           {/* Avatar + name + ID */}
                           <td className="py-4 px-6 whitespace-nowrap">
                             <Link to={`/${user.slug}`} className="flex items-center gap-3 group/profile">
-                              <img
-                                src={user.avatar}
-                                alt={user.name}
-                                className="w-10 h-10 rounded-full object-cover border border-slate-200 group-hover/profile:border-blue-500 transition-colors"
-                              />
+                              {user.verificationBadge === 'gold' ? (
+                                <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-br from-orange-300 via-orange-500 to-amber-500 shadow-[0_0_10px_rgba(255,120,0,0.4)]">
+                                  <div className="w-full h-full rounded-full overflow-hidden border border-white">
+                                    <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                                  </div>
+                                </div>
+                              ) : (
+                                <img
+                                  src={user.avatar}
+                                  alt={user.name}
+                                  className="w-10 h-10 rounded-full object-cover border border-slate-200 group-hover/profile:border-blue-500 transition-colors"
+                                />
+                              )}
                               <div>
                                 <p className="font-bold text-slate-900 text-sm group-hover/profile:text-blue-600 transition-colors flex items-center gap-1.5">
                                   <span>{user.name}</span>
                                   <VerifiedBadge badge={user.verificationBadge} size="xs" />
                                   {user.isCurrentUser && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">SEN</span>}
+                                  {user.verificationBadge === 'gold' && (
+                                    <span className="text-[9px] font-black text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded-full border border-orange-200 uppercase tracking-wide">✦ Kurucu</span>
+                                  )}
                                 </p>
                                 <p className="text-[10px] font-medium text-slate-400">{user.userIdTag}</p>
                               </div>

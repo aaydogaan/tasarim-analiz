@@ -308,11 +308,23 @@ export default function PublicProfile() {
                         <div className="flex flex-col md:flex-row gap-6 md:gap-8 relative mb-6">
                             {/* Avatar */}
                             <div className="relative -mt-16 md:-mt-20 shrink-0 self-center md:self-start">
-                                <img 
-                                    src={profile.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.id}`} 
-                                    alt={profile.display_name} 
-                                    className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-sm object-cover bg-white"
-                                />
+                                {profile.verification_badge === 'gold' ? (
+                                    <div className="p-[3px] rounded-full bg-gradient-to-br from-orange-300 via-orange-500 to-amber-500 shadow-[0_0_24px_rgba(255,120,0,0.55)]">
+                                        <div className="p-[3px] rounded-full bg-white">
+                                            <img 
+                                                src={profile.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.id}`} 
+                                                alt={profile.display_name} 
+                                                className="w-28 h-28 md:w-36 md:h-36 rounded-full object-cover"
+                                            />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <img 
+                                        src={profile.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.id}`} 
+                                        alt={profile.display_name} 
+                                        className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-sm object-cover bg-white"
+                                    />
+                                )}
                                 <div className="absolute bottom-2 right-0 bg-gray-900 text-white text-[10px] font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-sm border-2 border-white uppercase tracking-wider">
                                     Level {userLevel}
                                 </div>
@@ -362,6 +374,11 @@ export default function PublicProfile() {
                                     <span className="flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-lg text-sm font-semibold">
                                         <Award className="w-4 h-4" /> {levelTitle}
                                     </span>
+                                    {profile.verification_badge === 'gold' && (
+                                        <span className="inline-flex items-center gap-1 bg-orange-100 text-orange-600 text-xs font-black px-2.5 py-1 rounded-full border border-orange-200 uppercase tracking-wider">
+                                            ✦ Kurucu
+                                        </span>
+                                    )}
                                     <div className="flex items-center gap-6">
                                         <button
                                             type="button"
