@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { Trophy, Calendar, Link as LinkIcon, Briefcase, Award, Star, Activity, ArrowLeft, X, Bell, BellOff, Users } from 'lucide-react';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
+import FollowModal from '../components/ui/FollowModal';
 import { getDesignRankById } from '../lib/communityProfile';
 
 const BehanceIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
@@ -52,6 +53,8 @@ export default function PublicProfile() {
     const [notifyPosts, setNotifyPosts] = useState(true);
     const [mutualFollowers, setMutualFollowers] = useState<any[]>([]);
     const [followLoading, setFollowLoading] = useState(false);
+    const [isFollowModalOpen, setIsFollowModalOpen] = useState(false);
+    const [followModalTab, setFollowModalTab] = useState<'followers' | 'following'>('followers');
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -354,29 +357,40 @@ export default function PublicProfile() {
                                     )}
                                 </div>
 
-                                {/* Alt Satır: Rozet ve İstatistikler */}
+                                 {/* Alt Satır: Rozet ve İstatistikler */}
                                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-gray-500 font-medium">
-                                    <span className="flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-lg text-sm">
+                                    <span className="flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-lg text-sm font-semibold">
                                         <Award className="w-4 h-4" /> {levelTitle}
                                     </span>
                                     <div className="flex items-center gap-6">
-                                        <div className="flex items-baseline gap-1.5">
-                                            <span className="text-xl font-bold text-gray-900">{followersCount}</span>
-                                            <span className="text-sm">takipçi</span>
-                                        </div>
-                                        <div className="flex items-baseline gap-1.5">
-                                            <span className="text-xl font-bold text-gray-900">{followingCount}</span>
-                                            <span className="text-sm">takip</span>
-                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setFollowModalTab('followers'); setIsFollowModalOpen(true); }}
+                                            className="flex items-baseline gap-1.5 hover:text-orange-600 transition-colors group cursor-pointer"
+                                        >
+                                            <span className="text-xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors">{followersCount}</span>
+                                            <span className="text-sm font-medium">takipçi</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setFollowModalTab('following'); setIsFollowModalOpen(true); }}
+                                            className="flex items-baseline gap-1.5 hover:text-orange-600 transition-colors group cursor-pointer"
+                                        >
+                                            <span className="text-xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors">{followingCount}</span>
+                                            <span className="text-sm font-medium">takip</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
+                        {/* Biyografi Alanı */}
                         {profile.bio && (
-                            <p className="text-gray-600 text-sm md:text-base leading-relaxed mb-4 max-w-2xl font-medium text-center md:text-left">
-                                {profile.bio}
-                            </p>
+                            <div className="mb-6 bg-gray-50/80 px-4 py-3 rounded-2xl border border-gray-200/60 max-w-2xl">
+                                <p className="text-gray-700 text-sm md:text-base leading-relaxed font-medium text-center md:text-left">
+                                    ✨ {profile.bio}
+                                </p>
+                            </div>
                         )}
 
                         {/* Mutual Followers Social Proof */}
@@ -545,6 +559,21 @@ export default function PublicProfile() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* FollowModal */}
+            <FollowModal
+                isOpen={isFollowModalOpen}
+                onClose={() => setIsFollowModalOpen(false)}
+                targetUserId={profile.id}
+                targetUserName={profile.display_name}
+                initialTab={followModalTab}
+                currentUser={currentUser}
+                onFollowChange={() => {
+                    // Refresh followers/following counts on action
+                    supabase.from('user_follows').select('id', { count: 'exact' }).eq('following_id', profile.id).then(res => setFollowersCount(res.count || 0));
+                    supabase.from('user_follows').select('id', { count: 'exact' }).eq('follower_id', profile.id).then(res => setFollowingCount(res.count || 0));
+                }}
+            />
         </div>
     );
 }

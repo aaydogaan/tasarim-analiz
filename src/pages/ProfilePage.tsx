@@ -46,6 +46,7 @@ import toast from 'react-hot-toast';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { supabase } from '../lib/supabase';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
+import FollowModal from '../components/ui/FollowModal';
 import { ContestUploadModal } from '../components/ui/ContestUploadModal';
 import {
     buildAvatarUrl,
@@ -144,6 +145,8 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
     const [xpLoading, setXpLoading] = useState(false);
     const [followersCount, setFollowersCount] = useState(0);
     const [followingCount, setFollowingCount] = useState(0);
+    const [isFollowModalOpen, setIsFollowModalOpen] = useState(false);
+    const [followModalTab, setFollowModalTab] = useState<'followers' | 'following'>('followers');
 
     // Password Change Modal States
     const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -782,15 +785,40 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     {normalizedProfile.founderNumber ? ` · #${normalizedProfile.founderNumber}` : ''}
                                 </p>
                                 <div className="flex items-center justify-center gap-5 mt-2.5 text-sm font-medium">
-                                    <div className="flex items-baseline gap-1">
-                                        <span className="font-bold text-[var(--text-primary)]">{followersCount}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setFollowModalTab('followers'); setIsFollowModalOpen(true); }}
+                                        className="flex items-baseline gap-1 hover:text-[var(--color-brand-orange)] transition-colors group cursor-pointer"
+                                    >
+                                        <span className="font-bold text-[var(--text-primary)] group-hover:text-[var(--color-brand-orange)] transition-colors">{followersCount}</span>
                                         <span className="text-[var(--text-secondary)] font-normal">Takipçi</span>
-                                    </div>
-                                    <div className="flex items-baseline gap-1">
-                                        <span className="font-bold text-[var(--text-primary)]">{followingCount}</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setFollowModalTab('following'); setIsFollowModalOpen(true); }}
+                                        className="flex items-baseline gap-1 hover:text-[var(--color-brand-orange)] transition-colors group cursor-pointer"
+                                    >
+                                        <span className="font-bold text-[var(--text-primary)] group-hover:text-[var(--color-brand-orange)] transition-colors">{followingCount}</span>
                                         <span className="text-[var(--text-secondary)] font-normal">Takip</span>
-                                    </div>
+                                    </button>
                                 </div>
+
+                                {isEditing ? (
+                                    <div className="mt-3 w-full max-w-md mx-auto">
+                                        <label className="text-[10px] font-bold text-[var(--text-secondary)] block mb-1">Biyografi (Hakkımda)</label>
+                                        <textarea
+                                            rows={3}
+                                            value={profileData.bio}
+                                            onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
+                                            placeholder="Kendiniz ve tasarım anlayışınız hakkında kısa bir biyografi yazın..."
+                                            className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-xs font-medium outline-none focus:border-[var(--color-brand-orange)] text-center resize-none"
+                                        />
+                                    </div>
+                                ) : profileData.bio ? (
+                                    <p className="mt-3 text-xs md:text-sm text-[var(--text-secondary)] font-medium bg-[var(--bg-secondary)] px-3.5 py-2.5 rounded-xl border border-[var(--border-primary)] max-w-md mx-auto leading-relaxed">
+                                        ✨ {profileData.bio}
+                                    </p>
+                                ) : null}
                                 {featuredBadgeDef && (
                                     <span className={`mt-2.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black border ${featuredBadgeDef.bg} ${featuredBadgeDef.border} ${featuredBadgeDef.color}`}>
                                         {renderBadgeIcon(featuredBadgeDef.emoji, "w-3 h-3")} {featuredBadgeDef.label}
@@ -1488,6 +1516,20 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                         </div>
                     )}
                 </AnimatePresence>
+
+                {/* FollowModal */}
+                <FollowModal
+                    isOpen={isFollowModalOpen}
+                    onClose={() => setIsFollowModalOpen(false)}
+                    targetUserId={normalizedProfile.id}
+                    targetUserName={normalizedProfile.displayName}
+                    initialTab={followModalTab}
+                    currentUser={kullanici}
+                    onFollowChange={() => {
+                        supabase.from('user_follows').select('id', { count: 'exact', head: true }).eq('following_id', normalizedProfile.id).then(res => setFollowersCount(res.count || 0));
+                        supabase.from('user_follows').select('id', { count: 'exact', head: true }).eq('follower_id', normalizedProfile.id).then(res => setFollowingCount(res.count || 0));
+                    }}
+                />
             </main>
         </div>
     );
