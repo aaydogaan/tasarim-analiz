@@ -3,15 +3,11 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { 
   Trophy, 
-  Calendar, 
-  Users, 
-  Crown, 
   ArrowLeft, 
-  Sparkles, 
-  CheckCircle2, 
-  Clock, 
+  Crown, 
+  Check, 
   ShieldCheck,
-  Check
+  User
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
@@ -159,13 +155,17 @@ export default function ContestDetailPage() {
   const monthAbbr = endDateObj.toLocaleString('tr-TR', { month: 'short' }).toUpperCase();
   const dayNum = String(endDateObj.getDate()).padStart(2, '0');
 
-  // Sample participant avatars
-  const participantAvatars = entries
-    .map((e) => e.profiles?.avatar_url)
+  // Real participant profile avatars & name
+  const participantProfiles = entries
+    .map((e) => e.profiles)
+    .filter(Boolean);
+
+  const participantAvatars = participantProfiles
+    .map((p) => p.avatar_url)
     .filter(Boolean)
     .slice(0, 3);
 
-  const topParticipantName = entries[0]?.profiles?.display_name || 'Kullanıcılar';
+  const topParticipantName = participantProfiles[0]?.display_name || 'Katılımcılar';
   const otherParticipantsCount = Math.max(0, (contest.participant_count || entries.length) - 1);
 
   return (
@@ -193,7 +193,7 @@ export default function ContestDetailPage() {
           </div>
         </div>
 
-        {/* EKRAN GÖRÜNTÜSÜNDEKİ YAPI: SOL (Yarışma hakkında) - SAĞ (Temel Bilgiler) */}
+        {/* SOL (Yarışma hakkında) - SAĞ (Temel Bilgiler) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* SOL TARAFTAKİ METİN & KURALLAR (8 KOLON) */}
@@ -263,47 +263,47 @@ export default function ContestDetailPage() {
             )}
           </div>
 
-          {/* SAĞ TARAFTAKİ "Temel Bilgiler" KARTI (4 KOLON - EKRAN GÖRÜNTÜSÜYLE BİREBİR) */}
+          {/* SAĞ TARAFTAKİ "Temel Bilgiler" KARTI (EKRAN GÖRÜNTÜSÜYLE %100 BİREBİR HİZALAMA) */}
           <div className="lg:col-span-4 sticky top-8">
-            <div className="bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 rounded-[28px] p-6 sm:p-8 shadow-sm space-y-6">
               
-              <h2 className="text-xl font-extrabold text-[var(--text-primary)]">
+              <h2 className="text-xl sm:text-2xl font-extrabold text-zinc-900 dark:text-white">
                 Temel Bilgiler
               </h2>
 
-              {/* Başvuru Son Tarihi Kutusu */}
+              {/* Başvuru Son Tarihi Rozeti - BİREBİR TEMİZ BEYAZ KUTU & KIRMIZI AĞU */}
               <div className="flex items-center gap-4">
-                <div className="w-12 h-14 bg-red-50 dark:bg-red-950/30 border border-red-200/80 dark:border-red-900/40 rounded-xl flex flex-col items-center justify-center shrink-0">
-                  <span className="text-[9px] font-extrabold text-red-600 dark:text-red-400 tracking-wider">
+                <div className="w-14 h-16 bg-white dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700 rounded-2xl flex flex-col items-center justify-center shrink-0 shadow-xs">
+                  <span className="text-[10px] font-extrabold text-red-500 tracking-wider uppercase">
                     {monthAbbr}
                   </span>
-                  <span className="text-base font-black text-red-700 dark:text-red-300 leading-none">
+                  <span className="text-lg font-black text-zinc-900 dark:text-white leading-none mt-0.5">
                     {dayNum}
                   </span>
                 </div>
 
                 <div>
-                  <span className="text-xs font-medium text-[var(--text-secondary)] block">
+                  <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 block mb-0.5">
                     Başvuru Son Tarihi
                   </span>
-                  <span className="text-sm font-extrabold text-[var(--text-primary)] block">
+                  <span className="text-sm font-extrabold text-zinc-900 dark:text-white block">
                     {isExpired ? 'Süresi Doldu' : `${daysLeft} gün kaldı`}
                   </span>
                 </div>
               </div>
 
-              {/* Katılım Butonu veya Durum */}
-              <div>
+              {/* Katılım Butonu (BİREBİR SİYAH SHARP BUTTON) */}
+              <div className="space-y-3">
                 {!isExpired ? (
                   userJoined ? (
                     <div className="space-y-3">
-                      <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 rounded-2xl text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center justify-center gap-2">
+                      <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 rounded-2xl text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center justify-center gap-2">
                         <Check className="w-4 h-4" />
                         Yarışmaya Katıldınız!
                       </div>
                       <button
                         onClick={() => navigate('/profilim')}
-                        className="w-full py-3 px-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold text-xs rounded-2xl shadow hover:opacity-90 transition-all cursor-pointer"
+                        className="w-full py-3.5 px-6 rounded-2xl bg-[#18181b] hover:bg-black dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 font-extrabold text-sm transition-all cursor-pointer"
                       >
                         Profilimden Tasarım Yükle
                       </button>
@@ -312,55 +312,65 @@ export default function ContestDetailPage() {
                     <button
                       onClick={handleJoinContest}
                       disabled={joining}
-                      className="w-full py-3.5 px-6 rounded-2xl bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 font-bold text-sm transition-all shadow-md active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full py-4 px-6 rounded-2xl bg-[#18181b] hover:bg-black dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 font-extrabold text-base transition-all shadow-sm active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      <Sparkles className="w-4 h-4 text-[#FF5500]" />
                       {joining ? 'Kaydediliyor...' : 'Yarışmaya Katıl'}
                     </button>
                   )
                 ) : (
-                  <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded-2xl text-center text-xs font-bold text-zinc-500">
+                  <div className="p-3.5 bg-zinc-100 dark:bg-zinc-800 rounded-2xl text-center text-xs font-bold text-zinc-500">
                     Bu yarışmanın süresi tamamlanmıştır.
                   </div>
                 )}
-              </div>
 
-              {/* Hüküm ve koşullar Linki */}
-              <div className="text-center border-t border-[var(--border-primary)] pt-4">
-                <button
-                  onClick={() => alert(`Yarışma Ödülü: ${contest.reward_title}\n\nÖdül Detayı: ${contest.reward_description || 'Öne çıkarılma'}`)}
-                  className="text-xs font-semibold text-[var(--text-secondary)] hover:underline cursor-pointer"
-                >
-                  Hüküm ve koşullar
-                </button>
-              </div>
-
-              {/* Katılımcı Avatarları ve Bilgi Yazısı */}
-              {contest.participant_count > 0 && (
-                <div className="flex items-center gap-3 pt-2">
-                  <div className="flex -space-x-2 shrink-0">
-                    {participantAvatars.length > 0 ? (
-                      participantAvatars.map((url, idx) => (
-                        <img
-                          key={idx}
-                          src={url}
-                          alt="Participant"
-                          className="w-7 h-7 rounded-full border-2 border-[var(--card-bg)] object-cover"
-                        />
-                      ))
-                    ) : (
-                      <div className="w-7 h-7 rounded-full bg-[#FF5500] text-white text-xs font-bold flex items-center justify-center border-2 border-[var(--card-bg)]">
-                        R
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-xs font-semibold text-[var(--text-secondary)] leading-tight">
-                    <strong className="text-[var(--text-primary)]">{topParticipantName}</strong>
-                    {otherParticipantsCount > 0 && ` ve ${otherParticipantsCount} kullanıcı daha `}
-                    yarışmaya katıldı
-                  </p>
+                {/* Hüküm ve koşullar Linki (Altı Çizili) */}
+                <div className="text-center pt-1">
+                  <button
+                    onClick={() => alert(`Yarışma Ödülü: ${contest.reward_title}\n\nÖdül Detayı: ${contest.reward_description || 'Öne çıkarılma'}`)}
+                    className="underline font-bold text-zinc-900 dark:text-white text-xs hover:opacity-80 cursor-pointer"
+                  >
+                    Hüküm ve koşullar
+                  </button>
                 </div>
-              )}
+              </div>
+
+              {/* Katılımcı Avatarları ve Bilgi Yazısı (BİREBİR HİZALI PROFİL FOTOLARI) */}
+              <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 flex items-center gap-3">
+                <div className="flex items-center shrink-0">
+                  {participantAvatars.length > 0 ? (
+                    participantAvatars.map((url, idx) => (
+                      <img
+                        key={idx}
+                        src={url}
+                        alt="Participant"
+                        className="w-8 h-8 rounded-full border-2 border-white dark:border-zinc-900 object-cover shadow-xs -ml-2.5 first:ml-0"
+                      />
+                    ))
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-zinc-900 text-white text-xs font-bold flex items-center justify-center border-2 border-white dark:border-zinc-900">
+                      <User className="w-4 h-4" />
+                    </div>
+                  )}
+                </div>
+
+                <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 leading-snug">
+                  {contest.participant_count > 0 ? (
+                    <>
+                      <strong className="font-extrabold text-zinc-900 dark:text-white">
+                        {topParticipantName}
+                      </strong>
+                      {otherParticipantsCount > 0 && ` ve ${otherParticipantsCount} kullanıcı daha `}
+                      <span className="block text-zinc-500 dark:text-zinc-400 font-normal">
+                        yarışmaya katıldı
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-zinc-500 font-normal">
+                      Henüz katılan olmadı. İlk katılan siz olun!
+                    </span>
+                  )}
+                </p>
+              </div>
 
             </div>
           </div>
