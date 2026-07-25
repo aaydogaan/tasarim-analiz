@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Private admin & API paths
+Disallow: /mutfak
+Disallow: /mutfak/*
+Disallow: /api/*
+
+# Sitemap Location
+Sitemap: https://revizelesene.com/sitemap.xml
