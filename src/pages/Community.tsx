@@ -366,7 +366,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         const loadFounders = async () => {
             const { data, error } = await supabase
                 .from('profiles')
-                .select('id, display_name, bio, avatar_url, website, social_handle, design_rank, specialty, experience_level, created_at, founder_number')
+                .select('id, display_name, bio, avatar_url, website, social_handle, design_rank, specialty, experience_level, created_at, founder_number, verification_badge')
                 .order('created_at', { ascending: true })
                 .limit(100);
 
@@ -379,15 +379,18 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                 setFounderSource('preview');
             }
             
-            // Liderlik Tablosu için XP View'ını çek
+            // Liderlik Tablosu için XP View'ını çek (Sadece XP > 0 olan gerçek aktif kullanıcılar)
             const { data: xpData, error: xpError } = await supabase
                 .from('user_xp_stats')
                 .select('*')
+                .gt('total_xp', 0)
                 .order('total_xp', { ascending: false })
                 .limit(5);
                 
             if (!xpError && xpData) {
                 setLeaderboard(xpData);
+            } else {
+                setLeaderboard([]);
             }
         };
 
@@ -584,6 +587,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
 
                         {visibleFounders.map((founder) => {
                             const rank = getMemberFounderDisplayNumber(founder.founderNumber) || 0;
+                            const isGold = founder.verificationBadge === 'gold';
 
                             return (
                                 <div
@@ -601,13 +605,19 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                             className={`w-full h-full rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--bg-primary)] object-cover transform-gpu ${founderSource === 'preview' ? 'saturate-0 opacity-40' : ''}`}
                                             alt=""
                                         />
+                                        {founder.verificationBadge && (
+                                            <div className="absolute -bottom-1 -right-1 z-20 drop-shadow-md">
+                                                <VerifiedBadge badge={founder.verificationBadge} size="xs" />
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="absolute -top-16 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none w-max bg-[#111] border border-white/10 rounded-2xl px-4 py-3 shadow-2xl flex flex-col items-center z-50">
-                                        <span className="text-sm font-bold text-white">
-                                            {founder.displayName || 'Gizli Tasarımcı'}
+                                        <span className="text-sm font-bold text-white flex items-center gap-1.5">
+                                            <span>{founder.displayName || 'Gizli Tasarımcı'}</span>
+                                            <VerifiedBadge badge={founder.verificationBadge} size="xs" />
                                         </span>
                                         <span className="text-[10px] uppercase font-bold tracking-widest mt-1 text-[var(--color-brand-orange)]">
-                                            {rank}. Destekçi
+                                            {isGold ? `${rank}. KURUCU` : `${rank}. DESTEKÇİ`}
                                         </span>
                                         <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#111] border-r border-b border-white/10 rotate-45" />
                                     </div>
@@ -927,43 +937,53 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                 <h3 className="font-semibold text-lg text-[var(--text-primary)]">Liderlik Tablosu</h3>
                             </div>
                             <div className="space-y-3">
-                                {leaderboard.slice(0, 5).map((user, i) => {
-                                    const isLeaderCurrent = kullanici && kullanici.id === user.id;
+                                {leaderboard.length === 0 ? (
+                                    <div className="py-6 px-4 text-center bg-[var(--bg-secondary)] rounded-2xl border border-[var(--border-primary)]">
+                                        <Trophy className="w-8 h-8 text-[var(--text-secondary)]/30 mx-auto mb-2" />
+                                        <p className="text-xs font-semibold text-[var(--text-secondary)] leading-relaxed">
+                                            Henüz aktif liderlik sıralaması oluşmadı.<br />İlk analizi yapıp zirveye çıkan sen ol! 🚀
+                                        </p>
+                                    </div>
+                                ) : (
+                                    leaderboard.slice(0, 5).map((user, i) => {
+                                        const isLeaderCurrent = kullanici && kullanici.id === user.id;
 
-                                    return (
-                                        <div key={user.id} onClick={() => onProfileOpen?.({
-                                            id: user.id,
-                                            displayName: isLeaderCurrent ? (kullanici?.user_metadata?.display_name || user.display_name) : user.display_name,
-                                            avatarUrl: isLeaderCurrent ? (kullanici?.user_metadata?.avatar_url || user.avatar_url) : user.avatar_url,
-                                            founderNumber: user.founder_number
-                                        })} className="flex items-center gap-3 group cursor-pointer p-2 -mx-2 rounded-xl hover:bg-[var(--bg-secondary)] transition-colors">
-                                            <div className="relative flex-shrink-0">
-                                                <div className="w-10 h-10 rounded-full border border-[var(--border-primary)] relative z-10 overflow-hidden shadow-sm">
-                                                    <img
-                                                        src={isLeaderCurrent && kullanici?.user_metadata?.avatar_url ? kullanici.user_metadata.avatar_url : (user.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`)}
-                                                        className="w-full h-full object-cover"
-                                                        alt="Avatar"
-                                                    />
+                                        return (
+                                            <div key={user.id} onClick={() => onProfileOpen?.({
+                                                id: user.id,
+                                                displayName: isLeaderCurrent ? (kullanici?.user_metadata?.display_name || user.display_name) : user.display_name,
+                                                avatarUrl: isLeaderCurrent ? (kullanici?.user_metadata?.avatar_url || user.avatar_url) : user.avatar_url,
+                                                founderNumber: user.founder_number
+                                            })} className="flex items-center gap-3 group cursor-pointer p-2 -mx-2 rounded-xl hover:bg-[var(--bg-secondary)] transition-colors">
+                                                <div className="relative flex-shrink-0">
+                                                    <div className="w-10 h-10 rounded-full border border-[var(--border-primary)] relative z-10 overflow-hidden shadow-sm">
+                                                        <img
+                                                            src={isLeaderCurrent && kullanici?.user_metadata?.avatar_url ? kullanici.user_metadata.avatar_url : (user.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`)}
+                                                            className="w-full h-full object-cover"
+                                                            alt="Avatar"
+                                                        />
+                                                    </div>
+                                                    {i === 0 && (
+                                                        <Crown className="absolute -top-2.5 -right-2 text-amber-500 w-5 h-5 drop-shadow-sm z-20" />
+                                                    )}
                                                 </div>
-                                                {i === 0 && (
-                                                    <Crown className="absolute -top-2.5 -right-2 text-amber-500 w-5 h-5 drop-shadow-sm z-20" />
-                                                )}
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-medium text-sm text-[var(--text-primary)] group-hover:text-[var(--color-brand-orange)] transition-colors truncate flex items-center gap-1.5">
+                                                        <span>{isLeaderCurrent ? (kullanici?.user_metadata?.display_name || kullanici?.user_metadata?.full_name || user.display_name || 'Tasarımcı') : (user.display_name || 'Tasarımcı')}</span>
+                                                        <VerifiedBadge badge={user.verification_badge} size="xs" />
+                                                    </p>
+                                                    <p className="text-[11px] text-[var(--text-secondary)] font-normal truncate">
+                                                        {RANK_DISPLAY_MAP[user.design_rank || ''] || user.design_rank || 'Tasarımcı'}
+                                                    </p>
+                                                </div>
+                                                <div className="flex flex-col items-end flex-shrink-0">
+                                                    <span className="text-sm font-semibold text-[var(--text-primary)]">#{i + 1}</span>
+                                                    <span className="text-xs text-[var(--text-secondary)]">{user.total_xp?.toLocaleString('tr-TR')} XP</span>
+                                                </div>
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-sm text-[var(--text-primary)] group-hover:text-[var(--color-brand-orange)] transition-colors truncate">
-                                                    {isLeaderCurrent ? (kullanici?.user_metadata?.display_name || kullanici?.user_metadata?.full_name || user.display_name || 'Tasarımcı') : (user.display_name || 'Tasarımcı')}
-                                                </p>
-                                                <p className="text-[11px] text-[var(--text-secondary)] font-normal truncate">
-                                                    {RANK_DISPLAY_MAP[user.design_rank || ''] || user.design_rank || 'Tasarımcı'}
-                                                </p>
-                                            </div>
-                                            <div className="flex flex-col items-end flex-shrink-0">
-                                                <span className="text-sm font-semibold text-[var(--text-primary)]">#{i + 1}</span>
-                                                <span className="text-xs text-[var(--text-secondary)]">{user.total_xp?.toLocaleString('tr-TR')} XP</span>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })
+                                )}
                             </div>
 
                             <button

@@ -18,6 +18,7 @@ export type NormalizedCommunityProfile = {
     createdAt?: string;
     isCoreFounder?: boolean;
     coverUrl?: string;
+    verificationBadge?: string | null;
 };
 
 export type CommunityProfileRecord = {
@@ -38,6 +39,7 @@ export type CommunityProfileRecord = {
     twitter_url?: string;
     featured_badge?: string;
     cover_url?: string;
+    verification_badge?: string;
 };
 
 export const CORE_FOUNDERS: NormalizedCommunityProfile[] = [];
