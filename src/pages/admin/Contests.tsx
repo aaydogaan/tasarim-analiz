@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
-import { sendContestNewsletterEmail, sendEmail } from '../../lib/resend';
+import { sendContestNewsletterEmail } from '../../lib/resend';
 
 const compressImageFile = (file: File): Promise<string> => {
   return new Promise((resolve) => {
