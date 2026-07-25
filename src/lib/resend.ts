@@ -1,5 +1,5 @@
 const RESEND_API_KEY = import.meta.env.VITE_RESEND_API_KEY || '';
-const FROM_EMAIL = 'Revizelesene <onboarding@resend.dev>';
+const FROM_EMAIL = import.meta.env.VITE_RESEND_FROM_EMAIL || 'Revizelesene <onboarding@resend.dev>';
 
 interface SendEmailParams {
   to: string | string[];
