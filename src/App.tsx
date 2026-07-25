@@ -1121,7 +1121,14 @@ export default function App() {
 
                 <div className="p-4 mt-auto">
                   <div 
-                    onClick={() => navigate('/pricing')}
+                    onClick={() => {
+                      toast('🚀 Revizelesene Pro Paketleri Çok Yakında Hizmetinizde!', { 
+                        icon: '✨', 
+                        duration: 4000, 
+                        style: { borderRadius: '16px', background: '#18181b', color: '#fff', border: '1px solid #27272a', fontWeight: 'bold' } 
+                      });
+                      navigate('/pricing');
+                    }}
                     className="bg-gradient-to-br from-[#FF5500] to-[#FF8800] rounded-xl p-4 text-white shadow-lg shadow-[#FF5500]/20 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
                   >
                     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none"></div>
