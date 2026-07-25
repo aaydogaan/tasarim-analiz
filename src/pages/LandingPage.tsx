@@ -9,6 +9,9 @@ import CommunitySpotlight from '../components/ui/CommunitySpotlight';
 import CommunityCTA from '../components/ui/CommunityCTA';
 import AnimatedCounter from '../components/ui/AnimatedCounter';
 import MagneticWrapper from '../components/ui/MagneticWrapper';
+import { ContestHeroCard, ContestData } from '../components/ui/ContestHeroCard';
+import { ContestDetailModal } from '../components/ui/ContestDetailModal';
+import { ContestSubmitModal } from '../components/ui/ContestSubmitModal';
 
 interface LandingPageProps {
     onStart: () => void;
@@ -44,6 +47,26 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
         };
         fetchStats();
     }, []);
+
+    const [activeContest, setActiveContest] = useState<ContestData | null>(null);
+    const [selectedContest, setSelectedContest] = useState<ContestData | null>(null);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+
+    useEffect(() => {
+        const fetchActiveContest = async () => {
+            const { data } = await supabase
+                .from('contests')
+                .select('*')
+                .neq('status', 'draft')
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+            if (data) setActiveContest(data);
+        };
+        fetchActiveContest();
+    }, []);
+
     const brandOrange = "var(--color-brand-orange, #ff4d00)";
 
     return (
@@ -211,6 +234,48 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
             </main>
 
             <NasilCalisir />
+
+            {/* Active Contest Section */}
+            {activeContest && (
+                <div className="max-w-6xl mx-auto px-6">
+                    <ContestHeroCard
+                        contest={activeContest}
+                        onOpenDetail={(c) => {
+                            setSelectedContest(c);
+                            setIsDetailModalOpen(true);
+                        }}
+                        onOpenSubmit={(c) => {
+                            setSelectedContest(c);
+                            setIsSubmitModalOpen(true);
+                        }}
+                    />
+                </div>
+            )}
+
+            {/* Contest Modals */}
+            <ContestDetailModal
+                isOpen={isDetailModalOpen}
+                onClose={() => setIsDetailModalOpen(false)}
+                contest={selectedContest}
+                onOpenSubmit={(c) => {
+                    setSelectedContest(c);
+                    setIsSubmitModalOpen(true);
+                }}
+            />
+
+            <ContestSubmitModal
+                isOpen={isSubmitModalOpen}
+                onClose={() => setIsSubmitModalOpen(false)}
+                contest={selectedContest}
+                onSuccess={() => {
+                    if (activeContest) {
+                        setActiveContest({
+                            ...activeContest,
+                            participant_count: (activeContest.participant_count || 0) + 1,
+                        });
+                    }
+                }}
+            />
 
             <CommunitySpotlight onExploreClick={onVitrinClick} />
 

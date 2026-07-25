@@ -1,10 +1,11 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Image as ImageIcon, MessageSquare, Flag, LogOut, ExternalLink } from 'lucide-react';
+import { LayoutDashboard, Users, Image as ImageIcon, MessageSquare, Flag, LogOut, ExternalLink, Trophy } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 const menuItems = [
     { name: 'Dashboard', path: '/mutfak', icon: <LayoutDashboard className="w-5 h-5" />, exact: true },
+    { name: 'Yarışmalar', path: '/mutfak/contests', icon: <Trophy className="w-5 h-5" /> },
     { name: 'Kullanıcılar', path: '/mutfak/users', icon: <Users className="w-5 h-5" /> },
     { name: 'Gönderiler', path: '/mutfak/posts', icon: <ImageIcon className="w-5 h-5" /> },
     { name: 'Yorumlar', path: '/mutfak/comments', icon: <MessageSquare className="w-5 h-5" /> },

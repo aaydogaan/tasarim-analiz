@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
+import { ContestHeroCard, ContestData } from '../components/ui/ContestHeroCard';
+import { ContestDetailModal } from '../components/ui/ContestDetailModal';
+import { ContestSubmitModal } from '../components/ui/ContestSubmitModal';
 import { 
   Flame, 
   Search, 
@@ -79,6 +82,26 @@ export function Leaderboard() {
   const [isOverallOpen, setIsOverallOpen] = useState(false);
 
   const [timeLeft, setTimeLeft] = useState({ days: 12, hours: 6, minutes: 42, seconds: 15 });
+
+  // Contest states
+  const [activeContest, setActiveContest] = useState<ContestData | null>(null);
+  const [selectedContest, setSelectedContest] = useState<ContestData | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchActiveContest = async () => {
+      const { data } = await supabase
+        .from('contests')
+        .select('*')
+        .neq('status', 'draft')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (data) setActiveContest(data);
+    };
+    fetchActiveContest();
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -413,7 +436,8 @@ export function Leaderboard() {
             </div>
           </div>
 
-          <div className="md:col-span-3 bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between">
+          {/* Stat 2 */}
+          <div className="md:col-span-6 bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between">
             <div className="flex items-center justify-between mb-6">
               <div className="w-12 h-12 rounded-2xl bg-sky-50 flex items-center justify-center border border-sky-100 shadow-sm">
                 <ChartLineUp size={28} weight="duotone" color="#0284c7" />
@@ -427,43 +451,47 @@ export function Leaderboard() {
               <span className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">{realAnalysisCount}</span>
             </div>
           </div>
-
-          {/* Countdown Timer Banner */}
-          <div className="md:col-span-6 bg-amber-50/70 border border-amber-200/70 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-slate-900">Yarışma Bitimine Kalan Süre</span>
-                  <Flame className="w-4 h-4 text-amber-500 shrink-0" />
-                </div>
-                <div className="flex items-center gap-3 text-slate-900 font-extrabold text-2xl md:text-3xl tracking-tight">
-                  <div className="flex flex-col items-center">
-                    <span>{String(timeLeft.days).padStart(2, '0')}</span>
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest -mt-1">Gün</span>
-                  </div>
-                  <span className="text-slate-300 pb-2">:</span>
-                  <div className="flex flex-col items-center">
-                    <span>{String(timeLeft.hours).padStart(2, '0')}</span>
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest -mt-1">Saat</span>
-                  </div>
-                  <span className="text-slate-300 pb-2">:</span>
-                  <div className="flex flex-col items-center">
-                    <span>{String(timeLeft.minutes).padStart(2, '0')}</span>
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest -mt-1">Dakika</span>
-                  </div>
-                </div>
-              </div>
-              <div className="w-14 h-14 bg-amber-100/80 border border-amber-200 rounded-2xl flex items-center justify-center text-amber-600 shadow-sm shrink-0 self-start sm:self-center">
-                <TrophyLucide className="w-7 h-7" />
-              </div>
-            </div>
-            <div className="mt-4 pt-3 border-t border-amber-200/50 flex items-center gap-1.5 text-xs text-amber-800/80 font-medium">
-              <Info className="w-3.5 h-3.5 shrink-0" />
-              <span>Sadece ilk üç dereceye giren tasarımcılara özel rozet ve ödüller verilecektir.</span>
-            </div>
-          </div>
-
         </div>
+
+        {/* Dynamic Contest Hero Card */}
+        {activeContest && (
+          <ContestHeroCard
+            contest={activeContest}
+            onOpenDetail={(c) => {
+              setSelectedContest(c);
+              setIsDetailModalOpen(true);
+            }}
+            onOpenSubmit={(c) => {
+              setSelectedContest(c);
+              setIsSubmitModalOpen(true);
+            }}
+          />
+        )}
+
+        {/* Contest Modals */}
+        <ContestDetailModal
+          isOpen={isDetailModalOpen}
+          onClose={() => setIsDetailModalOpen(false)}
+          contest={selectedContest}
+          onOpenSubmit={(c) => {
+            setSelectedContest(c);
+            setIsSubmitModalOpen(true);
+          }}
+        />
+
+        <ContestSubmitModal
+          isOpen={isSubmitModalOpen}
+          onClose={() => setIsSubmitModalOpen(false)}
+          contest={selectedContest}
+          onSuccess={() => {
+            if (activeContest) {
+              setActiveContest({
+                ...activeContest,
+                participant_count: (activeContest.participant_count || 0) + 1,
+              });
+            }
+          }}
+        />
 
         {/* MEVCUT LİDERLER */}
         <div className="space-y-4">

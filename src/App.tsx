@@ -34,6 +34,7 @@ import CerezPolitikasi from "./pages/CerezPolitikasi";
 
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
+import AdminContests from "./pages/admin/Contests";
 import AdminUsers from "./pages/admin/Users";
 import AdminPosts from "./pages/admin/Posts";
 import AdminComments from "./pages/admin/Comments";
@@ -1987,6 +1988,7 @@ export default function App() {
         {/* Admin Routes */}
         <Route path="/mutfak" element={<AdminProtectedRoute authYukleniyor={authYukleniyor} kullanici={kullanici} kullaniciProfile={kullaniciProfile}><AdminLayout /></AdminProtectedRoute>}>
           <Route index element={<AdminDashboard />} />
+          <Route path="contests" element={<AdminContests />} />
           <Route path="users" element={<AdminUsers />} />
           <Route path="posts" element={<AdminPosts />} />
           <Route path="comments" element={<AdminComments />} />
