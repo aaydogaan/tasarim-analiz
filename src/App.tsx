@@ -1357,11 +1357,27 @@ export default function App() {
                             {/* Wrapper for content with better expansion */}
                             <div className="w-full max-w-4xl">
                               {/* Header */}
-                              <div className="text-center mb-10">
+                              <div className="text-center mb-8 max-w-2xl mx-auto">
                                 <h3 className="text-3xl font-black text-[var(--text-primary)] tracking-tight text-center mb-2">
                                   Tasarımınızı Analiz Edin
                                 </h3>
-                                <p className="text-[var(--text-secondary)] font-medium text-base">Saniyeler içinde UI/UX hatalarını bulun ve yapay zeka ile mükemmelleştirin.</p>
+                                <p className="text-[var(--text-secondary)] font-medium text-base mb-6">Saniyeler içinde UI/UX hatalarını bulun ve yapay zeka ile mükemmelleştirin.</p>
+                                
+                                {/* Corporate Beta Disclaimer Banner */}
+                                <div className="p-4 rounded-2xl bg-zinc-900/95 dark:bg-zinc-800/95 border border-zinc-700/80 shadow-lg text-left flex items-start gap-3.5 backdrop-blur-sm">
+                                  <div className="p-2 rounded-xl bg-zinc-800 dark:bg-zinc-700 text-[#FF5500] shrink-0 border border-zinc-700">
+                                    <Info className="w-4 h-4" />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-200">Model Bilgilendirmesi</span>
+                                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#FF5500]/20 text-[#FF5500] border border-[#FF5500]/30">BETA</span>
+                                    </div>
+                                    <p className="text-xs text-zinc-400 font-normal leading-relaxed">
+                                      Yapay zeka analiz motorumuz yeni verilerle öğrenmeye devam etmektedir. Şimdilik deneysel geri bildirimler sunar; modelimizin hassasiyetini her geçen gün artırmak için aralıksız çalışıyoruz.
+                                    </p>
+                                  </div>
+                                </div>
                               </div>
                               
                               {adim === 1 ? (
@@ -1454,7 +1470,7 @@ export default function App() {
                                   ) : null}
                                 </div>
                                 <div className="flex-1 flex flex-col justify-center space-y-8 max-w-md">
-                                   {/* Geri Butonu - Adım 2 */}
+                                    {/* Geri Butonu - Adım 2 */}
                                   <button 
                                     onClick={() => { setAdim(1); setGorsel(null); setGorselBase64(null); setImageUrl(''); }} 
                                     className="self-start flex items-center gap-2 px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-full text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] hover:border-[var(--color-brand-orange)]/30 transition-all text-xs font-bold shadow-sm"
@@ -1471,15 +1487,6 @@ export default function App() {
                                       <AlertCircle className="w-5 h-5 shrink-0" /> {hata}
                                     </div>
                                   )}
-                                  <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs leading-relaxed font-medium flex items-start gap-3 shadow-xs">
-                                     <Sparkles className="w-4 h-4 shrink-0 text-amber-500 mt-0.5" />
-                                     <div>
-                                       <strong className="font-extrabold block text-amber-700 dark:text-amber-300 mb-0.5">
-                                         🧠 Yapay Zeka Modelimiz Öğrenmeye Devam Ediyor
-                                       </strong>
-                                       Analiz motorumuz henüz gelişme aşamasındadır. Çok detaylı veya %100 insani bir inceleme beklemeyin, ancak doğruluğunu her geçen gün artırmak için çalışıyoruz! 🚀
-                                     </div>
-                                   </div>
 
                                   <div className="space-y-6">
                                     <div>
