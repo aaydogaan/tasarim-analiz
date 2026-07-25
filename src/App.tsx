@@ -978,15 +978,12 @@ export default function App() {
       )}
 
       {!isMutfak && gorunum !== 'auth' && (
-        <>
-          <ContestAnnouncementBar />
-          <Header
-            kullanici={kullanici}
-            onStatsClick={statsAc}
-            onLogoutClick={cikisYap}
-            onAuthClick={() => navigate('/auth?mode=kayit')}
-          />
-        </>
+        <Header
+          kullanici={kullanici}
+          onStatsClick={statsAc}
+          onLogoutClick={cikisYap}
+          onAuthClick={() => navigate('/auth?mode=kayit')}
+        />
       )}
 
       <Routes>
