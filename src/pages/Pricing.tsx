@@ -26,8 +26,8 @@ const plans = [
   {
     name: 'Pro Paket',
     badge: 'Çok Yakında',
-    price: '₺149',
-    period: '/ay',
+    price: 'Yakında',
+    period: 'Lansmanda Açıklanacak',
     description: 'Sınırsız yapay zeka asistanı ve gelişmiş analiz metrikleri.',
     features: [
       'Sınırsız Tasarım Analizi',
@@ -45,8 +45,8 @@ const plans = [
   {
     name: 'Stüdyo Paket',
     badge: 'Çok Yakında',
-    price: '₺499',
-    period: '/ay',
+    price: 'Yakında',
+    period: 'Lansmanda Açıklanacak',
     description: 'Ajanslar, stüdyolar ve yoğun üretim yapan ekipler için.',
     features: [
       'Pro Plandaki Her Şey +',
