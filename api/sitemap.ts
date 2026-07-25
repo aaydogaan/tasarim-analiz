@@ -9,13 +9,14 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     // 1. Static Pages
+    const today = new Date().toISOString().split('T')[0];
     const staticUrls = [
-      { loc: 'https://revizelesene.com/', priority: '1.0', changefreq: 'daily' },
-      { loc: 'https://revizelesene.com/community', priority: '0.9', changefreq: 'daily' },
-      { loc: 'https://revizelesene.com/leaderboard', priority: '0.8', changefreq: 'daily' },
-      { loc: 'https://revizelesene.com/kvkk', priority: '0.3', changefreq: 'monthly' },
-      { loc: 'https://revizelesene.com/gizlilik', priority: '0.3', changefreq: 'monthly' },
-      { loc: 'https://revizelesene.com/kosullar', priority: '0.3', changefreq: 'monthly' },
+      { loc: 'https://revizelesene.com/', priority: '1.0', changefreq: 'daily', lastmod: today },
+      { loc: 'https://revizelesene.com/community', priority: '0.9', changefreq: 'daily', lastmod: today },
+      { loc: 'https://revizelesene.com/leaderboard', priority: '0.8', changefreq: 'daily', lastmod: today },
+      { loc: 'https://revizelesene.com/kvkk', priority: '0.3', changefreq: 'monthly', lastmod: today },
+      { loc: 'https://revizelesene.com/gizlilik', priority: '0.3', changefreq: 'monthly', lastmod: today },
+      { loc: 'https://revizelesene.com/kosullar', priority: '0.3', changefreq: 'monthly', lastmod: today },
     ];
 
     // 2. Fetch Contests from DB
