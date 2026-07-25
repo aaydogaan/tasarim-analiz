@@ -375,15 +375,6 @@ export default function ContestDetailPage() {
                   </div>
                 )}
 
-                {/* Hüküm ve koşullar Linki (Altı Çizili) */}
-                <div className="text-center pt-1">
-                  <button
-                    onClick={() => alert(`Yarışma Ödülü: ${contest.reward_title}\n\nÖdül Detayı: ${contest.reward_description || 'Öne çıkarılma'}`)}
-                    className="underline font-bold text-zinc-900 dark:text-white text-xs hover:opacity-80 cursor-pointer"
-                  >
-                    Hüküm ve koşullar
-                  </button>
-                </div>
               </div>
 
               {/* Katılımcı Avatarları ve Bilgi Yazısı (BİREBİR HİZALI PROFİL FOTOLARI) */}
