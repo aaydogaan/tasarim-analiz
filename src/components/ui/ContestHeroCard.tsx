@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Crown, Sparkles, Send, Check, Mail, Clock, Trophy, Users } from 'lucide-react';
+import { Crown, Sparkles, Check, Mail, Users, Trophy } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
 
@@ -75,12 +75,12 @@ export const ContestHeroCard: React.FC<ContestHeroCardProps> = ({
 
       if (error) {
         if (error.code === '23505') {
-          toast.success('Zaten bültene kayıtlısınız! Teşekkürler.');
+          toast.success('Zaten bültene kayıtlısınız!');
         } else {
           throw error;
         }
       } else {
-        toast.success('Bültene başarıyla kaydoldunuz! Yeni yarışmalarda size haber vereceğiz.');
+        toast.success('Bültene başarıyla kaydoldunuz!');
       }
       setNewsletterSuccess(true);
       setNewsletterEmail('');
@@ -99,76 +99,76 @@ export const ContestHeroCard: React.FC<ContestHeroCardProps> = ({
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="w-full bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-3xl p-6 sm:p-10 shadow-xl shadow-orange-500/5 dark:shadow-none overflow-hidden my-8 relative"
+      transition={{ duration: 0.4 }}
+      className="w-full bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 rounded-3xl p-6 sm:p-10 shadow-xl shadow-zinc-200/30 dark:shadow-none my-8 overflow-hidden"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-        {/* Sol Taraf: Bilgiler & Kurumsal Turuncu Akış */}
+        {/* Sol Taraf: İçerik ve Butonlar */}
         <div className="lg:col-span-6 flex flex-col items-start justify-center space-y-5">
           
-          {/* Süre Rozeti & Katılımcı Sayısı */}
+          {/* Rozetler */}
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FF5500]/10 border border-[#FF5500]/20 text-xs font-bold text-[#FF5500]">
-              <span className={`w-2 h-2 rounded-full ${timeLeft.isExpired ? 'bg-zinc-400' : 'bg-[#FF5500] animate-ping'}`} />
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200/60 dark:border-zinc-700/60 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <span className={`w-2 h-2 rounded-full ${timeLeft.isExpired ? 'bg-zinc-400' : 'bg-red-500 animate-pulse'}`} />
               {timeLeft.text}
             </div>
 
             {contest.participant_count > 0 && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-xs font-semibold text-zinc-600 dark:text-zinc-300">
-                <Users className="w-3.5 h-3.5 text-[#FF5500]" />
-                {contest.participant_count} Tasarımcı Katıldı
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/50 dark:border-zinc-800 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                <Users className="w-3.5 h-3.5 text-zinc-400" />
+                {contest.participant_count} Katılımcı
               </div>
             )}
           </div>
 
           {/* Başlık & Açıklama */}
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-zinc-900 dark:text-white tracking-tight leading-tight">
               {contest.title}
             </h2>
-            <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 leading-relaxed font-normal">
+            <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 leading-relaxed">
               {contest.short_description}
             </p>
           </div>
 
-          {/* Kurumsal Turuncu Ödül Kutusu */}
-          <div className="w-full bg-[#FF5500]/5 dark:bg-[#FF5500]/10 border border-[#FF5500]/20 rounded-2xl p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-[#FF5500] text-white shadow-md shadow-[#FF5500]/20 flex items-center justify-center shrink-0">
-              <Crown className="w-6 h-6 stroke-[2]" />
+          {/* Minimal Ödül Kutusu */}
+          <div className="w-full bg-zinc-50/80 dark:bg-zinc-800/40 border border-zinc-200/70 dark:border-zinc-800 rounded-2xl p-4 flex items-center gap-4">
+            <div className="w-11 h-11 rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-zinc-200/80 dark:border-zinc-700 flex items-center justify-center text-zinc-900 dark:text-white shrink-0">
+              <Crown className="w-5 h-5 stroke-[1.75]" />
             </div>
             <div className="min-w-0 flex-1">
-              <span className="text-xs font-bold text-[#FF5500] uppercase tracking-wider block">
-                Ödül
+              <span className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 block">
+                Yarışma Ödülü
               </span>
-              <span className="text-sm sm:text-base font-extrabold text-zinc-900 dark:text-white truncate block">
+              <span className="text-sm sm:text-base font-bold text-zinc-900 dark:text-white truncate block">
                 {contest.reward_title || 'Ana Sayfa Öne Çıkanlar'}
               </span>
             </div>
           </div>
 
-          {/* Aksiyon Butonları (Turuncu Kurumsal Tema) */}
+          {/* Butonlar */}
           {!timeLeft.isExpired ? (
-            <div className="w-full space-y-3 pt-2">
+            <div className="w-full space-y-3 pt-1">
               <button
                 onClick={() => onOpenSubmit(contest)}
-                className="w-full py-3.5 px-6 rounded-2xl bg-[#FF5500] hover:bg-[#e64d00] text-white font-bold text-sm sm:text-base transition-all shadow-lg shadow-[#FF5500]/25 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3.5 px-6 rounded-2xl bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 font-bold text-sm sm:text-base transition-all shadow-md active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Sparkles className="w-4.5 h-4.5" />
+                <Sparkles className="w-4 h-4" />
                 Yarışmaya Katıl
               </button>
 
               <button
                 onClick={() => onOpenDetail(contest)}
-                className="w-full py-3.5 px-6 rounded-2xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white font-bold text-sm sm:text-base transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3.5 px-6 rounded-2xl bg-zinc-100 hover:bg-zinc-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-bold text-sm sm:text-base transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 Daha fazla bilgi al
               </button>
             </div>
           ) : (
-            <div className="w-full space-y-3 pt-2">
-              <div className="p-4 bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 rounded-2xl">
-                <p className="text-xs sm:text-sm font-semibold text-amber-900 dark:text-amber-300">
-                  🏁 Bu yarışmanın süresi bitti. Gelecek yarışmaları kaçırmamak için e-posta bültenine kaydolabilirsiniz!
+            <div className="w-full space-y-3 pt-1">
+              <div className="p-4 bg-zinc-100 dark:bg-zinc-800/60 rounded-2xl border border-zinc-200 dark:border-zinc-700">
+                <p className="text-xs sm:text-sm font-medium text-zinc-600 dark:text-zinc-300">
+                  🏁 Bu yarışmanın süresi dolmuştur. Yeni yarışmalardan haberdar olmak için e-posta bültenimize kaydolabilirsiniz.
                 </p>
               </div>
 
@@ -185,12 +185,12 @@ export const ContestHeroCard: React.FC<ContestHeroCardProps> = ({
                     value={newsletterEmail}
                     onChange={(e) => setNewsletterEmail(e.target.value)}
                     required
-                    className="flex-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm outline-none focus:border-[#FF5500]"
+                    className="flex-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm outline-none focus:border-zinc-400"
                   />
                   <button
                     type="submit"
                     disabled={newsletterLoading}
-                    className="px-4 py-2.5 bg-[#FF5500] hover:bg-[#e64d00] text-white font-bold text-xs sm:text-sm rounded-xl transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
+                    className="px-4 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold text-xs sm:text-sm rounded-xl hover:opacity-90 transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
                   >
                     <Mail className="w-3.5 h-3.5" />
                     Kayıt Ol
@@ -200,7 +200,7 @@ export const ContestHeroCard: React.FC<ContestHeroCardProps> = ({
 
               <button
                 onClick={() => onOpenDetail(contest)}
-                className="w-full py-3 px-6 rounded-2xl bg-zinc-100 hover:bg-zinc-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-bold text-xs sm:text-sm transition-all cursor-pointer"
+                className="w-full py-3 px-6 rounded-2xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-bold text-xs sm:text-sm transition-all cursor-pointer"
               >
                 Geçmiş Yarışma Detayları & Kurallar
               </button>
@@ -209,27 +209,24 @@ export const ContestHeroCard: React.FC<ContestHeroCardProps> = ({
 
         </div>
 
-        {/* Sağ Taraf: Tekli Şık Yatay Görsel Kartı */}
-        <div className="lg:col-span-6 h-[260px] sm:h-[340px] w-full relative rounded-3xl overflow-hidden group border border-zinc-200/80 dark:border-zinc-800 shadow-md">
+        {/* Sağ Taraf: Tekli Statik Yatay Görsel (HİÇBİR HOVER SCALE VEYA TİTREŞİM EFEKTİ YOKTUR) */}
+        <div className="lg:col-span-6 h-[260px] sm:h-[340px] w-full relative rounded-2xl overflow-hidden border border-zinc-200/80 dark:border-zinc-800 shadow-sm bg-zinc-100 dark:bg-zinc-800">
           <img 
             src={coverImage} 
             alt={contest.title} 
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            className="w-full h-full object-cover" 
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
           
-          {/* Görsel Üzerindeki Turuncu Şerit */}
-          <div className="absolute bottom-4 left-4 right-4 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md p-3.5 rounded-2xl border border-white/20 flex items-center justify-between">
+          <div className="absolute bottom-4 left-4 right-4 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md px-4 py-3 rounded-xl border border-white/20 dark:border-zinc-700/50 flex items-center justify-between pointer-events-none">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-[#FF5500] text-white flex items-center justify-center">
-                <Trophy className="w-4 h-4" />
-              </div>
-              <span className="text-xs font-bold text-zinc-900 dark:text-white truncate">
-                Revizelesene Özel Challenge
+              <Trophy className="w-4 h-4 text-zinc-700 dark:text-zinc-200" />
+              <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate">
+                Tasarım Yarışması
               </span>
             </div>
-            <span className="text-[11px] font-extrabold text-[#FF5500] bg-[#FF5500]/10 px-2.5 py-1 rounded-full">
-              CANLI YARIŞMA
+            <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+              Revizelesene
             </span>
           </div>
         </div>
