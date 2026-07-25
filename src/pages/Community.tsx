@@ -366,7 +366,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         const loadFounders = async () => {
             const { data, error } = await supabase
                 .from('profiles')
-                .select('id, display_name, bio, avatar_url, website, social_handle, design_rank, specialty, experience_level, created_at, founder_number, verification_badge')
+                .select('id, slug, display_name, bio, avatar_url, website, social_handle, design_rank, specialty, experience_level, created_at, founder_number, verification_badge')
                 .order('created_at', { ascending: true })
                 .limit(100);
 
@@ -608,7 +608,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                     key={founder.id}
                                     onClick={() => {
                                         if (founder.id && !founder.id.startsWith('preview-')) {
-                                            navigate(`/${founder.id}`);
+                                            navigate(`/${founder.slug || founder.id}`);
                                         }
                                     }}
                                     className="relative group cursor-pointer hover:scale-110 hover:z-50 transition-transform duration-300 transform-gpu will-change-transform"
@@ -972,12 +972,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                         const isLeaderCurrent = kullanici && kullanici.id === user.id;
 
                                         return (
-                                            <div key={user.id} onClick={() => onProfileOpen?.({
-                                                id: user.id,
-                                                displayName: isLeaderCurrent ? (kullanici?.user_metadata?.display_name || user.display_name) : user.display_name,
-                                                avatarUrl: isLeaderCurrent ? (kullanici?.user_metadata?.avatar_url || user.avatar_url) : user.avatar_url,
-                                                founderNumber: user.founder_number
-                                            })} className="flex items-center gap-3 group cursor-pointer p-2 -mx-2 rounded-xl hover:bg-[var(--bg-secondary)] transition-colors">
+                                            <div key={user.id} onClick={() => navigate(`/${user.slug || user.id}`)} className="flex items-center gap-3 group cursor-pointer p-2 -mx-2 rounded-xl hover:bg-[var(--bg-secondary)] transition-colors">
                                                 <div className="relative flex-shrink-0">
                                                     <div className="w-10 h-10 rounded-full border border-[var(--border-primary)] relative z-10 overflow-hidden shadow-sm">
                                                         <img

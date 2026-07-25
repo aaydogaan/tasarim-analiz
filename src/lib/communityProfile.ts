@@ -6,6 +6,7 @@ export const MEMBER_FOUNDER_LIMIT = FOUNDER_LIMIT - CORE_FOUNDER_COUNT;
 
 export type NormalizedCommunityProfile = {
     id: string;
+    slug?: string;
     displayName: string;
     avatarUrl: string;
     founderNumber: number;
@@ -23,6 +24,7 @@ export type NormalizedCommunityProfile = {
 
 export type CommunityProfileRecord = {
     id: string;
+    slug?: string;
     display_name: string;
     avatar_url: string;
     bio?: string;
@@ -271,6 +273,7 @@ export function normalizeCommunityProfile(authData: any, profile: any): Normaliz
     
     return {
         id: profile?.id || authData?.id || 'anonymous',
+        slug: profile?.slug || undefined,
         displayName: profile?.display_name || authData?.user_metadata?.full_name || 'Gizli Kullanıcı',
         avatarUrl: profile?.avatar_url || authData?.user_metadata?.avatar_url || buildAvatarUrl(profile?.id || 'new'),
         founderNumber: profile?.founder_number || 0,
