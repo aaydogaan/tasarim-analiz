@@ -934,6 +934,11 @@ export default function App() {
     setImageUrl(""); setUploadMod('dosya');
   };
 
+  const goHome = () => {
+    navigate('/');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Check for winner / evaluation notifications
   useEffect(() => {
     if (!kullanici) return;

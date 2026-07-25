@@ -35,6 +35,7 @@ export const ContestHeroCard: React.FC<ContestHeroCardProps> = ({
   const [timeLeft, setTimeLeft] = useState<{ text: string; isExpired: boolean }>({ text: '', isExpired: false });
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterLoading, setNewsletterLoading] = useState(false);
+  const [newsletterSuccess, setNewsletterSuccess] = useState(false);
   const [winnerEntry, setWinnerEntry] = useState<any | null>(null);
 
   useEffect(() => {
