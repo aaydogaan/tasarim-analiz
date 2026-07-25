@@ -139,27 +139,6 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
     const [selectedUploadEntry, setSelectedUploadEntry] = useState<any | null>(null);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
-    const fetchMyContestEntries = async () => {
-        if (!normalizedProfile.id || normalizedProfile.id === 'anonymous') return;
-        try {
-            const { data } = await supabase
-                .from('contest_entries')
-                .select(`
-                    *,
-                    contests:contest_id(title, end_date, reward_title, status)
-                `)
-                .eq('user_id', normalizedProfile.id)
-                .order('created_at', { ascending: false });
-            setMyContestEntries(data || []);
-        } catch (err) {
-            console.error('Fetch contest entries error:', err);
-        }
-    };
-
-    useEffect(() => {
-        fetchMyContestEntries();
-    }, [normalizedProfile.id]);
-
     // XP & Follow States
     const [xpData, setXpData] = useState({ posts: 0, comments: 0, analizler: 0, challenges: 0, total: 100 });
     const [xpLoading, setXpLoading] = useState(false);
@@ -202,6 +181,27 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
         () => publicProfile || normalizeCommunityProfile(kullanici, profileRecord),
         [kullanici, profileRecord, publicProfile]
     );
+
+    const fetchMyContestEntries = async () => {
+        if (!normalizedProfile.id || normalizedProfile.id === 'anonymous') return;
+        try {
+            const { data } = await supabase
+                .from('contest_entries')
+                .select(`
+                    *,
+                    contests:contest_id(title, end_date, reward_title, status)
+                `)
+                .eq('user_id', normalizedProfile.id)
+                .order('created_at', { ascending: false });
+            setMyContestEntries(data || []);
+        } catch (err) {
+            console.error('Fetch contest entries error:', err);
+        }
+    };
+
+    useEffect(() => {
+        fetchMyContestEntries();
+    }, [normalizedProfile.id]);
 
     const [profileData, setProfileData] = useState<ProfileForm>({
         displayName: normalizedProfile.displayName,
