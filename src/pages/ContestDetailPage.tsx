@@ -212,8 +212,9 @@ export default function ContestDetailPage() {
     .filter(Boolean)
     .slice(0, 3);
 
+  const realParticipantCount = Math.max(contest?.participant_count || 0, entries.length);
   const topParticipantName = participantProfiles[0]?.display_name || 'Katılımcılar';
-  const otherParticipantsCount = Math.max(0, (contest.participant_count || entries.length) - 1);
+  const otherParticipantsCount = Math.max(0, realParticipantCount - 1);
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] py-8 px-4 sm:px-6 lg:px-8">
@@ -397,7 +398,7 @@ export default function ContestDetailPage() {
                 </div>
 
                 <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 leading-snug">
-                  {contest.participant_count > 0 ? (
+                  {realParticipantCount > 0 ? (
                     <>
                       <strong className="font-extrabold text-zinc-900 dark:text-white">
                         {topParticipantName}
