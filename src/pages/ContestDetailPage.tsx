@@ -10,10 +10,8 @@ import {
   Sparkles, 
   CheckCircle2, 
   Clock, 
-  Award, 
-  Star,
-  ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  Check
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
@@ -48,7 +46,7 @@ export default function ContestDetailPage() {
         if (error) throw error;
         setContest(contestData);
 
-        // Check if current user joined
+        // Check if user joined
         if (user) {
           const { data: entry } = await supabase
             .from('contest_entries')
@@ -60,7 +58,7 @@ export default function ContestDetailPage() {
           if (entry) setUserJoined(true);
         }
 
-        // Fetch winners & submissions
+        // Fetch entries & winners
         const { data: entriesData } = await supabase
           .from('contest_entries')
           .select(`
@@ -79,7 +77,7 @@ export default function ContestDetailPage() {
           setWinners(winList);
         }
       } catch (err: any) {
-        toast.error('Yarışma bulunamadı.');
+        toast.error('Yarışma verisi yüklenemedi.');
       } finally {
         setLoading(false);
       }
@@ -90,7 +88,7 @@ export default function ContestDetailPage() {
 
   const handleJoinContest = async () => {
     if (!currentUser) {
-      toast.error('Yarışmaya katılmak için lütfen önce giriş yapın.');
+      toast.error('Yarışmaya katılmak için lütfen giriş yapın.');
       navigate('/auth?mode=kayit');
       return;
     }
@@ -111,7 +109,6 @@ export default function ContestDetailPage() {
           throw error;
         }
       } else {
-        // Update participant count
         await supabase
           .from('contests')
           .update({ participant_count: (contest.participant_count || 0) + 1 })
@@ -119,7 +116,7 @@ export default function ContestDetailPage() {
 
         setUserJoined(true);
         setContest((prev: any) => ({ ...prev, participant_count: (prev.participant_count || 0) + 1 }));
-        toast.success('🎉 Yarışmaya kaydınız alındı! Tasarımınızı Profilim sayfanızdan yükleyebilirsiniz.');
+        toast.success('🎉 Yarışmaya kaydınız alındı! Tasarımınızı Profilim sayfanızdan dilediğiniz zaman yükleyebilirsiniz.');
       }
     } catch (err: any) {
       toast.error(`Katılım sağlanamadı: ${err.message || 'Hata oluştu'}`);
@@ -140,10 +137,9 @@ export default function ContestDetailPage() {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-6 text-center">
         <h2 className="text-2xl font-bold text-[var(--text-primary)]">Yarışma Bulunamadı</h2>
-        <p className="text-sm text-[var(--text-secondary)] mt-2">Aradığınız yarışma mevcut değil veya silinmiş olabilir.</p>
         <button
           onClick={() => navigate('/')}
-          className="mt-6 px-6 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold text-sm rounded-xl"
+          className="mt-6 px-6 py-2.5 bg-zinc-900 text-white font-bold text-sm rounded-xl"
         >
           Ana Sayfaya Dön
         </button>
@@ -156,187 +152,219 @@ export default function ContestDetailPage() {
     ? contest.cover_images[0] 
     : 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&auto=format&fit=crop&q=80';
 
+  // Calculate days remaining
+  const diff = new Date(contest.end_date).getTime() - Date.now();
+  const daysLeft = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  const endDateObj = new Date(contest.end_date);
+  const monthAbbr = endDateObj.toLocaleString('tr-TR', { month: 'short' }).toUpperCase();
+  const dayNum = String(endDateObj.getDate()).padStart(2, '0');
+
+  // Sample participant avatars
+  const participantAvatars = entries
+    .map((e) => e.profiles?.avatar_url)
+    .filter(Boolean)
+    .slice(0, 3);
+
+  const topParticipantName = entries[0]?.profiles?.display_name || 'Kullanıcılar';
+  const otherParticipantsCount = Math.max(0, (contest.participant_count || entries.length) - 1);
+
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] py-10 px-4 sm:px-6">
-      <div className="max-w-5xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[var(--bg-primary)] py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto space-y-8">
         
         {/* Top Back Navigation */}
         <button
           onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+          className="inline-flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           Geri Dön
         </button>
 
-        {/* Hero Header Card */}
-        <div className="bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-3xl overflow-hidden shadow-xl">
-          <div className="h-64 sm:h-80 w-full relative">
-            <img src={coverImage} alt={contest.title} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-            
-            <div className="absolute bottom-6 left-6 right-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4 text-white">
-              <div className="space-y-2 max-w-2xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-xs font-bold">
-                  <Trophy className="w-3.5 h-3.5 text-amber-400" />
-                  {isExpired ? 'Tamamlanan Yarışma' : 'Canlı Tasarım Yarışması'}
+        {/* ÜST KAPAK GÖRSELİ (BANNER) */}
+        <div className="w-full h-64 sm:h-80 md:h-96 rounded-3xl overflow-hidden relative border border-zinc-200/80 dark:border-zinc-800 shadow-sm bg-zinc-100 dark:bg-zinc-800">
+          <img src={coverImage} alt={contest.title} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
+          
+          <div className="absolute bottom-6 left-6 right-6 text-white space-y-1">
+            <span className="inline-block px-3 py-1 rounded-full bg-[#FF5500] text-white text-xs font-extrabold shadow">
+              {contest.title}
+            </span>
+          </div>
+        </div>
+
+        {/* EKRAN GÖRÜNTÜSÜNDEKİ YAPI: SOL (Yarışma hakkında) - SAĞ (Temel Bilgiler) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* SOL TARAFTAKİ METİN & KURALLAR (8 KOLON) */}
+          <div className="lg:col-span-8 space-y-8">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] tracking-tight mb-4">
+                Yarışma hakkında
+              </h1>
+              
+              <div className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed space-y-4 whitespace-pre-line">
+                <p>{contest.short_description}</p>
+                <p>{contest.rules_content || 'Özel bir açıklama girilmemiştir. Özgün tasarımlarınızla katılabilirsiniz.'}</p>
+              </div>
+            </div>
+
+            {/* Kazananlar Bölümü (Eğer sonuçlandıysa) */}
+            {winners.length > 0 && (
+              <div className="space-y-4 pt-4 border-t border-[var(--border-primary)]">
+                <h3 className="text-xl font-extrabold text-[var(--text-primary)] flex items-center gap-2">
+                  <Crown className="w-6 h-6 text-amber-500" />
+                  Yarışma Kazananları & Dereceler
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {winners.map((win) => {
+                    const winImg = win.design_url || win.analizler?.gorsel_url;
+                    const profile = win.profiles;
+                    const rankText = win.winner_rank === 1 ? '🥇 1. Birinci' : win.winner_rank === 2 ? '🥈 2. İkinci' : '🥉 3. Üçüncü';
+
+                    return (
+                      <div
+                        key={win.id}
+                        className="bg-[var(--card-bg)] border-2 border-amber-400/60 rounded-2xl overflow-hidden p-3.5 space-y-2 shadow-sm"
+                      >
+                        <span className="inline-block bg-amber-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full">
+                          {rankText}
+                        </span>
+
+                        {winImg && (
+                          <div className="h-36 rounded-xl overflow-hidden bg-black/5">
+                            <img src={winImg} alt="Winner design" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-2 pt-1">
+                          <img
+                            src={profile?.avatar_url || 'https://api.dicebear.com/7.x/notionists/svg?seed=user'}
+                            alt="Avatar"
+                            className="w-7 h-7 rounded-full border border-amber-300"
+                          />
+                          <div className="min-w-0">
+                            <span className="text-xs font-bold text-[var(--text-primary)] block truncate">
+                              {profile?.display_name || 'Tasarımcı'}
+                            </span>
+                            {win.jury_score && (
+                              <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 block">
+                                Jüri: {win.jury_score} / 100
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
-                  {contest.title}
-                </h1>
-                <p className="text-xs sm:text-sm text-zinc-200 line-clamp-2">
-                  {contest.short_description}
-                </p>
+              </div>
+            )}
+          </div>
+
+          {/* SAĞ TARAFTAKİ "Temel Bilgiler" KARTI (4 KOLON - EKRAN GÖRÜNTÜSÜYLE BİREBİR) */}
+          <div className="lg:col-span-4 sticky top-8">
+            <div className="bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+              
+              <h2 className="text-xl font-extrabold text-[var(--text-primary)]">
+                Temel Bilgiler
+              </h2>
+
+              {/* Başvuru Son Tarihi Kutusu */}
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-14 bg-red-50 dark:bg-red-950/30 border border-red-200/80 dark:border-red-900/40 rounded-xl flex flex-col items-center justify-center shrink-0">
+                  <span className="text-[9px] font-extrabold text-red-600 dark:text-red-400 tracking-wider">
+                    {monthAbbr}
+                  </span>
+                  <span className="text-base font-black text-red-700 dark:text-red-300 leading-none">
+                    {dayNum}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-xs font-medium text-[var(--text-secondary)] block">
+                    Başvuru Son Tarihi
+                  </span>
+                  <span className="text-sm font-extrabold text-[var(--text-primary)] block">
+                    {isExpired ? 'Süresi Doldu' : `${daysLeft} gün kaldı`}
+                  </span>
+                </div>
               </div>
 
-              {!isExpired && (
-                <div>
-                  {userJoined ? (
-                    <div className="inline-flex items-center gap-2 px-5 py-3 bg-emerald-500 text-white font-bold text-sm rounded-2xl shadow-lg">
-                      <CheckCircle2 className="w-4 h-4" /> Katıldınız
+              {/* Katılım Butonu veya Durum */}
+              <div>
+                {!isExpired ? (
+                  userJoined ? (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 rounded-2xl text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center justify-center gap-2">
+                        <Check className="w-4 h-4" />
+                        Yarışmaya Katıldınız!
+                      </div>
+                      <button
+                        onClick={() => navigate('/profilim')}
+                        className="w-full py-3 px-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold text-xs rounded-2xl shadow hover:opacity-90 transition-all cursor-pointer"
+                      >
+                        Profilimden Tasarım Yükle
+                      </button>
                     </div>
                   ) : (
                     <button
                       onClick={handleJoinContest}
                       disabled={joining}
-                      className="px-6 py-3.5 bg-[#FF5500] hover:bg-[#e64d00] text-white font-bold text-sm rounded-2xl shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+                      className="w-full py-3.5 px-6 rounded-2xl bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 font-bold text-sm transition-all shadow-md active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      <Sparkles className="w-4 h-4" />
+                      <Sparkles className="w-4 h-4 text-[#FF5500]" />
                       {joining ? 'Kaydediliyor...' : 'Yarışmaya Katıl'}
                     </button>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+                  )
+                ) : (
+                  <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded-2xl text-center text-xs font-bold text-zinc-500">
+                    Bu yarışmanın süresi tamamlanmıştır.
+                  </div>
+                )}
+              </div>
 
-          {/* Quick Stats Bar */}
-          <div className="p-6 grid grid-cols-2 sm:grid-cols-4 gap-4 bg-[var(--bg-secondary)]/50 border-t border-[var(--border-primary)]">
-            <div>
-              <span className="text-[11px] font-semibold text-[var(--text-secondary)] block">Bitiş Tarihi</span>
-              <span className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)]">
-                {new Date(contest.end_date).toLocaleString('tr-TR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
-              </span>
-            </div>
+              {/* Hüküm ve koşullar Linki */}
+              <div className="text-center border-t border-[var(--border-primary)] pt-4">
+                <button
+                  onClick={() => alert(`Yarışma Ödülü: ${contest.reward_title}\n\nÖdül Detayı: ${contest.reward_description || 'Öne çıkarılma'}`)}
+                  className="text-xs font-semibold text-[var(--text-secondary)] hover:underline cursor-pointer"
+                >
+                  Hüküm ve koşullar
+                </button>
+              </div>
 
-            <div>
-              <span className="text-[11px] font-semibold text-[var(--text-secondary)] block">Katılımcı Sayısı</span>
-              <span className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)]">
-                {contest.participant_count || 0} Tasarımcı
-              </span>
-            </div>
-
-            <div>
-              <span className="text-[11px] font-semibold text-[var(--text-secondary)] block">Ödül</span>
-              <span className="text-xs sm:text-sm font-extrabold text-[#FF5500] truncate block">
-                {contest.reward_title}
-              </span>
-            </div>
-
-            <div>
-              <span className="text-[11px] font-semibold text-[var(--text-secondary)] block">Değerlendirme</span>
-              <span className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)]">
-                Jüri Puanlaması (1-100)
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Banner for Joined Users */}
-        {userJoined && !isExpired && (
-          <div className="p-5 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/40 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <h4 className="text-sm font-bold text-orange-900 dark:text-orange-300 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#FF5500]" />
-                Yarışmaya Katılımınız Onaylandı!
-              </h4>
-              <p className="text-xs text-orange-800/80 dark:text-orange-400">
-                Hazırladığınız çalışmayı yarışma bitiş tarihine kadar Profilim sayfanızdaki "Yarışmalarım" bölümünden istediğiniz zaman yükleyebilirsiniz.
-              </p>
-            </div>
-            <button
-              onClick={() => navigate('/profilim')}
-              className="px-4 py-2.5 bg-[#FF5500] text-white font-bold text-xs rounded-xl hover:bg-[#e64d00] transition-colors shrink-0 cursor-pointer"
-            >
-              Profilime Git & Tasarım Yükle
-            </button>
-          </div>
-        )}
-
-        {/* Winners Section (if available) */}
-        {winners.length > 0 && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Crown className="w-6 h-6 text-amber-500" />
-              <h3 className="text-xl font-extrabold text-[var(--text-primary)]">
-                Yarışma Kazananları & Dereceler
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              {winners.map((win) => {
-                const img = win.design_url || win.analizler?.gorsel_url;
-                const profile = win.profiles;
-                const rankText = win.winner_rank === 1 ? '🥇 1. Birinci' : win.winner_rank === 2 ? '🥈 2. İkinci' : '🥉 3. Üçüncü';
-
-                return (
-                  <div
-                    key={win.id}
-                    className="bg-[var(--card-bg)] border-2 border-amber-400/60 rounded-3xl overflow-hidden p-4 space-y-3 shadow-lg relative"
-                  >
-                    <div className="absolute top-3 right-3 bg-amber-500 text-white text-[11px] font-black px-3 py-1 rounded-full shadow">
-                      {rankText}
-                    </div>
-
-                    {img && (
-                      <div className="h-48 rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                        <img src={img} alt="Winner design" className="w-full h-full object-cover" />
+              {/* Katılımcı Avatarları ve Bilgi Yazısı */}
+              {contest.participant_count > 0 && (
+                <div className="flex items-center gap-3 pt-2">
+                  <div className="flex -space-x-2 shrink-0">
+                    {participantAvatars.length > 0 ? (
+                      participantAvatars.map((url, idx) => (
+                        <img
+                          key={idx}
+                          src={url}
+                          alt="Participant"
+                          className="w-7 h-7 rounded-full border-2 border-[var(--card-bg)] object-cover"
+                        />
+                      ))
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-[#FF5500] text-white text-xs font-bold flex items-center justify-center border-2 border-[var(--card-bg)]">
+                        R
                       </div>
                     )}
-
-                    <div className="flex items-center gap-3 pt-1">
-                      <img
-                        src={profile?.avatar_url || 'https://api.dicebear.com/7.x/notionists/svg?seed=user'}
-                        alt="Avatar"
-                        className="w-10 h-10 rounded-full border border-amber-300"
-                      />
-                      <div>
-                        <span className="text-sm font-bold text-[var(--text-primary)] block">
-                          {profile?.display_name || 'Tasarımcı'}
-                        </span>
-                        {win.jury_score && (
-                          <span className="text-xs font-extrabold text-amber-600 dark:text-amber-400 block">
-                            Jüri Puanı: {win.jury_score} / 100
-                          </span>
-                        )}
-                      </div>
-                    </div>
                   </div>
-                );
-              })}
+                  <p className="text-xs font-semibold text-[var(--text-secondary)] leading-tight">
+                    <strong className="text-[var(--text-primary)]">{topParticipantName}</strong>
+                    {otherParticipantsCount > 0 && ` ve ${otherParticipantsCount} kullanıcı daha `}
+                    yarışmaya katıldı
+                  </p>
+                </div>
+              )}
+
             </div>
           </div>
-        )}
 
-        {/* Detailed Rules & Requirements */}
-        <div className="bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-3xl p-6 sm:p-8 space-y-6">
-          <div className="border-b border-[var(--border-primary)] pb-4">
-            <h3 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-[#FF5500]" />
-              Yarışma Şartları & Jüri Değerlendirme Kriterleri
-            </h3>
-          </div>
-
-          <div className="text-sm text-[var(--text-secondary)] leading-relaxed whitespace-pre-line space-y-4">
-            {contest.rules_content || 'Özel bir şart belirtilmemiştir. Özgün çalışmanızla katılabilirsiniz.'}
-          </div>
-
-          {contest.reward_description && (
-            <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-2xl text-xs sm:text-sm text-amber-900 dark:text-amber-300">
-              <strong className="block font-bold mb-1">🎁 Ödül Detayı:</strong>
-              {contest.reward_description}
-            </div>
-          )}
         </div>
 
       </div>

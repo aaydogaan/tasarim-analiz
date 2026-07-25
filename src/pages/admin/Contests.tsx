@@ -20,6 +20,43 @@ import {
 import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
 
+// Helper to compress and convert uploaded image to a clean Data URL (works 100% reliably without storage permissions errors)
+const compressImageFile = (file: File): Promise<string> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let { width, height } = img;
+        const maxDim = 1200;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.85));
+        } else {
+          resolve(e.target?.result as string);
+        }
+      };
+      img.onerror = () => resolve(e.target?.result as string);
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => resolve('');
+    reader.readAsDataURL(file);
+  });
+};
+
 export default function Contests() {
   const [activeTab, setActiveTab] = useState<'contests' | 'entries' | 'subscribers'>('contests');
   const [contests, setContests] = useState<any[]>([]);
@@ -27,7 +64,7 @@ export default function Contests() {
   const [subscribers, setSubscribers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Contest Modal state (Light theme)
+  // Contest Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingContest, setEditingContest] = useState<any | null>(null);
 
@@ -86,7 +123,6 @@ export default function Contests() {
       if (error) throw error;
       setEntries(data || []);
 
-      // Populate jury scores state
       const scoresMap: Record<string, number> = {};
       data?.forEach((item) => {
         if (item.jury_score !== null && item.jury_score !== undefined) {
@@ -155,6 +191,7 @@ export default function Contests() {
 
     setUploadingImage(true);
     try {
+      // 1. Try Supabase Storage
       const fileExt = file.name.split('.').pop();
       const fileName = `contest_cover_${Date.now()}.${fileExt}`;
       const filePath = `contests/${fileName}`;
@@ -163,16 +200,36 @@ export default function Contests() {
         .from('analiz-gorselleri')
         .upload(filePath, file, { upsert: true });
 
-      if (uploadErr) throw uploadErr;
+      if (!uploadErr) {
+        const { data: publicUrlData } = supabase.storage
+          .from('analiz-gorselleri')
+          .getPublicUrl(filePath);
 
-      const { data: publicUrlData } = supabase.storage
-        .from('analiz-gorselleri')
-        .getPublicUrl(filePath);
+        if (publicUrlData?.publicUrl) {
+          setCoverImageUrl(publicUrlData.publicUrl);
+          toast.success('Kapak görseli yüklendi!');
+          setUploadingImage(false);
+          return;
+        }
+      }
 
-      setCoverImageUrl(publicUrlData.publicUrl);
-      toast.success('Kapak görseli PC\'den yüklendi!');
+      // 2. Fallback to optimized base64
+      const compressedDataUrl = await compressImageFile(file);
+      if (compressedDataUrl) {
+        setCoverImageUrl(compressedDataUrl);
+        toast.success('Kapak görseli yüklendi!');
+      } else {
+        throw new Error('Görsel okunamadı.');
+      }
     } catch (err: any) {
-      toast.error('Görsel yüklenemedi.');
+      // Final fallback to base64
+      const compressedDataUrl = await compressImageFile(file);
+      if (compressedDataUrl) {
+        setCoverImageUrl(compressedDataUrl);
+        toast.success('Kapak görseli yüklendi!');
+      } else {
+        toast.error('Görsel yüklenirken bir hata oluştu.');
+      }
     } finally {
       setUploadingImage(false);
     }
@@ -511,7 +568,7 @@ export default function Contests() {
                     </p>
                   )}
 
-                  {/* Jury Score (1-100) Input */}
+                  {/* Jury Score Input */}
                   <div className="p-3 bg-[var(--bg-secondary)] rounded-xl space-y-1.5">
                     <div className="flex items-center justify-between text-xs font-bold">
                       <span className="text-[var(--text-secondary)] flex items-center gap-1">
@@ -713,10 +770,10 @@ export default function Contests() {
                     Katılım Şartları & Detaylı Kurallar Metni
                   </label>
                   <textarea
-                    rows={3}
+                    rows={4}
                     value={formRules}
                     onChange={(e) => setFormRules(e.target.value)}
-                    placeholder="Yarışma kurallarını ve değerlendirme kriterlerini yazın..."
+                    placeholder="Yarışma kurallarını, detaylarını ve ilham fikirlerini yazın..."
                     className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs outline-none text-slate-900 focus:border-[#FF5500] focus:bg-white transition-all font-medium"
                   />
                 </div>
@@ -736,7 +793,7 @@ export default function Contests() {
                       />
                     )}
 
-                    <label className="flex-1 border border-dashed border-slate-300 hover:border-[#FF5500] bg-slate-50 p-3 rounded-xl text-center cursor-pointer transition-colors flex items-center justify-center gap-2 text-xs font-bold text-slate-700">
+                    <label className="flex-1 border border-dashed border-slate-300 hover:border-[#FF5500] bg-slate-50 p-3.5 rounded-xl text-center cursor-pointer transition-colors flex items-center justify-center gap-2 text-xs font-bold text-slate-700">
                       {uploadingImage ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin text-[#FF5500]" /> Görsel Yükleniyor...
@@ -756,7 +813,6 @@ export default function Contests() {
                   </div>
                 </div>
 
-                {/* Standart Eskitarz Açılır Menü */}
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">
                     Yarışma Durumu (Açılır Menü)

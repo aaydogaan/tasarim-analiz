@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, UploadCloud, CheckCircle2, Image as ImageIcon, Send, Loader2 } from 'lucide-react';
+import { X, UploadCloud, CheckCircle2, Send, Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
 
@@ -10,6 +10,42 @@ interface ContestUploadModalProps {
   entry: any | null;
   onSuccess: () => void;
 }
+
+const compressImageFile = (file: File): Promise<string> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let { width, height } = img;
+        const maxDim = 1200;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.85));
+        } else {
+          resolve(e.target?.result as string);
+        }
+      };
+      img.onerror = () => resolve(e.target?.result as string);
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => resolve('');
+    reader.readAsDataURL(file);
+  });
+};
 
 export const ContestUploadModal: React.FC<ContestUploadModalProps> = ({
   isOpen,
@@ -44,25 +80,34 @@ export const ContestUploadModal: React.FC<ContestUploadModalProps> = ({
       let finalDesignUrl = entry.design_url || '';
 
       if (file) {
-        // Upload to Supabase Storage
-        const fileExt = file.name.split('.').pop();
-        const fileName = `contest_${entry.id}_${Date.now()}.${fileExt}`;
-        const filePath = `contests/${fileName}`;
+        // Try Storage upload first
+        try {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `contest_${entry.id}_${Date.now()}.${fileExt}`;
+          const filePath = `contests/${fileName}`;
 
-        const { error: uploadErr } = await supabase.storage
-          .from('analiz-gorselleri')
-          .upload(filePath, file, { upsert: true });
+          const { error: uploadErr } = await supabase.storage
+            .from('analiz-gorselleri')
+            .upload(filePath, file, { upsert: true });
 
-        if (uploadErr) throw uploadErr;
+          if (!uploadErr) {
+            const { data: publicUrlData } = supabase.storage
+              .from('analiz-gorselleri')
+              .getPublicUrl(filePath);
 
-        const { data: publicUrlData } = supabase.storage
-          .from('analiz-gorselleri')
-          .getPublicUrl(filePath);
+            if (publicUrlData?.publicUrl) {
+              finalDesignUrl = publicUrlData.publicUrl;
+            }
+          }
+        } catch (_) {}
 
-        finalDesignUrl = publicUrlData.publicUrl;
+        // Fallback to base64 data url if needed
+        if (!finalDesignUrl || finalDesignUrl === entry.design_url) {
+          const compressed = await compressImageFile(file);
+          if (compressed) finalDesignUrl = compressed;
+        }
       }
 
-      // Update contest entry
       const { error: updateErr } = await supabase
         .from('contest_entries')
         .update({
