@@ -71,6 +71,14 @@ export default function PublicProfile() {
                 if (profErr || !profData) throw new Error('Profil bulunamadı');
                 setProfile(profData);
 
+                // Set dynamic SEO Title & Meta Description for User Profile
+                const designerName = profData.display_name || 'Tasarımcı';
+                document.title = `${designerName} (@${profData.slug || 'profil'}) — Tasarımcı Profili | Revizelesene`;
+                let descTag = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+                if (descTag) {
+                    descTag.content = `${designerName} tasarımcı profili, XP başarıları, rozetleri ve tasarım analizleri Revizelesene'de.`;
+                }
+
                 // Fetch current user and follow status
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {

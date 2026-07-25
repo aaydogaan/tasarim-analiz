@@ -56,6 +56,12 @@ export default function ContestDetailPage() {
         }
 
         setContest(contestData);
+        document.title = `${contestData.title || 'Tasarım Yarışması'} — Ödüllü Tasarım Yarışması | Revizelesene`;
+        let descTag = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+        if (descTag) {
+          descTag.content = `${contestData.short_description || contestData.title} tasarım yarışmasına katılın, tasarımlarınızı jüriye sunun ve ödüller kazanın.`;
+        }
+
         const realContestId = contestData.id;
 
         // Check if user joined
