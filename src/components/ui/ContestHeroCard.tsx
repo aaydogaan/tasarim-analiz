@@ -189,31 +189,34 @@ export const ContestHeroCard: React.FC<ContestHeroCardProps> = ({
           ) : (
             <div className="w-full space-y-3 pt-1">
               {winnerEntry ? (
-                <div className="p-4 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 rounded-2xl border border-amber-400/50 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-bold text-amber-800 dark:text-amber-300">
-                    <span className="flex items-center gap-1.5 font-black text-sm">
-                      <Trophy className="w-4 h-4 text-amber-500 animate-bounce" />
-                      1.lik Kazananı Açıklandı!
-                    </span>
+                <div className="p-4 sm:p-5 bg-zinc-100 dark:bg-zinc-800/80 rounded-2xl border border-zinc-200/90 dark:border-zinc-700/80 space-y-3 shadow-xs">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Trophy className="w-4.5 h-4.5 text-[#FF5500] shrink-0" />
+                      <span className="text-xs sm:text-sm font-extrabold text-zinc-900 dark:text-white">
+                        1.lik Derecesi Sahibini Buldu
+                      </span>
+                    </div>
+
                     {winnerEntry.jury_score && (
-                      <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-white text-[11px] font-black">
-                        ⭐ {winnerEntry.jury_score} / 100 Puan
+                      <span className="px-3 py-1 rounded-xl bg-[#FF5500]/10 border border-[#FF5500]/20 text-[#FF5500] dark:text-white dark:bg-[#FF5500] text-xs sm:text-sm font-black tracking-tight shrink-0">
+                        {winnerEntry.jury_score} / 100 Puan
                       </span>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3 pt-1">
+                  <div className="flex items-center gap-3 pt-1 border-t border-zinc-200/60 dark:border-zinc-700/60">
                     <img
                       src={winnerEntry.profiles?.avatar_url || 'https://api.dicebear.com/7.x/notionists/svg?seed=user'}
                       alt="Winner"
-                      className="w-10 h-10 rounded-full border-2 border-amber-400 object-cover"
+                      className="w-10 h-10 rounded-full border border-zinc-300 dark:border-zinc-600 object-cover shrink-0"
                     />
-                    <div>
-                      <span className="text-sm font-extrabold text-zinc-900 dark:text-white block">
+                    <div className="min-w-0">
+                      <span className="text-sm font-extrabold text-zinc-900 dark:text-white block truncate">
                         {winnerEntry.profiles?.display_name || 'Kazanan Tasarımcı'}
                       </span>
-                      <span className="text-xs text-amber-600 dark:text-amber-400 font-bold block">
-                        🏆 1. Birincilik Ödülü Sahibi
+                      <span className="text-xs text-[#FF5500] font-bold block">
+                        1. Birincilik Ödülü Sahibi
                       </span>
                     </div>
                   </div>
