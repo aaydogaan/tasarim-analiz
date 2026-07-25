@@ -44,25 +44,27 @@ export const ContestHeroCard: React.FC<ContestHeroCardProps> = ({
       const diff = end - now;
 
       if (diff <= 0 || contest.status === 'ended') {
-        setTimeLeft({ text: 'Süresi Doldu', isExpired: true });
+        setTimeLeft({ text: '🏁 Süresi Doldu • Yakında Açıklanıyor!', isExpired: true });
         return;
       }
 
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
       if (days > 0) {
         setTimeLeft({ text: `${days} gün kaldı`, isExpired: false });
-      } else if (hours > 0) {
-        setTimeLeft({ text: `${hours} saat ${minutes} dk kaldı`, isExpired: false });
       } else {
-        setTimeLeft({ text: `${minutes} dk kaldı`, isExpired: false });
+        const h = String(hours).padStart(2, '0');
+        const m = String(minutes).padStart(2, '0');
+        const s = String(seconds).padStart(2, '0');
+        setTimeLeft({ text: `⏱️ ${h}:${m}:${s} kaldı`, isExpired: false });
       }
     };
 
     updateCountdown();
-    const interval = setInterval(updateCountdown, 60000);
+    const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
   }, [contest.end_date, contest.status]);
 
@@ -188,7 +190,7 @@ export const ContestHeroCard: React.FC<ContestHeroCardProps> = ({
                     value={newsletterEmail}
                     onChange={(e) => setNewsletterEmail(e.target.value)}
                     required
-                    className="flex-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm outline-none focus:border-zinc-400"
+                    className="flex-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm outline-none focus:border-zinc-400 text-zinc-900 dark:text-white font-medium placeholder:text-zinc-400"
                   />
                   <button
                     type="submit"

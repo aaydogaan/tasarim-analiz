@@ -36,6 +36,13 @@ export default function LiveActivityFeed() {
                     .order('created_at', { ascending: false })
                     .limit(5);
 
+                // Fetch latest active contests
+                const { data: contests } = await supabase
+                    .from('contests')
+                    .select('id, title, created_at, status')
+                    .order('created_at', { ascending: false })
+                    .limit(3);
+
                 const mixed: any[] = [];
                 
                 if (posts) {
@@ -58,6 +65,18 @@ export default function LiveActivityFeed() {
                             icon: UserPlus,
                             color: "text-emerald-500",
                             createdAt: new Date(u.created_at).getTime()
+                        });
+                    });
+                }
+
+                if (contests) {
+                    contests.forEach(c => {
+                        mixed.push({
+                            id: `contest-${c.id}`,
+                            text: `🏆 ${c.title || 'Tasarım'} Yarışması Yayında! Katılın ve Ödül Kazanın.`,
+                            icon: Trophy,
+                            color: "text-[#FF5500]",
+                            createdAt: new Date(c.created_at).getTime()
                         });
                     });
                 }
@@ -114,10 +133,30 @@ export default function LiveActivityFeed() {
             })
             .subscribe();
 
+        const contestsSub = supabase.channel('feed_contests')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'contests' }, (payload: any) => {
+                const isNew = payload.eventType === 'INSERT';
+                const newActivity = {
+                    id: `contest-${payload.new.id}`,
+                    text: isNew
+                        ? `🏆 Yeni Yarışma Başladı: "${payload.new.title}"! Hemen Katılın.`
+                        : `🎉 "${payload.new.title}" Yarışma Sonuçları Açıklandı! Kazananları İnceleyin.`,
+                    icon: Trophy,
+                    color: "text-[#FF5500]",
+                    createdAt: Date.now()
+                };
+                setActivities(prev => [newActivity, ...prev].slice(0, 10));
+                setIndex(0);
+                setIsVisible(true);
+                setAutoClose(true);
+            })
+            .subscribe();
+
         return () => {
             isMounted = false;
             supabase.removeChannel(postsSub);
             supabase.removeChannel(usersSub);
+            supabase.removeChannel(contestsSub);
         };
     }, []);
 

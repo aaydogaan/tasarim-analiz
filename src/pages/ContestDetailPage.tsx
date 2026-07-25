@@ -152,14 +152,47 @@ export default function ContestDetailPage() {
     );
   }
 
-  const isExpired = new Date(contest.end_date).getTime() <= Date.now() || contest.status === 'ended';
-  const coverImage = (contest.cover_images && contest.cover_images[0]) 
+  const [countdownText, setCountdownText] = useState('');
+  const [isExpired, setIsExpired] = useState(false);
+
+  useEffect(() => {
+    if (!contest?.end_date) return;
+    const update = () => {
+      const end = new Date(contest.end_date).getTime();
+      const now = Date.now();
+      const diff = end - now;
+
+      if (diff <= 0 || contest.status === 'ended') {
+        setIsExpired(true);
+        setCountdownText('Süresi Doldu • Jüri Değerlendirmesinde');
+        return;
+      }
+
+      setIsExpired(false);
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      if (days > 0) {
+        setCountdownText(`${days} gün kaldı`);
+      } else {
+        const h = String(hours).padStart(2, '0');
+        const m = String(minutes).padStart(2, '0');
+        const s = String(seconds).padStart(2, '0');
+        setCountdownText(`⏱️ ${h}:${m}:${s} kaldı`);
+      }
+    };
+
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [contest?.end_date, contest?.status]);
+
+  const coverImage = (contest?.cover_images && contest?.cover_images[0]) 
     ? contest.cover_images[0] 
     : 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&auto=format&fit=crop&q=80';
 
-  // Calculate days remaining
-  const diff = new Date(contest.end_date).getTime() - Date.now();
-  const daysLeft = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   const endDateObj = new Date(contest.end_date);
   const monthAbbr = endDateObj.toLocaleString('tr-TR', { month: 'short' }).toUpperCase();
   const dayNum = String(endDateObj.getDate()).padStart(2, '0');
@@ -296,7 +329,7 @@ export default function ContestDetailPage() {
                     Başvuru Son Tarihi
                   </span>
                   <span className="text-sm font-extrabold text-zinc-900 dark:text-white block">
-                    {isExpired ? 'Süresi Doldu' : `${daysLeft} gün kaldı`}
+                    {countdownText}
                   </span>
                 </div>
               </div>
@@ -327,8 +360,13 @@ export default function ContestDetailPage() {
                     </button>
                   )
                 ) : (
-                  <div className="p-3.5 bg-zinc-100 dark:bg-zinc-800 rounded-2xl text-center text-xs font-bold text-zinc-500">
-                    Bu yarışmanın süresi tamamlanmıştır.
+                  <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-2xl text-center space-y-1">
+                    <span className="text-xs font-black text-amber-700 dark:text-amber-400 block uppercase tracking-wider">
+                      🏁 Süresi Doldu
+                    </span>
+                    <p className="text-xs text-amber-800 dark:text-amber-300 font-medium">
+                      Jüri değerlendirmesi devam ediyor. Kazananlar çok yakında burada açıklanacak!
+                    </p>
                   </div>
                 )}
 
