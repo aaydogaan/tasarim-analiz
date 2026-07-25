@@ -16,10 +16,13 @@ import {
   Sliders,
   Award,
   CheckCircle2,
-  MessageSquare
+  MessageSquare,
+  Mail,
+  Send
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
+import { sendContestNewsletterEmail, sendEmail } from '../../lib/resend';
 
 const compressImageFile = (file: File): Promise<string> => {
   return new Promise((resolve) => {
@@ -92,6 +95,16 @@ export default function Contests() {
   const [juryNote, setJuryNote] = useState<string>('');
   const [selectedWinnerRank, setSelectedWinnerRank] = useState<number | null>(null);
   const [savingEvaluation, setSavingEvaluation] = useState(false);
+
+  // RESEND BROADCAST EMAIL MODAL STATES
+  const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
+  const [broadcastTarget, setBroadcastTarget] = useState<'subscribers' | 'users' | 'test'>('subscribers');
+  const [broadcastSubject, setBroadcastSubject] = useState('');
+  const [broadcastTitle, setBroadcastTitle] = useState('');
+  const [broadcastBody, setBroadcastBody] = useState('');
+  const [testEmailAddress, setTestEmailAddress] = useState('');
+  const [selectedContestForMail, setSelectedContestForMail] = useState<string>('');
+  const [sendingBroadcast, setSendingBroadcast] = useState(false);
 
   const fetchContests = async () => {
     setLoading(true);
@@ -370,7 +383,6 @@ export default function Contests() {
     if (subscribers.length === 0) return;
     const csvContent = 'data:text/csv;charset=utf-8,E-posta,Kayıt Tarihi\n' +
       subscribers.map((s) => `"${s.email}","${new Date(s.created_at).toLocaleString('tr-TR')}"`).join('\n');
-
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
@@ -378,6 +390,71 @@ export default function Contests() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // HANDLE SEND RESEND BROADCAST EMAIL
+  const handleSendBroadcastEmail = async () => {
+    if (broadcastTarget === 'test' && !testEmailAddress.trim()) {
+      toast.error('Lütfen geçerli bir test e-posta adresi girin.');
+      return;
+    }
+
+    setSendingBroadcast(true);
+    try {
+      let recipientList: string[] = [];
+
+      if (broadcastTarget === 'test') {
+        recipientList = [testEmailAddress.trim()];
+      } else if (broadcastTarget === 'subscribers') {
+        const { data } = await supabase.from('contest_subscribers').select('email');
+        if (data) recipientList = data.map((s) => s.email).filter(Boolean);
+      } else {
+        const { data } = await supabase.from('contest_subscribers').select('email');
+        if (data) recipientList = data.map((p) => p.email).filter(Boolean);
+      }
+
+      if (recipientList.length === 0) {
+        toast.error('Gönderilecek e-posta adresi bulunamadı.');
+        setSendingBroadcast(false);
+        return;
+      }
+
+      const contestObj = contests.find((c) => c.id === selectedContestForMail);
+      const title = broadcastTitle || contestObj?.title || 'Yeni Tasarım Yarışması';
+      const desc = broadcastBody || contestObj?.short_description || 'Revizelesene yarışmasına katılarak harika ödüller kazanabilirsiniz.';
+      const slug = contestObj?.slug || contestObj?.id || 'duyuru';
+      const reward = contestObj?.reward_title;
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const email of recipientList) {
+        const res = await sendContestNewsletterEmail({
+          to: email,
+          contestTitle: title,
+          contestDescription: desc,
+          contestSlug: slug,
+          rewardTitle: reward,
+        });
+
+        if (res.success) {
+          successCount++;
+        } else {
+          failCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(`🎉 ${successCount} e-posta adresine Resend ile bülten gönderildi! ${failCount > 0 ? `(${failCount} başarısız)` : ''}`);
+        setIsBroadcastModalOpen(false);
+      } else {
+        toast.error('E-posta gönderimi başarısız. Resend ayarlarını kontrol edin.');
+      }
+    } catch (err: any) {
+      toast.error(`Gönderim hatası: ${err.message}`);
+    } finally {
+      setSendingBroadcast(false);
+    }
   };
 
   const totalCalculatedScore = Math.min(100, scoreEstetik + scoreKonsept + scoreTipografi + scoreTema);
@@ -396,13 +473,23 @@ export default function Contests() {
           </p>
         </div>
 
-        <button
-          onClick={openNewModal}
-          className="bg-[#FF5500] hover:bg-[#e64d00] text-white text-sm font-bold py-2.5 px-4 rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          Yeni Yarışma Ekle
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsBroadcastModalOpen(true)}
+            className="bg-zinc-800 hover:bg-zinc-900 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-white text-sm font-bold py-2.5 px-4 rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <Mail className="w-4 h-4 text-[#FF5500]" />
+            E-posta Bülteni Gönder
+          </button>
+
+          <button
+            onClick={openNewModal}
+            className="bg-[#FF5500] hover:bg-[#e64d00] text-white text-sm font-bold py-2.5 px-4 rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            Yeni Yarışma Ekle
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -426,7 +513,7 @@ export default function Contests() {
               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           }`}
         >
-          Katılımcı Gönderileri ({entries.length})
+          Katılımlar ({entries.length})
         </button>
 
         <button
@@ -441,7 +528,7 @@ export default function Contests() {
         </button>
       </div>
 
-      {/* Tab 1: Contests List */}
+      {/* TAB CONTENT: CONTESTS */}
       {activeTab === 'contests' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {contests.map((c) => {

@@ -7,6 +7,7 @@ import { User, X, Eye, EyeOff, MailCheck, RefreshCw, Sparkles, Loader2, CheckCir
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import CustomSelect from '../components/ui/CustomSelect';
 import { generateUniqueSlug } from '../lib/communityProfile';
+import { sendWelcomeEmail } from '../lib/resend';
 
 const RANK_OPTIONS = [
     { value: 'stajyer', label: 'Stajyer Tasarımcı' },
@@ -174,6 +175,11 @@ export default function AuthPage() {
                             specialty: authSpecialty,
                             experience_level: authExperienceLevel,
                             updated_at: new Date().toISOString()
+                        });
+
+                        // Trigger Resend Welcome Email
+                        sendWelcomeEmail(cleanEmail, authAdSoyad || 'Tasarımcı').catch(err => {
+                            console.error('Welcome email error:', err);
                         });
                     } catch (_) { }
                 }
