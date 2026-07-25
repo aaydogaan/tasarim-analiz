@@ -481,14 +481,14 @@ export default function App() {
     if (!kullanici) return;
     const checkAndAwardBadges = async () => {
       try {
-        await supabase.from('user_badges').insert([
+        await supabase.from('user_badges').upsert([
           { user_id: kullanici.id, badge_id: 'aramiza-hos-geldin' },
           { user_id: kullanici.id, badge_id: 'ai-ile-tanisma' }
-        ]);
+        ], { onConflict: 'user_id, badge_id', ignoreDuplicates: true });
       } catch (_) {}
     };
     checkAndAwardBadges();
-  }, [kullanici]);
+  }, [kullanici?.id]);
 
   // Fetch Past Analyses
   useEffect(() => {
@@ -1131,7 +1131,7 @@ export default function App() {
                     }}
                     className="bg-gradient-to-br from-[#FF5500] to-[#FF8800] rounded-xl p-4 text-white shadow-lg shadow-[#FF5500]/20 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
                   >
-                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none"></div>
+                    <div className="absolute inset-0 bg-white/5 opacity-40 pointer-events-none"></div>
                     <div className="relative z-10">
                       <div className="flex items-center gap-2 mb-1">
                         <Sparkles className="w-4 h-4 text-white" />
