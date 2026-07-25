@@ -32,22 +32,31 @@ export default function ContestDetailPage() {
         const { data: { user } } = await supabase.auth.getUser();
         setCurrentUser(user);
 
-        // Fetch Contest
-        const { data: contestData, error } = await supabase
-          .from('contests')
-          .select('*')
-          .eq('id', id)
-          .single();
+        // Fetch Contest by slug or id
+        let contestData = null;
+        const isUuid = /^[0-9a-fA-F-]{36}$/.test(id);
 
-        if (error) throw error;
+        if (isUuid) {
+          const { data } = await supabase.from('contests').select('*').eq('id', id).maybeSingle();
+          contestData = data;
+        }
+
+        if (!contestData) {
+          const { data } = await supabase.from('contests').select('*').eq('slug', id).maybeSingle();
+          contestData = data;
+        }
+
+        if (!contestData) throw new Error('Yarışma bulunamadı');
         setContest(contestData);
+
+        const realContestId = contestData.id;
 
         // Check if user joined
         if (user) {
           const { data: entry } = await supabase
             .from('contest_entries')
             .select('id')
-            .eq('contest_id', id)
+            .eq('contest_id', realContestId)
             .eq('user_id', user.id)
             .maybeSingle();
 
@@ -62,7 +71,7 @@ export default function ContestDetailPage() {
             profiles:user_id(display_name, avatar_url, slug, verification_badge),
             analizler:post_id(gorsel_url, isletme)
           `)
-          .eq('contest_id', id)
+          .eq('contest_id', realContestId)
           .order('created_at', { ascending: false });
 
         if (entriesData) {

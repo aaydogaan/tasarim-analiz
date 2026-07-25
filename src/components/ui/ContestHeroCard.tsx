@@ -17,6 +17,7 @@ export interface ContestData {
   status: 'active' | 'ended' | 'draft';
   cover_images: string[];
   participant_count: number;
+  slug?: string;
 }
 
 interface ContestHeroCardProps {
@@ -152,7 +153,7 @@ export const ContestHeroCard: React.FC<ContestHeroCardProps> = ({
           {!timeLeft.isExpired ? (
             <div className="w-full space-y-3 pt-1">
               <button
-                onClick={() => navigate(`/yarisma/${contest.id}`)}
+                onClick={() => navigate(`/yarisma/${contest.slug || contest.id}`)}
                 className="w-full py-3.5 px-6 rounded-2xl bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 font-bold text-sm sm:text-base transition-all shadow-md active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Sparkles className="w-4 h-4 text-[#FF5500]" />
@@ -160,7 +161,7 @@ export const ContestHeroCard: React.FC<ContestHeroCardProps> = ({
               </button>
 
               <button
-                onClick={() => navigate(`/yarisma/${contest.id}`)}
+                onClick={() => navigate(`/yarisma/${contest.slug || contest.id}`)}
                 className="w-full py-3.5 px-6 rounded-2xl bg-zinc-100 hover:bg-zinc-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-bold text-sm sm:text-base transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 Daha fazla bilgi al
