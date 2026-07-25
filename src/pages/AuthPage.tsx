@@ -446,19 +446,8 @@ export default function AuthPage() {
                                 )}
 
                                 {authHata && (
-                                    <div className="bg-red-50 text-red-600 p-3.5 rounded-xl text-[13px] font-medium border border-red-100 leading-snug space-y-2">
+                                    <div className="bg-red-50 text-red-600 p-3.5 rounded-xl text-[13px] font-medium border border-red-100 leading-snug">
                                         <p>{authHata}</p>
-                                        {unconfirmedEmail && (
-                                            <button
-                                                type="button"
-                                                onClick={resendVerificationEmail}
-                                                disabled={resendLoading || cooldown > 0}
-                                                className="text-xs font-bold text-[#FF5500] hover:underline flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                                            >
-                                                {resendLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-                                                {cooldown > 0 ? `Doğrulama Bağlantısını Tekrar Gönder (${cooldown}s)` : 'Doğrulama Bağlantısını Tekrar Gönder'}
-                                            </button>
-                                        )}
                                     </div>
                                 )}
 
