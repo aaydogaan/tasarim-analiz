@@ -282,10 +282,16 @@ export default function App() {
       '/liderlik':  { title: 'Liderlik Tablosu — Revizelesene', description: 'Revizelesene platformunda en aktif tasarımcıları ve XP sıralamalarını keşfedin.' },
       '/pricing':   { title: 'Fiyatlandırma — Revizelesene', description: 'Revizelesene ücretsiz ve premium planlarını karşılaştırın. Size en uygun paketi seçin.' },
       '/about':     { title: 'Hakkımızda — Revizelesene', description: 'Revizelesene\'nin hikayesini, misyonunu ve ekibini tanıyın.' },
-      '/tools':     { title: 'Araçlar — Revizelesene', description: 'Tasarımcılar için ücretsiz renk, tipografi ve kompozisyon araçlarını keşfedin.' },
+      '/tools':     { title: 'Tasarım Araçları — Revizelesene', description: 'Tasarımcılar için ücretsiz renk, tipografi ve kompozisyon araçlarını keşfedin.' },
       '/typography': { title: 'Tipografi Laboratuvarı — Revizelesene', description: 'Font çiftlerini test edin, hiyerarşi oluşturun ve projeleriniz için en iyi tipografi kombinasyonunu bulun.' },
       '/nasil-calisir': { title: 'Nasıl Çalışır? — Revizelesene', description: 'Revizelesene yapay zeka analizinin, topluluk vitrininin ve liderlik tablosunun nasıl çalıştığını keşfedin.' },
       '/profile':   { title: 'Profilim — Revizelesene', description: 'Analizlerinizi, rozetlerinizi ve ilerlemenizi görüntüleyin.' },
+      '/profilim':  { title: 'Profilim — Revizelesene', description: 'Analizlerinizi, rozetlerinizi ve yarışma katımlarlarınızı görüntüleyin.' },
+      '/kvkk':      { title: 'KVKK Aydınlatma Metni — Revizelesene', description: 'Kişisel Verilerin Korunması Kanunu uyarınca aydınlatma metni ve haklarınız.' },
+      '/gizlilik':  { title: 'Gizlilik Politikası — Revizelesene', description: 'Revizelesene gizlilik politikası, veri güvenliği ve gizlilik ilkeleri.' },
+      '/kosullar':  { title: 'Kullanım Koşulları — Revizelesene', description: 'Revizelesene platformu kullanım şartları ve üyelik sözleşmesi.' },
+      '/cerez-politikasi': { title: 'Çerez Politikası — Revizelesene', description: 'Revizelesene çerez (cookie) kullanımı ve çerez tercihleri bilgilendirmesi.' },
+      '/auth':      { title: 'Giriş Yap & Kayıt Ol — Revizelesene', description: 'Revizelesene hesabınıza giriş yapın veya yeni bir tasarımcı hesabı oluşturun.' },
     };
 
     const meta = SEO_MAP[location.pathname] ?? {
@@ -314,8 +320,8 @@ export default function App() {
     }
     canonicalTag.href = canonicalUrl;
 
-    // Update og:title / og:description / og:url
-    const setOg = (property: string, content: string) => {
+    // Update og & twitter tags
+    const setMetaProp = (property: string, content: string) => {
       let tag = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
       if (!tag) {
         tag = document.createElement('meta');
@@ -324,11 +330,25 @@ export default function App() {
       }
       tag.content = content;
     };
-    setOg('og:title', meta.title);
-    setOg('og:description', meta.description);
-    setOg('og:url', canonicalUrl);
-    setOg('og:site_name', 'Revizelesene');
-    setOg('og:type', 'website');
+
+    const setMetaName = (name: string, content: string) => {
+      let tag = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
+      if (!tag) {
+        tag = document.createElement('meta');
+        tag.setAttribute('name', name);
+        document.head.appendChild(tag);
+      }
+      tag.content = content;
+    };
+
+    setMetaProp('og:title', meta.title);
+    setMetaProp('og:description', meta.description);
+    setMetaProp('og:url', canonicalUrl);
+    setMetaProp('og:site_name', 'Revizelesene');
+    setMetaProp('og:type', 'website');
+
+    setMetaName('twitter:title', meta.title);
+    setMetaName('twitter:description', meta.description);
   }, [location.pathname]);
   const [gorsel, setGorsel] = useState<string | null>(initGorsel);
   const [gorselBase64, setGorselBase64] = useState<string | null>(initGorselBase64);
