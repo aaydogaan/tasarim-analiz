@@ -1471,6 +1471,15 @@ export default function App() {
                                       <AlertCircle className="w-5 h-5 shrink-0" /> {hata}
                                     </div>
                                   )}
+                                  <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs leading-relaxed font-medium flex items-start gap-3 shadow-xs">
+                                     <Sparkles className="w-4 h-4 shrink-0 text-amber-500 mt-0.5" />
+                                     <div>
+                                       <strong className="font-extrabold block text-amber-700 dark:text-amber-300 mb-0.5">
+                                         🧠 Yapay Zeka Modelimiz Öğrenmeye Devam Ediyor
+                                       </strong>
+                                       Analiz motorumuz henüz gelişme aşamasındadır. Çok detaylı veya %100 insani bir inceleme beklemeyin, ancak doğruluğunu her geçen gün artırmak için çalışıyoruz! 🚀
+                                     </div>
+                                   </div>
 
                                   <div className="space-y-6">
                                     <div>
