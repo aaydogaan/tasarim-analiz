@@ -8,6 +8,7 @@ import ReportModal from '../components/ui/ReportModal';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import GununTasarimi from '../components/ui/GununTasarimi';
+import { sendDayWinnerEmail } from '../lib/resend';
 
 interface VitrinItem {
     id: string;
@@ -285,6 +286,40 @@ export function Vitrin() {
                 };
             });
             setItems(formatted);
+
+            // Automatically check and notify today's winner
+            if (formatted.length > 0) {
+                const winner = [...formatted].sort((a, b) => (b.ai_puan || 0) - (a.ai_puan || 0))[0];
+                if (winner && winner.user_id && winner.user_id !== 'anonymous') {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const notifKey = `day_winner_sent_${winner.id}_${todayStr}`;
+                    
+                    if (!localStorage.getItem(notifKey)) {
+                        localStorage.setItem(notifKey, 'true');
+
+                        // 1. Insert In-App Notification
+                        supabase.from('user_notifications').insert([{
+                            user_id: winner.user_id,
+                            title: '👑 Tebrikler! Tasarımınız "Günün Tasarımı" Seçildi!',
+                            message: `"${winner.isletme || winner.tasarim_turu}" tasarımınız ${winner.ai_puan}/100 AI skoru ile bugünün 1. tasarımı seçildi ve vitrinde 1. sıraya yerleşti!`,
+                            type: 'winner',
+                            read: false
+                        }]).then(() => {});
+
+                        // 2. Send Automated Winner Email
+                        supabase.from('profiles').select('email, display_name').eq('id', winner.user_id).single().then(({ data: userProf }) => {
+                            if (userProf && userProf.email) {
+                                sendDayWinnerEmail(
+                                    userProf.email,
+                                    userProf.display_name || winner.user_name || 'Tasarımcı',
+                                    winner.isletme || winner.tasarim_turu || 'Tasarımınız',
+                                    winner.ai_puan || 85
+                                ).catch(err => console.error('Winner email error:', err));
+                            }
+                        });
+                    }
+                }
+            }
         }
         setLoading(false);
     };

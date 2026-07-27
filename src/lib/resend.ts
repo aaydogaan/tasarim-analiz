@@ -39,6 +39,30 @@ export async function sendWelcomeEmail(userEmail: string, userName: string) {
   }
 }
 
+export async function sendDayWinnerEmail(userEmail: string, userName: string, designTitle: string, score: number) {
+  try {
+    const response = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: 'day_winner',
+        to: userEmail,
+        userName,
+        contestTitle: designTitle,
+        score,
+      }),
+    });
+
+    const data = await response.json();
+    return { success: response.ok, data };
+  } catch (err: any) {
+    console.error('sendDayWinnerEmail exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
 export async function sendContestNewsletterEmail({
   to,
   contestTitle,

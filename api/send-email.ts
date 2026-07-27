@@ -108,6 +108,64 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ success: true, data: response });
     }
 
+    // 1.5. DAY WINNER EMAIL
+    if (type === 'day_winner') {
+      const name = userName || 'Tasarımcı';
+      const score = req.body.score || 85;
+      const designTitle = contestTitle || 'Tasarımınız';
+      const html = `
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="utf-8"><title>Günün Tasarımı Seçildiniz!</title></head>
+        <body style="margin: 0; padding: 0; background-color: #09090b; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #f4f4f5;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 40px auto; background-color: #18181b; border-radius: 24px; overflow: hidden; border: 1px solid #f59e0b; box-shadow: 0 20px 40px rgba(245, 158, 11, 0.2);">
+            <tr>
+              <td style="padding: 36px 40px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); text-align: center; color: #ffffff;">
+                <span style="background-color: rgba(0,0,0,0.3); padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">
+                  👑 GÜNÜN TASARIMI ŞAMPİYONU
+                </span>
+                <h1 style="margin: 14px 0 4px 0; font-size: 28px; font-weight: 900;">Tebrikler ${name}! 🏆</h1>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 40px;">
+                <h2 style="margin: 0 0 16px 0; color: #ffffff; font-size: 20px; font-weight: 800;">Tasarımın Günün 1. Tasarımı Seçildi!</h2>
+                <p style="margin: 0 0 20px 0; color: #d4d4d8; font-size: 15px; line-height: 1.6;">
+                  Revizelesene yapay zeka analiz sistemimizde yüklediğin <strong>"${designTitle}"</strong> tasarımı, <strong style="color: #f59e0b;">${score}/100 AI skoru</strong> ile günün en yüksek puan alan tasarımı seçildi ve ana sayfa vitrininde 1. sıraya yerleşti!
+                </p>
+
+                <div style="background-color: #09090b; border: 1px solid #f59e0b; border-radius: 16px; padding: 20px; text-align: center; margin: 28px 0;">
+                  <span style="color: #f59e0b; font-size: 14px; font-weight: 800; display: block; margin-bottom: 4px;">👑 KAZANILAN ROZET</span>
+                  <span style="color: #ffffff; font-size: 18px; font-weight: 900;">Günün Tasarımı Şampiyonu</span>
+                </div>
+
+                <div style="text-align: center; margin: 32px 0 16px 0;">
+                  <a href="https://www.revizelesene.com/vitrin" target="_blank" style="display: inline-block; padding: 16px 36px; background-color: #f59e0b; color: #000000; text-decoration: none; font-size: 15px; font-weight: 900; border-radius: 14px; box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);">
+                    Tasarımını Vitrinde Gör →
+                  </a>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 24px 40px; background-color: #09090b; border-top: 1px solid #27272a; text-align: center;">
+                <p style="margin: 0; color: #71717a; font-size: 12px;">© ${new Date().getFullYear()} Revizelesene. Tüm hakları saklıdır.</p>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
+      `;
+
+      const response = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: recipients,
+        subject: `👑 Tebrikler! Tasarımın Revizelesene'de "Günün Tasarımı" Seçildi!`,
+        html,
+      });
+
+      return res.status(200).json({ success: true, data: response });
+    }
+
     // 2. NEWSLETTER / CONTEST ANNOUNCEMENT EMAIL
     const title = contestTitle || 'Yeni Tasarım Duyurusu';
     const contestUrl = `https://revizelesene.com/yarisma/${contestSlug || 'duyuru'}`;
