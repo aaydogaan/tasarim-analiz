@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Check, Flame, Zap, Crown, ArrowRight, Sparkles, Clock, Bell, Mail, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
+import PayTRModal from '../components/ui/PayTRModal';
 
 const plans = [
   {
@@ -66,6 +67,7 @@ const plans = [
 export default function Pricing() {
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [paytrModalOpen, setPaytrModalOpen] = useState(false);
 
   const handleWaitlistSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,8 +186,10 @@ export default function Pricing() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (plan.comingSoon) {
-                      toast('🚀 ' + plan.name + ' Çok Yakında Hizmetinizde! Erken erişim için yukarıdan kaydolabilirsiniz.', { 
+                    if (plan.name === 'Pro Paket') {
+                      setPaytrModalOpen(true);
+                    } else if (plan.comingSoon) {
+                      toast('🚀 ' + plan.name + ' Çok Yakında Hizmetinizde!', { 
                         icon: '✨', 
                         duration: 4000, 
                         style: { borderRadius: '16px', background: '#18181b', color: '#fff', border: '1px solid #27272a', fontWeight: 'bold' } 
@@ -193,7 +197,9 @@ export default function Pricing() {
                     }
                   }}
                   className={`w-full py-4 rounded-2xl font-extrabold text-sm transition-all duration-300 flex items-center justify-center gap-2 mb-8 ${
-                    plan.comingSoon
+                    plan.popular
+                      ? 'bg-[#FF5500] hover:bg-[#e64d00] text-white shadow-lg shadow-[#FF5500]/25 cursor-pointer'
+                      : plan.comingSoon
                       ? 'bg-zinc-800 hover:bg-zinc-900 text-white shadow-md border border-zinc-700 cursor-pointer'
                       : 'bg-[var(--card-bg)] text-[var(--text-primary)] border border-[var(--border-primary)] hover:bg-[var(--bg-secondary)]'
                   }`}
@@ -224,6 +230,7 @@ export default function Pricing() {
         ))}
       </div>
 
+      <PayTRModal isOpen={paytrModalOpen} onClose={() => setPaytrModalOpen(false)} />
     </div>
   );
 }

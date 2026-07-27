@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Check, X, ShieldCheck, Zap, Layers, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+import PayTRModal from './PayTRModal';
+
 interface ProLimitModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -17,10 +19,10 @@ export default function ProLimitModal({
     description = 'Bugünlük 2/2 ücretsiz analiz hakkınızı tamamladınız. Sınırsız analiz yapmak ve derinlemesine teknik raporlar almak için PRO plana geçin.',
 }: ProLimitModalProps) {
     const navigate = useNavigate();
+    const [paytrOpen, setPaytrOpen] = React.useState(false);
 
     const handleUpgrade = () => {
-        onClose();
-        navigate('/pricing');
+        setPaytrOpen(true);
     };
 
     const features = [
@@ -32,6 +34,7 @@ export default function ProLimitModal({
     ];
 
     return (
+        <>
         <AnimatePresence>
             {isOpen && (
                 <>
@@ -123,6 +126,8 @@ export default function ProLimitModal({
                 </>
             )}
         </AnimatePresence>
+        <PayTRModal isOpen={paytrOpen} onClose={() => setPaytrOpen(false)} />
+        </>
     );
 }
 
