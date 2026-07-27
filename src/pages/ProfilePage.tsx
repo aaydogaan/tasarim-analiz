@@ -48,6 +48,7 @@ import { supabase } from '../lib/supabase';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import FollowModal from '../components/ui/FollowModal';
 import { ContestUploadModal } from '../components/ui/ContestUploadModal';
+import DesignDetailModal from '../components/ui/DesignDetailModal';
 import PayTRModal from '../components/ui/PayTRModal';
 import {
     buildAvatarUrl,
@@ -135,6 +136,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
     const [savingBadge, setSavingBadge] = useState(false);
     const [showBadgePicker, setShowBadgePicker] = useState(false);
     const [badgesExpanded, setBadgesExpanded] = useState(false);
+    const [selectedDesignModal, setSelectedDesignModal] = useState<any>(null);
 
     // Contest Entries State
     const [myContestEntries, setMyContestEntries] = useState<any[]>([]);
@@ -1320,10 +1322,30 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                         const thumbSrc = rawG ? (rawG.startsWith('http') || rawG.startsWith('data:') ? rawG : `data:image/jpeg;base64,${rawG}`) : null;
 
                                         return (
-                                            <div key={post.id} className="relative rounded-2xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] overflow-hidden p-3.5 flex flex-col justify-between group">
+                                            <div 
+                                                key={post.id} 
+                                                onClick={() => {
+                                                    if (thumbSrc) {
+                                                        setSelectedDesignModal({
+                                                            id: post.id,
+                                                            gorsel_url: thumbSrc,
+                                                            isletme: post.title || 'Tasarım Analizi',
+                                                            tasarim_turu: post.analizler?.tasarim_turu || 'Tasarım',
+                                                            ai_puan: post.analizler?.genel_skor || post.analizler?.genel_puan || 85,
+                                                            created_at: post.created_at,
+                                                            user_id: normalizedProfile.id,
+                                                            user_name: normalizedProfile.display_name,
+                                                            user_avatar: normalizedProfile.avatar_url,
+                                                            user_slug: normalizedProfile.slug,
+                                                            verification_badge: normalizedProfile.verification_badge
+                                                        });
+                                                    }
+                                                }}
+                                                className="relative rounded-2xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] overflow-hidden p-3.5 flex flex-col justify-between group cursor-pointer hover:border-[#FF5500]/50 transition-all shadow-sm hover:shadow-md"
+                                            >
                                                 {thumbSrc ? (
                                                     <div className="relative aspect-video rounded-xl overflow-hidden mb-3 bg-black/5">
-                                                        <img src={thumbSrc} className="w-full h-full object-cover" alt="Tasarım" />
+                                                        <img src={thumbSrc} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Tasarım" />
                                                     </div>
                                                 ) : (
                                                     <div className="relative aspect-video rounded-xl overflow-hidden mb-3 bg-[var(--card-bg)] border border-[var(--border-primary)] flex items-center justify-center text-[var(--text-secondary)]/40">
@@ -1337,7 +1359,10 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
 
                                                 {isOwnProfile && (
                                                     <button
-                                                        onClick={() => setDeletePostId(post.id)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setDeletePostId(post.id);
+                                                        }}
                                                         className="mt-3 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all text-xs font-bold w-full"
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" /> Sil
@@ -1638,6 +1663,12 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                 />
 
                 <PayTRModal isOpen={paytrModalOpen} onClose={() => setPaytrModalOpen(false)} />
+
+                <DesignDetailModal
+                    item={selectedDesignModal}
+                    onClose={() => setSelectedDesignModal(null)}
+                    currentUser={kullanici}
+                />
             </main>
         </div>
     );

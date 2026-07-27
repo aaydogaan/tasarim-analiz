@@ -762,7 +762,12 @@ export function Vitrin() {
                                     className="w-auto h-auto max-w-full max-h-[85vh] object-contain rounded-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]"
                                 />
                             </div>
-                            <div className="w-full md:w-[400px] p-8 border border-[var(--border-primary)] bg-[var(--card-bg)] backdrop-blur-2xl rounded-[32px] h-fit flex flex-col justify-center relative overflow-hidden shadow-sm pointer-events-auto">
+                            <div 
+                                className="w-full md:w-[400px] p-6 sm:p-8 border border-[var(--border-primary)] bg-[var(--card-bg)] backdrop-blur-2xl rounded-[32px] h-fit max-h-[85vh] overflow-y-auto overscroll-contain touch-pan-y flex flex-col justify-center relative shadow-sm pointer-events-auto custom-scrollbar"
+                                data-lenis-prevent="true"
+                                onWheel={(e) => e.stopPropagation()}
+                            >
+
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-brand-orange)]/5 blur-[100px] rounded-full pointer-events-none" />
 
                                 {/* Üst Profil Bölümü */}
@@ -921,7 +926,11 @@ export function Vitrin() {
                                             </button>
                                         </h4>
 
-                                        <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                                        <div 
+                                            className="space-y-2.5 max-h-48 overflow-y-auto pr-1 custom-scrollbar overscroll-contain touch-pan-y"
+                                            data-lenis-prevent="true"
+                                            onWheel={(e) => e.stopPropagation()}
+                                        >
                                             {modalCommentsLoading ? (
                                                 <p className="text-xs text-[var(--text-secondary)] text-center py-2">Yorumlar yükleniyor...</p>
                                             ) : modalComments.length === 0 ? (

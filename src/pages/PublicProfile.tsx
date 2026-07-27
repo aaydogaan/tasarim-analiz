@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { Trophy, Calendar, Link as LinkIcon, Briefcase, Award, Star, Activity, ArrowLeft, X, Bell, BellOff, Users } from 'lucide-react';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import FollowModal from '../components/ui/FollowModal';
+import DesignDetailModal from '../components/ui/DesignDetailModal';
 import { getDesignRankById } from '../lib/communityProfile';
 
 const BehanceIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
@@ -505,8 +506,24 @@ export default function PublicProfile() {
                         {showcases.map((post) => (
                             <div 
                                 key={post.id} 
-                                onClick={() => { if (post.image_url) setSeciliGorsel(post.image_url); }}
-                                className="bg-white border border-gray-200/60 rounded-[24px] overflow-hidden hover:border-gray-300 transition-all group block shadow-sm hover:shadow-md cursor-pointer"
+                                onClick={() => {
+                                    if (post.image_url) {
+                                        setSeciliGorsel({
+                                            id: post.id,
+                                            gorsel_url: post.image_url,
+                                            isletme: post.isletme,
+                                            tasarim_turu: post.tasarim_turu,
+                                            ai_puan: post.genel_puan || 85,
+                                            created_at: post.created_at,
+                                            user_id: profile.id,
+                                            user_name: profile.display_name,
+                                            user_avatar: profile.avatar_url,
+                                            user_slug: profile.slug,
+                                            verification_badge: profile.verification_badge
+                                        });
+                                    }
+                                }}
+                                className="bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-[24px] overflow-hidden hover:border-[#FF5500]/50 transition-all group block shadow-sm hover:shadow-md cursor-pointer"
                             >
                                 <div className="aspect-[4/3] bg-gray-50 relative overflow-hidden">
                                     {post.image_url ? (
@@ -522,13 +539,13 @@ export default function PublicProfile() {
                                     )}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                 </div>
-                                <div className="p-5 border-t border-gray-100 flex items-start justify-between gap-4">
+                                <div className="p-5 border-t border-[var(--border-primary)] flex items-start justify-between gap-4">
                                     <div>
-                                        <h3 className="text-base font-bold text-gray-900 mb-1 truncate">{post.isletme}</h3>
-                                        <p className="text-gray-500 text-sm font-medium">{post.tasarim_turu}</p>
+                                        <h3 className="text-base font-bold text-[var(--text-primary)] mb-1 truncate">{post.isletme}</h3>
+                                        <p className="text-[var(--text-secondary)] text-sm font-medium">{post.tasarim_turu}</p>
                                     </div>
                                     {post.genel_puan > 0 && (
-                                        <div className="flex items-center gap-1 bg-amber-50 text-amber-600 font-bold px-2.5 py-1 rounded-lg text-sm shrink-0 border border-amber-100">
+                                        <div className="flex items-center gap-1 bg-amber-500/10 text-amber-500 font-bold px-2.5 py-1 rounded-lg text-sm shrink-0 border border-amber-500/20">
                                             <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
                                             {post.genel_puan}
                                         </div>
@@ -541,41 +558,12 @@ export default function PublicProfile() {
 
             </div>
 
-            {/* Modal for viewing image */}
-            <AnimatePresence>
-                {seciliGorsel && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-gray-900/95 backdrop-blur-md"
-                        onClick={() => setSeciliGorsel(null)}
-                    >
-                        <button 
-                            className="fixed top-20 right-4 md:top-6 md:right-6 z-[10000] p-2.5 md:p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all backdrop-blur-md border border-white/20"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setSeciliGorsel(null);
-                            }}
-                        >
-                            <X className="w-5 h-5 md:w-6 md:h-6" />
-                        </button>
-                        <motion.div
-                            initial={{ scale: 0.95, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.95, y: 20 }}
-                            className="w-full max-w-3xl max-h-[70vh] relative flex justify-center items-center pointer-events-none"
-                        >
-                            <img
-                                src={seciliGorsel}
-                                alt="Tasarım Görseli"
-                                className="w-auto h-auto max-w-full max-h-[70vh] rounded-2xl shadow-2xl object-contain border border-white/10 pointer-events-auto"
-                                onClick={(e) => e.stopPropagation()}
-                            />
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {/* Design Detail Modal */}
+            <DesignDetailModal
+                item={seciliGorsel}
+                onClose={() => setSeciliGorsel(null)}
+                currentUser={currentUser}
+            />
 
             {/* FollowModal */}
             <FollowModal
