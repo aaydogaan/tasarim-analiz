@@ -372,13 +372,13 @@ export default function Header({
                                                                         {notif.type === 'report_resolved' && <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500" />}
                                                                         {notif.type === 'report_dismissed' && <AlertCircle className="w-2.5 h-2.5 text-red-500" />}
                                                                         {notif.type === 'follow_user' && <svg className="w-2.5 h-2.5 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>}
-                                                                        {notif.type === 'new_post' && <Bell className="w-2.5 h-2.5 text-orange-500 fill-orange-500" />}
-                                                                        {notif.type === 'revizeles' && <Flame className="w-2.5 h-2.5 text-orange-500 fill-orange-500" />}
+                                                                        {notif.type === 'new_post' && (notif.post_id || notif.analiz_id) && <Bell className="w-2.5 h-2.5 text-orange-500 fill-orange-500" />}
+                                                                        {(notif.type === 'revizeles' || (notif.type === 'new_post' && !notif.post_id && !notif.analiz_id)) && <Flame className="w-2.5 h-2.5 text-orange-500 fill-orange-500" />}
                                                                     </div>
                                                                 </div>
                                                                 <div className="flex-1 min-w-0 pt-0.5">
                                                                     <p className="text-[13px] text-[var(--text-primary)] leading-tight">
-                                                                        {notif.type === 'revizeles' ? (
+                                                                        {(notif.type === 'revizeles' || (notif.type === 'new_post' && !notif.post_id && !notif.analiz_id)) ? (
                                                                             <span className="font-bold mr-1">Revizeleştir</span>
                                                                         ) : notif.type.startsWith('report_') ? (
                                                                             <span className="font-bold mr-1">Yönetim Ekibi</span>
@@ -392,8 +392,8 @@ export default function Header({
                                                                             {notif.type === 'report_resolved' && 'yaptığın şikayeti inceledi ve haklı bularak gereken işlemi uyguladı.'}
                                                                             {notif.type === 'report_dismissed' && 'yaptığın şikayeti inceledi ancak kurallara aykırı bir durum bulamadı.'}
                                                                             {notif.type === 'follow_user' && 'seni takip etmeye başladı.'}
-                                                                            {notif.type === 'new_post' && 'yeni bir tasarım paylaştı! 🔥'}
-                                                                            {notif.type === 'revizeles' && 'gündemde yeni bir logo yayınladı! Göz at & revize et ⚡'}
+                                                                            {notif.type === 'new_post' && (notif.post_id || notif.analiz_id) && 'yeni bir tasarım paylaştı! 🔥'}
+                                                                            {(notif.type === 'revizeles' || (notif.type === 'new_post' && !notif.post_id && !notif.analiz_id)) && 'gündemde yeni bir logo yayınladı! Göz at & revize et ⚡'}
                                                                         </span>
                                                                     </p>
                                                                     <span className="text-[10px] text-[var(--text-secondary)] font-medium mt-1 block">
