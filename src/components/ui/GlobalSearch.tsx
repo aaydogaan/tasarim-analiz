@@ -309,20 +309,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                                 )}
                             </div>
 
-                            {/* Footer */}
-                            {hasResults && (
-                                <div className="px-4 py-2 border-t border-[var(--border-primary)]/50 bg-[var(--bg-secondary)]/30 flex items-center gap-3 text-[10px] text-[var(--text-secondary)]">
-                                    <span className="flex items-center gap-1">
-                                        <kbd className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] px-1 py-0.5 rounded text-[9px] font-bold">up/dn</kbd> gezin
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                        <kbd className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] px-1 py-0.5 rounded text-[9px] font-bold">Enter</kbd> sec
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                        <kbd className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] px-1 py-0.5 rounded text-[9px] font-bold">ESC</kbd> kapat
-                                    </span>
-                                </div>
-                            )}
+
                         </div>
                     </motion.div>
                 </>
