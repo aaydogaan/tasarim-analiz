@@ -139,26 +139,58 @@ export default function AdminRevizeles() {
 
                 // Send email & in-app notifications if requested
                 if (sendEmailNotify) {
-                    const { data: profiles } = await supabase.from('profiles').select('id, email').not('email', 'is', null);
-                    if (profiles && profiles.length > 0) {
-                        const emails = profiles.map(p => p.email).filter(Boolean);
+                    // 1. Send In-App Notifications (to 'notifications' table)
+                    try {
+                        const { data: allProfiles } = await supabase.from('profiles').select('id');
+                        if (allProfiles && allProfiles.length > 0) {
+                            const notifs = allProfiles
+                                .filter(p => p.id !== adminUser?.id)
+                                .map(p => ({
+                                    user_id: p.id,
+                                    actor_id: adminUser?.id || null,
+                                    type: 'new_post',
+                                    is_read: false
+                                }));
 
-                        sendRevizelesAnnouncementEmail({
-                            to: emails,
-                            title: title.trim(),
-                            description: description.trim(),
-                            imageUrl,
-                            topicId: createdTopicId || ''
-                        }).catch(err => console.error('Email notify error:', err));
+                            if (notifs.length > 0) {
+                                const { error: notifErr } = await supabase.from('notifications').insert(notifs);
+                                if (notifErr) console.error('Notifications error:', notifErr);
+                                else toast.success(`${notifs.length} üyeye site içi bildirim gönderildi 🔔`);
+                            }
+                        }
+                    } catch (nErr) {
+                        console.error('In-app notification exception:', nErr);
+                    }
 
-                        const notifs = profiles.map(p => ({
-                            user_id: p.id,
-                            title: `🔥 Yeni Revizeleş Gündemi: "${title.trim()}"`,
-                            message: `Gündemdeki yeni logo/tasarım hakkında sen ne düşünüyorsun? Eleştirini yaz veya kendi revizyonunu yükle!`,
-                            type: 'revizeles',
-                            read: false
-                        }));
-                        await supabase.from('user_notifications').insert(notifs);
+                    // 2. Send E-mail Notifications
+                    try {
+                        const { data: subData } = await supabase.from('contest_subscribers').select('email');
+                        const { data: profData } = await supabase.from('profiles').select('email').not('email', 'is', null);
+
+                        const subEmails = (subData || []).map(s => s.email).filter(Boolean);
+                        const profEmails = (profData || []).map(p => p.email).filter(Boolean);
+
+                        const allEmails = Array.from(new Set([...subEmails, ...profEmails]));
+
+                        if (allEmails.length > 0) {
+                            const emailRes = await sendRevizelesAnnouncementEmail({
+                                to: allEmails,
+                                title: title.trim(),
+                                description: description.trim(),
+                                imageUrl,
+                                topicId: createdTopicId || ''
+                            });
+
+                            if (emailRes.success) {
+                                toast.success(`${allEmails.length} e-posta adresine duyuru iletildi ✉️`);
+                            } else {
+                                toast.error(`E-posta uyarısı: ${emailRes.error || 'Gönderilemedi'}`);
+                            }
+                        } else {
+                            toast.error('Gönderilecek e-posta adresi bulunamadı.');
+                        }
+                    } catch (eErr: any) {
+                        console.error('Email sending exception:', eErr);
                     }
                 }
             }

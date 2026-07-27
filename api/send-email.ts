@@ -168,7 +168,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // 2. NEWSLETTER / CONTEST ANNOUNCEMENT EMAIL
     const title = contestTitle || 'Yeni Tasarım Duyurusu';
-    const contestUrl = `https://revizelesene.com/yarisma/${contestSlug || 'duyuru'}`;
+    const contestUrl = contestSlug?.startsWith('http')
+      ? contestSlug
+      : contestSlug?.startsWith('revizeles')
+      ? `https://revizelesene.com/${contestSlug}`
+      : `https://revizelesene.com/yarisma/${contestSlug || 'duyuru'}`;
 
     const html = `
       <!DOCTYPE html>
