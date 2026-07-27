@@ -90,7 +90,7 @@ export default function PayTRModal({ isOpen, onClose }: PayTRModalProps) {
                                                 <Lock size={10} /> 256-Bit SSL
                                             </span>
                                         </h3>
-                                        <p className="text-[10px] text-[var(--text-secondary)] font-medium">Revizelesene PRO — 59 ₺ / ay (+%20 KDV = 70.80 ₺)</p>
+                                        <p className="text-[10px] text-[var(--text-secondary)] font-medium">Revizelesene PRO — 59 ₺ / ay</p>
                                     </div>
                                 </div>
                                 <button
@@ -140,7 +140,6 @@ export default function PayTRModal({ isOpen, onClose }: PayTRModalProps) {
                                 <span className="flex items-center gap-1">
                                     <ShieldCheck size={12} className="text-emerald-500" /> PayTR Altyapısı İle Korunmaktadır
                                 </span>
-                                <span>İstediğiniz zaman iptal edebilirsiniz</span>
                             </div>
                         </motion.div>
                     </div>

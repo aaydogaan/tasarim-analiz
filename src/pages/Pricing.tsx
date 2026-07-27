@@ -26,7 +26,7 @@ const plans = [
     name: 'Pro Paket',
     badge: 'En Popüler',
     price: '59 ₺',
-    period: '/ ay (+%20 KDV = 70.80 ₺)',
+    period: '/ ay',
     description: 'Profesyoneller için sınırsız AI asistanı ve derinlemesine teknik analizler.',
     features: [
       'Sınırsız & Öncelikli Tasarım Analizi',
@@ -150,11 +150,6 @@ export default function Pricing() {
                     </div>
                   ))}
                 </div>
-              </div>
-
-              <div className="mt-8 pt-4 border-t border-[var(--border-primary)] flex items-center gap-2 text-xs font-bold text-[var(--text-secondary)]">
-                <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>Taahhütsüz, istediğiniz an iptal imkanı</span>
               </div>
             </div>
           </motion.div>

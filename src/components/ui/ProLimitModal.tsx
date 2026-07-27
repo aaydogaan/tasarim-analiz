@@ -96,9 +96,8 @@ export default function ProLimitModal({
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)] block">PRO Üyelik</span>
                                     <div className="flex items-baseline gap-1">
                                         <span className="text-2xl font-black text-[var(--text-primary)]">59 ₺</span>
-                                        <span className="text-xs text-[var(--text-secondary)] font-bold">/ ay (+KDV)</span>
+                                        <span className="text-xs text-[var(--text-secondary)] font-bold">/ ay</span>
                                     </div>
-                                    <span className="text-[9px] text-[var(--text-secondary)] block mt-0.5">Toplam: 70.80 ₺ KDV Dahil</span>
                                 </div>
                                 <span className="bg-[#FF5500] text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-lg">
                                     En Popüler
