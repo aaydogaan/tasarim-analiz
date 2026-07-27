@@ -33,6 +33,7 @@ import AuthPage from "./pages/AuthPage";
 import CerezPolitikasi from "./pages/CerezPolitikasi";
 import ContestDetailPage from "./pages/ContestDetailPage";
 import ContestAnnouncementBar from "./components/ui/ContestAnnouncementBar";
+import ProLimitModal from "./components/ui/ProLimitModal";
 
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -405,6 +406,20 @@ export default function App() {
   const [pastAnalyses, setPastAnalyses] = useState<any[]>([]);
   const [analysesLoading, setAnalysesLoading] = useState(false);
   const [kullaniciProfile, setKullaniciProfile] = useState<any>(null);
+  const [proLimitModalAcik, setProLimitModalAcik] = useState(false);
+
+  const getTodayUsageCount = (): number => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const stored = localStorage.getItem(`ra_usage_${kullanici?.id || 'guest'}_${todayStr}`);
+    return stored ? parseInt(stored, 10) : 0;
+  };
+
+  const incrementTodayUsageCount = () => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const key = `ra_usage_${kullanici?.id || 'guest'}_${todayStr}`;
+    const current = getTodayUsageCount();
+    localStorage.setItem(key, (current + 1).toString());
+  };
 
   // Auth session listener
   useEffect(() => {
@@ -839,6 +854,16 @@ export default function App() {
       setAuthUyariAcik(true);
       return;
     }
+
+    const isPro = kullaniciProfile?.is_pro || kullaniciProfile?.role === 'admin';
+    if (!isPro) {
+      const usageCount = getTodayUsageCount();
+      if (usageCount >= 2) {
+        setProLimitModalAcik(true);
+        return;
+      }
+    }
+
     analiziBaslat(false);
   };
 
@@ -860,7 +885,8 @@ export default function App() {
           tasarimTuru,
           platform: tasarimTuru === "Sosyal Medya" ? platform : undefined,
           sorular,
-          guestMode
+          guestMode,
+          isPro: Boolean(kullaniciProfile?.is_pro || kullaniciProfile?.role === 'admin')
         }),
       });
 
@@ -893,6 +919,11 @@ export default function App() {
       }
 
       setSonuc(data);
+
+      const isPro = kullaniciProfile?.is_pro || kullaniciProfile?.role === 'admin';
+      if (!isPro) {
+        incrementTodayUsageCount();
+      }
       setAdim(3);
 
       // Start generating the revised image in the background
@@ -2167,6 +2198,11 @@ export default function App() {
           </div>
         )}
       </AnimatePresence>
+
+      <ProLimitModal
+        isOpen={proLimitModalAcik}
+        onClose={() => setProLimitModalAcik(false)}
+      />
 
       <Toaster position="bottom-right" toastOptions={{ duration: 4000, style: { borderRadius: '16px', background: '#333', color: '#fff' } }} />
     </div>

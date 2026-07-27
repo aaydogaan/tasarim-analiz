@@ -30,6 +30,7 @@ type AnalyzeRequestBody = {
     slogan: string;
   };
   guestMode?: boolean;
+  isPro?: boolean;
 };
 
 const kriterBilgisi: Record<TasarimTuru, { renk: string; font: string; butunluk: string; kompozisyon: string; context: string }> = {
@@ -97,7 +98,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const ai = new GoogleGenAI({ apiKey });
 
-  const prompt = `Sen dünya çapında ödüllü, son derece detaycı ama öz ve net konuşan bir Grafik Tasarım Analiz Yapay Zekasısın. Gönderilen görseli akademik ve teknik bir dille analiz edeceksin. Lütfen cevaplarını KISA, NET ve DOĞRUDAN profesyonel terimlerle (renk teorisi, kompozisyon, gestalt vb.) ver. Gereksiz uzun cümlelerden kesinlikle kaçın, maliyet ve token tasarrufu için odak noktasını kaybetmeden en can alıcı tespitleri yap.
+  const isProUser = body.isPro || false;
+
+  const roleDescription = isProUser
+    ? "Sen dünya çapında ödüllü, kıdemli bir Tasarım Direktörü ve Sanat Yönetmenisin. Bu rapor bir PRO ÜYE içindir. Tasarımı en üst düzey teknik derinlik, renk teorisi, izgara (grid) hiyerarşisi, tipografik kerning/leading ve UX psikolojisi ile milimetrik analiz et."
+    : "Sen dünya çapında ödüllü, son derece detaycı ama öz ve net konuşan bir Grafik Tasarım Analiz Yapay Zekasısın. Gönderilen görseli akademik ve teknik bir dille analiz edeceksin. Lütfen cevaplarını KISA, NET ve DOĞRUDAN profesyonel terimlerle ver.";
+
+  const prompt = `${roleDescription}
 
 ÖNEMLİ KURAL: Görselin tam olarak ne olduğuna (Logo, Sosyal Medya Postu, Afiş, Kartvizit vb.) dikkat et. Eğer görsel sadece bir LOGO ise, ondan bir "Buton (CTA)", "Harekete geçirici mesaj" veya "Uzun okunabilir metinler" bekleme! Eleştirilerini görselin doğasına uygun, mantıklı çerçevede yap. Olmaması gereken şeylerin eksikliğini hata olarak sayma.
 
@@ -120,13 +127,13 @@ Lütfen yukarıdaki bağlamlarda tasarımı sert ama yapıcı bir dille eleştir
 YALNIZCA GEÇERLİ BİR JSON NESNESİ DÖNDÜR. (Markdown veya \`\`\`json ekleme, doğrudan salt JSON çıktısı ver).
 JSON Formatı Şablonu:
 {
-  "renk": {"puan": 20, "aciklama": "(Renk teorisi ve harmoni açısından en fazla 1-2 cümlelik kısa profesyonel analiz)"},
-  "font": {"puan": 18, "aciklama": "(Tipografi ve okunabilirlik üzerine teknik terimlerle 1-2 cümlelik net açıklama)"},
-  "butunluk": {"puan": 22, "aciklama": "(Marka kimliği ve sektör uyumuna dair kısa profesyonel inceleme)"},
-  "kompozisyon": {"puan": 19, "aciklama": "(Görsel denge ve hizalama ile ilgili nokta atışı analiz)"},
+  "renk": {"puan": 20, "aciklama": "(${isProUser ? 'Renk teorisi, kontrast oranları ve renk psikolojisine dair teknik profesyonel analiz' : 'Renk teorisi ve harmoni açısından en fazla 1-2 cümlelik kısa profesyonel analiz'})"},
+  "font": {"puan": 18, "aciklama": "(${isProUser ? 'Tipografi hiyerarşisi, font ağırlıkları, okunabilirlik ve punto oranları teknik analizi' : 'Tipografi ve okunabilirlik üzerine teknik terimlerle 1-2 cümlelik net açıklama'})"},
+  "butunluk": {"puan": 22, "aciklama": "(${isProUser ? 'Marka kimliği bütünlüğü, sektör standartları ve görsel dil uyumu analizi' : 'Marka kimliği ve sektör uyumuna dair kısa profesyonel inceleme'})"},
+  "kompozisyon": {"puan": 19, "aciklama": "(${isProUser ? 'Hizalama, negatif alan dengesi, odak noktası ve CTA yerleşimi teknik analizi' : 'Görsel denge ve hizalama ile ilgili nokta atışı analiz'})"},
   "genelPuan": 82,
-  "genelYorum": "(Tasarımın neleri başardığı ve eksikleri hakkında kısa, tek paragraflık net değerlendirme)",
-  "oneri": "(Gelişim için en fazla 3 maddelik kısa ve spesifik tavsiyeler)",
+  "genelYorum": "(Tasarımın neleri başardığı ve eksikleri hakkında ${isProUser ? 'detaylı, profesyonel tasarım direktörü değerlendirmesi' : 'kısa, tek paragraflık net değerlendirme'})",
+  "oneri": "(Gelişim için ${isProUser ? 'uygulanabilir 5 maddelik somut adım adım revizyon önerileri' : 'en fazla 3 maddelik kısa ve spesifik tavsiyeler'})",
   "genelDegerlendirme": "Örn: Profesyonel / Usta İşi / Geliştirilebilir",
   "gucluYon": "(Tasarımı kurtaran 1 temel özellik)",
   "zayifYon": "(En bariz teknik eksiklik)",
