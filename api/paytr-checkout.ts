@@ -40,7 +40,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       user_ip = '176.234.0.1'; // Real TR IP for local testing
     }
 
-    const merchant_oid = `REV_${userId.substring(0, 8)}_${Date.now()}`;
+    const cleanUserId = userId.replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
+    const merchant_oid = `REV${cleanUserId}${Date.now()}`;
     const email = userEmail;
     // 59 TL + %20 KDV = 70.80 TL -> PayTR requires payment amount in kuruş (cents): 7080
     const payment_amount = '7080';
