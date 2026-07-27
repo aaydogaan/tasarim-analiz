@@ -157,12 +157,14 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
 
         setCommentSubmitting(true);
         try {
+            const text = newComment.trim();
             const { data, error } = await supabase
                 .from('post_comments')
                 .insert({
                     post_id: detailItem.id,
                     user_id: currentUser.id,
-                    comment: newComment.trim()
+                    content: text,
+                    comment: text
                 })
                 .select()
                 .single();
@@ -173,6 +175,8 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
 
             setComments(prev => [...prev, {
                 ...data,
+                content: text,
+                comment: text,
                 user_name: prof?.display_name || 'Ben',
                 user_avatar: prof?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${currentUser.id}`,
                 user_slug: prof?.slug || currentUser.id
@@ -200,10 +204,11 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
 
     const handleUpdateComment = async (commentId: string) => {
         if (!editCommentText.trim()) return;
+        const text = editCommentText.trim();
         try {
-            const { error } = await supabase.from('post_comments').update({ comment: editCommentText.trim() }).eq('id', commentId);
+            const { error } = await supabase.from('post_comments').update({ content: text, comment: text }).eq('id', commentId);
             if (error) throw error;
-            setComments(prev => prev.map(c => c.id === commentId ? { ...c, comment: editCommentText.trim() } : c));
+            setComments(prev => prev.map(c => c.id === commentId ? { ...c, content: text, comment: text } : c));
             setEditingCommentId(null);
             toast.success('Yorum güncellendi');
         } catch (err: any) {
@@ -409,12 +414,12 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
                                                                 </div>
                                                             </div>
                                                         ) : (
-                                                            <p className="text-xs text-[var(--text-secondary)] leading-relaxed break-words">{c.comment}</p>
+                                                            <p className="text-xs text-[var(--text-primary)]/90 font-medium mt-0.5 leading-relaxed break-words">{c.content || c.comment}</p>
                                                         )}
 
                                                         {isMyComment && !isEditing && (
                                                             <div className="flex gap-2 justify-end mt-1.5">
-                                                                <button onClick={() => { setEditingCommentId(c.id); setEditCommentText(c.comment); }} className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Düzenle</button>
+                                                                <button onClick={() => { setEditingCommentId(c.id); setEditCommentText(c.content || c.comment); }} className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Düzenle</button>
                                                                 <button onClick={() => handleDeleteComment(c.id)} className="text-[10px] text-red-500 hover:text-red-600">Sil</button>
                                                             </div>
                                                         )}
