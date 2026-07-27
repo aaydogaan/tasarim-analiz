@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import ReportModal from '../components/ui/ReportModal';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
+import GununTasarimi from '../components/ui/GununTasarimi';
 
 interface VitrinItem {
     id: string;
@@ -457,6 +458,10 @@ export function Vitrin() {
             }
         });
 
+    const gununTasarimiItem = items.length > 0
+        ? [...items].sort((a, b) => (b.ai_puan || 0) - (a.ai_puan || 0))[0]
+        : null;
+
     return (
         <div className="w-full relative z-10 pt-4 pb-12">
             <div className="text-center mb-8">
@@ -467,6 +472,14 @@ export function Vitrin() {
                     Topluluk tarafından analiz edilen en ilham verici tasarımları keşfedin. AI değerlendirmeleri ve kullanıcı oylarıyla en iyileri süzün.
                 </p>
             </div>
+
+            {/* Günün Tasarımı Vitrin Banner */}
+            {gununTasarimiItem && (
+                <GununTasarimi
+                    item={gununTasarimiItem}
+                    onInspect={(item) => setSeciliGorsel(item as any)}
+                />
+            )}
 
             {/* Feed Tab Switcher & Filter Control Bar */}
             <div className="mb-8 space-y-4">

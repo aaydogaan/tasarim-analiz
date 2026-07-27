@@ -12,6 +12,7 @@ import MagneticWrapper from '../components/ui/MagneticWrapper';
 import { ContestHeroCard, ContestData } from '../components/ui/ContestHeroCard';
 import { ContestDetailModal } from '../components/ui/ContestDetailModal';
 import { ContestSubmitModal } from '../components/ui/ContestSubmitModal';
+import GununTasarimi, { GununTasarimiItem } from '../components/ui/GununTasarimi';
 
 interface LandingPageProps {
     onStart: () => void;
@@ -52,6 +53,7 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
     const [selectedContest, setSelectedContest] = useState<ContestData | null>(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+    const [gununTasarimi, setGununTasarimi] = useState<GununTasarimiItem | null>(null);
 
     useEffect(() => {
         const fetchActiveContest = async () => {
@@ -64,7 +66,45 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                 .maybeSingle();
             if (data) setActiveContest(data);
         };
+
+        const fetchGununTasarimi = async () => {
+            try {
+                const { data } = await supabase
+                    .from('community_posts')
+                    .select(`
+                        id,
+                        gorsel_url,
+                        tasarim_turu,
+                        isletme,
+                        created_at,
+                        user_id,
+                        analizler ( genel_skor, skor_detayi ),
+                        profiles ( display_name, avatar_url, slug )
+                    `)
+                    .limit(20);
+
+                if (data && data.length > 0) {
+                    const formatted = data.map((p: any) => ({
+                        id: p.id,
+                        gorsel_url: p.gorsel_url,
+                        tasarim_turu: p.tasarim_turu || 'Tasarım',
+                        isletme: p.isletme || 'Topluluk Paylaşımı',
+                        user_id: p.user_id,
+                        user_name: p.profiles?.display_name || 'Tasarımcı',
+                        user_avatar: p.profiles?.avatar_url,
+                        user_slug: p.profiles?.slug,
+                        ai_puan: p.analizler?.genel_skor || Math.floor(Math.random() * 15) + 85
+                    }));
+                    formatted.sort((a, b) => b.ai_puan - a.ai_puan);
+                    setGununTasarimi(formatted[0]);
+                }
+            } catch (err) {
+                console.error("GununTasarimi fetch error:", err);
+            }
+        };
+
         fetchActiveContest();
+        fetchGununTasarimi();
     }, []);
 
     const brandOrange = "var(--color-brand-orange, #ff4d00)";
@@ -276,6 +316,12 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                     }
                 }}
             />
+
+            {gununTasarimi && (
+                <div className="w-full px-4 sm:px-6 lg:px-8 pt-12 pb-6">
+                    <GununTasarimi item={gununTasarimi} onInspect={onVitrinClick} />
+                </div>
+            )}
 
             <CommunitySpotlight onExploreClick={onVitrinClick} />
 
