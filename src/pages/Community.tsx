@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Users, MessageCircle, Heart, Trophy, Zap, Share2, Crown, Star, Sparkles, ArrowRight, Award, X, Send, Loader2, ChevronDown, Flag } from 'lucide-react';
+import { Users, MessageCircle, Heart, Trophy, Zap, Share2, Crown, Star, Sparkles, ArrowRight, Award, X, Send, Loader2, ChevronDown, Flag, Pencil, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
@@ -78,6 +78,52 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
     const [submittingComment, setSubmittingComment] = useState(false);
     const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
     const [seciliGorsel, setSeciliGorsel] = useState<string | null>(null);
+
+    // Comment Editing State
+    const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+    const [editingCommentText, setEditingCommentText] = useState('');
+
+    const handleSaveEditComment = async (postId: string, commentId: string) => {
+        if (!editingCommentText.trim()) return;
+        const newContent = editingCommentText.trim();
+        const { error } = await supabase
+            .from('post_comments')
+            .update({ content: newContent })
+            .eq('id', commentId)
+            .eq('user_id', kullanici?.id);
+
+        if (!error) {
+            setInlineComments(prev => ({
+                ...prev,
+                [postId]: (prev[postId] || []).map(c => c.id === commentId ? { ...c, content: newContent } : c)
+            }));
+            setEditingCommentId(null);
+            setEditingCommentText('');
+            toast.success('Yorum güncellendi.');
+        } else {
+            toast.error('Yorum güncellenirken hata oluştu.');
+        }
+    };
+
+    const handleDeleteComment = async (postId: string, commentId: string) => {
+        if (!window.confirm('Bu yorumu silmek istediğinize emin misiniz?')) return;
+        const { error } = await supabase
+            .from('post_comments')
+            .delete()
+            .eq('id', commentId)
+            .eq('user_id', kullanici?.id);
+
+        if (!error) {
+            setInlineComments(prev => ({
+                ...prev,
+                [postId]: (prev[postId] || []).filter(c => c.id !== commentId)
+            }));
+            setPosts(prev => prev.map(p => p.id === postId ? { ...p, comments_count: Math.max(0, (p.comments_count || 0) - 1) } : p));
+            toast.success('Yorum silindi.');
+        } else {
+            toast.error('Yorum silinirken hata oluştu.');
+        }
+    };
     const [isBadgesExpanded, setIsBadgesExpanded] = useState(false);
 
     // Modal açıkken arkadaki kaydırmayı kapatmak için
@@ -878,6 +924,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                                         const cName = c.profiles?.display_name || c.user_name || (isCAuthorCurrent ? (kullanici.user_metadata?.display_name || 'Tasarımcı') : 'Tasarımcı');
                                                                         const cAvatar = (isCAuthorCurrent && kullanici.user_metadata?.avatar_url) ? kullanici.user_metadata.avatar_url : (c.profiles?.avatar_url || c.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${c.user_id}`);
                                                                         const cSlug = c.profiles?.slug || c.user_id;
+                                                                        const isEditing = editingCommentId === c.id;
 
                                                                         return (
                                                                         <div key={c.id} className="flex gap-3 bg-[var(--bg-secondary)] p-3 rounded-2xl border border-[var(--border-primary)] text-xs">
@@ -891,15 +938,62 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                                                     </Link>
                                                                                     <span className="text-[10px] text-[var(--text-secondary)]">{new Date(c.created_at).toLocaleDateString('tr-TR')}</span>
                                                                                 </div>
-                                                                                <p className="text-[var(--text-secondary)] leading-relaxed">{c.content}</p>
-                                                                                <div className="mt-2 flex">
-                                                                                    <button 
-                                                                                        onClick={(e) => { e.stopPropagation(); handleReportClick(c.id, 'comment'); }}
-                                                                                        className="text-[10px] font-bold text-[var(--text-secondary)]/40 hover:text-amber-500 transition-colors flex items-center gap-1"
-                                                                                    >
-                                                                                        <Flag size={10} /> Şikayet
-                                                                                    </button>
-                                                                                </div>
+
+                                                                                {isEditing ? (
+                                                                                    <div className="mt-1.5 space-y-2">
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            value={editingCommentText}
+                                                                                            onChange={(e) => setEditingCommentText(e.target.value)}
+                                                                                            className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-[var(--color-brand-orange)] bg-[var(--bg-primary)] text-[var(--text-primary)] outline-none"
+                                                                                            autoFocus
+                                                                                            onKeyDown={(e) => { if (e.key === 'Enter') handleSaveEditComment(post.id, c.id); }}
+                                                                                        />
+                                                                                        <div className="flex justify-end gap-1.5">
+                                                                                            <button
+                                                                                                onClick={() => { setEditingCommentId(null); setEditingCommentText(''); }}
+                                                                                                className="px-2.5 py-1 text-[10px] font-bold text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] rounded-lg"
+                                                                                            >
+                                                                                                İptal
+                                                                                            </button>
+                                                                                            <button
+                                                                                                onClick={() => handleSaveEditComment(post.id, c.id)}
+                                                                                                className="px-3 py-1 text-[10px] font-bold bg-[var(--color-brand-orange)] text-white rounded-lg hover:bg-[#e64500]"
+                                                                                            >
+                                                                                                Kaydet
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <>
+                                                                                        <p className="text-[var(--text-secondary)] leading-relaxed">{c.content}</p>
+                                                                                        <div className="mt-2 flex items-center justify-end gap-2.5">
+                                                                                            {isCAuthorCurrent ? (
+                                                                                                <>
+                                                                                                    <button
+                                                                                                        onClick={(e) => { e.stopPropagation(); setEditingCommentId(c.id); setEditingCommentText(c.content); }}
+                                                                                                        className="text-[10px] font-bold text-[var(--text-secondary)]/60 hover:text-[var(--color-brand-orange)] transition-colors flex items-center gap-1"
+                                                                                                    >
+                                                                                                        <Pencil size={10} /> Düzenle
+                                                                                                    </button>
+                                                                                                    <button
+                                                                                                        onClick={(e) => { e.stopPropagation(); handleDeleteComment(post.id, c.id); }}
+                                                                                                        className="text-[10px] font-bold text-[var(--text-secondary)]/60 hover:text-red-500 transition-colors flex items-center gap-1"
+                                                                                                    >
+                                                                                                        <Trash2 size={10} /> Sil
+                                                                                                    </button>
+                                                                                                </>
+                                                                                            ) : (
+                                                                                                <button 
+                                                                                                    onClick={(e) => { e.stopPropagation(); handleReportClick(c.id, 'comment'); }}
+                                                                                                    className="text-[10px] font-bold text-[var(--text-secondary)]/40 hover:text-amber-500 transition-colors flex items-center gap-1"
+                                                                                                >
+                                                                                                    <Flag size={10} /> Şikayet
+                                                                                                </button>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    </>
+                                                                                )}
                                                                             </div>
                                                                         </div>
                                                                         );

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import { Heart, Maximize2, X, Star, Loader2, Search, ChevronDown, Filter, Sparkles, Trophy, Flame, Clock, ArrowBigUp, ArrowBigDown, Flag } from "lucide-react";
+import { Heart, Maximize2, X, Star, Loader2, Search, ChevronDown, Filter, Sparkles, Trophy, Flame, Clock, ArrowBigUp, ArrowBigDown, Flag, Pencil, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import ReportModal from '../components/ui/ReportModal';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
@@ -48,6 +48,45 @@ export function Vitrin() {
     const [siralama, setSiralama] = useState<'yeni' | 'topluluk' | 'ai' | 'oy'>('yeni');
     const [siralamaAcik, setSiralamaAcik] = useState(false);
     const [aramaMetni, setAramaMetni] = useState('');
+
+    // Comment Editing State
+    const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+    const [editingCommentText, setEditingCommentText] = useState('');
+
+    const handleSaveEditComment = async (commentId: string) => {
+        if (!editingCommentText.trim()) return;
+        const newContent = editingCommentText.trim();
+        const { error } = await supabase
+            .from('post_comments')
+            .update({ content: newContent })
+            .eq('id', commentId)
+            .eq('user_id', user?.id);
+
+        if (!error) {
+            setModalComments(prev => prev.map(c => c.id === commentId ? { ...c, content: newContent } : c));
+            setEditingCommentId(null);
+            setEditingCommentText('');
+            toast.success('Yorum güncellendi.');
+        } else {
+            toast.error('Yorum güncellenirken hata oluştu.');
+        }
+    };
+
+    const handleDeleteComment = async (commentId: string) => {
+        if (!window.confirm('Bu yorumu silmek istediğinize emin misiniz?')) return;
+        const { error } = await supabase
+            .from('post_comments')
+            .delete()
+            .eq('id', commentId)
+            .eq('user_id', user?.id);
+
+        if (!error) {
+            setModalComments(prev => prev.filter(c => c.id !== commentId));
+            toast.success('Yorum silindi.');
+        } else {
+            toast.error('Yorum silinirken hata oluştu.');
+        }
+    };
 
     // Report State
     const [reportModalOpen, setReportModalOpen] = useState(false);
@@ -828,30 +867,82 @@ export function Vitrin() {
                                             ) : modalComments.length === 0 ? (
                                                 <p className="text-xs text-[var(--text-secondary)] italic text-center py-2">Henüz yorum yapılmamış. İlk yorumu sen yap!</p>
                                             ) : (
-                                                modalComments.map((c) => (
-                                                    <div key={c.id || c.created_at} className="flex gap-2.5 items-start bg-[var(--bg-secondary)] p-2.5 rounded-xl border border-[var(--border-primary)]">
-                                                        <Link to={`/${c.user_slug || c.user_id}`} onClick={() => setSeciliGorsel(null)}>
-                                                            <img src={c.user_avatar} className="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5 hover:opacity-80 transition-opacity" alt={c.user_name} />
-                                                        </Link>
-                                                        <div className="min-w-0 flex-1">
-                                                            <div className="flex items-center justify-between gap-1">
-                                                                <Link to={`/${c.user_slug || c.user_id}`} onClick={() => setSeciliGorsel(null)} className="text-xs font-bold text-[var(--text-primary)] hover:text-[var(--color-brand-orange)] transition-colors truncate">
-                                                                    {c.user_name}
-                                                                </Link>
-                                                                <span className="text-[9px] text-[var(--text-secondary)] shrink-0">{new Date(c.created_at).toLocaleDateString('tr-TR')}</span>
-                                                            </div>
-                                                            <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed break-words">{c.content}</p>
-                                                            <div className="mt-1.5 flex justify-end">
-                                                                <button 
-                                                                    onClick={() => handleReportClick(c.id, 'comment')} 
-                                                                    className="text-[9px] font-bold text-[var(--text-secondary)]/40 hover:text-amber-500 transition-colors flex items-center gap-1"
-                                                                >
-                                                                    <Flag size={9} /> Şikayet
-                                                                </button>
+                                                modalComments.map((c) => {
+                                                    const isMyComment = user && user.id === c.user_id;
+                                                    const isEditing = editingCommentId === c.id;
+
+                                                    return (
+                                                        <div key={c.id || c.created_at} className="flex gap-2.5 items-start bg-[var(--bg-secondary)] p-2.5 rounded-xl border border-[var(--border-primary)]">
+                                                            <Link to={`/${c.user_slug || c.user_id}`} onClick={() => setSeciliGorsel(null)}>
+                                                                <img src={c.user_avatar} className="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5 hover:opacity-80 transition-opacity" alt={c.user_name} />
+                                                            </Link>
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="flex items-center justify-between gap-1">
+                                                                    <Link to={`/${c.user_slug || c.user_id}`} onClick={() => setSeciliGorsel(null)} className="text-xs font-bold text-[var(--text-primary)] hover:text-[var(--color-brand-orange)] transition-colors truncate">
+                                                                        {c.user_name}
+                                                                    </Link>
+                                                                    <span className="text-[9px] text-[var(--text-secondary)] shrink-0">{new Date(c.created_at).toLocaleDateString('tr-TR')}</span>
+                                                                </div>
+                                                                
+                                                                {isEditing ? (
+                                                                    <div className="mt-1.5 space-y-2">
+                                                                        <input
+                                                                            type="text"
+                                                                            value={editingCommentText}
+                                                                            onChange={(e) => setEditingCommentText(e.target.value)}
+                                                                            className="w-full px-2.5 py-1 text-xs rounded-lg border border-[var(--color-brand-orange)] bg-[var(--bg-primary)] text-[var(--text-primary)] outline-none"
+                                                                            autoFocus
+                                                                            onKeyDown={(e) => { if (e.key === 'Enter') handleSaveEditComment(c.id); }}
+                                                                        />
+                                                                        <div className="flex justify-end gap-1.5">
+                                                                            <button
+                                                                                onClick={() => { setEditingCommentId(null); setEditingCommentText(''); }}
+                                                                                className="px-2 py-0.5 text-[10px] font-bold text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] rounded"
+                                                                            >
+                                                                                İptal
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => handleSaveEditComment(c.id)}
+                                                                                className="px-2.5 py-0.5 text-[10px] font-bold bg-[var(--color-brand-orange)] text-white rounded hover:bg-[#e64500]"
+                                                                            >
+                                                                                Kaydet
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <>
+                                                                        <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed break-words">{c.content}</p>
+                                                                        <div className="mt-1.5 flex justify-end gap-2">
+                                                                            {isMyComment ? (
+                                                                                <>
+                                                                                    <button
+                                                                                        onClick={() => { setEditingCommentId(c.id); setEditingCommentText(c.content); }}
+                                                                                        className="text-[9px] font-bold text-[var(--text-secondary)]/60 hover:text-[var(--color-brand-orange)] transition-colors flex items-center gap-0.5"
+                                                                                    >
+                                                                                        <Pencil size={9} /> Düzenle
+                                                                                    </button>
+                                                                                    <button
+                                                                                        onClick={() => handleDeleteComment(c.id)}
+                                                                                        className="text-[9px] font-bold text-[var(--text-secondary)]/60 hover:text-red-500 transition-colors flex items-center gap-0.5"
+                                                                                    >
+                                                                                        <Trash2 size={9} /> Sil
+                                                                                    </button>
+                                                                                </>
+                                                                            ) : (
+                                                                                <button 
+                                                                                    onClick={() => handleReportClick(c.id, 'comment')} 
+                                                                                    className="text-[9px] font-bold text-[var(--text-secondary)]/40 hover:text-amber-500 transition-colors flex items-center gap-1"
+                                                                                >
+                                                                                    <Flag size={9} /> Şikayet
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
+                                                                    </>
+                                                                )}
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                ))
+                                                    );
+                                                })
                                             )}
                                         </div>
 
