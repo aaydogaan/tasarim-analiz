@@ -249,18 +249,63 @@ export default function AuthPage() {
 
     const loadRecommendedUsers = async (currentUserId?: string) => {
         try {
-            const { data: users } = await supabase
+            // 1. Fetch Founders (verification_badge === 'gold' or founder_number > 0)
+            const { data: foundersData } = await supabase
                 .from('profiles')
-                .select('id, display_name, avatar_url, slug, bio, verification_badge')
-                .order('created_at', { ascending: false })
-                .limit(8);
+                .select('id, display_name, avatar_url, slug, bio, verification_badge, founder_number')
+                .or('verification_badge.eq.gold,founder_number.gt.0')
+                .order('founder_number', { ascending: true })
+                .limit(3);
 
-            if (users) {
-                const filtered = users.filter(u => u.id !== currentUserId);
-                setRecommendedUsers(filtered);
-                // Pre-select all recommended users for max community engagement
-                setFollowedUserIds(new Set(filtered.map(u => u.id)));
+            // 2. Fetch Active Vitrin post creators
+            const { data: activePosts } = await supabase
+                .from('community_posts')
+                .select('user_id')
+                .order('created_at', { ascending: false })
+                .limit(30);
+
+            const activeUserIds = Array.from(new Set((activePosts || []).map(p => p.user_id).filter(Boolean)));
+            let activeUsersData: any[] = [];
+
+            if (activeUserIds.length > 0) {
+                const { data: activeProfs } = await supabase
+                    .from('profiles')
+                    .select('id, display_name, avatar_url, slug, bio, verification_badge, founder_number')
+                    .in('id', activeUserIds)
+                    .limit(10);
+                activeUsersData = activeProfs || [];
             }
+
+            // 3. Fallback newest users if active users list is short
+            const { data: newestUsers } = await supabase
+                .from('profiles')
+                .select('id, display_name, avatar_url, slug, bio, verification_badge, founder_number')
+                .order('created_at', { ascending: false })
+                .limit(10);
+
+            // Combine: Founders (Top 3) -> Active Vitrin Creators -> Newest Users
+            const combined = [
+                ...(foundersData || []),
+                ...activeUsersData,
+                ...(newestUsers || [])
+            ];
+
+            // Deduplicate & remove current user
+            const seen = new Set<string>();
+            const finalRecommended: any[] = [];
+
+            for (const u of combined) {
+                if (!u || !u.id) continue;
+                if (u.id === currentUserId) continue;
+                if (!seen.has(u.id)) {
+                    seen.add(u.id);
+                    finalRecommended.push(u);
+                }
+            }
+
+            const result = finalRecommended.slice(0, 10);
+            setRecommendedUsers(result);
+            setFollowedUserIds(new Set(result.map(u => u.id)));
         } catch (err) {
             console.error('Recommended users error:', err);
         }
