@@ -48,6 +48,7 @@ import { supabase } from '../lib/supabase';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import FollowModal from '../components/ui/FollowModal';
 import { ContestUploadModal } from '../components/ui/ContestUploadModal';
+import PayTRModal from '../components/ui/PayTRModal';
 import {
     buildAvatarUrl,
     BADGE_DEFINITIONS,
@@ -178,6 +179,22 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
         } finally {
             setChangingPassword(false);
         }
+    };
+
+    const [paytrModalOpen, setPaytrModalOpen] = useState(false);
+
+    const getTodayUsageCount = (): number => {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const stored = localStorage.getItem(`ra_usage_${kullanici?.id || 'guest'}_${todayStr}`);
+        return stored ? parseInt(stored, 10) : 0;
+    };
+
+    const calculateProDaysLeft = (): number | null => {
+        if (!(profileRecord as any)?.pro_until) return null;
+        const until = new Date((profileRecord as any).pro_until).getTime();
+        const now = new Date().getTime();
+        const diffDays = Math.ceil((until - now) / (1000 * 3600 * 24));
+        return diffDays > 0 ? diffDays : 0;
     };
 
     const normalizedProfile = useMemo(
@@ -898,6 +915,67 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                         {saveState === 'saved' && <p className="mt-3 text-center text-xs font-bold text-emerald-500">Profil güncellendi.</p>}
                         {saveState === 'error' && <p className="mt-3 text-center text-xs font-bold text-red-500">Kaydedilirken hata oluştu.</p>}
 
+                        {/* Abonelik & Analiz Hakları Card */}
+                        {isOwnProfile && (
+                            <div className="mt-5 pt-4 border-t border-[var(--border-primary)] space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-sm font-black text-[var(--text-primary)] flex items-center gap-2">
+                                        <Crown className="w-4.5 h-4.5 text-[#FF5500]" />
+                                        Abonelik & Haklarım
+                                    </h3>
+                                    {((profileRecord as any)?.is_pro || (profileRecord as any)?.role === 'admin') ? (
+                                        <span className="text-[10px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                                            <Crown size={10} /> PRO ÜYE
+                                        </span>
+                                    ) : (
+                                        <span className="text-[10px] font-black uppercase bg-[var(--bg-secondary)] text-[var(--text-secondary)] border border-[var(--border-primary)] px-2.5 py-0.5 rounded-full">
+                                            ÜCRETSİZ PLAN
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="bg-[var(--bg-secondary)] p-3.5 rounded-xl border border-[var(--border-primary)] space-y-2">
+                                    {((profileRecord as any)?.is_pro || (profileRecord as any)?.role === 'admin') ? (
+                                        <>
+                                            <div className="flex items-center justify-between text-xs font-bold text-[var(--text-primary)]">
+                                                <span>Analiz Hakkı:</span>
+                                                <span className="text-emerald-500 font-extrabold">Sınırsız 🚀</span>
+                                            </div>
+                                            <div className="flex items-center justify-between text-xs text-[var(--text-secondary)] font-medium">
+                                                <span>Analiz Modu:</span>
+                                                <span className="text-[var(--text-primary)] font-bold">Derin Tasarım Direktörü</span>
+                                            </div>
+                                            {calculateProDaysLeft() !== null && (
+                                                <div className="flex items-center justify-between text-xs text-[var(--text-secondary)] font-medium pt-1 border-t border-[var(--border-primary)]/50">
+                                                    <span>Kalan Süre:</span>
+                                                    <span className="text-[#FF5500] font-bold">{calculateProDaysLeft()} Gün</span>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="flex items-center justify-between text-xs font-bold text-[var(--text-primary)]">
+                                                <span>Bugünkü Kullanım:</span>
+                                                <span className={getTodayUsageCount() >= 2 ? "text-red-500 font-black" : "text-[#FF5500] font-black"}>
+                                                    {getTodayUsageCount()} / 2 Analiz
+                                                </span>
+                                            </div>
+                                            <p className="text-[10px] text-[var(--text-secondary)] font-medium leading-normal">
+                                                ⚡ Haklarınız her gece saat <strong className="text-[var(--text-primary)]">00:00</strong>'da otomatik sıfırlanır.
+                                            </p>
+                                            <button
+                                                onClick={() => setPaytrModalOpen(true)}
+                                                className="w-full mt-2 py-2 rounded-lg bg-[#FF5500] hover:bg-[#e64d00] text-white font-black text-xs transition-all shadow-md shadow-[#FF5500]/20 flex items-center justify-center gap-1.5 cursor-pointer"
+                                            >
+                                                <Zap size={13} />
+                                                <span>Sınırsız Yap (PRO'ya Geç)</span>
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Tercihler & Güvenlik */}
                         {isOwnProfile && (
                             <div className="mt-5 pt-4 border-t border-[var(--border-primary)] space-y-3">
@@ -1545,6 +1623,8 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                         supabase.from('user_follows').select('id', { count: 'exact', head: true }).eq('follower_id', normalizedProfile.id).then(res => setFollowingCount(res.count || 0));
                     }}
                 />
+
+                <PayTRModal isOpen={paytrModalOpen} onClose={() => setPaytrModalOpen(false)} />
             </main>
         </div>
     );

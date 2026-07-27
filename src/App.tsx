@@ -3,7 +3,7 @@ import Lenis from 'lenis';
 import { motion, AnimatePresence } from "motion/react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
-import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check, AlertCircle, Globe, ArrowUpRight, Layers, Code, Scan, Download, ExternalLink, BookOpen, Link as LinkIcon, FileText, Clock, Settings, Home, Plus, Target, Star, Search, Filter, MessageCircle, Heart, Trophy, Compass, Lock, Shuffle, Info } from "lucide-react";
+import { Upload, ChevronRight, ChevronLeft, RotateCcw, Palette, Type as TypeIcon, Layout, Grid, Sparkles, Smartphone, Building2, ShoppingBag, Printer, BarChart2, Share2, User, X, LogOut, Copy, Check, AlertCircle, Globe, ArrowUpRight, Layers, Code, Scan, Download, ExternalLink, BookOpen, Link as LinkIcon, FileText, Clock, Settings, Home, Plus, Target, Star, Search, Filter, MessageCircle, Heart, Trophy, Compass, Lock, Shuffle, Info, Crown, Zap } from "lucide-react";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { supabase } from "./lib/supabase";
@@ -1399,6 +1399,34 @@ export default function App() {
                                 <h3 className="text-3xl font-black text-[var(--text-primary)] tracking-tight text-center mb-2">
                                   Tasarımınızı Analiz Edin
                                 </h3>
+
+                                {/* Quota Status Badge */}
+                                <div className="mb-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-xs font-bold text-[var(--text-primary)] shadow-sm">
+                                  {kullaniciProfile?.is_pro || kullaniciProfile?.role === 'admin' ? (
+                                    <span className="flex items-center gap-1.5 text-amber-500 font-extrabold">
+                                      <Crown className="w-4 h-4 fill-amber-400" /> PRO Üye — Sınırsız & Derin Analiz Modu
+                                    </span>
+                                  ) : (
+                                    <div className="flex items-center gap-2">
+                                      <span className="flex items-center gap-1 text-[#FF5500] font-extrabold">
+                                        <Zap className="w-4 h-4 fill-[#FF5500]" /> Bugünkü Hak: {getTodayUsageCount()}/2
+                                      </span>
+                                      {getTodayUsageCount() >= 2 ? (
+                                        <button
+                                          onClick={() => setProLimitModalAcik(true)}
+                                          className="text-[10px] font-black uppercase text-white bg-[#FF5500] px-2 py-0.5 rounded-md hover:bg-[#e64d00] transition-colors cursor-pointer"
+                                        >
+                                          PRO'ya Geç
+                                        </button>
+                                      ) : (
+                                        <span className="text-[11px] text-[var(--text-secondary)] font-semibold">
+                                          (Kalan: {2 - getTodayUsageCount()})
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+
                                 <p className="text-[var(--text-secondary)] font-medium text-base mb-6">Saniyeler içinde UI/UX hatalarını bulun ve yapay zeka ile mükemmelleştirin.</p>
                                 
                                 {/* Corporate Beta Disclaimer Banner */}
