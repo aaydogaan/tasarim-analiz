@@ -49,28 +49,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         <html>
         <head><meta charset="utf-8"><title>Revizelesene'ye Hoş Geldin!</title></head>
         <body style="margin: 0; padding: 0; background-color: #09090b; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #f4f4f5;">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 40px auto; background-color: #18181b; border-radius: 20px; overflow: hidden; border: 1px solid #27272a;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 40px auto; background-color: #18181b; border-radius: 24px; overflow: hidden; border: 1px solid #27272a; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
             <tr>
               <td style="padding: 36px 40px; background: linear-gradient(135deg, #18181b 0%, #27272a 100%); text-align: center; border-bottom: 1px solid #27272a;">
-                <h1 style="margin: 0; color: #FF5500; font-size: 28px; font-weight: 900;">Revizelesene</h1>
-                <p style="margin: 6px 0 0 0; color: #a1a1aa; font-size: 13px; font-weight: 600;">Geri Bildirim, Yeniden Tanımlandı.</p>
+                <h1 style="margin: 0; color: #FF5500; font-size: 28px; font-weight: 900; letter-spacing: -0.5px;">Revizelesene</h1>
+                <p style="margin: 6px 0 0 0; color: #a1a1aa; font-size: 13px; font-weight: 600;">Yapay Zeka Destekli Tasarım Topluluğu</p>
               </td>
             </tr>
             <tr>
               <td style="padding: 40px;">
-                <h2 style="margin: 0 0 16px 0; color: #ffffff; font-size: 22px; font-weight: 800;">Aramıza Hoş Geldin, ${name}! 👋</h2>
+                <h2 style="margin: 0 0 16px 0; color: #ffffff; font-size: 22px; font-weight: 800;">Aramıza Hoş Geldin, ${name}! 🎉</h2>
                 <p style="margin: 0 0 20px 0; color: #d4d4d8; font-size: 15px; line-height: 1.6;">
-                  Revizelesene topluluğuna katıldığın için çok heyecanlıyız. Artık tasarımlarını profesyonel yapay zeka kriterleriyle analiz ettirebilir, topluluktan geri bildirim alabilir ve ödüllü tasarım yarışmalarına katılabilirsin!
+                  Revizelesene topluluğuna katıldığın için çok heyecanlıyız! Yapay zeka analiz motorumuzla tasarımlarını mükemmelleştirirken, diğer tasarımcılarla etkileşime geçebileceğin harika bir başlangıç yaptın.
                 </p>
-                <div style="text-align: center; margin-top: 32px;">
-                  <a href="https://revizelesene.com" target="_blank" style="display: inline-block; padding: 14px 32px; background-color: #FF5500; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 800; border-radius: 12px;">
-                    Hemen İlk Analizini Yap →
+
+                <div style="background-color: #09090b; border: 1px solid #27272a; border-radius: 16px; padding: 24px; margin-bottom: 28px;">
+                  <h3 style="margin: 0 0 14px 0; color: #FF5500; font-size: 16px; font-weight: 800;">🎯 Şimdi Profilini Tamamla & İlk 100 Destekçi Rozetini Kap!</h3>
+                  <p style="margin: 0 0 16px 0; color: #a1a1aa; font-size: 13px; line-height: 1.5;">
+                    Diğer tasarımcıların seni tanıması, Keşfet Vitrini'nde öne çıkman ve profil rozetlerini kazanman için profilini hemen özelleştir:
+                  </p>
+                  <ul style="margin: 0; padding-left: 20px; color: #d4d4d8; font-size: 14px; line-height: 1.8;">
+                    <li><strong>Profil Fotoğrafı & Kapak:</strong> Kendine özgü avatarını seç veya kendi görselini yükle.</li>
+                    <li><strong>Biyografi:</strong> Tasarım vizyonunu ve tarzını anlat.</li>
+                    <li><strong>Portfolyo Linkleri:</strong> Behance, Dribbble, Instagram veya web siteni ekle.</li>
+                    <li><strong>Uzmanlık Alanı:</strong> UI/UX, Logo, Sosyal Medya vb. branşını belirle.</li>
+                  </ul>
+                </div>
+
+                <div style="text-align: center; margin: 32px 0 24px 0;">
+                  <a href="https://www.revizelesene.com/profile" target="_blank" style="display: inline-block; padding: 16px 36px; background-color: #FF5500; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 900; border-radius: 14px; box-shadow: 0 10px 20px rgba(255, 85, 0, 0.3);">
+                    Profilimi Şimdi Tamamla →
                   </a>
                 </div>
+
+                <p style="margin: 0; color: #71717a; font-size: 12px; text-align: center;">
+                  💡 <em>İpucu: Profil bilgileri eksiksiz olan kullanıcıların gönderileri Keşfet Vitrini'nde %70 daha fazla etkileşim alıyor!</em>
+                </p>
               </td>
             </tr>
             <tr>
               <td style="padding: 24px 40px; background-color: #09090b; border-top: 1px solid #27272a; text-align: center;">
+                <p style="margin: 0 0 8px 0; color: #a1a1aa; font-size: 12px;">Soruların için doğrudan bu e-postaya yanıt verebilirsin.</p>
                 <p style="margin: 0; color: #71717a; font-size: 12px;">© ${new Date().getFullYear()} Revizelesene. Tüm hakları saklıdır.</p>
               </td>
             </tr>
@@ -82,7 +101,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const response = await resend.emails.send({
         from: FROM_EMAIL,
         to: recipients,
-        subject: `🚀 Revizelesene'ye Hoş Geldin, ${name}!`,
+        subject: `🚀 Revizelesene'ye Hoş Geldin! Profilini Tamamla & İlk 100 Destekçi Rozetini Kap`,
         html,
       });
 
