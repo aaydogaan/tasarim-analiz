@@ -17,6 +17,7 @@ import {
     type NormalizedCommunityProfile,
 } from '../lib/communityProfile';
 import ReportModal from '../components/ui/ReportModal';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 const CHANGING_WORDS = ['İlham', 'Eleştiri', 'Yaratıcılık', 'Perspektif'];
 
@@ -105,8 +106,18 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         }
     };
 
-    const handleDeleteComment = async (postId: string, commentId: string) => {
-        if (!window.confirm('Bu yorumu silmek istediğinize emin misiniz?')) return;
+    // Delete Comment Modal State
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [targetDeleteInfo, setTargetDeleteInfo] = useState<{ postId: string; commentId: string } | null>(null);
+
+    const handleDeleteComment = (postId: string, commentId: string) => {
+        setTargetDeleteInfo({ postId, commentId });
+        setDeleteConfirmOpen(true);
+    };
+
+    const executeDeleteComment = async () => {
+        if (!targetDeleteInfo) return;
+        const { postId, commentId } = targetDeleteInfo;
         const { error } = await supabase
             .from('post_comments')
             .delete()
@@ -123,6 +134,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         } else {
             toast.error('Yorum silinirken hata oluştu.');
         }
+        setTargetDeleteInfo(null);
     };
     const [isBadgesExpanded, setIsBadgesExpanded] = useState(false);
 
@@ -1264,6 +1276,15 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                 isOpen={reportModalOpen}
                 onClose={() => { setReportModalOpen(false); setReportItem(null); }}
                 onSubmit={submitReport}
+            />
+            <ConfirmModal
+                isOpen={deleteConfirmOpen}
+                onClose={() => setDeleteConfirmOpen(false)}
+                onConfirm={executeDeleteComment}
+                title="Yorumu Sil"
+                description="Bu yorumu silmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+                confirmText="Evet, Sil"
+                cancelText="İptal"
             />
         </div>
     );

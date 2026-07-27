@@ -5,6 +5,7 @@ import { supabase } from "../lib/supabase";
 import { Heart, Maximize2, X, Star, Loader2, Search, ChevronDown, Filter, Sparkles, Trophy, Flame, Clock, ArrowBigUp, ArrowBigDown, Flag, Pencil, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import ReportModal from '../components/ui/ReportModal';
+import ConfirmModal from '../components/ui/ConfirmModal';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 
 interface VitrinItem {
@@ -72,8 +73,18 @@ export function Vitrin() {
         }
     };
 
-    const handleDeleteComment = async (commentId: string) => {
-        if (!window.confirm('Bu yorumu silmek istediğinize emin misiniz?')) return;
+    // Delete Comment Modal State
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [targetDeleteCommentId, setTargetDeleteCommentId] = useState<string | null>(null);
+
+    const handleDeleteComment = (commentId: string) => {
+        setTargetDeleteCommentId(commentId);
+        setDeleteConfirmOpen(true);
+    };
+
+    const executeDeleteComment = async () => {
+        if (!targetDeleteCommentId) return;
+        const commentId = targetDeleteCommentId;
         const { error } = await supabase
             .from('post_comments')
             .delete()
@@ -86,6 +97,7 @@ export function Vitrin() {
         } else {
             toast.error('Yorum silinirken hata oluştu.');
         }
+        setTargetDeleteCommentId(null);
     };
 
     // Report State
@@ -977,6 +989,15 @@ export function Vitrin() {
                 isOpen={reportModalOpen}
                 onClose={() => { setReportModalOpen(false); setReportItem(null); }}
                 onSubmit={submitReport}
+            />
+            <ConfirmModal
+                isOpen={deleteConfirmOpen}
+                onClose={() => setDeleteConfirmOpen(false)}
+                onConfirm={executeDeleteComment}
+                title="Yorumu Sil"
+                description="Bu yorumu silmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+                confirmText="Evet, Sil"
+                cancelText="İptal"
             />
         </div>
     );
