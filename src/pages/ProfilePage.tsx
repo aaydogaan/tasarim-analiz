@@ -951,6 +951,19 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                                     <span className="text-[#FF5500] font-bold">{calculateProDaysLeft()} Gün</span>
                                                 </div>
                                             )}
+                                            <button
+                                                onClick={async () => {
+                                                    if (window.confirm("PRO aboneliğinizi otomatik yenilemeye kapatmak istediğinize emin misiniz? Mevcut kalan günlerinizi kullanmaya devam edebilirsiniz.")) {
+                                                        if (kullanici) {
+                                                            await supabase.from('profiles').update({ auto_renew: false }).eq('id', kullanici.id);
+                                                            toast.success("Otomatik yenileme iptal edildi. Bitiş tarihine kadar PRO haklarınızı kullanabilirsiniz.");
+                                                        }
+                                                    }
+                                                }}
+                                                className="w-full mt-2 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 font-extrabold text-[11px] transition-all border border-red-500/20 flex items-center justify-center gap-1 cursor-pointer"
+                                            >
+                                                <span>Aboneliğimi İptal Et / Otomatik Yenilemeyi Durdur</span>
+                                            </button>
                                         </>
                                     ) : (
                                         <>

@@ -257,12 +257,14 @@ export default function Footer({
                             <p className="footer-cat-title">Yasal</p>
                             <div className="footer-link-list">
                                 {[
+                                    { label: 'Mesafeli Satış Sözleşmesi', href: '/mesafeli-satis-sozlesmesi' },
+                                    { label: 'İptal ve İade Koşulları', href: '/iptal-ve-iade-kosullari' },
                                     { label: 'KVKK Metni', href: '/kvkk' },
                                     { label: 'Gizlilik Sözleşmesi', href: '/gizlilik' },
                                     { label: 'Kullanım Koşulları', href: '/kosullar' },
                                     { label: 'Çerez Politikası', href: '/cerez-politikasi' },
                                 ].map((item) => (
-                                    <a key={item.label} href={item.href} onClick={(e) => { e.preventDefault(); onNavClick?.(item.href.replace('/', '') as any); }} className="footer-link">
+                                    <a key={item.label} href={item.href} onClick={(e) => { e.preventDefault(); window.location.href = item.href; }} className="footer-link">
                                         <h6 className="footer-link-text">{item.label}</h6>
                                     </a>
                                 ))}

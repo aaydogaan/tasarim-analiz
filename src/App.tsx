@@ -31,6 +31,8 @@ import Kosullar from "./pages/Kosullar";
 import { generateUniqueSlug } from "./lib/communityProfile";
 import AuthPage from "./pages/AuthPage";
 import CerezPolitikasi from "./pages/CerezPolitikasi";
+import MesafeliSatisSozlesmesi from "./pages/MesafeliSatisSozlesmesi";
+import IptalIadeKosullari from "./pages/IptalIadeKosullari";
 import ContestDetailPage from "./pages/ContestDetailPage";
 import ContestAnnouncementBar from "./components/ui/ContestAnnouncementBar";
 import ProLimitModal from "./components/ui/ProLimitModal";
@@ -1078,6 +1080,16 @@ export default function App() {
         <Route path="/pricing" element={
           <main className="flex-1 w-full mt-20">
             <Pricing />
+          </main>
+        } />
+        <Route path="/mesafeli-satis-sozlesmesi" element={
+          <main className="flex-1 w-full mt-20">
+            <MesafeliSatisSozlesmesi />
+          </main>
+        } />
+        <Route path="/iptal-ve-iade-kosullari" element={
+          <main className="flex-1 w-full mt-20">
+            <IptalIadeKosullari />
           </main>
         } />
         <Route path="/about" element={
