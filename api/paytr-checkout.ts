@@ -58,7 +58,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       JSON.stringify([['Revizelesene PRO Üyelik (Aylık)', '70.80', 1]])
     ).toString('base64');
 
-    const appUrl = process.env.APP_URL || 'https://www.revizelesene.com';
+    let appUrl = process.env.APP_URL;
+    if (!appUrl || !appUrl.startsWith('http')) {
+      const origin = req.headers.origin;
+      const host = req.headers.host || 'www.revizelesene.com';
+      const proto = host.includes('localhost') ? 'http' : 'https';
+      appUrl = origin || `${proto}://${host}`;
+    }
+
     const merchant_ok_url = `${appUrl}/pricing?status=success`;
     const merchant_fail_url = `${appUrl}/pricing?status=fail`;
 
