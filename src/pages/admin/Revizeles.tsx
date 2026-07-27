@@ -152,8 +152,12 @@ export default function AdminRevizeles() {
 
                             if (notifs.length > 0) {
                                 const { error: notifErr } = await supabase.from('notifications').insert(notifs);
-                                if (notifErr) console.error('Notifications error:', notifErr);
-                                else toast.success(`${notifs.length} üyeye site içi bildirim gönderildi 🔔`);
+                                if (notifErr) {
+                                    console.error('Notifications insert error:', notifErr);
+                                    toast.error(`Site içi bildirim gönderilemedi: ${notifErr.message}`);
+                                } else {
+                                    toast.success(`${notifs.length} üyeye site içi bildirim gönderildi 🔔`);
+                                }
                             }
                         }
                     } catch (nErr) {

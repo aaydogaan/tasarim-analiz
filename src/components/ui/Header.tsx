@@ -69,13 +69,27 @@ export default function Header({
         if (!kullanici) return;
 
         const fetchNotifications = async () => {
-            const { data } = await supabase
+            const { data, error } = await supabase
                 .from('notifications')
-                .select('*, actor:profiles!notifications_actor_id_fkey(display_name, avatar_url, slug)')
+                .select('*, actor:profiles(display_name, avatar_url, slug)')
+                .eq('user_id', kullanici.id)
                 .order('created_at', { ascending: false })
                 .limit(20);
             
-            if (data) {
+            if (error) {
+                console.error('fetchNotifications primary error:', error);
+                const { data: fallbackData, error: fbErr } = await supabase
+                    .from('notifications')
+                    .select('*')
+                    .eq('user_id', kullanici.id)
+                    .order('created_at', { ascending: false })
+                    .limit(20);
+                if (fbErr) console.error('fetchNotifications fallback error:', fbErr);
+                if (fallbackData) {
+                    setNotifications(fallbackData);
+                    setUnreadCount(fallbackData.filter(n => !n.is_read).length);
+                }
+            } else if (data) {
                 setNotifications(data);
                 setUnreadCount(data.filter(n => !n.is_read).length);
             }
