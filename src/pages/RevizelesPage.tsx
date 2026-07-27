@@ -174,17 +174,39 @@ export default function RevizelesPage() {
         }
     };
 
+    // Liked posts state for 1 vote per user rule
+    const [likedPostIds, setLikedPostIds] = useState<Set<string>>(() => {
+        try {
+            const saved = localStorage.getItem('revizeles_liked_posts');
+            return saved ? new Set(JSON.parse(saved)) : new Set();
+        } catch (_) {
+            return new Set();
+        }
+    });
+
     const handleLikePost = async (postId: string, currentLikes: number) => {
         if (!currentUser) {
             toast.error('Beğenmek için giriş yapmalısınız');
             return;
         }
 
+        if (likedPostIds.has(postId)) {
+            toast.error('Bu gönderiyi zaten beğendiniz');
+            return;
+        }
+
         const newCount = (currentLikes || 0) + 1;
+        const nextSet = new Set(likedPostIds).add(postId);
+        setLikedPostIds(nextSet);
+        try {
+            localStorage.setItem('revizeles_liked_posts', JSON.stringify(Array.from(nextSet)));
+        } catch (_) { }
+
         setPosts(prev => prev.map(p => p.id === postId ? { ...p, likes_count: newCount } : p));
 
         try {
             await supabase.from('revizeles_posts').update({ likes_count: newCount }).eq('id', postId);
+            toast.success('Beğeniniz kaydedildi!');
         } catch (err) {
             console.error('Like error:', err);
         }
@@ -258,9 +280,6 @@ export default function RevizelesPage() {
                                 {/* Content Details */}
                                 <div className="md:col-span-2 space-y-4 text-left">
                                     <div className="flex items-center gap-2">
-                                        <span className="px-3 py-1 rounded-full bg-[#FF5500]/10 text-[#FF5500] text-xs font-black uppercase tracking-wider">
-                                            {selectedTopic.category || 'Gündem'}
-                                        </span>
                                         <span className="text-xs font-medium text-[var(--text-secondary)]">
                                             {new Date(selectedTopic.created_at).toLocaleDateString('tr-TR')}
                                         </span>
@@ -305,7 +324,7 @@ export default function RevizelesPage() {
                                     <div className="flex items-center gap-3 w-full sm:w-auto">
                                         <label className="px-4 py-2.5 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:border-[#FF5500] text-[var(--text-primary)] text-xs font-bold cursor-pointer flex items-center gap-2 transition-all w-full sm:w-auto justify-center">
                                             {uploadingImage ? <Loader2 className="w-4 h-4 animate-spin text-[#FF5500]" /> : <UploadCloud className="w-4 h-4 text-[#FF5500]" />}
-                                            <span>{uploadingImage ? 'Yükleniyor...' : (redesignUrl ? '✓ Revizyon Yüklendi' : '📷 Kendi Revizyon Logonu Yükle')}</span>
+                                            <span>{uploadingImage ? 'Yükleniyor...' : (redesignUrl ? '✓ Revizyon Yüklendi' : 'Kendi Revizyon Logonu Yükle')}</span>
                                             <input type="file" accept="image/*" onChange={handleRedesignUpload} className="hidden" />
                                         </label>
                                         {redesignUrl && (
@@ -321,7 +340,7 @@ export default function RevizelesPage() {
                                         className="w-full sm:w-auto px-8 py-3 rounded-xl bg-[#FF5500] hover:bg-[#e64d00] text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                                     >
                                         {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                                        <span>Yayınla 🚀</span>
+                                        <span>Yayınla</span>
                                     </button>
                                 </div>
                             </form>
@@ -345,32 +364,38 @@ export default function RevizelesPage() {
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    {posts.map((p) => (
-                                        <div key={p.id} className="bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-3xl p-6 shadow-xs space-y-4">
-                                            <div className="flex items-center justify-between">
-                                                <Link to={`/${p.user_slug}`} className="flex items-center gap-3 group">
-                                                    <img src={p.user_avatar} alt={p.user_name} className="w-10 h-10 rounded-full object-cover border border-[var(--border-primary)]" />
-                                                    <div>
-                                                        <div className="flex items-center gap-1.5">
-                                                            <span className="text-sm font-bold text-[var(--text-primary)] group-hover:text-[#FF5500] transition-colors">
-                                                                {p.user_name}
+                                    {posts.map((p) => {
+                                        const isLiked = likedPostIds.has(p.id);
+                                        return (
+                                            <div key={p.id} className="bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-3xl p-6 shadow-xs space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <Link to={`/${p.user_slug}`} className="flex items-center gap-3 group">
+                                                        <img src={p.user_avatar} alt={p.user_name} className="w-10 h-10 rounded-full object-cover border border-[var(--border-primary)]" />
+                                                        <div>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <span className="text-sm font-bold text-[var(--text-primary)] group-hover:text-[#FF5500] transition-colors">
+                                                                    {p.user_name}
+                                                                </span>
+                                                                <VerifiedBadge badge={p.user_badge} size="xs" />
+                                                            </div>
+                                                            <span className="text-[10px] text-[var(--text-secondary)]">
+                                                                {new Date(p.created_at).toLocaleDateString('tr-TR')}
                                                             </span>
-                                                            <VerifiedBadge badge={p.user_badge} size="xs" />
                                                         </div>
-                                                        <span className="text-[10px] text-[var(--text-secondary)]">
-                                                            {new Date(p.created_at).toLocaleDateString('tr-TR')}
-                                                        </span>
-                                                    </div>
-                                                </Link>
+                                                    </Link>
 
-                                                <button
-                                                    onClick={() => handleLikePost(p.id, p.likes_count)}
-                                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] hover:border-[#FF5500] text-xs font-bold text-[var(--text-primary)] transition-all"
-                                                >
-                                                    <ThumbsUp className="w-3.5 h-3.5 text-[#FF5500]" />
-                                                    <span>{p.likes_count || 0}</span>
-                                                </button>
-                                            </div>
+                                                    <button
+                                                        onClick={() => handleLikePost(p.id, p.likes_count)}
+                                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
+                                                            isLiked
+                                                                ? 'bg-[#FF5500]/10 border-[#FF5500] text-[#FF5500]'
+                                                                : 'bg-[var(--bg-secondary)] border-[var(--border-primary)] hover:border-[#FF5500] text-[var(--text-primary)]'
+                                                        }`}
+                                                    >
+                                                        <ThumbsUp className={`w-3.5 h-3.5 ${isLiked ? 'fill-[#FF5500] text-[#FF5500]' : 'text-[#FF5500]'}`} />
+                                                        <span>{p.likes_count || 0}</span>
+                                                    </button>
+                                                </div>
 
                                             {/* Comment Text */}
                                             <p className="text-sm text-[var(--text-primary)]/90 leading-relaxed font-medium">
@@ -396,7 +421,8 @@ export default function RevizelesPage() {
                                                 </div>
                                             )}
                                         </div>
-                                    ))}
+                                    );
+                                })}
                                 </div>
                             )}
                         </div>

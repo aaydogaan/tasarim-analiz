@@ -320,9 +320,6 @@ GRANT ALL ON TABLE public.revizeles_posts TO anon, authenticated, service_role;`
                                         }`}>
                                             {topic.status === 'active' ? '● Aktif Gündem' : 'Arşiv'}
                                         </span>
-                                        <span className="text-[10px] font-bold text-gray-400">
-                                            {topic.category || 'Genel'}
-                                        </span>
                                     </div>
                                     <h3 className="text-sm font-bold text-[var(--text-primary)] leading-snug line-clamp-2">
                                         {topic.title}
@@ -390,35 +387,19 @@ GRANT ALL ON TABLE public.revizeles_posts TO anon, authenticated, service_role;`
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            {editingTopicId && (
                                 <div>
-                                    <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1">Kategori</label>
+                                    <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1">Durum</label>
                                     <select
-                                        value={category}
-                                        onChange={(e) => setCategory(e.target.value)}
+                                        value={status}
+                                        onChange={(e) => setStatus(e.target.value as any)}
                                         className="w-full px-3 py-2.5 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs font-medium text-[var(--text-primary)] focus:outline-none"
                                     >
-                                        <option value="Siyaset & Kurumsal">Siyaset & Kurumsal</option>
-                                        <option value="Marka & Rebrand">Marka & Rebrand</option>
-                                        <option value="Ambalaj & Ürün">Ambalaj & Ürün</option>
-                                        <option value="Teknoloji & Yazılım">Teknoloji & Yazılım</option>
-                                        <option value="Kamusal & Şehir">Kamusal & Şehir</option>
+                                        <option value="active">Aktif</option>
+                                        <option value="archived">Arşivlendi</option>
                                     </select>
                                 </div>
-                                {editingTopicId && (
-                                    <div>
-                                        <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1">Durum</label>
-                                        <select
-                                            value={status}
-                                            onChange={(e) => setStatus(e.target.value as any)}
-                                            className="w-full px-3 py-2.5 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs font-medium text-[var(--text-primary)] focus:outline-none"
-                                        >
-                                            <option value="active">Aktif</option>
-                                            <option value="archived">Arşivlendi</option>
-                                        </select>
-                                    </div>
-                                )}
-                            </div>
+                            )}
 
                             <div>
                                 <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1">Konu Görseli / Orijinal Logo *</label>
