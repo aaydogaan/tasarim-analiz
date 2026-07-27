@@ -312,77 +312,82 @@ export default function Header({
                                 
                                 <AnimatePresence>
                                     {isNotificationsOpen && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                            className="fixed top-[70px] left-4 right-4 sm:absolute sm:top-full sm:left-auto sm:right-0 sm:mt-3 w-auto sm:w-80 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-2xl shadow-xl overflow-hidden py-1 z-50 flex flex-col max-h-[80vh] sm:max-h-[400px]"
-                                        >
-                                            <div className="px-4 py-3 border-b border-[var(--border-primary)] flex justify-between items-center bg-[var(--bg-secondary)]/50">
-                                                <h3 className="text-sm font-bold text-[var(--text-primary)]">Bildirimler</h3>
-                                                {unreadCount > 0 && <span className="text-xs font-medium text-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]/10 px-2 py-0.5 rounded-full">{unreadCount} yeni</span>}
-                                            </div>
-                                            <div className="overflow-y-auto flex-1">
-                                                {notifications.length === 0 ? (
-                                                    <div className="px-4 py-8 text-center text-[var(--text-secondary)] text-sm">
-                                                        Henüz bir bildiriminiz yok.
-                                                    </div>
-                                                ) : (
-                                                    notifications.map((notif) => (
-                                                        <button
-                                                            key={notif.id}
-                                                            onClick={() => markAsRead(notif)}
-                                                            className={`w-full text-left px-4 py-3 border-b border-[var(--border-primary)]/50 hover:bg-[var(--bg-secondary)] transition-colors flex items-start gap-3 ${!notif.is_read ? 'bg-[var(--color-brand-orange)]/5' : ''}`}
-                                                        >
-                                                            <div className="relative shrink-0">
-                                                                <img
-                                                                    src={notif.actor?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${notif.actor_id}`}
-                                                                    alt="Actor"
-                                                                    className="w-10 h-10 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] object-cover"
-                                                                />
-                                                                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[var(--bg-primary)] border border-[var(--border-primary)] flex items-center justify-center">
-                                                                    {notif.type === 'like_post' && <Heart className="w-2.5 h-2.5 text-red-500 fill-red-500" />}
-                                                                    {notif.type === 'comment_post' && <MessageCircle className="w-2.5 h-2.5 text-blue-500 fill-blue-500" />}
-                                                                    {notif.type === 'vote_design' && <Star className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />}
-                                                                    {notif.type === 'report_resolved' && <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500" />}
-                                                                    {notif.type === 'report_dismissed' && <AlertCircle className="w-2.5 h-2.5 text-red-500" />}
-                                                                    {notif.type === 'follow_user' && <svg className="w-2.5 h-2.5 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>}
-                                                                    {notif.type === 'new_post' && <Bell className="w-2.5 h-2.5 text-orange-500 fill-orange-500" />}
+                                        <>
+                                            {/* Overlay to dismiss */}
+                                            <div className="fixed inset-0 z-40" onClick={() => setIsNotificationsOpen(false)} />
+
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                className="fixed top-[70px] left-4 right-4 sm:absolute sm:top-full sm:left-auto sm:right-0 sm:mt-3 w-auto sm:w-80 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-2xl shadow-xl overflow-hidden py-1 z-50 flex flex-col max-h-[80vh] sm:max-h-[400px]"
+                                            >
+                                                <div className="px-4 py-3 border-b border-[var(--border-primary)] flex justify-between items-center bg-[var(--bg-secondary)]/50 shrink-0">
+                                                    <h3 className="text-sm font-bold text-[var(--text-primary)]">Bildirimler</h3>
+                                                    {unreadCount > 0 && <span className="text-xs font-medium text-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]/10 px-2 py-0.5 rounded-full">{unreadCount} yeni</span>}
+                                                </div>
+                                                <div
+                                                    className="overflow-y-auto flex-1 overscroll-contain touch-pan-y"
+                                                    data-lenis-prevent="true"
+                                                    onWheel={(e) => e.stopPropagation()}
+                                                >
+                                                    {notifications.length === 0 ? (
+                                                        <div className="px-4 py-8 text-center text-[var(--text-secondary)] text-sm">
+                                                            Henüz bir bildiriminiz yok.
+                                                        </div>
+                                                    ) : (
+                                                        notifications.map((notif) => (
+                                                            <button
+                                                                key={notif.id}
+                                                                onClick={() => markAsRead(notif)}
+                                                                className={`w-full text-left px-4 py-3 border-b border-[var(--border-primary)]/50 hover:bg-[var(--bg-secondary)] transition-colors flex items-start gap-3 ${!notif.is_read ? 'bg-[var(--color-brand-orange)]/5' : ''}`}
+                                                            >
+                                                                <div className="relative shrink-0">
+                                                                    <img
+                                                                        src={notif.actor?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${notif.actor_id}`}
+                                                                        alt="Actor"
+                                                                        className="w-10 h-10 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] object-cover"
+                                                                    />
+                                                                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[var(--bg-primary)] border border-[var(--border-primary)] flex items-center justify-center">
+                                                                        {notif.type === 'like_post' && <Heart className="w-2.5 h-2.5 text-red-500 fill-red-500" />}
+                                                                        {notif.type === 'comment_post' && <MessageCircle className="w-2.5 h-2.5 text-blue-500 fill-blue-500" />}
+                                                                        {notif.type === 'vote_design' && <Star className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />}
+                                                                        {notif.type === 'report_resolved' && <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500" />}
+                                                                        {notif.type === 'report_dismissed' && <AlertCircle className="w-2.5 h-2.5 text-red-500" />}
+                                                                        {notif.type === 'follow_user' && <svg className="w-2.5 h-2.5 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>}
+                                                                        {notif.type === 'new_post' && <Bell className="w-2.5 h-2.5 text-orange-500 fill-orange-500" />}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                            <div className="flex-1 min-w-0 pt-0.5">
-                                                                <p className="text-[13px] text-[var(--text-primary)] leading-tight">
-                                                                    {notif.type.startsWith('report_') ? (
-                                                                        <span className="font-bold mr-1">Yönetim Ekibi</span>
-                                                                    ) : (
-                                                                        <span className="font-bold mr-1">{notif.actor?.display_name || 'Birisi'}</span>
-                                                                    )}
-                                                                    <span className="text-[var(--text-secondary)]">
-                                                                        {notif.type === 'like_post' && 'gönderini beğendi.'}
-                                                                        {notif.type === 'comment_post' && 'gönderine yorum yaptı.'}
-                                                                        {notif.type === 'vote_design' && 'tasarımına oy verdi.'}
-                                                                        {notif.type === 'report_resolved' && 'yaptığın şikayeti inceledi ve haklı bularak gereken işlemi uyguladı.'}
-                                                                        {notif.type === 'report_dismissed' && 'yaptığın şikayeti inceledi ancak kurallara aykırı bir durum bulamadı.'}
-                                                                        {notif.type === 'follow_user' && 'seni takip etmeye başladı.'}
-                                                                        {notif.type === 'new_post' && 'yeni bir tasarım paylaştı! 🔥'}
+                                                                <div className="flex-1 min-w-0 pt-0.5">
+                                                                    <p className="text-[13px] text-[var(--text-primary)] leading-tight">
+                                                                        {notif.type.startsWith('report_') ? (
+                                                                            <span className="font-bold mr-1">Yönetim Ekibi</span>
+                                                                        ) : (
+                                                                            <span className="font-bold mr-1">{notif.actor?.display_name || 'Birisi'}</span>
+                                                                        )}
+                                                                        <span className="text-[var(--text-secondary)]">
+                                                                            {notif.type === 'like_post' && 'gönderini beğendi.'}
+                                                                            {notif.type === 'comment_post' && 'gönderine yorum yaptı.'}
+                                                                            {notif.type === 'vote_design' && 'tasarımına oy verdi.'}
+                                                                            {notif.type === 'report_resolved' && 'yaptığın şikayeti inceledi ve haklı bularak gereken işlemi uyguladı.'}
+                                                                            {notif.type === 'report_dismissed' && 'yaptığın şikayeti inceledi ancak kurallara aykırı bir durum bulamadı.'}
+                                                                            {notif.type === 'follow_user' && 'seni takip etmeye başladı.'}
+                                                                            {notif.type === 'new_post' && 'yeni bir tasarım paylaştı! 🔥'}
+                                                                        </span>
+                                                                    </p>
+                                                                    <span className="text-[10px] text-[var(--text-secondary)] font-medium mt-1 block">
+                                                                        {new Date(notif.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                                                                     </span>
-                                                                </p>
-                                                                <span className="text-[10px] text-[var(--text-secondary)] font-medium mt-1 block">
-                                                                    {new Date(notif.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                                                                </span>
-                                                            </div>
-                                                            {!notif.is_read && <div className="w-2 h-2 rounded-full bg-[var(--color-brand-orange)] mt-2 shrink-0" />}
-                                                        </button>
-                                                    ))
-                                                )}
-                                            </div>
-                                        </motion.div>
+                                                                </div>
+                                                                {!notif.is_read && <div className="w-2 h-2 rounded-full bg-[var(--color-brand-orange)] mt-2 shrink-0" />}
+                                                            </button>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            </motion.div>
+                                        </>
                                     )}
                                 </AnimatePresence>
-                                {/* Overlay to dismiss */}
-                                {isNotificationsOpen && (
-                                    <div className="fixed inset-0 z-40" onClick={() => setIsNotificationsOpen(false)} />
-                                )}
                             </div>
 
                         <div
