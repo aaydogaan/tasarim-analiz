@@ -225,7 +225,7 @@ export default function AdminRevizeles() {
                         <span className="p-2 rounded-xl bg-orange-500/10 text-orange-500">
                             <Flame className="w-5 h-5" />
                         </span>
-                        <h1 className="text-2xl font-black text-[var(--text-primary)]">Revizeleş! (Gündem Revizyonları)</h1>
+                        <h1 className="text-2xl font-black text-[var(--text-primary)]">Revizeleştir (Gündem Revizyonları)</h1>
                     </div>
                     <p className="text-xs text-[var(--text-secondary)] font-medium">
                         Gündemdeki logoları, amblemleri ve lansman tasarımlarını yayınlayın; topluluğun eleştirmesini ve kendi alternatif revizyonlarını paylaşmasını sağlayın.

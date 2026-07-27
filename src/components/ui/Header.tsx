@@ -213,12 +213,6 @@ export default function Header({
                     >
                         Anasayfa
                     </button>
-                    <button
-                        onClick={() => navigate('/nasil-calisir')}
-                        className={`transition-colors whitespace-nowrap ${gorunum === 'nasil-calisir' ? 'text-[var(--text-primary)]' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
-                    >
-                        Nasıl Çalışır?
-                    </button>
                     {/* Dropdown for Araçlar (Tools + Typography) */}
                     <div
                         className="relative group"
@@ -274,10 +268,9 @@ export default function Header({
                     </button>
                     <button
                         onClick={() => handleNavClick('revizeles')}
-                        className={`flex items-center gap-1 transition-colors whitespace-nowrap ${gorunum.startsWith('revizeles') ? 'text-[var(--text-primary)] font-bold' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
+                        className={`transition-colors whitespace-nowrap ${gorunum.startsWith('revizeles') ? 'text-[var(--text-primary)] font-bold' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
                     >
-                        <span>Revizeleş!</span>
-                        <span className="text-[9px] bg-[#FF5500] text-white px-1.5 py-0.5 rounded-full font-black uppercase">GÜNDEM</span>
+                        Revizeleştir
                     </button>
                     <button
                         onClick={() => handleNavClick('leaderboard')}
@@ -524,6 +517,13 @@ export default function Header({
                                 className={`text-left transition-colors ${gorunum === 'nasil-calisir' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
                             >
                                 Nasıl Çalışır?
+                            </button>
+
+                            <button
+                                onClick={() => handleNavClick('revizeles')}
+                                className={`text-left transition-colors ${gorunum.startsWith('revizeles') ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                            >
+                                Revizeleştir
                             </button>
                             
                             <div className="flex flex-col gap-3">

@@ -223,7 +223,7 @@ export default function RevizelesPage() {
                         <span>CANLI GÜNDEM TARTIŞMALARI</span>
                     </div>
                     <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[var(--text-primary)] tracking-tight">
-                        Revizeleş! ⚡
+                        Revizeleştir
                     </h1>
                     <p className="text-sm sm:text-base text-[var(--text-secondary)] max-w-xl mx-auto leading-relaxed">
                         Gündemdeki logolar, marka yenilemeleri ve şehir amblemleri burada masaya yatırılıyor. Tasarımı eleştir veya kendi alternatif logosunu paylaş!
@@ -405,8 +405,8 @@ export default function RevizelesPage() {
                                             {/* Redesign Image Side-by-side comparison if uploaded */}
                                             {p.redesign_image_url && (
                                                 <div className="pt-2">
-                                                    <span className="text-[11px] font-black uppercase text-[#FF5500] tracking-wider block mb-2">
-                                                        ✨ Tasarımcının Alternatif Revizyon Logosu:
+                                                    <span className="text-[12px] font-bold text-[#FF5500] block mb-2">
+                                                        Tasarımcının Alternatif Revizyon Logosu:
                                                     </span>
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-2xl text-center">
