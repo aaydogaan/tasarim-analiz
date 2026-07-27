@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Users, Zap, X, Bell, UserPlus, UploadCloud, MessageCircle, Trophy } from 'lucide-react';
+import { Sparkles, Users, Zap, X, Bell, UserPlus, UploadCloud, MessageCircle, Trophy, Crown } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 // Fallback demo activities if DB is empty or loading
 const DEMO_ACTIVITIES = [
-    { id: 'd1', text: "Bir tasarımcı az önce bir SaaS projesini analiz etti.", icon: Zap, color: "text-blue-500" },
+    { id: 'd1', text: "👑 Hira Erkin, 85/100 AI skoru ile 'Günün Tasarımı' seçildi!", icon: Crown, color: "text-amber-500" },
     { id: 'd2', text: "Yeni bir e-ticaret arayüzü topluluk vitrinine eklendi.", icon: Sparkles, color: "text-amber-500" },
     { id: 'd3', text: "400+ tasarımcı şu an platformu aktif kullanıyor.", icon: Users, color: "text-emerald-500" },
 ];
@@ -22,6 +22,13 @@ export default function LiveActivityFeed() {
 
         const loadActivities = async () => {
             try {
+                // Fetch top post of the day for Günün Tasarımı notification
+                const { data: topPostData } = await supabase
+                    .from('community_posts')
+                    .select('id, tasarim_turu, created_at, profiles(display_name), analizler(genel_skor)')
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+
                 // Fetch latest posts
                 const { data: posts } = await supabase
                     .from('community_posts')
@@ -44,6 +51,26 @@ export default function LiveActivityFeed() {
                     .limit(3);
 
                 const mixed: any[] = [];
+
+                if (topPostData && topPostData.length > 0) {
+                    const topOne: any = [...topPostData].sort((a: any, b: any) => {
+                        const scoreA = (Array.isArray(a.analizler) ? a.analizler[0]?.genel_skor : a.analizler?.genel_skor) || 0;
+                        const scoreB = (Array.isArray(b.analizler) ? b.analizler[0]?.genel_skor : b.analizler?.genel_skor) || 0;
+                        return scoreB - scoreA;
+                    })[0];
+
+                    if (topOne) {
+                        const prof = Array.isArray(topOne.profiles) ? topOne.profiles[0] : topOne.profiles;
+                        const alz = Array.isArray(topOne.analizler) ? topOne.analizler[0] : topOne.analizler;
+                        mixed.push({
+                            id: `top-design-${topOne.id}`,
+                            text: `👑 ${prof?.display_name || 'Bir tasarımcı'}, ${alz?.genel_skor || 85}/100 AI skoru ile "Günün Tasarımı" seçildi!`,
+                            icon: Crown,
+                            color: "text-amber-500",
+                            createdAt: Date.now() + 100000 // Highest priority
+                        });
+                    }
+                }
                 
                 if (posts) {
                     posts.forEach(p => {
