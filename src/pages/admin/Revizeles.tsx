@@ -22,6 +22,8 @@ export default function AdminRevizeles() {
     const [uploadingImage, setUploadingImage] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
+    const [tableMissing, setTableMissing] = useState(false);
+
     useEffect(() => {
         fetchTopics();
     }, []);
@@ -34,10 +36,16 @@ export default function AdminRevizeles() {
                 .select('*')
                 .order('created_at', { ascending: false });
 
-            if (error && error.code !== 'PGRST116') {
-                console.error('Revizeles topics fetch error:', error);
+            if (error) {
+                if (error.message?.includes('revizeles_topics') || error.code === '42P01' || error.message?.includes('schema cache')) {
+                    setTableMissing(true);
+                } else {
+                    console.error('Revizeles topics fetch error:', error);
+                }
+            } else {
+                setTableMissing(false);
+                setTopics(data || []);
             }
-            setTopics(data || []);
         } catch (err) {
             console.error(err);
         } finally {
@@ -233,7 +241,55 @@ export default function AdminRevizeles() {
             </div>
 
             {/* Topics List */}
-            {loading ? (
+            {tableMissing ? (
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-3xl p-6 space-y-3">
+                    <div className="flex items-center gap-2 text-amber-500 font-bold text-sm">
+                        <AlertCircle className="w-5 h-5 shrink-0" />
+                        <span>Supabase Veritabanı Tablosu Henüz Oluşturulmadı (`revizeles_topics`)</span>
+                    </div>
+                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-medium">
+                        "Revizeleş!" özelliğini aktif etmek için lütfen Supabase Paneliniz &gt; SQL Editor ekranında aşağıdaki kodları kopyalayıp çalıştırın (Run):
+                    </p>
+                    <pre className="bg-zinc-950 text-amber-300 p-4 rounded-2xl text-[11px] font-mono overflow-x-auto select-all leading-relaxed border border-zinc-800">
+{`CREATE TABLE IF NOT EXISTS public.revizeles_topics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    image_url TEXT NOT NULL,
+    category TEXT DEFAULT 'Siyaset & Kurumsal',
+    status TEXT DEFAULT 'active',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.revizeles_posts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    topic_id UUID NOT NULL REFERENCES public.revizeles_topics(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    comment TEXT NOT NULL,
+    redesign_image_url TEXT,
+    likes_count INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.revizeles_topics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.revizeles_posts ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public read revizeles_topics" ON public.revizeles_topics FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow authenticated insert revizeles_topics" ON public.revizeles_topics FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Allow authenticated update revizeles_topics" ON public.revizeles_topics FOR UPDATE TO authenticated USING (true);
+CREATE POLICY "Allow authenticated delete revizeles_topics" ON public.revizeles_topics FOR DELETE TO authenticated USING (true);
+
+CREATE POLICY "Allow public read revizeles_posts" ON public.revizeles_posts FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow authenticated insert revizeles_posts" ON public.revizeles_posts FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Allow authenticated update revizeles_posts" ON public.revizeles_posts FOR UPDATE TO authenticated USING (true);
+CREATE POLICY "Allow authenticated delete revizeles_posts" ON public.revizeles_posts FOR DELETE TO authenticated USING (true);
+
+GRANT ALL ON TABLE public.revizeles_topics TO anon, authenticated, service_role;
+GRANT ALL ON TABLE public.revizeles_posts TO anon, authenticated, service_role;`}
+                    </pre>
+                </div>
+            ) : loading ? (
                 <div className="flex justify-center py-12">
                     <Loader2 className="w-8 h-8 text-[#FF5500] animate-spin" />
                 </div>

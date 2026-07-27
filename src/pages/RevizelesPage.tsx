@@ -296,7 +296,7 @@ export default function RevizelesPage() {
                                     rows={3}
                                     value={commentText}
                                     onChange={(e) => setCommentText(e.target.value)}
-                                    placeholder="Bu amblem/logo hakkında ne düşünüyorsun? Tipografi, renk, estetik açıdan eleştirilerini yaz..."
+                                    placeholder="Bu logo/amblem sizce nasıl olmuş? Renk paleti, tipografisi ve sembolik anlamı hakkında eleştirini yaz veya kendi revize logonla katıl..."
                                     className="w-full p-4 rounded-2xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-sm font-medium text-[var(--text-primary)] focus:outline-none focus:border-[#FF5500] resize-none"
                                 />
 
