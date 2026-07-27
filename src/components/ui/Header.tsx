@@ -127,6 +127,7 @@ export default function Header({
         } else if (notification.type === 'new_post') {
             if (notification.post_id) navigate(`/community?post=${notification.post_id}`);
             else if (notification.analiz_id) navigate(`/vitrin?design=${notification.analiz_id}`);
+            else navigate('/revizeles');
         } else if (notification.type === 'revizeles') {
             navigate('/revizeles');
         }

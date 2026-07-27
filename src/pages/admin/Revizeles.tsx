@@ -146,7 +146,7 @@ export default function AdminRevizeles() {
                             const notifs = allProfiles.map(p => ({
                                 user_id: p.id,
                                 actor_id: adminUser?.id || null,
-                                type: 'revizeles',
+                                type: 'new_post',
                                 is_read: false
                             }));
 
