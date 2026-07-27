@@ -3,11 +3,11 @@ import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
-import { Trophy, Calendar, Link as LinkIcon, Briefcase, Award, Star, Activity, ArrowLeft, X, Bell, BellOff, Users } from 'lucide-react';
+import { Trophy, Calendar, Link as LinkIcon, Briefcase, Award, Star, Activity, ArrowLeft, X, Bell, BellOff, Users, Sparkles, Clock } from 'lucide-react';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import FollowModal from '../components/ui/FollowModal';
 import DesignDetailModal from '../components/ui/DesignDetailModal';
-import { getDesignRankById } from '../lib/communityProfile';
+import { getDesignRankById, DESIGN_RANKS, DESIGN_SPECIALTIES, EXPERIENCE_LEVELS } from '../lib/communityProfile';
 
 const BehanceIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
     <svg className={className} fill="currentColor" viewBox="0 0 24 24">
@@ -404,12 +404,44 @@ export default function PublicProfile() {
                         
                         {/* Biyografi Alanı */}
                         {profile.bio && (
-                            <div className="mb-6 bg-gray-50/80 px-4 py-3 rounded-2xl border border-gray-200/60 max-w-2xl">
+                            <div className="mb-4 bg-gray-50/80 px-4 py-3 rounded-2xl border border-gray-200/60 max-w-2xl">
                                 <p className="text-gray-700 text-sm md:text-base leading-relaxed font-medium text-center md:text-left">
                                     {profile.bio}
                                 </p>
                             </div>
                         )}
+
+                        {/* Kurumsal Deneyim & Uzmanlık Rozetleri */}
+                        {(() => {
+                            const rankTitle = DESIGN_RANKS.find(r => r.id === profile.design_rank)?.title || profile.design_rank;
+                            const specLabel = DESIGN_SPECIALTIES.find(s => s.id === profile.specialty)?.label || profile.specialty;
+                            const expLabel = EXPERIENCE_LEVELS.find(e => e.id === profile.experience_level)?.label || profile.experience_level;
+
+                            if (!rankTitle && !specLabel && !expLabel) return null;
+
+                            return (
+                                <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 mb-6">
+                                    {rankTitle && (
+                                        <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gray-100 text-gray-800 border border-gray-200 text-xs font-bold shadow-2xs">
+                                            <Briefcase className="w-3.5 h-3.5 text-gray-500" />
+                                            <span>{rankTitle}</span>
+                                        </span>
+                                    )}
+                                    {specLabel && (
+                                        <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gray-100 text-gray-800 border border-gray-200 text-xs font-bold shadow-2xs">
+                                            <Sparkles className="w-3.5 h-3.5 text-gray-500" />
+                                            <span>{specLabel}</span>
+                                        </span>
+                                    )}
+                                    {expLabel && (
+                                        <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gray-100 text-gray-800 border border-gray-200 text-xs font-bold shadow-2xs">
+                                            <Clock className="w-3.5 h-3.5 text-gray-500" />
+                                            <span>{expLabel} Deneyim</span>
+                                        </span>
+                                    )}
+                                </div>
+                            );
+                        })()}
 
                         {/* Mutual Followers Social Proof */}
                         {mutualFollowers.length > 0 && (
