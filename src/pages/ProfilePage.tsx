@@ -831,7 +831,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     </div>
                                 ) : profileData.bio ? (
                                     <p className="mt-3 text-xs md:text-sm text-[var(--text-secondary)] font-medium bg-[var(--bg-secondary)] px-3.5 py-2.5 rounded-xl border border-[var(--border-primary)] max-w-md mx-auto leading-relaxed">
-                                        ✨ {profileData.bio}
+                                        {profileData.bio}
                                     </p>
                                 ) : null}
                                 {featuredBadgeDef && (

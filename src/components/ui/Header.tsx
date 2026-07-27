@@ -1,11 +1,12 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, User, LogOut, Info, Settings, CreditCard, HelpCircle, ArrowRight, LayoutDashboard, Crown, LogIn, Mail, Lock, CheckCircle2, AlertCircle, Eye, EyeOff, Check, BarChart2, Layers, ChevronDown, Sun, Moon, Bell, Heart, MessageCircle, Star } from 'lucide-react';
+import { Menu, X, User, LogOut, Info, Settings, CreditCard, HelpCircle, ArrowRight, LayoutDashboard, Crown, LogIn, Mail, Lock, CheckCircle2, AlertCircle, Eye, EyeOff, Check, BarChart2, Layers, ChevronDown, Sun, Moon, Bell, Heart, MessageCircle, Star, Search } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { supabase } from '../../lib/supabase';
 import LiveActivityFeed from './LiveActivityFeed';
 import MagneticWrapper from './MagneticWrapper';
+import GlobalSearch from './GlobalSearch';
 
 interface HeaderProps {
     kullanici: any;
@@ -31,6 +32,7 @@ export default function Header({
     const [isToolsDropdownOpen, setIsToolsDropdownOpen] = React.useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
     const [supportsHover, setSupportsHover] = React.useState(false);
+    const [isSearchOpen, setIsSearchOpen] = React.useState(false);
     const dropdownCloseTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
     const toolsCloseTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
     const profileCloseTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -48,6 +50,18 @@ export default function Header({
     React.useEffect(() => {
         if (typeof window === 'undefined' || !window.matchMedia) return;
         setSupportsHover(window.matchMedia('(hover: hover)').matches);
+    }, []);
+
+    // Ctrl/Cmd + K shortcut to open search
+    React.useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                setIsSearchOpen(open => !open);
+            }
+        };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
     }, []);
 
     // Fetch and subscribe to notifications
@@ -179,6 +193,7 @@ export default function Header({
     if (gorunum === 'app') return null;
 
     return (
+        <>
         <header className="fixed top-0 w-full z-[200] bg-[var(--bg-primary)]/80 backdrop-blur-xl border-b border-[var(--border-primary)] transition-all duration-300">
             <nav className="w-full flex items-center justify-between px-5 md:px-16 py-3 md:py-4">
                 {/* Logo */}
@@ -267,6 +282,18 @@ export default function Header({
 
                 {/* Right Side Actions */}
                 <div className="flex items-center gap-3">
+                    {/* Search Button */}
+                    <button
+                        onClick={() => setIsSearchOpen(true)}
+                        title="Ara (Ctrl + K)"
+                        className="p-2 md:p-2.5 rounded-full hover:bg-[var(--bg-secondary)] transition-colors flex items-center gap-2 group"
+                    >
+                        <Search className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors" />
+                        <kbd className="hidden lg:inline-flex text-[10px] font-bold text-[var(--text-secondary)] bg-[var(--bg-secondary)] border border-[var(--border-primary)] px-1.5 py-0.5 rounded-md">
+                            ⌘K
+                        </kbd>
+                    </button>
+
                     {/* Dark Mode Toggle */}
 
                     {kullanici ? (
@@ -578,6 +605,8 @@ export default function Header({
                 )}
             </AnimatePresence>
         </header>
+        <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+        </>
     );
 
 }

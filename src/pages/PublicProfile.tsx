@@ -405,7 +405,7 @@ export default function PublicProfile() {
                         {profile.bio && (
                             <div className="mb-6 bg-gray-50/80 px-4 py-3 rounded-2xl border border-gray-200/60 max-w-2xl">
                                 <p className="text-gray-700 text-sm md:text-base leading-relaxed font-medium text-center md:text-left">
-                                    ✨ {profile.bio}
+                                    {profile.bio}
                                 </p>
                             </div>
                         )}
