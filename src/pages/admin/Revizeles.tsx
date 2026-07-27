@@ -143,14 +143,12 @@ export default function AdminRevizeles() {
                     try {
                         const { data: allProfiles } = await supabase.from('profiles').select('id');
                         if (allProfiles && allProfiles.length > 0) {
-                            const notifs = allProfiles
-                                .filter(p => p.id !== adminUser?.id)
-                                .map(p => ({
-                                    user_id: p.id,
-                                    actor_id: adminUser?.id || null,
-                                    type: 'new_post',
-                                    is_read: false
-                                }));
+                            const notifs = allProfiles.map(p => ({
+                                user_id: p.id,
+                                actor_id: adminUser?.id || null,
+                                type: 'revizeles',
+                                is_read: false
+                            }));
 
                             if (notifs.length > 0) {
                                 const { error: notifErr } = await supabase.from('notifications').insert(notifs);
