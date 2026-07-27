@@ -53,14 +53,14 @@ export default function IptalIadeKosullari() {
                     <section className="space-y-2">
                         <h2 className="text-base font-black text-[var(--text-primary)]">3. Yanlışlıkla / Mükerrer Çekim Durumu</h2>
                         <p>
-                            Sistem kaynaklı teknik bir arıza nedeniyle kartınızdan mükerrer (birden fazla) çekim yapılması halinde, durumu <strong>bilgi@revizelesene.com</strong> adresine bildirmeniz durumunda fazla çekilen tutar 1-3 iş günü içerisinde kartınıza eksiksiz iade edilir.
+                            Sistem kaynaklı teknik bir arıza nedeniyle kartınızdan mükerrer (birden fazla) çekim yapılması halinde, durumu <strong>revizelesene@gmail.com</strong> adresine bildirmeniz durumunda fazla çekilen tutar 1-3 iş günü içerisinde kartınıza eksiksiz iade edilir.
                         </p>
                     </section>
 
                     <section className="space-y-2">
                         <h2 className="text-base font-black text-[var(--text-primary)]">4. İletişim ve Destek</h2>
                         <p>
-                            Abonelik veya iade süreçleriyle ilgili her türlü soru ve talebiniz için <strong>bilgi@revizelesene.com</strong> e-posta adresinden veya site üzerindeki iletişim kanallarından 7/24 bize ulaşabilirsiniz.
+                            Abonelik veya iade süreçleriyle ilgili her türlü soru ve talebiniz için <strong>revizelesene@gmail.com</strong> e-posta adresinden veya site üzerindeki iletişim kanallarından 7/24 bize ulaşabilirsiniz.
                         </p>
                     </section>
                 </div>

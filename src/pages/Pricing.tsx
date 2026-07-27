@@ -113,12 +113,17 @@ export default function Pricing() {
                 <p className="text-[var(--text-secondary)] text-xs md:text-sm mb-6 leading-relaxed font-medium">{plan.description}</p>
 
                 <div className="mb-6 flex flex-col">
-                  <div className="flex items-baseline gap-1">
+                  <div className="flex items-baseline gap-1.5">
                     <span className="text-4xl md:text-5xl font-black text-[var(--text-primary)] tracking-tighter">{plan.price}</span>
                     <span className="text-[var(--text-secondary)] text-xs md:text-sm font-bold">{plan.period}</span>
+                    {plan.popular && (
+                      <span className="text-[10px] font-bold text-[var(--text-secondary)] bg-[var(--bg-secondary)] px-2 py-0.5 rounded-md border border-[var(--border-primary)] shrink-0">
+                        +%20 KDV
+                      </span>
+                    )}
                   </div>
                   {plan.popular && (
-                    <span className="text-[10px] text-[var(--text-secondary)] font-bold mt-1 block">PayTR Kredi/Banka Kartı İle Güvenli Ödeme</span>
+                    <span className="text-[10px] text-[var(--text-secondary)] font-bold mt-1.5 block">PayTR Kredi/Banka Kartı İle Güvenli Ödeme</span>
                   )}
                 </div>
 
