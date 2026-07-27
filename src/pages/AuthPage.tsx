@@ -8,6 +8,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import CustomSelect from '../components/ui/CustomSelect';
 import { generateUniqueSlug } from '../lib/communityProfile';
 import { sendWelcomeEmail } from '../lib/resend';
+import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 
 const RANK_OPTIONS = [
     { value: 'stajyer', label: 'Stajyer Tasarımcı' },
@@ -242,23 +243,90 @@ export default function AuthPage() {
         }
     };
 
+    const [recommendedUsers, setRecommendedUsers] = useState<any[]>([]);
+    const [followedUserIds, setFollowedUserIds] = useState<Set<string>>(new Set());
+    const [followSubmitting, setFollowSubmitting] = useState(false);
+
+    const loadRecommendedUsers = async (currentUserId?: string) => {
+        try {
+            const { data: users } = await supabase
+                .from('profiles')
+                .select('id, display_name, avatar_url, slug, bio, verification_badge')
+                .order('created_at', { ascending: false })
+                .limit(8);
+
+            if (users) {
+                const filtered = users.filter(u => u.id !== currentUserId);
+                setRecommendedUsers(filtered);
+                // Pre-select all recommended users for max community engagement
+                setFollowedUserIds(new Set(filtered.map(u => u.id)));
+            }
+        } catch (err) {
+            console.error('Recommended users error:', err);
+        }
+    };
+
     const avatarTamamla = async () => {
         setAvatarYukleniyor(true);
         try {
             await supabase.auth.updateUser({
                 data: { avatar_url: seciliAvatar }
             });
-            // Update profile as well
             const sessionRes = await supabase.auth.getSession();
             const user = sessionRes.data.session?.user;
             if (user) {
                 await supabase.from('profiles').update({ avatar_url: seciliAvatar }).eq('id', user.id);
+                await loadRecommendedUsers(user.id);
             }
-            navigate('/');
+            setAuthAdim(3);
         } catch (err: any) {
             toast.error('Avatar kaydedilirken hata: ' + err.message);
         } finally {
             setAvatarYukleniyor(false);
+        }
+    };
+
+    const toggleFollowUser = (userId: string) => {
+        setFollowedUserIds(prev => {
+            const next = new Set(prev);
+            if (next.has(userId)) {
+                next.delete(userId);
+            } else {
+                next.add(userId);
+            }
+            return next;
+        });
+    };
+
+    const toggleFollowAll = () => {
+        if (followedUserIds.size === recommendedUsers.length) {
+            setFollowedUserIds(new Set());
+        } else {
+            setFollowedUserIds(new Set(recommendedUsers.map(u => u.id)));
+        }
+    };
+
+    const finishOnboardingWithFollows = async () => {
+        setFollowSubmitting(true);
+        try {
+            const sessionRes = await supabase.auth.getSession();
+            const user = sessionRes.data.session?.user;
+
+            if (user && followedUserIds.size > 0) {
+                const inserts = Array.from(followedUserIds).map(targetId => ({
+                    follower_id: user.id,
+                    following_id: targetId,
+                    notify_posts: true
+                }));
+                await supabase.from('user_follows').upsert(inserts, { onConflict: 'follower_id,following_id' });
+                toast.success(`${followedUserIds.size} tasarımcı takip edildi! 🎉`);
+            }
+            navigate('/');
+        } catch (err: any) {
+            console.error('Follow error:', err);
+            navigate('/');
+        } finally {
+            setFollowSubmitting(false);
         }
     };
 
@@ -469,7 +537,7 @@ export default function AuthPage() {
                                     </button>
                                 )}
                             </form>
-                        ) : (
+                        ) : authAdim === 2 ? (
                             <div className="space-y-4">
                                 <div className="flex flex-col items-center gap-4 text-center">
                                     <div className="relative group w-24 h-24">
@@ -498,8 +566,8 @@ export default function AuthPage() {
                                     </div>
                                 </div>
                                 <div className="pt-2 border-t border-gray-100">
-                                    <button onClick={avatarTamamla} disabled={avatarYukleniyor} className="w-full bg-gray-900 text-white text-[13px] font-bold py-3 px-4 rounded-xl shadow-md hover:bg-black transition-all flex justify-center">
-                                        {avatarYukleniyor ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Maceraya Başla'}
+                                    <button onClick={avatarTamamla} disabled={avatarYukleniyor} className="w-full bg-[var(--color-brand-orange)] text-white text-[13px] font-bold py-3 px-4 rounded-xl shadow-md hover:bg-[#e64d00] transition-all flex items-center justify-center gap-1">
+                                        {avatarYukleniyor ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <span>Devam Et →</span>}
                                     </button>
                                 </div>
 
@@ -515,6 +583,93 @@ export default function AuthPage() {
                                     )}
                                 </AnimatePresence>
                                 {avatarOnayAcik && <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-20" onClick={() => setAvatarOnayAcik(false)} />}
+                            </div>
+                        ) : (
+                            /* Step 3: Follow Recommended Designers & Founders */
+                            <div className="space-y-4">
+                                <div className="text-center space-y-1.5">
+                                    <span className="inline-block px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-black uppercase tracking-wider">
+                                        ✨ Topluluğa Katıl
+                                    </span>
+                                    <h4 className="text-base font-bold text-gray-900">Öne Çıkan Tasarımcıları Takip Et</h4>
+                                    <p className="text-xs text-gray-500 leading-relaxed max-w-[280px] mx-auto">
+                                        İlham veren kurucuları ve aktif tasarımcıları takip ederek akışını hemen renklendir.
+                                    </p>
+                                </div>
+
+                                <div className="flex justify-between items-center px-1 pt-1">
+                                    <span className="text-[11px] font-bold text-gray-500">Önerilen Hesaplar</span>
+                                    <button
+                                        type="button"
+                                        onClick={toggleFollowAll}
+                                        className="text-[11px] font-black text-[var(--color-brand-orange)] hover:underline"
+                                    >
+                                        {followedUserIds.size === recommendedUsers.length ? 'Seçimi Kaldır' : '👑 Hepsini Seç'}
+                                    </button>
+                                </div>
+
+                                {/* User List */}
+                                <div className="space-y-2 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
+                                    {recommendedUsers.map((u) => {
+                                        const isFollowing = followedUserIds.has(u.id);
+                                        return (
+                                            <div key={u.id} className="flex items-center justify-between p-2.5 rounded-2xl bg-gray-50 border border-gray-100 hover:border-gray-200 transition-all">
+                                                <div className="flex items-center gap-2.5 min-w-0">
+                                                    <img
+                                                        src={u.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${u.id}`}
+                                                        alt={u.display_name}
+                                                        className="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0"
+                                                    />
+                                                    <div className="min-w-0">
+                                                        <div className="flex items-center gap-1">
+                                                            <span className="text-xs font-bold text-gray-900 truncate block">
+                                                                {u.display_name || 'Tasarımcı'}
+                                                            </span>
+                                                            <VerifiedBadge badge={u.verification_badge} size="xs" />
+                                                        </div>
+                                                        <span className="text-[10px] text-gray-400 block truncate">
+                                                            @{u.slug || 'profil'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => toggleFollowUser(u.id)}
+                                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                                                        isFollowing
+                                                            ? 'bg-emerald-500 text-white shadow-xs'
+                                                            : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'
+                                                    }`}
+                                                >
+                                                    {isFollowing ? '✓ Takip Ediliyor' : '+ Takip Et'}
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className="pt-3 border-t border-gray-100 flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate('/')}
+                                        className="flex-1 py-2.5 text-xs font-bold text-gray-500 hover:text-gray-900 transition-colors"
+                                    >
+                                        Geç
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={finishOnboardingWithFollows}
+                                        disabled={followSubmitting}
+                                        className="flex-[2] bg-gray-900 hover:bg-black text-white text-[13px] font-bold py-3 px-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-1 disabled:opacity-50"
+                                    >
+                                        {followSubmitting ? (
+                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        ) : (
+                                            <span>Maceraya Başla 🚀</span>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>
