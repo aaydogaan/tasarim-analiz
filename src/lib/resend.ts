@@ -97,3 +97,44 @@ export async function sendContestNewsletterEmail({
     return { success: false, error: err.message || 'Bağlantı hatası' };
   }
 }
+
+export async function sendRevizelesAnnouncementEmail({
+  to,
+  title,
+  description,
+  imageUrl,
+  topicId,
+}: {
+  to: string | string[];
+  title: string;
+  description: string;
+  imageUrl?: string;
+  topicId?: string;
+}) {
+  try {
+    const response = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: 'newsletter',
+        to,
+        contestTitle: `🔥 Gündem Revizyonu: ${title}`,
+        contestDescription: description,
+        contestSlug: `revizeles/${topicId || ''}`,
+        rewardTitle: 'Tasarımı Eleştir & Kendi Revizyonunu Paylaş',
+      }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      console.error('sendRevizelesAnnouncementEmail failed:', data);
+      return { success: false, error: data.error || 'E-posta gönderilemedi' };
+    }
+    return { success: true, data };
+  } catch (err: any) {
+    console.error('sendRevizelesAnnouncementEmail exception:', err);
+    return { success: false, error: err.message || 'Bağlantı hatası' };
+  }
+}

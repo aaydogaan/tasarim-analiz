@@ -7,7 +7,8 @@ import toast from "react-hot-toast";
 import ReportModal from '../components/ui/ReportModal';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
-import GununTasarimi from '../components/ui/GununTasarimi';
+import GununTasarimi from "../components/ui/GununTasarimi";
+import RevizelesBanner from "../components/ui/RevizelesBanner";
 import { sendDayWinnerEmail } from '../lib/resend';
 
 interface VitrinItem {
@@ -515,6 +516,9 @@ export function Vitrin() {
                     onInspect={(item) => setSeciliGorsel(item as any)}
                 />
             )}
+
+            {/* Canlı Gündem Revizyonu (Revizeleş!) Banner */}
+            <RevizelesBanner />
 
             {/* Feed Tab Switcher & Filter Control Bar */}
             <div className="mb-8 space-y-4">

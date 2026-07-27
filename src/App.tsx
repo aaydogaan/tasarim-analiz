@@ -39,12 +39,14 @@ import ProLimitModal from "./components/ui/ProLimitModal";
 
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
+import AdminRevizeles from "./pages/admin/Revizeles";
 import AdminContests from "./pages/admin/Contests";
 import AdminUsers from "./pages/admin/Users";
 import AdminPosts from "./pages/admin/Posts";
 import AdminComments from "./pages/admin/Comments";
 import AdminReports from "./pages/admin/Reports";
 import AdminProtectedRoute from "./pages/admin/AdminProtectedRoute";
+import RevizelesPage from "./pages/RevizelesPage";
 
 declare global {
   interface Window {
@@ -2159,9 +2161,13 @@ export default function App() {
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/yarisma/:id" element={<ContestDetailPage />} />
 
+        <Route path="/revizeles" element={<RevizelesPage />} />
+        <Route path="/revizeles/:id" element={<RevizelesPage />} />
+
         {/* Admin Routes */}
         <Route path="/mutfak" element={<AdminProtectedRoute authYukleniyor={authYukleniyor} kullanici={kullanici} kullaniciProfile={kullaniciProfile}><AdminLayout /></AdminProtectedRoute>}>
           <Route index element={<AdminDashboard />} />
+          <Route path="revizeles" element={<AdminRevizeles />} />
           <Route path="contests" element={<AdminContests />} />
           <Route path="users" element={<AdminUsers />} />
           <Route path="posts" element={<AdminPosts />} />

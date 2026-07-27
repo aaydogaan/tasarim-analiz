@@ -273,6 +273,13 @@ export default function Header({
                         </span>
                     </button>
                     <button
+                        onClick={() => handleNavClick('revizeles')}
+                        className={`flex items-center gap-1 transition-colors whitespace-nowrap ${gorunum.startsWith('revizeles') ? 'text-[var(--text-primary)] font-bold' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
+                    >
+                        <span>Revizeleş!</span>
+                        <span className="text-[9px] bg-[#FF5500] text-white px-1.5 py-0.5 rounded-full font-black uppercase">GÜNDEM</span>
+                    </button>
+                    <button
                         onClick={() => handleNavClick('leaderboard')}
                         className={`transition-colors whitespace-nowrap ${['leaderboard', 'liderlik'].includes(gorunum) ? 'text-[var(--text-primary)] font-bold' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
                     >
