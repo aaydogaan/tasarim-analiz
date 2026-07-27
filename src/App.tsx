@@ -1615,10 +1615,55 @@ export default function App() {
                       <button
                         disabled={vitrindeYayinlandi}
                         onClick={vitrindeYayinla}
-                        className="px-5 py-2 rounded-xl bg-[#FF5500] text-white font-bold text-sm shadow-md shadow-[#FF5500]/20 hover:bg-[#e64d00] transition-colors flex items-center gap-2 disabled:opacity-50"
+                        className="px-5 py-2.5 rounded-xl bg-[#FF5500] text-white font-bold text-sm shadow-md shadow-[#FF5500]/30 hover:bg-[#e64d00] transition-all flex items-center gap-2 disabled:opacity-60"
                       >
                         {vitrindeYayinlandi ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
-                        Paylaş & Keşfet
+                        {vitrindeYayinlandi ? 'Vitrinde Paylaşıldı' : 'Toplulukta Paylaş & Oy Al'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Prominent Corporate Share & Community Callout Banner */}
+                  <div className="bg-gradient-to-r from-[#FF5500]/10 via-[var(--card-bg)] to-[#FF5500]/5 rounded-[24px] border-2 border-[#FF5500]/30 shadow-lg shadow-[#FF5500]/5 p-6 md:p-7 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+                    <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-[#FF5500]/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <div className="flex items-start gap-4 relative z-10 flex-1">
+                      <div className="w-12 h-12 rounded-2xl bg-[#FF5500] text-white flex items-center justify-center shrink-0 shadow-lg shadow-[#FF5500]/30 mt-0.5">
+                        <Share2 className="w-6 h-6" />
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                          <h4 className="text-[var(--text-primary)] font-black text-lg md:text-xl tracking-tight">
+                            Tasarımınızı Revizelesene Topluluğu İle Paylaşın!
+                          </h4>
+                          <span className="text-[10px] font-black uppercase tracking-wider bg-[#FF5500]/15 text-[#FF5500] border border-[#FF5500]/30 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                            <Sparkles className="w-3 h-3" /> Canlı Vitrin
+                          </span>
+                        </div>
+                        <p className="text-[var(--text-secondary)] text-xs md:text-sm leading-relaxed max-w-3xl font-medium">
+                          Tasarımınızı topluluk vitrininde yayınlayarak diğer tasarımcılardan ve direktörlerden oy toplayabilir, detaylı geri bildirimler alarak öne çıkabilirsiniz.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="w-full md:w-auto relative z-10 shrink-0">
+                      <button
+                        disabled={vitrindeYayinlandi}
+                        onClick={vitrindeYayinla}
+                        className="w-full md:w-auto px-7 py-3.5 rounded-2xl bg-[#FF5500] hover:bg-[#e64d00] text-white font-black text-sm md:text-base shadow-xl shadow-[#FF5500]/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2.5 disabled:opacity-60 disabled:pointer-events-none"
+                      >
+                        {vitrindeYayinlandi ? (
+                          <>
+                            <Check className="w-5 h-5 text-white" />
+                            <span>Toplulukta Paylaşıldı ✓</span>
+                          </>
+                        ) : (
+                          <>
+                            <Globe className="w-5 h-5" />
+                            <span>Toplulukla Paylaş & Oy Topla</span>
+                            <ChevronRight className="w-5 h-5" />
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
