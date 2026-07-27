@@ -305,7 +305,7 @@ export default function AuthPage() {
 
             const result = finalRecommended.slice(0, 10);
             setRecommendedUsers(result);
-            setFollowedUserIds(new Set(result.map(u => u.id)));
+            setFollowedUserIds(new Set());
         } catch (err) {
             console.error('Recommended users error:', err);
         }
