@@ -862,7 +862,7 @@ export default function App() {
     const isPro = kullaniciProfile?.is_pro || kullaniciProfile?.role === 'admin';
     if (!isPro) {
       const usageCount = getTodayUsageCount();
-      if (usageCount >= 2) {
+      if (usageCount >= 3) {
         setProLimitModalAcik(true);
         return;
       }

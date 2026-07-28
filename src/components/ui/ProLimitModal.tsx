@@ -16,7 +16,7 @@ export default function ProLimitModal({
     isOpen,
     onClose,
     title = 'Günlük Ücretsiz Analiz Hakkınız Doldu!',
-    description = 'Bugünlük 2/2 ücretsiz analiz hakkınızı tamamladınız. Sınırsız analiz yapmak ve derinlemesine teknik raporlar almak için PRO plana geçin.',
+    description = 'Bugünlük 3/3 ücretsiz analiz hakkınızı tamamladınız. Sınırsız analiz yapmak ve derinlemesine teknik raporlar almak için PRO plana geçin.',
 }: ProLimitModalProps) {
     const navigate = useNavigate();
     const [shopierOpen, setShopierOpen] = React.useState(false);
