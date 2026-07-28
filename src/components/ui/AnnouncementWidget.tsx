@@ -112,7 +112,7 @@ export default function AnnouncementWidget() {
         setVisible(notDismissed);
         setHasNew(notDismissed.length > 0);
         if (notDismissed.length > 0) {
-            setTimeout(() => setIsOpen(true), 1500);
+            setIsOpen(true);
         }
     }, [announcements]);
 
@@ -277,15 +277,17 @@ export default function AnnouncementWidget() {
                     )}
                 </AnimatePresence>
 
-                {/* Bell button */}
-                <motion.button
-                    whileHover={{ scale: 1.08 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setIsOpen(o => !o)}
-                    className="relative w-12 h-12 rounded-2xl bg-[var(--card-bg)] border border-[var(--border-primary)] shadow-xl flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[#FF5500]/40 transition-all cursor-pointer"
-                >
-                    <Bell size={19} />
-                    {hasNew && visible.length > 0 && (
+                {/* Bell button — sadece kapalıyken göster, tıklayınca yeniden aç */}
+                {!isOpen && visible.length > 0 && (
+                    <motion.button
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        whileHover={{ scale: 1.08 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setIsOpen(true)}
+                        className="relative w-12 h-12 rounded-2xl bg-[var(--card-bg)] border border-[var(--border-primary)] shadow-xl flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[#FF5500]/40 transition-all cursor-pointer"
+                    >
+                        <Bell size={19} />
                         <motion.span
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
@@ -293,8 +295,8 @@ export default function AnnouncementWidget() {
                         >
                             {visible.length}
                         </motion.span>
-                    )}
-                </motion.button>
+                    </motion.button>
+                )}
             </div>
         </>
     );
