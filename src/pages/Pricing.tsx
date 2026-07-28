@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Zap, Sparkles, SlidersHorizontal, Lightbulb, BarChart3, Wand2, ShieldCheck } from 'lucide-react';
-import ShopierModal from '../components/ui/ShopierModal';
+import OdealModal from '../components/ui/OdealModal';
 
 const features = [
   { icon: <Zap className="w-4 h-4 text-slate-800 dark:text-slate-200" />, text: 'Sınırsız & Öncelikli AI Tasarım Analizi' },
@@ -11,12 +11,8 @@ const features = [
   { icon: <Wand2 className="w-4 h-4 text-slate-800 dark:text-slate-200" />, text: 'Kesintisiz 7/24 Kullanım' },
 ];
 
-const SHOPIER_PRODUCT_URL = 'https://www.shopier.com/revizelesene/49368202';
-
 export default function Pricing() {
-  const handleProceedToShopier = () => {
-    window.open(SHOPIER_PRODUCT_URL, '_blank', 'noopener,noreferrer');
-  };
+  const [odealModalOpen, setOdealModalOpen] = useState(false);
 
   return (
     <div className="w-full pt-6 md:pt-12 pb-24 px-4 sm:px-6 max-w-md mx-auto flex flex-col items-center justify-center min-h-[85vh]">
@@ -52,7 +48,7 @@ export default function Pricing() {
             
             <button
               type="button"
-              onClick={handleProceedToShopier}
+              onClick={() => setOdealModalOpen(true)}
               className="relative z-10 w-full py-4 rounded-[22px] bg-[#18181b] hover:bg-black dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-bold text-base shadow-xl transition-all cursor-pointer active:scale-[0.99] flex items-center justify-center gap-2"
             >
               <span>Hemen Başla</span>
@@ -75,9 +71,11 @@ export default function Pricing() {
         {/* Bottom Subtext */}
         <div className="mt-8 pt-4 text-center text-xs text-slate-400 dark:text-slate-500 font-medium flex items-center justify-center gap-1.5 border-t border-slate-100 dark:border-slate-800/80">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-          <span>Shopier 3D Secure Güvenli Ödeme</span>
+          <span>ÖdeAl Sanal POS 3D Secure Güvenli Ödeme</span>
         </div>
       </motion.div>
+
+      <OdealModal isOpen={odealModalOpen} onClose={() => setOdealModalOpen(false)} />
     </div>
   );
 }

@@ -49,7 +49,7 @@ import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import FollowModal from '../components/ui/FollowModal';
 import { ContestUploadModal } from '../components/ui/ContestUploadModal';
 import DesignDetailModal from '../components/ui/DesignDetailModal';
-import ShopierModal from '../components/ui/ShopierModal';
+import OdealModal from '../components/ui/OdealModal';
 import {
     buildAvatarUrl,
     BADGE_DEFINITIONS,
@@ -183,7 +183,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
         }
     };
 
-    const [shopierModalOpen, setShopierModalOpen] = useState(false);
+    const [odealModalOpen, setOdealModalOpen] = useState(false);
 
     const getTodayUsageCount = (): number => {
         const todayStr = new Date().toISOString().split('T')[0];
@@ -979,7 +979,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                                 ⚡ Haklarınız her gece saat <strong className="text-[var(--text-primary)]">00:00</strong>'da otomatik sıfırlanır.
                                             </p>
                                             <button
-                                                onClick={() => window.open('https://www.shopier.com/revizelesene/49368202', '_blank', 'noopener,noreferrer')}
+                                                onClick={() => setOdealModalOpen(true)}
                                                 className="w-full mt-2 py-2 rounded-lg bg-[#FF5500] hover:bg-[#e64d00] text-white font-black text-xs transition-all shadow-md shadow-[#FF5500]/20 flex items-center justify-center gap-1.5 cursor-pointer"
                                             >
                                                 <Zap size={13} />
@@ -1662,7 +1662,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                     }}
                 />
 
-                <ShopierModal isOpen={shopierModalOpen} onClose={() => setShopierModalOpen(false)} />
+                <OdealModal isOpen={odealModalOpen} onClose={() => setOdealModalOpen(false)} />
 
                 <DesignDetailModal
                     item={selectedDesignModal}

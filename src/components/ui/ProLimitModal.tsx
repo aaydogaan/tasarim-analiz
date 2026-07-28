@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Check, X, ShieldCheck, Zap, Layers, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-import ShopierModal from './ShopierModal';
+import OdealModal from './OdealModal';
 
 interface ProLimitModalProps {
     isOpen: boolean;
@@ -19,10 +19,10 @@ export default function ProLimitModal({
     description = 'Bugünlük 3/3 ücretsiz analiz hakkınızı tamamladınız. Sınırsız analiz yapmak ve derinlemesine teknik raporlar almak için PRO plana geçin.',
 }: ProLimitModalProps) {
     const navigate = useNavigate();
-    const [shopierOpen, setShopierOpen] = React.useState(false);
+    const [odealOpen, setOdealOpen] = React.useState(false);
 
     const handleUpgrade = () => {
-        window.open('https://www.shopier.com/revizelesene/49368202', '_blank', 'noopener,noreferrer');
+        setOdealOpen(true);
     };
 
     const features = [
@@ -125,7 +125,7 @@ export default function ProLimitModal({
                 </>
             )}
         </AnimatePresence>
-        <ShopierModal isOpen={shopierOpen} onClose={() => setShopierOpen(false)} />
+        <OdealModal isOpen={odealOpen} onClose={() => setOdealOpen(false)} />
         </>
     );
 }
