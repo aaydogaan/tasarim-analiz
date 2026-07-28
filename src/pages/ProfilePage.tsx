@@ -827,10 +827,10 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     {normalizedProfile.founderNumber ? <span className="text-[var(--text-secondary)] font-semibold">#{normalizedProfile.founderNumber}</span> : null}
                                 </p>
                                 {dailyWinCount > 0 && (
-                                    <div className="mt-1 flex justify-center">
-                                        <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-50 text-amber-700 border border-amber-200/60 text-xs font-bold shadow-2xs" title="Günün Tasarımı Şampiyonu">
+                                    <div className="mt-1.5 flex justify-center">
+                                        <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[var(--bg-secondary)] text-[var(--text-primary)] border border-[var(--border-primary)] text-xs font-bold shadow-2xs">
                                             <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                                            <span>{dailyWinCount}x Şampiyon</span>
+                                            <span>Günün Tasarımı Şampiyonu {dailyWinCount}x</span>
                                         </span>
                                     </div>
                                 )}

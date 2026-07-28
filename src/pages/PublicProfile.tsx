@@ -447,9 +447,9 @@ export default function PublicProfile() {
                                         </span>
                                     )}
                                     {dailyWinCount > 0 && (
-                                        <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-50 text-amber-700 border border-amber-200/60 text-xs font-bold shadow-2xs" title="Günün Tasarımı Şampiyonu">
+                                        <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gray-100 text-gray-800 border border-gray-200 text-xs font-bold shadow-2xs">
                                             <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                                            <span>{dailyWinCount}x Şampiyon</span>
+                                            <span>Günün Tasarımı Şampiyonu {dailyWinCount}x</span>
                                         </span>
                                     )}
                                 </div>
