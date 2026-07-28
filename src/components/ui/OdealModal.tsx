@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, X, Lock, CreditCard, ExternalLink, Loader2, Zap } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import toast from 'react-hot-toast';
 
 interface OdealModalProps {
     isOpen: boolean;
@@ -12,10 +11,12 @@ interface OdealModalProps {
 export default function OdealModal({ isOpen, onClose }: OdealModalProps) {
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [htmlForm, setHtmlForm] = useState<string | null>(null);
 
     const handleStartCheckout = async () => {
         setLoading(true);
         setErrorMsg(null);
+        setHtmlForm(null);
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const user = session?.user;
@@ -31,11 +32,14 @@ export default function OdealModal({ isOpen, onClose }: OdealModalProps) {
             });
 
             const data = await res.json();
-            if (data.paymentUrl) {
+            
+            if (data.threeDFormHtml) {
+                setHtmlForm(data.threeDFormHtml);
+            } else if (data.paymentUrl) {
                 window.open(data.paymentUrl, '_blank', 'noopener,noreferrer');
                 onClose();
             } else {
-                setErrorMsg(data.error || 'ÖdeAl Sanal POS servisine bağlanılamadı.');
+                setErrorMsg(data.error || 'ÖdeAl 3D Secure ödeme ekranı yanıt vermedi.');
             }
         } catch (err: any) {
             console.error('ÖdeAl checkout hatası:', err);
@@ -66,7 +70,7 @@ export default function OdealModal({ isOpen, onClose }: OdealModalProps) {
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 12 }}
                             transition={{ duration: 0.2 }}
-                            className="bg-[var(--card-bg)] rounded-[32px] border border-[var(--border-primary)] shadow-2xl w-full max-w-md overflow-hidden relative flex flex-col"
+                            className="bg-[var(--card-bg)] rounded-[32px] border border-[var(--border-primary)] shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden relative flex flex-col"
                             onClick={(e) => e.stopPropagation()}
                         >
                             {/* Modal Header */}
@@ -94,49 +98,58 @@ export default function OdealModal({ isOpen, onClose }: OdealModalProps) {
                             </div>
 
                             {/* Modal Body */}
-                            <div className="p-6 space-y-5">
-                                {/* Price Summary Card */}
-                                <div className="bg-gradient-to-r from-[#FF5500]/10 via-[var(--bg-secondary)] to-amber-500/10 p-5 rounded-2xl border border-[#FF5500]/20 flex items-center justify-between">
-                                    <div>
-                                        <span className="text-[10px] font-black uppercase tracking-wider text-[#FF5500] block mb-1">PRO Üyelik Paketi</span>
-                                        <div className="flex items-baseline gap-1.5">
-                                            <span className="text-3xl font-black text-[var(--text-primary)]">59 ₺</span>
-                                            <span className="text-xs text-[var(--text-secondary)] font-bold">/ ay</span>
+                            <div className="p-6 space-y-5 overflow-y-auto flex-1">
+                                {htmlForm ? (
+                                    <div 
+                                        className="w-full min-h-[300px] bg-white rounded-2xl p-4"
+                                        dangerouslySetInnerHTML={{ __html: htmlForm }}
+                                    />
+                                ) : (
+                                    <>
+                                        {/* Price Summary Card */}
+                                        <div className="bg-gradient-to-r from-[#FF5500]/10 via-[var(--bg-secondary)] to-amber-500/10 p-5 rounded-2xl border border-[#FF5500]/20 flex items-center justify-between">
+                                            <div>
+                                                <span className="text-[10px] font-black uppercase tracking-wider text-[#FF5500] block mb-1">PRO Üyelik Paketi</span>
+                                                <div className="flex items-baseline gap-1.5">
+                                                    <span className="text-3xl font-black text-[var(--text-primary)]">59 ₺</span>
+                                                    <span className="text-xs text-[var(--text-secondary)] font-bold">/ ay</span>
+                                                </div>
+                                            </div>
+                                            <span className="bg-[#FF5500] text-white text-[10px] font-black uppercase px-3 py-1 rounded-xl shadow-md shadow-[#FF5500]/20 flex items-center gap-1">
+                                                <Zap size={12} /> Sınırsız AI
+                                            </span>
                                         </div>
-                                    </div>
-                                    <span className="bg-[#FF5500] text-white text-[10px] font-black uppercase px-3 py-1 rounded-xl shadow-md shadow-[#FF5500]/20 flex items-center gap-1">
-                                        <Zap size={12} /> Sınırsız AI
-                                    </span>
-                                </div>
 
-                                {errorMsg && (
-                                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-red-500 font-medium text-center">
-                                        {errorMsg}
-                                    </div>
+                                        {errorMsg && (
+                                            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-red-500 font-medium text-center">
+                                                {errorMsg}
+                                            </div>
+                                        )}
+
+                                        {/* Primary Button */}
+                                        <button
+                                            onClick={handleStartCheckout}
+                                            disabled={loading}
+                                            className="w-full py-4 rounded-2xl bg-[#FF5500] hover:bg-[#e64d00] text-white font-black text-sm shadow-xl shadow-[#FF5500]/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                                        >
+                                            {loading ? (
+                                                <>
+                                                    <Loader2 size={18} className="animate-spin" />
+                                                    <span>ÖdeAl 3D Ödeme Ekranı Yükleniyor...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span>ÖdeAl 3D Secure Kartla Öde</span>
+                                                    <ExternalLink size={18} />
+                                                </>
+                                            )}
+                                        </button>
+
+                                        <p className="text-[11px] text-center text-[var(--text-secondary)] font-medium leading-relaxed">
+                                            Banka SMS ve mobil onaylı ÖdeAl 3D Secure ödeme ekranı açılacaktır. Ödemeniz tamamlandığında hesabınız anında PRO yapılacaktır.
+                                        </p>
+                                    </>
                                 )}
-
-                                {/* Primary Button */}
-                                <button
-                                    onClick={handleStartCheckout}
-                                    disabled={loading}
-                                    className="w-full py-4 rounded-2xl bg-[#FF5500] hover:bg-[#e64d00] text-white font-black text-sm shadow-xl shadow-[#FF5500]/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-                                >
-                                    {loading ? (
-                                        <>
-                                            <Loader2 size={18} className="animate-spin" />
-                                            <span>ÖdeAl Sanal POS Hazırlanıyor...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span>ÖdeAl 3D Secure Kartla Öde</span>
-                                            <ExternalLink size={18} />
-                                        </>
-                                    )}
-                                </button>
-
-                                <p className="text-[11px] text-center text-[var(--text-secondary)] font-medium leading-relaxed">
-                                    ÖdeAl Sanal POS 3D Secure korumalı kart ödeme sayfası açılacaktır. Ödemeniz tamamlandığında PRO üyeliğiniz anında aktifleştirilir.
-                                </p>
                             </div>
 
                             {/* Modal Footer */}
