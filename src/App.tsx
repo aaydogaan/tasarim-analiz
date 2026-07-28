@@ -859,7 +859,7 @@ export default function App() {
       return;
     }
 
-    const isPro = kullaniciProfile?.is_pro || kullaniciProfile?.role === 'admin';
+    const isPro = kullaniciProfile?.is_pro || kullaniciProfile?.role === 'admin' || kullaniciProfile?.role === 'pro';
     if (!isPro) {
       const usageCount = getTodayUsageCount();
       if (usageCount >= 3) {
@@ -890,7 +890,7 @@ export default function App() {
           platform: tasarimTuru === "Sosyal Medya" ? platform : undefined,
           sorular,
           guestMode,
-          isPro: Boolean(kullaniciProfile?.is_pro || kullaniciProfile?.role === 'admin')
+          isPro: Boolean(kullaniciProfile?.is_pro || kullaniciProfile?.role === 'admin' || kullaniciProfile?.role === 'pro')
         }),
       });
 
@@ -1416,7 +1416,7 @@ export default function App() {
 
                                 {/* Quota Status Badge */}
                                 <div className="mb-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-xs font-bold text-[var(--text-primary)] shadow-sm">
-                                  {kullaniciProfile?.is_pro || kullaniciProfile?.role === 'admin' ? (
+                                  {kullaniciProfile?.is_pro || kullaniciProfile?.role === 'admin' || kullaniciProfile?.role === 'pro' ? (
                                     <span className="flex items-center gap-1.5 text-amber-500 font-extrabold">
                                       <Crown className="w-4 h-4 fill-amber-400" /> PRO Üye — Sınırsız & Derin Analiz Modu
                                     </span>

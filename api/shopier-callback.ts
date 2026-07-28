@@ -26,15 +26,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (email) {
       const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-      const { data, error } = await supabase
+      const targetEmail = email.trim();
+      
+      const { error: roleErr } = await supabase
         .from('profiles')
-        .update({ is_pro: true })
-        .eq('email', email.trim());
+        .update({ role: 'pro' })
+        .eq('email', targetEmail);
 
-      if (error) {
-        console.error('Supabase profile PRO update error:', error);
+      try {
+        await supabase
+          .from('profiles')
+          .update({ is_pro: true })
+          .eq('email', targetEmail);
+      } catch (_) {}
+
+      if (roleErr) {
+        console.error('Supabase profile PRO update error:', roleErr);
       } else {
-        console.log(`User ${email} successfully upgraded to PRO!`);
+        console.log(`User ${targetEmail} successfully upgraded to PRO!`);
       }
     }
 

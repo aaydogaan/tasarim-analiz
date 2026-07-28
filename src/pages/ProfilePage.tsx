@@ -925,7 +925,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                         <Crown className="w-4.5 h-4.5 text-[#FF5500]" />
                                         Abonelik & Haklarım
                                     </h3>
-                                    {((profileRecord as any)?.is_pro || (profileRecord as any)?.role === 'admin') ? (
+                                    {((profileRecord as any)?.is_pro || (profileRecord as any)?.role === 'admin' || (profileRecord as any)?.role === 'pro') ? (
                                         <span className="text-[10px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2.5 py-0.5 rounded-full flex items-center gap-1">
                                             <Crown size={10} /> PRO ÜYE
                                         </span>
@@ -937,7 +937,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                 </div>
 
                                 <div className="bg-[var(--bg-secondary)] p-3.5 rounded-xl border border-[var(--border-primary)] space-y-2">
-                                    {((profileRecord as any)?.is_pro || (profileRecord as any)?.role === 'admin') ? (
+                                    {((profileRecord as any)?.is_pro || (profileRecord as any)?.role === 'admin' || (profileRecord as any)?.role === 'pro') ? (
                                         <>
                                             <div className="flex items-center justify-between text-xs font-bold text-[var(--text-primary)]">
                                                 <span>Analiz Hakkı:</span>

@@ -58,11 +58,20 @@ export default function AdminUsers() {
     };
 
     const handleProToggle = async (userId: string, currentProStatus: boolean) => {
-        const { error } = await supabase.from('profiles').update({ is_pro: !currentProStatus }).eq('id', userId);
+        const newProState = !currentProStatus;
+        const newRole = newProState ? 'pro' : 'user';
+        
+        let { error } = await supabase.from('profiles').update({ role: newRole }).eq('id', userId);
+        
+        // Also update is_pro if column exists in database
+        try {
+            await supabase.from('profiles').update({ is_pro: newProState }).eq('id', userId);
+        } catch (_) {}
+
         if (error) {
             toast.error('PRO durumu güncellenemedi: ' + error.message);
         } else {
-            toast.success(currentProStatus ? 'PRO üyelik kaldırıldı' : '⚡ PRO üyelik başarıyla verildi!');
+            toast.success(newProState ? '⚡ PRO üyelik başarıyla verildi!' : 'PRO üyelik kaldırıldı');
             fetchUsers();
         }
     };
@@ -133,14 +142,19 @@ export default function AdminUsers() {
                                         )}
                                     </td>
                                     <td className="p-4 text-right flex items-center justify-end gap-2">
-                                        <button
-                                            onClick={() => handleProToggle(user.id, user.is_pro)}
-                                            className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-bold ${user.is_pro ? 'bg-[#FF5500]/15 text-[#FF5500] border border-[#FF5500]/30' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-primary)]'}`}
-                                            title={user.is_pro ? "PRO Üyeliği İptal Et" : "Kullanıcıya PRO Üyelik Ver"}
-                                        >
-                                            <Zap className="w-3.5 h-3.5" />
-                                            <span>{user.is_pro ? 'PRO Üye' : 'PRO Yap'}</span>
-                                        </button>
+                                        {(() => {
+                                            const isUserPro = Boolean(user.is_pro || user.role === 'pro' || user.role === 'admin');
+                                            return (
+                                                <button
+                                                    onClick={() => handleProToggle(user.id, isUserPro)}
+                                                    className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-bold ${isUserPro ? 'bg-[#FF5500]/15 text-[#FF5500] border border-[#FF5500]/30' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-primary)]'}`}
+                                                    title={isUserPro ? "PRO Üyeliği İptal Et" : "Kullanıcıya PRO Üyelik Ver"}
+                                                >
+                                                    <Zap className="w-3.5 h-3.5" />
+                                                    <span>{isUserPro ? 'PRO Üye' : 'PRO Yap'}</span>
+                                                </button>
+                                            );
+                                        })()}
                                         {!user.is_admin && (
                                             <button 
                                                 onClick={() => handleBanToggle(user.id, user.is_banned)}
