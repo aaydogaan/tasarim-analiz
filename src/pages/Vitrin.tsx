@@ -307,7 +307,19 @@ export function Vitrin() {
                             read: false
                         }]).then(() => {});
 
-                        // 2. Send Automated Winner Email
+                        // 2. Record win in daily_design_winners for profile badge
+                        supabase.from('daily_design_winners').upsert([
+                            {
+                                win_date: todayStr,
+                                user_id: winner.user_id,
+                                post_id: winner.id,
+                                isletme: winner.isletme || winner.tasarim_turu || 'Tasarım',
+                                ai_puan: winner.ai_puan || 0,
+                                gorsel_url: winner.gorsel_url || ''
+                            }
+                        ], { onConflict: 'win_date' }).then(() => {});
+
+                        // 3. Send Automated Winner Email
                         supabase.from('profiles').select('email, display_name').eq('id', winner.user_id).single().then(({ data: userProf }) => {
                             if (userProf && userProf.email) {
                                 sendDayWinnerEmail(

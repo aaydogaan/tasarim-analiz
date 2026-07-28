@@ -56,6 +56,7 @@ export default function PublicProfile() {
     const [followLoading, setFollowLoading] = useState(false);
     const [isFollowModalOpen, setIsFollowModalOpen] = useState(false);
     const [followModalTab, setFollowModalTab] = useState<'followers' | 'following'>('followers');
+    const [dailyWinCount, setDailyWinCount] = useState(0);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -156,6 +157,13 @@ export default function PublicProfile() {
                     .select('*, analizler(gorsel_url, isletme, tasarim_turu, genel_puan)')
                     .eq('user_id', profData.id)
                     .order('created_at', { ascending: false });
+
+                // Fetch daily design win count
+                const { count: winCount } = await supabase
+                    .from('daily_design_winners')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('user_id', profData.id);
+                setDailyWinCount(winCount || 0);
                 
                 const formattedShowcases = (showcaseData || []).map(post => {
                     const rawG = post.analizler?.gorsel_url || post.gorsel_url;
@@ -370,6 +378,19 @@ export default function PublicProfile() {
                                     )}
                                 </div>
 
+                                {/* Günün Tasarımı Şampiyonu Rozeti */}
+                                {dailyWinCount > 0 && (
+                                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300/60 shadow-sm w-fit">
+                                        <Trophy className="w-4 h-4 text-amber-500 fill-amber-400" />
+                                        <span className="text-sm font-extrabold text-amber-700">
+                                            Günün Tasarımı Şampiyonu
+                                        </span>
+                                        <span className="bg-amber-500 text-white text-xs font-black px-2 py-0.5 rounded-full">
+                                            {dailyWinCount}x
+                                        </span>
+                                    </div>
+                                )}
+
                                  {/* Alt Satır: Rozet ve İstatistikler */}
                                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-gray-500 font-medium">
                                     <span className="flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-lg text-sm font-semibold">
@@ -502,6 +523,19 @@ export default function PublicProfile() {
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+                    {dailyWinCount > 0 && (
+                        <div className="col-span-2 md:col-span-4 bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border border-amber-200/80 rounded-[24px] p-5 flex items-center gap-5 shadow-sm">
+                            <div className="w-14 h-14 rounded-2xl bg-amber-400/20 flex items-center justify-center shrink-0">
+                                <Trophy className="w-7 h-7 text-amber-500 fill-amber-400" />
+                            </div>
+                            <div className="flex-1">
+                                <div className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-0.5">Günün Tasarımı Şampiyonu</div>
+                                <div className="text-2xl font-black text-amber-700">{dailyWinCount} kez kazandı!</div>
+                                <div className="text-xs text-amber-600/70 font-medium mt-0.5">Tasarımları vitrin zirvesine ulaştı</div>
+                            </div>
+                            <div className="text-5xl font-black text-amber-200 select-none">🏆</div>
+                        </div>
+                    )}
                     <div className="bg-white border border-gray-200/60 rounded-[24px] p-6 text-center shadow-sm">
                         <div className="text-3xl font-black text-gray-900 mb-1">{xpData.total.toLocaleString()}</div>
                         <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Toplam XP</div>
