@@ -11,8 +11,12 @@ const features = [
   { icon: <Wand2 className="w-4 h-4 text-slate-800 dark:text-slate-200" />, text: 'Kesintisiz 7/24 Kullanım' },
 ];
 
+const SHOPIER_PRODUCT_URL = 'https://www.shopier.com/revizelesene/49368202';
+
 export default function Pricing() {
-  const [shopierModalOpen, setShopierModalOpen] = useState(false);
+  const handleProceedToShopier = () => {
+    window.open(SHOPIER_PRODUCT_URL, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <div className="w-full pt-6 md:pt-12 pb-24 px-4 sm:px-6 max-w-md mx-auto flex flex-col items-center justify-center min-h-[85vh]">
@@ -48,7 +52,7 @@ export default function Pricing() {
             
             <button
               type="button"
-              onClick={() => setShopierModalOpen(true)}
+              onClick={handleProceedToShopier}
               className="relative z-10 w-full py-4 rounded-[22px] bg-[#18181b] hover:bg-black dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-bold text-base shadow-xl transition-all cursor-pointer active:scale-[0.99] flex items-center justify-center gap-2"
             >
               <span>Hemen Başla</span>
@@ -74,8 +78,6 @@ export default function Pricing() {
           <span>Shopier 3D Secure Güvenli Ödeme</span>
         </div>
       </motion.div>
-
-      <ShopierModal isOpen={shopierModalOpen} onClose={() => setShopierModalOpen(false)} />
     </div>
   );
 }

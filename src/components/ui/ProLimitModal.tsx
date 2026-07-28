@@ -22,7 +22,7 @@ export default function ProLimitModal({
     const [shopierOpen, setShopierOpen] = React.useState(false);
 
     const handleUpgrade = () => {
-        setShopierOpen(true);
+        window.open('https://www.shopier.com/revizelesene/49368202', '_blank', 'noopener,noreferrer');
     };
 
     const features = [
