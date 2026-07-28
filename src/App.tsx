@@ -45,8 +45,10 @@ import AdminUsers from "./pages/admin/Users";
 import AdminPosts from "./pages/admin/Posts";
 import AdminComments from "./pages/admin/Comments";
 import AdminReports from "./pages/admin/Reports";
+import AdminAnnouncements from "./pages/admin/Announcements";
 import AdminProtectedRoute from "./pages/admin/AdminProtectedRoute";
 import RevizelesPage from "./pages/RevizelesPage";
+import AnnouncementWidget from "./components/ui/AnnouncementWidget";
 
 declare global {
   interface Window {
@@ -2169,6 +2171,7 @@ export default function App() {
           <Route index element={<AdminDashboard />} />
           <Route path="revizeles" element={<AdminRevizeles />} />
           <Route path="contests" element={<AdminContests />} />
+          <Route path="announcements" element={<AdminAnnouncements />} />
           <Route path="users" element={<AdminUsers />} />
           <Route path="posts" element={<AdminPosts />} />
           <Route path="comments" element={<AdminComments />} />
@@ -2180,6 +2183,7 @@ export default function App() {
 
 
       {!isMutfak && kullanici && <LiveActivityFeed />}
+      {!isMutfak && gorunum !== 'auth' && <AnnouncementWidget />}
       {!isMutfak && gorunum !== 'auth' && <Footer onLogoClick={goHome} onNavClick={(v: string) => navigate(`/${v}`)} />}
       {/* Share Modal */}
       <AnimatePresence>
