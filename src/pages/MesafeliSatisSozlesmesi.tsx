@@ -48,7 +48,7 @@ export default function MesafeliSatisSozlesmesi() {
                             <li><strong>Hizmet Adı:</strong> Revizelesene PRO Aylık Dijital Abonelik Paketi</li>
                             <li><strong>Hizmet Kapsamı:</strong> Sınırsız AI Tasarım Analizi, Kıdemli Tasarım Direktörü Derin Raporları, AI Revizyon Önerileri, Yüksek Çözünürlüklü PDF İndirme.</li>
                             <li><strong>Abonelik Ücreti:</strong> 59,00 TL / Ay (+ %20 KDV dahil toplam 70,80 TL)</li>
-                            <li><strong>Ödeme Yöntemi:</strong> PayTR Güvenli Ödeme Altyapısı (Kredi / Banka Kartı)</li>
+                            <li><strong>Ödeme Yöntemi:</strong> Shopier Güvenli Ödeme Altyapısı (Kredi / Banka Kartı)</li>
                         </ul>
                     </section>
 

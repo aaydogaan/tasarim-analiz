@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Check, Flame, Zap, ArrowRight, Sparkles, ShieldCheck } from 'lucide-react';
-import PayTRModal from '../components/ui/PayTRModal';
+import ShopierModal from '../components/ui/ShopierModal';
 
 const plans = [
   {
@@ -44,7 +44,7 @@ const plans = [
 ];
 
 export default function Pricing() {
-  const [paytrModalOpen, setPaytrModalOpen] = useState(false);
+  const [shopierModalOpen, setShopierModalOpen] = useState(false);
 
   return (
     <div className="w-full pt-8 md:pt-16 pb-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto flex flex-col items-center min-h-screen">
@@ -123,7 +123,7 @@ export default function Pricing() {
                     )}
                   </div>
                   {plan.popular && (
-                    <span className="text-[10px] text-[var(--text-secondary)] font-bold mt-1.5 block">PayTR Kredi/Banka Kartı İle Güvenli Ödeme</span>
+                    <span className="text-[10px] text-[var(--text-secondary)] font-bold mt-1.5 block">Shopier Kredi/Banka Kartı İle Güvenli Ödeme</span>
                   )}
                 </div>
 
@@ -131,7 +131,7 @@ export default function Pricing() {
                   type="button"
                   onClick={() => {
                     if (plan.popular) {
-                      setPaytrModalOpen(true);
+                      setShopierModalOpen(true);
                     }
                   }}
                   className={`w-full py-4 rounded-2xl font-black text-sm transition-all duration-300 flex items-center justify-center gap-2 mb-8 ${
@@ -161,7 +161,7 @@ export default function Pricing() {
         ))}
       </div>
 
-      <PayTRModal isOpen={paytrModalOpen} onClose={() => setPaytrModalOpen(false)} />
+      <ShopierModal isOpen={shopierModalOpen} onClose={() => setShopierModalOpen(false)} />
     </div>
   );
 }
