@@ -1,109 +1,79 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Zap, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Zap, Sparkles, SlidersHorizontal, Lightbulb, BarChart3, Wand2, ShieldCheck } from 'lucide-react';
 import ShopierModal from '../components/ui/ShopierModal';
 
-const proFeatures = [
-  'Sınırsız & Öncelikli Yapay Zeka Tasarım Analizi',
-  'Kıdemli Tasarım Direktörü Derin Raporlama',
-  'AI Tasarım Revizyon & İyileştirme Önerileri',
-  'Renk Paleti & Tipografi Derin Sentezi',
-  'Kesintisiz 7/24 Kullanım',
+const features = [
+  { icon: <Zap className="w-4 h-4 text-slate-800 dark:text-slate-200" />, text: 'Sınırsız & Öncelikli AI Tasarım Analizi' },
+  { icon: <SlidersHorizontal className="w-4 h-4 text-slate-800 dark:text-slate-200" />, text: 'Kıdemli Tasarım Direktörü Derin Raporu' },
+  { icon: <Lightbulb className="w-4 h-4 text-slate-800 dark:text-slate-200" />, text: 'AI Tasarım Revizyon & İyileştirme Önerileri' },
+  { icon: <BarChart3 className="w-4 h-4 text-slate-800 dark:text-slate-200" />, text: 'Baskın Renk Paleti & Tipografi Sentezi' },
+  { icon: <Wand2 className="w-4 h-4 text-slate-800 dark:text-slate-200" />, text: 'Kesintisiz 7/24 Kullanım' },
 ];
 
 export default function Pricing() {
   const [shopierModalOpen, setShopierModalOpen] = useState(false);
 
   return (
-    <div className="w-full pt-8 md:pt-16 pb-24 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto flex flex-col items-center min-h-screen">
+    <div className="w-full pt-6 md:pt-12 pb-24 px-4 sm:px-6 max-w-md mx-auto flex flex-col items-center justify-center min-h-[85vh]">
       
-      {/* Header Section */}
+      {/* Reference Card Container */}
       <motion.div
-        initial={{ opacity: 0, y: -16 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-10 max-w-xl mx-auto"
+        initial={{ opacity: 0, scale: 0.95, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full bg-white dark:bg-[#121214] text-slate-900 dark:text-slate-100 rounded-[38px] p-8 sm:p-9 border border-slate-200/90 dark:border-slate-800 shadow-2xl relative overflow-hidden flex flex-col justify-between"
       >
-        <h1 className="text-3xl sm:text-5xl font-black text-[var(--text-primary)] tracking-tight mb-3 leading-tight">
-          Revizelesene <span className="text-[#FF5500]">PRO</span>
-        </h1>
+        <div>
+          {/* Card Title */}
+          <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-3 text-slate-900 dark:text-white">
+            PRO Paket
+          </h3>
 
-        <p className="text-[var(--text-secondary)] text-sm sm:text-base font-medium leading-relaxed">
-          Sınırsız yapay zeka analiz asistanı ile tasarımlarınızı üst seviyeye taşıyın.
-        </p>
-      </motion.div>
-
-      {/* Single Centered Pro Plan Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="relative w-full max-w-md bg-[var(--card-bg)] rounded-[32px] p-7 md:p-8 border border-[#FF5500] shadow-2xl overflow-hidden"
-      >
-        {/* Top Gradient Highlight Accent */}
-        <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#FF5500] to-amber-500" />
-        <div className="absolute top-0 right-0 w-36 h-36 bg-[#FF5500]/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col h-full justify-between">
-          <div>
-            <div className="flex justify-between items-center mb-5">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#FF5500]/10 text-[#FF5500] flex items-center justify-center font-bold border border-[#FF5500]/20">
-                  <Zap className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-black text-[var(--text-primary)] leading-tight">Pro Paket</h3>
-                  <p className="text-xs text-[var(--text-secondary)] font-medium">Profesyonel Tasarımcılar İçin</p>
-                </div>
-              </div>
-              <span className="text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider bg-[#FF5500]/15 text-[#FF5500] border border-[#FF5500]/30">
-                PRO
-              </span>
+          {/* Price Header */}
+          <div className="flex items-baseline justify-between mb-6">
+            <span className="text-5xl sm:text-6xl font-extrabold tracking-tighter text-slate-900 dark:text-white">
+              59 ₺
+            </span>
+            <div className="text-right text-xs text-slate-500 dark:text-slate-400 font-medium leading-tight max-w-[130px]">
+              aylık abonelik <br />
+              tüm özellikler açık
             </div>
+          </div>
 
-            {/* Price Box */}
-            <div className="mb-6 bg-[var(--bg-secondary)] p-4 rounded-2xl border border-[var(--border-primary)] flex items-center justify-between">
-              <div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-4xl md:text-5xl font-black text-[var(--text-primary)] tracking-tighter">59 ₺</span>
-                  <span className="text-[var(--text-secondary)] text-xs font-bold">/ ay</span>
-                </div>
-                <span className="text-[10px] text-[var(--text-secondary)] font-bold mt-1 block">
-                  Shopier Kredi/Banka Kartı İle Güvenli Ödeme
-                </span>
-              </div>
-            </div>
-
-            {/* CTA Button */}
+          {/* Sunset Mesh Gradient Glow & CTA Button Container */}
+          <div className="relative my-4 p-2 rounded-[28px] overflow-hidden flex items-center justify-center">
+            {/* Vibrant Sunset Mesh Gradient Glow */}
+            <div className="absolute inset-0 bg-gradient-to-r from-sky-300 via-amber-300 to-orange-400 dark:from-sky-500/40 dark:via-amber-500/40 dark:to-orange-500/40 blur-xl opacity-90 scale-110 pointer-events-none" />
+            
             <button
               type="button"
               onClick={() => setShopierModalOpen(true)}
-              className="w-full py-4 rounded-2xl font-black text-sm transition-all duration-300 flex items-center justify-center gap-2 mb-8 bg-[#FF5500] hover:bg-[#e64d00] text-white shadow-xl shadow-[#FF5500]/30 cursor-pointer transform hover:-translate-y-0.5"
+              className="relative z-10 w-full py-4 rounded-[22px] bg-[#18181b] hover:bg-black dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-bold text-base shadow-xl transition-all cursor-pointer active:scale-[0.99] flex items-center justify-center gap-2"
             >
-              <span>Hemen PRO Plana Geç</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>Hemen Başla</span>
             </button>
+          </div>
 
-            {/* Features List */}
-            <div className="space-y-3.5 pt-2">
-              <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] mb-3">Paket İçeriği</p>
-              {proFeatures.map((feature, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full bg-[#FF5500]/15 text-[#FF5500] flex items-center justify-center shrink-0 border border-[#FF5500]/20">
-                    <Check className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-[var(--text-primary)] text-xs md:text-sm font-semibold">{feature}</span>
+          {/* Feature List (Exact Icon + Text Alignment) */}
+          <div className="space-y-4 pt-6">
+            {features.map((item, idx) => (
+              <div key={idx} className="flex items-center gap-3.5 text-sm font-semibold text-slate-800 dark:text-slate-200">
+                <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                  {item.icon}
                 </div>
-              ))}
-            </div>
+                <span>{item.text}</span>
+              </div>
+            ))}
           </div>
         </div>
-      </motion.div>
 
-      {/* Security Footer */}
-      <div className="mt-8 text-center text-xs text-[var(--text-secondary)] font-medium flex items-center justify-center gap-2">
-        <ShieldCheck className="w-4 h-4 text-emerald-500" />
-        <span>Shopier 256-Bit SSL Koruması & 3D Secure Güvencesi</span>
-      </div>
+        {/* Bottom Subtext */}
+        <div className="mt-8 pt-4 text-center text-xs text-slate-400 dark:text-slate-500 font-medium flex items-center justify-center gap-1.5 border-t border-slate-100 dark:border-slate-800/80">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+          <span>Shopier 3D Secure Güvenli Ödeme</span>
+        </div>
+      </motion.div>
 
       <ShopierModal isOpen={shopierModalOpen} onClose={() => setShopierModalOpen(false)} />
     </div>
