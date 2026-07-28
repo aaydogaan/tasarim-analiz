@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Loader2, ShieldBan, CheckCircle2, ChevronDown } from 'lucide-react';
+import { Loader2, ShieldBan, CheckCircle2, ChevronDown, Zap } from 'lucide-react';
 import { VerifiedBadge } from '../../components/ui/VerifiedBadge';
 import toast from 'react-hot-toast';
 
@@ -53,6 +53,16 @@ export default function AdminUsers() {
             toast.error(`Rozet güncellenemedi: ${error.message}`);
         } else {
             toast.success('Doğrulama rozeti güncellendi');
+            fetchUsers();
+        }
+    };
+
+    const handleProToggle = async (userId: string, currentProStatus: boolean) => {
+        const { error } = await supabase.from('profiles').update({ is_pro: !currentProStatus }).eq('id', userId);
+        if (error) {
+            toast.error('PRO durumu güncellenemedi: ' + error.message);
+        } else {
+            toast.success(currentProStatus ? 'PRO üyelik kaldırıldı' : '⚡ PRO üyelik başarıyla verildi!');
             fetchUsers();
         }
     };
@@ -122,11 +132,19 @@ export default function AdminUsers() {
                                             </span>
                                         )}
                                     </td>
-                                    <td className="p-4 text-right">
+                                    <td className="p-4 text-right flex items-center justify-end gap-2">
+                                        <button
+                                            onClick={() => handleProToggle(user.id, user.is_pro)}
+                                            className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-bold ${user.is_pro ? 'bg-[#FF5500]/15 text-[#FF5500] border border-[#FF5500]/30' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-primary)]'}`}
+                                            title={user.is_pro ? "PRO Üyeliği İptal Et" : "Kullanıcıya PRO Üyelik Ver"}
+                                        >
+                                            <Zap className="w-3.5 h-3.5" />
+                                            <span>{user.is_pro ? 'PRO Üye' : 'PRO Yap'}</span>
+                                        </button>
                                         {!user.is_admin && (
                                             <button 
                                                 onClick={() => handleBanToggle(user.id, user.is_banned)}
-                                                className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 inline-flex ${user.is_banned ? 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20' : 'bg-red-500/10 text-red-500 hover:bg-red-500/20'}`}
+                                                className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 inline-flex text-xs font-bold ${user.is_banned ? 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20' : 'bg-red-500/10 text-red-500 hover:bg-red-500/20'}`}
                                                 title={user.is_banned ? "Yasağı Kaldır" : "Kullanıcıyı Yasakla"}
                                             >
                                                 {user.is_banned ? <><CheckCircle2 className="w-4 h-4" /> Yasağı Kaldır</> : <><ShieldBan className="w-4 h-4" /> Yasakla</>}
