@@ -33,11 +33,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const { userEmail, userId, userName } = req.body || {};
 
-    // 1. Fetch Auth Token from ÖdeAl Auth API
+    // 1. Fetch Auth Token from ÖdeAl Auth API (Prioritize Stage/Sandbox URL)
     let token = '';
     const authEndpoints = [
-      'https://auth.odeal.com/api/v1/token',
       'https://auth-sandbox.odeal.com/api/v1/token',
+      'https://auth.odeal.com/api/v1/token',
+      'https://api-stg.odeal.com/api/v1/token',
       'https://api.odeal.com/api/v1/token'
     ];
 
@@ -49,32 +50,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           body: JSON.stringify({
             clientId: ODEAL_API_KEY,
             clientSecret: ODEAL_SECRET_KEY,
+            client_id: ODEAL_API_KEY,
+            client_secret: ODEAL_SECRET_KEY,
             grantType: 'client_credentials',
+            grant_type: 'client_credentials',
             scope: 'api'
           })
         });
 
         const tokenData = await safeJsonParse(tokenRes);
-        token = tokenData.token || tokenData.accessToken || tokenData.id_token || tokenData.data?.token || '';
+        console.log(`Auth result from ${authUrl}:`, tokenData);
+
+        token = tokenData.token || tokenData.accessToken || tokenData.id_token || tokenData.data?.token || tokenData.result?.token || '';
         if (token) break;
       } catch (err) {
         console.error(`Token fetch failed for ${authUrl}:`, err);
       }
     }
 
-    // 2. Initialize ÖdeAl 3D Payment (/vpos/init-3d or /api/v1/pay-by-link)
+    // 2. Initialize ÖdeAl 3D Payment (/vpos/init-3d)
     const returnUrl = 'https://revizelesene.com/api/odeal-callback';
     const amount = 59.00;
     const description = 'Revizelesene PRO Paket Abonelik (59 TL)';
 
     const vposEndpoints = [
-      'https://api.odeal.com/vpos/init-3d',
       'https://api-stg.odeal.com/vpos/init-3d',
+      'https://api.odeal.com/vpos/init-3d',
+      'https://api-stg.odeal.com/api/v1/pay-by-link',
       'https://api.odeal.com/api/v1/pay-by-link'
     ];
 
     let threeDFormHtml = '';
     let paymentUrl = '';
+    let lastError = '';
 
     for (const vposUrl of vposEndpoints) {
       try {
@@ -83,7 +91,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': token ? `Bearer ${token}` : `Bearer ${ODEAL_SECRET_KEY}`
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
           },
           body: JSON.stringify({
             amount,
@@ -93,13 +101,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             customerName: userName || 'Revizelesene Üyesi',
             returnUrl,
             callbackUrl: returnUrl,
+            successRedirectUrl: 'https://revizelesene.com/profile?payment=success',
+            failureRedirectUrl: 'https://revizelesene.com/profile?payment=error',
             externalId: userId || `pro_${Date.now()}`
           })
         });
 
         const vposData = await safeJsonParse(vposRes);
+        console.log(`VPOS result from ${vposUrl}:`, vposData);
+
         threeDFormHtml = vposData.threeDFormHtml || vposData.result?.threeDFormHtml || vposData.data?.threeDFormHtml || '';
         paymentUrl = vposData.paymentUrl || vposData.url || vposData.link || vposData.redirectUrl || vposData.data?.url || '';
+
+        if (vposData.message || vposData.error) {
+          lastError = vposData.message || vposData.error;
+        }
 
         if (threeDFormHtml || paymentUrl) break;
       } catch (err) {
@@ -115,17 +131,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ success: true, paymentUrl });
     }
 
-    // Fallback payment URL
     return res.status(200).json({
-      success: true,
-      paymentUrl: `https://pay.odeal.com/pay/${ODEAL_API_KEY}`
+      success: false,
+      error: lastError || 'ÖdeAl Stage (Test) ortamı API yanıtı bekleniyor. Lütfen ÖdeAl paneli test tamamlamasını kontrol edin.'
     });
 
   } catch (err: any) {
     console.error('ÖdeAl checkout error:', err);
     return res.status(200).json({
-      success: true,
-      paymentUrl: `https://pay.odeal.com/pay/${ODEAL_API_KEY}`
+      success: false,
+      error: err.message || 'ÖdeAl ödeme servisi hatası'
     });
   }
 }
