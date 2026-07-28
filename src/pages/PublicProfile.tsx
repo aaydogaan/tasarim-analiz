@@ -375,21 +375,7 @@ export default function PublicProfile() {
                                                 </button>
                                             )}
                                         </div>
-                                    )}
                                 </div>
-
-                                {/* Günün Tasarımı Şampiyonu Rozeti */}
-                                {dailyWinCount > 0 && (
-                                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300/60 shadow-sm w-fit">
-                                        <Trophy className="w-4 h-4 text-amber-500 fill-amber-400" />
-                                        <span className="text-sm font-extrabold text-amber-700">
-                                            Günün Tasarımı Şampiyonu
-                                        </span>
-                                        <span className="bg-amber-500 text-white text-xs font-black px-2 py-0.5 rounded-full">
-                                            {dailyWinCount}x
-                                        </span>
-                                    </div>
-                                )}
 
                                  {/* Alt Satır: Rozet ve İstatistikler */}
                                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-gray-500 font-medium">
@@ -460,6 +446,12 @@ export default function PublicProfile() {
                                             <span>{expLabel} Deneyim</span>
                                         </span>
                                     )}
+                                    {dailyWinCount > 0 && (
+                                        <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-50 text-amber-700 border border-amber-200/60 text-xs font-bold shadow-2xs" title="Günün Tasarımı Şampiyonu">
+                                            <Trophy className="w-3.5 h-3.5 text-amber-500" />
+                                            <span>{dailyWinCount}x Şampiyon</span>
+                                        </span>
+                                    )}
                                 </div>
                             );
                         })()}
@@ -523,19 +515,6 @@ export default function PublicProfile() {
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-                    {dailyWinCount > 0 && (
-                        <div className="col-span-2 md:col-span-4 bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border border-amber-200/80 rounded-[24px] p-5 flex items-center gap-5 shadow-sm">
-                            <div className="w-14 h-14 rounded-2xl bg-amber-400/20 flex items-center justify-center shrink-0">
-                                <Trophy className="w-7 h-7 text-amber-500 fill-amber-400" />
-                            </div>
-                            <div className="flex-1">
-                                <div className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-0.5">Günün Tasarımı Şampiyonu</div>
-                                <div className="text-2xl font-black text-amber-700">{dailyWinCount} kez kazandı!</div>
-                                <div className="text-xs text-amber-600/70 font-medium mt-0.5">Tasarımları vitrin zirvesine ulaştı</div>
-                            </div>
-                            <div className="text-5xl font-black text-amber-200 select-none">🏆</div>
-                        </div>
-                    )}
                     <div className="bg-white border border-gray-200/60 rounded-[24px] p-6 text-center shadow-sm">
                         <div className="text-3xl font-black text-gray-900 mb-1">{xpData.total.toLocaleString()}</div>
                         <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Toplam XP</div>

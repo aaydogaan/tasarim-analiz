@@ -152,6 +152,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
     const [followModalTab, setFollowModalTab] = useState<'followers' | 'following'>('followers');
 
     // Password Change Modal States
+    const [dailyWinCount, setDailyWinCount] = useState(0);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -257,6 +258,13 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                 setProfileRecord(data as CommunityProfileRecord);
                 setFeaturedBadge((data as any).featured_badge ?? null);
             }
+
+            const { count: winCount } = await supabase
+                .from('daily_design_winners')
+                .select('id', { count: 'exact', head: true })
+                .eq('user_id', kullanici.id);
+            setDailyWinCount(winCount || 0);
+
             setLoading(false);
         };
 
@@ -818,6 +826,14 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     )}
                                     {normalizedProfile.founderNumber ? <span className="text-[var(--text-secondary)] font-semibold">#{normalizedProfile.founderNumber}</span> : null}
                                 </p>
+                                {dailyWinCount > 0 && (
+                                    <div className="mt-1 flex justify-center">
+                                        <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-50 text-amber-700 border border-amber-200/60 text-xs font-bold shadow-2xs" title="Günün Tasarımı Şampiyonu">
+                                            <Trophy className="w-3.5 h-3.5 text-amber-500" />
+                                            <span>{dailyWinCount}x Şampiyon</span>
+                                        </span>
+                                    </div>
+                                )}
                                 <div className="flex items-center justify-center gap-5 mt-2.5 text-sm font-medium">
                                     <button
                                         type="button"
