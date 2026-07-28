@@ -375,6 +375,7 @@ export default function PublicProfile() {
                                                 </button>
                                             )}
                                         </div>
+                                    )}
                                 </div>
 
                                  {/* Alt Satır: Rozet ve İstatistikler */}
