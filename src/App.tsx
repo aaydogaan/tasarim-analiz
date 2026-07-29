@@ -46,9 +46,11 @@ import AdminPosts from "./pages/admin/Posts";
 import AdminComments from "./pages/admin/Comments";
 import AdminReports from "./pages/admin/Reports";
 import AdminAnnouncements from "./pages/admin/Announcements";
+import AdminSurveys from "./pages/admin/Surveys";
 import AdminProtectedRoute from "./pages/admin/AdminProtectedRoute";
 import RevizelesPage from "./pages/RevizelesPage";
 import AnnouncementWidget from "./components/ui/AnnouncementWidget";
+import SurveyWidget from "./components/ui/SurveyWidget";
 
 declare global {
   interface Window {
@@ -2178,6 +2180,7 @@ export default function App() {
           <Route path="posts" element={<AdminPosts />} />
           <Route path="comments" element={<AdminComments />} />
           <Route path="reports" element={<AdminReports />} />
+          <Route path="surveys" element={<AdminSurveys />} />
         </Route>
 
         <Route path="/:slug" element={<PublicProfile />} />
@@ -2255,6 +2258,8 @@ export default function App() {
         isOpen={proLimitModalAcik}
         onClose={() => setProLimitModalAcik(false)}
       />
+
+      <SurveyWidget kullanici={kullanici} onAuthClick={() => setAuthModalAcik(true)} />
 
       <Toaster position="bottom-right" toastOptions={{ duration: 4000, style: { borderRadius: '16px', background: '#333', color: '#fff' } }} />
     </div>
