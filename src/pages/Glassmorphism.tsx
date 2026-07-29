@@ -40,9 +40,9 @@ export default function Glassmorphism() {
             
             {/* STUNNING ANIMATED MESH BACKGROUND */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-pink-500 rounded-full mix-blend-screen filter blur-[100px] opacity-50 animate-blob"></div>
-                <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-500 rounded-full mix-blend-screen filter blur-[100px] opacity-50 animate-blob animation-delay-2000"></div>
-                <div className="absolute bottom-[-20%] left-[20%] w-[50%] h-[50%] bg-indigo-500 rounded-full mix-blend-screen filter blur-[100px] opacity-50 animate-blob animation-delay-4000"></div>
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600 rounded-full mix-blend-screen filter blur-[100px] opacity-30 animate-blob"></div>
+                <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-slate-600 rounded-full mix-blend-screen filter blur-[100px] opacity-30 animate-blob animation-delay-2000"></div>
+                <div className="absolute bottom-[-20%] left-[20%] w-[50%] h-[50%] bg-cyan-600 rounded-full mix-blend-screen filter blur-[100px] opacity-30 animate-blob animation-delay-4000"></div>
             </div>
 
             {/* HEADER HERO */}
@@ -57,9 +57,9 @@ export default function Glassmorphism() {
                         <Sparkles className="w-3.5 h-3.5 text-pink-400" /> Glassmorphism Lab
                     </div>
 
-                    <h1 className="text-[48px] md:text-[64px] font-black text-white tracking-tighter leading-[1.05] mb-6 drop-shadow-lg">
+                    <h1 className="text-[40px] md:text-[64px] font-black text-white tracking-tighter leading-[1.05] mb-6 drop-shadow-lg">
                         Buzlu Cam Etkisini <br className="hidden md:block" />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400">Zahmetsizce Yaratın</span>
+                        Zahmetsizce Yaratın
                     </h1>
                     
                     <p className="text-[16px] md:text-[18px] text-white/70 mb-10 max-w-2xl mx-auto leading-relaxed drop-shadow-md">

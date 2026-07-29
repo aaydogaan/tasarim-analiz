@@ -126,9 +126,9 @@ small { font-size: var(--text-small); }`;
                         <Type className="w-3.5 h-3.5 text-indigo-500" /> Tipografi Laboratuvarı
                     </div>
 
-                    <h1 className="text-[48px] md:text-[64px] font-black text-[var(--text-primary)] tracking-tighter leading-[1.05] mb-6">
+                    <h1 className="text-[40px] md:text-[64px] font-black text-[var(--text-primary)] tracking-tighter leading-[1.05] mb-6">
                         Metinlerin <br className="hidden md:block" />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">Ruhunu Belirleyin</span>
+                        Ruhunu Belirleyin
                     </h1>
                     
                     <p className="text-[16px] md:text-[18px] text-[var(--text-secondary)] mb-10 max-w-2xl mx-auto leading-relaxed">

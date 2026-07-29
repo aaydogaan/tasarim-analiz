@@ -170,9 +170,9 @@ export default function Tools() {
                         <Palette className="w-3.5 h-3.5 text-emerald-500" /> Renk Atölyesi
                     </div>
 
-                    <h1 className="text-[48px] md:text-[64px] font-black text-[var(--text-primary)] tracking-tighter leading-[1.05] mb-6">
+                    <h1 className="text-[40px] md:text-[64px] font-black text-[var(--text-primary)] tracking-tighter leading-[1.05] mb-6">
                         Kusursuz Renkleri <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-400">Keşfedin ve Önizleyin</span>
+                        Keşfedin ve Önizleyin
                     </h1>
                     
                     <p className="text-[16px] md:text-[18px] text-[var(--text-secondary)] mb-10 max-w-xl mx-auto leading-relaxed">
@@ -211,7 +211,7 @@ export default function Tools() {
                                     <div 
                                         key={i} 
                                         onClick={() => handleCopy(color)}
-                                        className="group relative flex-1 h-20 sm:h-32 rounded-2xl cursor-pointer overflow-hidden transition-transform hover:scale-[1.02] hover:shadow-lg hover:z-10 border border-black/5"
+                                        className="group relative w-full h-14 sm:h-32 sm:flex-1 rounded-2xl cursor-pointer overflow-hidden transition-transform hover:scale-[1.02] hover:shadow-lg hover:z-10 border border-black/5"
                                         style={{ backgroundColor: color }}
                                     >
                                         <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
