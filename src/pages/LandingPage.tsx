@@ -13,6 +13,7 @@ import { ContestHeroCard, ContestData } from '../components/ui/ContestHeroCard';
 import { ContestDetailModal } from '../components/ui/ContestDetailModal';
 import { ContestSubmitModal } from '../components/ui/ContestSubmitModal';
 import GununTasarimi, { GununTasarimiItem } from '../components/ui/GununTasarimi';
+import FAQ from '../components/ui/FAQ';
 
 interface LandingPageProps {
     onStart: () => void;
@@ -355,6 +356,8 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
 
             <CommunityCTA onExploreClick={onCommunityClick} />
 
+            <FAQ />
+
             {/* ── Contact Section - Pixel Perfect Match ── */}
             <div className="relative w-full overflow-hidden flex flex-col items-center pt-[80px] md:pt-[160px] pb-[12px] bg-[var(--color-brand-light)]">
                 {/* Grid Background */}
@@ -426,66 +429,37 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                                         className="text-white font-sans font-medium leading-[1.1] tracking-tight md:tracking-[-1.8px]"
                                         style={{ fontSize: 'clamp(32px, 6vw, 64px)' }}
                                     >
-                                        Aklınızda bir proje mi var?
+                                        Bültenimize Katılın
                                     </h2>
                                     <p className="text-white/80 text-base md:text-[18px] font-sans">
-                                        Hadi birlikte harika şeyler yaratalım
+                                        Tasarım ipuçları, yapay zeka güncellemeleri ve daha fazlası için kayıt olun.
                                     </p>
                                 </div>
 
                                 {/* Right Side: Form */}
                                 <div className="flex flex-col items-center gap-16 w-full md:max-w-[456px]">
-                                    <form className="flex flex-col items-start gap-8 w-full" onSubmit={e => e.preventDefault()}>
-
-                                        <div className="flex flex-col items-start gap-2 w-full">
-                                            <label className="text-white font-sans text-[14px] font-medium tracking-[-0.14px]">
-                                                Adınız
-                                            </label>
-                                            <div className="w-full h-10 border-b border-white/20 relative">
-                                                <input
-                                                    type="text"
-                                                    required
-                                                    name="Name"
-                                                    placeholder="Adınızı girin"
-                                                    className="w-full h-full bg-transparent font-sans text-[14px] font-medium tracking-[-0.14px] text-white placeholder:text-white/60 outline-none"
-                                                />
-                                            </div>
-                                        </div>
-
+                                    <form className="flex flex-col items-start gap-8 w-full" onSubmit={e => { e.preventDefault(); alert('Bültene başarıyla kayıt oldunuz!'); }}>
                                         <div className="flex flex-col items-start gap-2 w-full">
                                             <label className="text-white font-sans text-[14px] font-medium tracking-[-0.14px]">
                                                 E-posta Adresiniz
                                             </label>
-                                            <div className="w-full h-10 border-b border-white/20 relative">
+                                            <div className="w-full h-12 border-b border-white/20 relative flex items-center">
                                                 <input
                                                     type="email"
                                                     required
                                                     name="Email"
-                                                    placeholder="E-posta adresinizi girin"
-                                                    className="w-full h-full bg-transparent font-sans text-[14px] font-medium tracking-[-0.14px] text-white placeholder:text-white/60 outline-none"
+                                                    placeholder="hello@example.com"
+                                                    className="w-full h-full bg-transparent font-sans text-[16px] font-medium tracking-[-0.14px] text-white placeholder:text-white/60 outline-none"
                                                 />
                                             </div>
                                         </div>
 
-                                        <div className="flex flex-col items-start gap-2 w-full">
-                                            <label className="text-white font-sans text-[14px] font-medium tracking-[-0.14px]">
-                                                Mesajınız / Proje Detayı
-                                            </label>
-                                            <div className="w-full min-h-[80px] border-b border-white/20 relative">
-                                                <textarea
-                                                    name="Description"
-                                                    placeholder="Buraya yazın..."
-                                                    className="w-full bg-transparent font-sans text-[14px] font-medium tracking-[-0.14px] text-white placeholder:text-white/60 outline-none resize-y min-h-[40px] pt-1"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="w-full h-10 mt-4 relative">
+                                        <div className="w-full h-12 mt-4 relative">
                                             <button
                                                 type="submit"
-                                                className="w-full h-full rounded-full bg-[#dcdcdc] text-black font-sans text-[14px] font-medium tracking-[-0.14px] flex items-center justify-center transition-transform hover:scale-[1.02] shadow-[inset_0px_0.5px_0.5px_0px_rgba(255,255,255,0.24),inset_0px_4px_16px_0px_rgba(255,255,255,0.16)] cursor-pointer"
+                                                className="w-full h-full rounded-full bg-[#FF4D00] text-white font-sans text-[16px] font-bold tracking-wide flex items-center justify-center transition-transform hover:scale-[1.02] shadow-lg cursor-pointer"
                                             >
-                                                Hemen Gönder!
+                                                Abone Ol
                                             </button>
                                         </div>
                                     </form>
