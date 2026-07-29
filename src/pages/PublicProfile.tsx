@@ -226,9 +226,9 @@ export default function PublicProfile() {
                         transition={{ delay: 0.1 }}
                         className="max-w-md"
                     >
-                        <h2 className="text-3xl font-black text-[var(--text-primary)] mb-4 tracking-tight">Tasarımcı Bulunamadı</h2>
+                        <h2 className="text-3xl font-black text-[var(--text-primary)] mb-4 tracking-tight">Sayfa Bulunamadı</h2>
                         <p className="text-[var(--text-secondary)] mb-8 leading-relaxed text-base">
-                            Aradığınız tasarımcı profili mevcut değil, silinmiş veya URL adresi değiştirilmiş olabilir.
+                            Aradığınız sayfa mevcut değil, silinmiş veya URL adresi değiştirilmiş olabilir. Eğer bir tasarımcı profili arıyorsanız, kullanıcı adının doğruluğundan emin olun.
                         </p>
                         
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
