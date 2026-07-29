@@ -371,6 +371,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
     const [userPostsLoading, setUserPostsLoading] = useState(true);
     const [deletePostId, setDeletePostId] = useState<string | null>(null);
     const [deletingPost, setDeletingPost] = useState(false);
+    const [editPostData, setEditPostData] = useState<{ id: string, title: string } | null>(null);
 
     useEffect(() => {
         const targetUserId = normalizedProfile.id;
@@ -399,15 +400,29 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
             }
             setUserPosts(prev => prev.filter(p => p.id !== deletePostId));
             setDeletePostId(null);
+            toast.success('Tasarım silindi');
             setXpData(prev => ({
                 ...prev,
                 posts: Math.max(0, prev.posts - 1),
                 total: Math.max(0, prev.total - 200)
             }));
         } catch (err) {
-            console.error("Silme hatası:", err);
+            console.error(err);
+            toast.error('Silinirken bir hata oluştu');
         } finally {
             setDeletingPost(false);
+        }
+    };
+
+    const handleEditPost = async () => {
+        if (!editPostData) return;
+        try {
+            await supabase.from('community_posts').update({ title: editPostData.title }).eq('id', editPostData.id);
+            setUserPosts(prev => prev.map(p => p.id === editPostData.id ? { ...p, title: editPostData.title } : p));
+            toast.success('Tasarım başlığı güncellendi');
+            setEditPostData(null);
+        } catch (e) {
+            toast.error('Güncellenirken bir hata oluştu');
         }
     };
 
@@ -1332,7 +1347,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     Henüz paylaşılan bir tasarım bulunmuyor.
                                 </div>
                             ) : (
-                                <div className="grid gap-4 sm:grid-cols-2 max-h-[520px] overflow-y-auto pr-1.5 custom-scrollbar">
+                                <div data-lenis-prevent="true" className="grid gap-4 sm:grid-cols-2 max-h-[520px] overflow-y-auto pr-1.5 custom-scrollbar">
                                     {userPosts.map((post) => {
                                         const rawG = post.analizler?.gorsel_url;
                                         const thumbSrc = rawG ? (rawG.startsWith('http') || rawG.startsWith('data:') ? rawG : `data:image/jpeg;base64,${rawG}`) : null;
@@ -1374,15 +1389,26 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                                 </div>
 
                                                 {isOwnProfile && (
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setDeletePostId(post.id);
-                                                        }}
-                                                        className="mt-3 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all text-xs font-bold w-full"
-                                                    >
-                                                        <Trash2 className="w-3.5 h-3.5" /> Sil
-                                                    </button>
+                                                    <div className="mt-3 flex items-center gap-2">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setEditPostData({ id: post.id, title: post.title || 'Tasarım Analizi' });
+                                                            }}
+                                                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-all text-xs font-bold"
+                                                        >
+                                                            <Edit2 className="w-3.5 h-3.5" /> Düzenle
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setDeletePostId(post.id);
+                                                            }}
+                                                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all text-xs font-bold"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" /> Sil
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </div>
                                         );
@@ -1415,6 +1441,42 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                             className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-xs font-bold hover:bg-red-600 disabled:opacity-50"
                                         >
                                             {deletingPost ? 'Siliniyor...' : 'Evet, Sil'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Edit Post Modal */}
+                        {editPostData && (
+                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setEditPostData(null)}>
+                                <div className="bg-[var(--card-bg)] border border-[var(--border-primary)] p-6 rounded-3xl max-w-sm w-full shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
+                                    <div className="w-12 h-12 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center mx-auto mb-2">
+                                        <Edit2 className="w-6 h-6" />
+                                    </div>
+                                    <h3 className="font-black text-lg text-[var(--text-primary)] text-center">Tasarımı Düzenle</h3>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-[var(--text-secondary)]">Tasarım Başlığı</label>
+                                        <input
+                                            type="text"
+                                            value={editPostData.title}
+                                            onChange={(e) => setEditPostData(prev => prev ? { ...prev, title: e.target.value } : null)}
+                                            className="w-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#FF5500] transition-colors"
+                                            placeholder="Tasarım Başlığı"
+                                        />
+                                    </div>
+                                    <div className="flex gap-2 pt-2">
+                                        <button
+                                            onClick={() => setEditPostData(null)}
+                                            className="flex-1 py-2.5 rounded-xl border border-[var(--border-primary)] text-xs font-bold hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] transition-colors"
+                                        >
+                                            İptal
+                                        </button>
+                                        <button
+                                            onClick={handleEditPost}
+                                            className="flex-1 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all"
+                                        >
+                                            Kaydet
                                         </button>
                                     </div>
                                 </div>
