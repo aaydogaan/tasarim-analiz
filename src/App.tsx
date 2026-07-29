@@ -48,6 +48,7 @@ import AdminComments from "./pages/admin/Comments";
 import AdminReports from "./pages/admin/Reports";
 import AdminAnnouncements from "./pages/admin/Announcements";
 import AdminSurveys from "./pages/admin/Surveys";
+import AdminNewsletter from "./pages/admin/Newsletter";
 import AdminProtectedRoute from "./pages/admin/AdminProtectedRoute";
 import RevizelesPage from "./pages/RevizelesPage";
 import AnnouncementWidget from "./components/ui/AnnouncementWidget";
@@ -2197,6 +2198,7 @@ export default function App() {
           <Route path="comments" element={<AdminComments />} />
           <Route path="reports" element={<AdminReports />} />
           <Route path="surveys" element={<AdminSurveys />} />
+          <Route path="newsletter" element={<AdminNewsletter />} />
         </Route>
 
         <Route path="/:slug" element={<PublicProfile />} />

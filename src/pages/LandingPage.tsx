@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { motion } from 'motion/react';
 import { ArrowUpRight } from 'lucide-react';
@@ -29,6 +30,9 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
         yorumlar: 0
     });
 
+    const [newsletterEmail, setNewsletterEmail] = useState('');
+    const [submittingNewsletter, setSubmittingNewsletter] = useState(false);
+
     useEffect(() => {
         const fetchStats = async () => {
             try {
@@ -55,6 +59,30 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
     const [gununTasarimi, setGununTasarimi] = useState<GununTasarimiItem | null>(null);
+
+    const handleNewsletterSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newsletterEmail.trim() || submittingNewsletter) return;
+
+        setSubmittingNewsletter(true);
+        try {
+            const { error } = await supabase.from('newsletter_subscribers').insert({ email: newsletterEmail.trim() });
+            if (error) {
+                if (error.code === '23505') { // unique violation
+                    toast.error('Bu e-posta adresi zaten bültene kayıtlı!');
+                } else {
+                    toast.error('Kayıt olurken bir hata oluştu. Lütfen tekrar deneyin.');
+                }
+            } else {
+                toast.success('Bültene başarıyla kayıt oldunuz!');
+                setNewsletterEmail('');
+            }
+        } catch (err) {
+            toast.error('Bağlantı hatası.');
+        } finally {
+            setSubmittingNewsletter(false);
+        }
+    };
 
     useEffect(() => {
         const fetchActiveContest = async () => {
@@ -384,11 +412,13 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
 
                     <form 
                         className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-md mx-auto" 
-                        onSubmit={e => { e.preventDefault(); alert('Bültene başarıyla kayıt oldunuz!'); }}
+                        onSubmit={handleNewsletterSubmit}
                     >
                         <div className="relative flex-1 w-full">
                             <input
                                 type="email"
+                                value={newsletterEmail}
+                                onChange={(e) => setNewsletterEmail(e.target.value)}
                                 required
                                 name="Email"
                                 placeholder="E-posta adresiniz..."
@@ -397,9 +427,10 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                         </div>
                         <button
                             type="submit"
-                            className="w-full sm:w-auto h-12 md:h-14 px-8 rounded-full bg-[#FF4D00] text-white font-sans text-base font-bold tracking-wide flex items-center justify-center transition-transform hover:scale-[1.02] hover:shadow-lg hover:shadow-[#FF4D00]/20 shrink-0 cursor-pointer"
+                            disabled={submittingNewsletter}
+                            className="w-full sm:w-auto h-12 md:h-14 px-8 rounded-full bg-[#FF4D00] text-white font-sans text-base font-bold tracking-wide flex items-center justify-center transition-transform hover:scale-[1.02] hover:shadow-lg hover:shadow-[#FF4D00]/20 shrink-0 cursor-pointer disabled:opacity-70"
                         >
-                            Abone Ol
+                            {submittingNewsletter ? 'Kaydediliyor...' : 'Katıl'}
                         </button>
                     </form>
                 </div>

@@ -406,11 +406,23 @@ export default function Contests() {
       if (broadcastTarget === 'test') {
         recipientList = [testEmailAddress.trim()];
       } else if (broadcastTarget === 'subscribers') {
-        const { data } = await supabase.from('contest_subscribers').select('email');
-        if (data) recipientList = data.map((s) => s.email).filter(Boolean);
+        const { data: newsletterData } = await supabase.from('newsletter_subscribers').select('email').eq('status', 'active');
+        const { data: contestData } = await supabase.from('contest_subscribers').select('email');
+        
+        const newsletterEmails = (newsletterData || []).map(s => s.email).filter(Boolean);
+        const contestEmails = (contestData || []).map(s => s.email).filter(Boolean);
+        
+        recipientList = Array.from(new Set([...newsletterEmails, ...contestEmails]));
       } else {
-        const { data } = await supabase.from('contest_subscribers').select('email');
-        if (data) recipientList = data.map((p) => p.email).filter(Boolean);
+        const { data: newsletterData } = await supabase.from('newsletter_subscribers').select('email').eq('status', 'active');
+        const { data: contestData } = await supabase.from('contest_subscribers').select('email');
+        const { data: profileData } = await supabase.from('profiles').select('email').not('email', 'is', null);
+
+        const newsletterEmails = (newsletterData || []).map(s => s.email).filter(Boolean);
+        const contestEmails = (contestData || []).map(s => s.email).filter(Boolean);
+        const profileEmails = (profileData || []).map(p => p.email).filter(Boolean);
+
+        recipientList = Array.from(new Set([...newsletterEmails, ...contestEmails, ...profileEmails]));
       }
 
       if (recipientList.length === 0) {

@@ -166,13 +166,15 @@ export default function AdminRevizeles() {
 
                     // 2. Send E-mail Notifications
                     try {
-                        const { data: subData } = await supabase.from('contest_subscribers').select('email');
+                        const { data: subData } = await supabase.from('newsletter_subscribers').select('email').eq('status', 'active');
+                        const { data: contestSubData } = await supabase.from('contest_subscribers').select('email');
                         const { data: profData } = await supabase.from('profiles').select('email').not('email', 'is', null);
 
                         const subEmails = (subData || []).map(s => s.email).filter(Boolean);
+                        const contestSubEmails = (contestSubData || []).map(s => s.email).filter(Boolean);
                         const profEmails = (profData || []).map(p => p.email).filter(Boolean);
 
-                        const allEmails = Array.from(new Set([...subEmails, ...profEmails]));
+                        const allEmails = Array.from(new Set([...subEmails, ...contestSubEmails, ...profEmails]));
 
                         if (allEmails.length > 0) {
                             const emailRes = await sendRevizelesAnnouncementEmail({
