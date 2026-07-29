@@ -519,9 +519,9 @@ export default function Header({
                 {isMobileMenuOpen && (
                     <motion.div
                         initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'calc(100vh - 60px)' }}
+                        animate={{ opacity: 1, height: 'calc(100dvh - 47px)' }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="md:hidden fixed inset-x-0 top-[60px] bg-[var(--bg-primary)] border-t border-[var(--border-primary)] overflow-y-auto flex flex-col"
+                        className="md:hidden absolute inset-x-0 top-full bg-[var(--bg-primary)] border-t border-[var(--border-primary)] overflow-y-auto flex flex-col"
                     >
                         <div className="flex flex-col px-6 py-8 gap-6 text-[15px] font-medium flex-1">
                             <button
@@ -659,7 +659,7 @@ export default function Header({
 
                         {/* Sticky Profile Pill at bottom */}
                         {kullanici ? (
-                            <div className="mt-auto p-4 sticky bottom-0 bg-[var(--bg-primary)] border-t border-[var(--border-primary)]">
+                            <div className="mt-auto p-4 pb-6 sticky bottom-0 bg-[var(--bg-primary)] border-t border-[var(--border-primary)]">
                                 <button
                                     onClick={() => {
                                         handleNavClick('profile');
@@ -692,7 +692,7 @@ export default function Header({
                                 </button>
                             </div>
                         ) : (
-                            <div className="mt-auto p-4 sticky bottom-0 bg-[var(--bg-primary)] border-t border-[var(--border-primary)]">
+                            <div className="mt-auto p-4 pb-6 sticky bottom-0 bg-[var(--bg-primary)] border-t border-[var(--border-primary)]">
                                 <button
                                     onClick={() => {
                                         onAuthClick();
