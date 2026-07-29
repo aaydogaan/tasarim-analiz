@@ -1015,7 +1015,9 @@ export default function App() {
             } else {
               toast.success(`${n.title}\n\n${n.message}`, { duration: 6000, icon: '⭐' });
             }
-            supabase.from('user_notifications').update({ read: true }).eq('id', n.id);
+            supabase.from('user_notifications').update({ read: true }).eq('id', n.id).then(({ error }) => {
+              if (error) console.error('Error marking notification read:', error);
+            });
           });
         }
       } catch (err) {
