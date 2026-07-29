@@ -521,9 +521,9 @@ export default function Header({
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'calc(100vh - 60px)' }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="md:hidden fixed inset-x-0 top-[60px] bg-[var(--bg-primary)] border-t border-[var(--border-primary)] overflow-y-auto"
+                        className="md:hidden fixed inset-x-0 top-[60px] bg-[var(--bg-primary)] border-t border-[var(--border-primary)] overflow-y-auto flex flex-col"
                     >
-                        <div className="flex flex-col px-6 py-8 gap-6 text-[15px] font-medium">
+                        <div className="flex flex-col px-6 py-8 gap-6 text-[15px] font-medium flex-1">
                             <button
                                 onClick={() => handleNavClick('landing')}
                                 className={`text-left transition-colors ${gorunum === 'landing' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
@@ -608,34 +608,93 @@ export default function Header({
                                 </button>
                             </div>
 
-                            <button
-                                onClick={() => handleNavClick('pricing')}
-                                className={`text-left transition-colors ${gorunum === 'pricing' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
-                            >
-                                Planlar (Pro)
-                            </button>
+                            <div className="h-px bg-[var(--border-primary)] my-2" />
 
-                            {kullanici && (
-                                <div className="flex flex-col gap-3">
-                                    <span className="text-[13px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Hesabım</span>
-                                    <button
-                                        onClick={() => handleNavClick('app?tab=analizlerim')}
-                                        className={`text-left pl-4 transition-colors ${gorunum === 'app' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
-                                    >
-                                        Analizlerim
-                                    </button>
-                                </div>
-                            )}
-
-                            {gorunum !== 'app' && (
-                                <button
-                                    onClick={() => handleNavClick('app')}
-                                    className="mt-4 w-full bg-[var(--color-brand-orange)] text-white py-3 rounded-2xl font-bold text-center"
-                                >
-                                    Yeni Analiz Başlat
-                                </button>
-                            )}
+                            <div className="flex flex-col gap-3">
+                                <span className="text-[13px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Hesap</span>
+                                
+                                {kullanici && (
+                                    <>
+                                        <button
+                                            onClick={() => {
+                                                setIsMobileMenuOpen(false);
+                                                setIsNotificationsOpen(true);
+                                            }}
+                                            className="text-left pl-4 flex items-center justify-between text-[var(--text-primary)] transition-colors group"
+                                        >
+                                            <span className="flex items-center gap-2">
+                                                <Bell className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors" />
+                                                Bildirimler
+                                            </span>
+                                            {unreadCount > 0 && (
+                                                <div className="bg-[var(--color-brand-orange)] text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center justify-center min-w-[20px]">
+                                                    {unreadCount > 99 ? '99+' : unreadCount}
+                                                </div>
+                                            )}
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                handleNavClick('profile');
+                                                setIsMobileMenuOpen(false);
+                                            }}
+                                            className="text-left pl-4 flex items-center gap-2 text-[var(--text-primary)] transition-colors group"
+                                        >
+                                            <Settings className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors" />
+                                            Ayarlar
+                                        </button>
+                                    </>
+                                )}
+                            </div>
                         </div>
+
+                        {/* Sticky Profile Pill at bottom */}
+                        {kullanici ? (
+                            <div className="mt-auto p-4 sticky bottom-0 bg-[var(--bg-primary)] border-t border-[var(--border-primary)]">
+                                <button
+                                    onClick={() => {
+                                        handleNavClick('profile');
+                                        setIsMobileMenuOpen(false);
+                                    }}
+                                    className="w-full flex items-center justify-between bg-[var(--bg-secondary)] hover:bg-[var(--bg-secondary)]/80 border border-[var(--border-primary)] rounded-[20px] p-2 transition-colors group"
+                                >
+                                    <div className="flex items-center gap-3 overflow-hidden">
+                                        <div className="w-10 h-10 rounded-full border border-[var(--border-primary)] overflow-hidden shrink-0">
+                                            <img 
+                                                src={kullanici.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici.id}`} 
+                                                alt="Profil" 
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col items-start truncate">
+                                            <span className="text-[14px] font-bold text-[var(--text-primary)] truncate">
+                                                {kullanici.user_metadata?.full_name || 'Kullanıcı'}
+                                            </span>
+                                            <span className="text-[11px] text-[var(--text-secondary)] truncate">
+                                                {kullanici.email}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="pr-3 shrink-0">
+                                        <svg className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                                        </svg>
+                                    </div>
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="mt-auto p-4 sticky bottom-0 bg-[var(--bg-primary)] border-t border-[var(--border-primary)]">
+                                <button
+                                    onClick={() => {
+                                        onAuthClick();
+                                        setIsMobileMenuOpen(false);
+                                    }}
+                                    className="w-full bg-[var(--color-brand-orange)] text-white py-3.5 rounded-full font-bold text-center flex items-center justify-center gap-2"
+                                >
+                                    <LogIn className="w-5 h-5" />
+                                    Giriş Yap / Üye Ol
+                                </button>
+                            </div>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>
