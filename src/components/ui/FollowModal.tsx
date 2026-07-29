@@ -242,7 +242,7 @@ export default function FollowModal({
                     </div>
 
                     {/* List Content */}
-                    <div className="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar min-h-[260px] max-h-[380px]">
+                    <div data-lenis-prevent="true" className="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar min-h-[260px] max-h-[380px]">
                         {loading ? (
                             <div className="flex flex-col items-center justify-center py-12 text-gray-400 gap-2">
                                 <Loader2 className="w-6 h-6 animate-spin text-orange-500" />

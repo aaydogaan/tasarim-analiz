@@ -1449,19 +1449,15 @@ export default function App() {
                                   ) : (
                                     <div className="flex items-center gap-2">
                                       <span className="flex items-center gap-1 text-[#FF5500] font-extrabold">
-                                        <Zap className="w-4 h-4 fill-[#FF5500]" /> Bugünkü Hak: {getTodayUsageCount()}/3
+                                        <Zap className="w-4 h-4 fill-[#FF5500]" /> Kalan Hak: {3 - getTodayUsageCount()} / 3
                                       </span>
-                                      {getTodayUsageCount() >= 3 ? (
+                                      {getTodayUsageCount() >= 3 && (
                                         <button
                                           onClick={() => setProLimitModalAcik(true)}
                                           className="text-[10px] font-black uppercase text-white bg-[#FF5500] px-2 py-0.5 rounded-md hover:bg-[#e64d00] transition-colors cursor-pointer"
                                         >
                                           PRO'ya Geç
                                         </button>
-                                      ) : (
-                                        <span className="text-[11px] text-[var(--text-secondary)] font-semibold">
-                                          (Kalan: {3 - getTodayUsageCount()})
-                                        </span>
                                       )}
                                     </div>
                                   )}
