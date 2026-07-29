@@ -113,6 +113,7 @@ export default function Tools() {
     const handleCopy = (color: string) => {
         navigator.clipboard.writeText(color);
         setCopiedColor(color);
+        setInputValue(color);
         setTimeout(() => setCopiedColor(null), 1500);
     };
 
