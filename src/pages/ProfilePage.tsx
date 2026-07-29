@@ -371,7 +371,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
     const [userPostsLoading, setUserPostsLoading] = useState(true);
     const [deletePostId, setDeletePostId] = useState<string | null>(null);
     const [deletingPost, setDeletingPost] = useState(false);
-    const [editPostData, setEditPostData] = useState<{ id: string, title: string } | null>(null);
+    const [editPostData, setEditPostData] = useState<{ id: string, title: string, content: string } | null>(null);
 
     useEffect(() => {
         const targetUserId = normalizedProfile.id;
@@ -417,9 +417,9 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
     const handleEditPost = async () => {
         if (!editPostData) return;
         try {
-            await supabase.from('community_posts').update({ title: editPostData.title }).eq('id', editPostData.id);
-            setUserPosts(prev => prev.map(p => p.id === editPostData.id ? { ...p, title: editPostData.title } : p));
-            toast.success('Tasarım başlığı güncellendi');
+            await supabase.from('community_posts').update({ title: editPostData.title, content: editPostData.content }).eq('id', editPostData.id);
+            setUserPosts(prev => prev.map(p => p.id === editPostData.id ? { ...p, title: editPostData.title, content: editPostData.content } : p));
+            toast.success('Tasarım başarıyla güncellendi');
             setEditPostData(null);
         } catch (e) {
             toast.error('Güncellenirken bir hata oluştu');
@@ -1393,7 +1393,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                setEditPostData({ id: post.id, title: post.title || 'Tasarım Analizi' });
+                                                                setEditPostData({ id: post.id, title: post.title || 'Tasarım Analizi', content: post.content || '' });
                                                             }}
                                                             className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-all text-xs font-bold"
                                                         >
@@ -1455,15 +1455,26 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                         <Edit2 className="w-6 h-6" />
                                     </div>
                                     <h3 className="font-black text-lg text-[var(--text-primary)] text-center">Tasarımı Düzenle</h3>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-[var(--text-secondary)]">Tasarım Başlığı</label>
-                                        <input
-                                            type="text"
-                                            value={editPostData.title}
-                                            onChange={(e) => setEditPostData(prev => prev ? { ...prev, title: e.target.value } : null)}
-                                            className="w-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#FF5500] transition-colors"
-                                            placeholder="Tasarım Başlığı"
-                                        />
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-[var(--text-secondary)]">Tasarım Başlığı</label>
+                                            <input
+                                                type="text"
+                                                value={editPostData.title}
+                                                onChange={(e) => setEditPostData(prev => prev ? { ...prev, title: e.target.value } : null)}
+                                                className="w-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#FF5500] transition-colors"
+                                                placeholder="Tasarım Başlığı"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-[var(--text-secondary)]">Açıklama</label>
+                                            <textarea
+                                                value={editPostData.content}
+                                                onChange={(e) => setEditPostData(prev => prev ? { ...prev, content: e.target.value } : null)}
+                                                className="w-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#FF5500] transition-colors resize-none h-24"
+                                                placeholder="Tasarım hakkında bir şeyler yazın..."
+                                            />
+                                        </div>
                                     </div>
                                     <div className="flex gap-2 pt-2">
                                         <button
