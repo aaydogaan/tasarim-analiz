@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
-import { Flame, ThumbsUp, MessageSquare, Image as ImageIcon, Send, Sparkles, AlertCircle, Share2, UploadCloud, Loader2, ArrowLeft } from 'lucide-react';
+import { Flame, ThumbsUp, MessageSquare, Image as ImageIcon, Send, Sparkles, AlertCircle, Share2, UploadCloud, Loader2, ArrowLeft, Pencil, Trash2, X, Check } from 'lucide-react';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
@@ -18,6 +18,8 @@ export default function RevizelesPage() {
     // Form states
     const [currentUser, setCurrentUser] = useState<any>(null);
     const [commentText, setCommentText] = useState('');
+    const [editingPostId, setEditingPostId] = useState<string | null>(null);
+    const [editCommentText, setEditCommentText] = useState('');
     const [redesignUrl, setRedesignUrl] = useState('');
     const [uploadingImage, setUploadingImage] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -212,6 +214,37 @@ export default function RevizelesPage() {
         }
     };
 
+    const handleEditClick = (p: any) => {
+        setEditingPostId(p.id);
+        setEditCommentText(p.comment);
+    };
+
+    const handleSaveEdit = async () => {
+        if (!editingPostId) return;
+        try {
+            const { error } = await supabase.from('revizeles_posts').update({ comment: editCommentText }).eq('id', editingPostId);
+            if (error) throw error;
+            toast.success('Eleştiriniz güncellendi');
+            setPosts(prev => prev.map(p => p.id === editingPostId ? { ...p, comment: editCommentText } : p));
+            setEditingPostId(null);
+        } catch (err: any) {
+            toast.error('Güncellenirken hata oluştu');
+        }
+    };
+
+    const handleDeletePost = async (id: string) => {
+        if (!window.confirm('Bu eleştiriyi/revizyonu tamamen silmek istediğinize emin misiniz?')) return;
+        try {
+            const { error } = await supabase.from('revizeles_posts').delete().eq('id', id);
+            if (error) throw error;
+            toast.success('Silindi');
+            setPosts(prev => prev.filter(p => p.id !== id));
+        } catch (err: any) {
+            toast.error('Silinirken hata oluştu');
+        }
+    };
+
+
     return (
         <div className="min-h-screen bg-[var(--bg-primary)] pt-24 pb-20">
             <div className="max-w-5xl mx-auto px-4 sm:px-6">
@@ -383,24 +416,50 @@ export default function RevizelesPage() {
                                                             </span>
                                                         </div>
                                                     </Link>
-
-                                                    <button
-                                                        onClick={() => handleLikePost(p.id, p.likes_count)}
-                                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
-                                                            isLiked
-                                                                ? 'bg-[#FF5500]/10 border-[#FF5500] text-[#FF5500]'
-                                                                : 'bg-[var(--bg-secondary)] border-[var(--border-primary)] hover:border-[#FF5500] text-[var(--text-primary)]'
-                                                        }`}
-                                                    >
-                                                        <ThumbsUp className={`w-3.5 h-3.5 ${isLiked ? 'fill-[#FF5500] text-[#FF5500]' : 'text-[#FF5500]'}`} />
-                                                        <span>{p.likes_count || 0}</span>
-                                                    </button>
+                                                    <div className="flex items-center gap-2">
+                                                        {(currentUser?.id === p.user_id || currentUser?.role === 'admin') && (
+                                                            <>
+                                                                <button onClick={() => handleEditClick(p)} className="p-1.5 text-zinc-400 hover:text-blue-500 transition-colors" title="Düzenle">
+                                                                    <Pencil className="w-4 h-4" />
+                                                                </button>
+                                                                <button onClick={() => handleDeletePost(p.id)} className="p-1.5 text-zinc-400 hover:text-red-500 transition-colors" title="Sil">
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                        <button
+                                                            onClick={() => handleLikePost(p.id, p.likes_count)}
+                                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
+                                                                isLiked
+                                                                    ? 'bg-[#FF5500]/10 border-[#FF5500] text-[#FF5500]'
+                                                                    : 'bg-[var(--bg-secondary)] border-[var(--border-primary)] hover:border-[#FF5500] text-[var(--text-primary)]'
+                                                            }`}
+                                                        >
+                                                            <ThumbsUp className={`w-3.5 h-3.5 ${isLiked ? 'fill-[#FF5500] text-[#FF5500]' : 'text-[#FF5500]'}`} />
+                                                            <span>{p.likes_count || 0}</span>
+                                                        </button>
+                                                    </div>
                                                 </div>
 
                                             {/* Comment Text */}
-                                            <p className="text-sm text-[var(--text-primary)]/90 leading-relaxed font-medium">
-                                                {p.comment}
-                                            </p>
+                                            {editingPostId === p.id ? (
+                                                <div className="space-y-2">
+                                                    <textarea
+                                                        rows={3}
+                                                        value={editCommentText}
+                                                        onChange={(e) => setEditCommentText(e.target.value)}
+                                                        className="w-full p-3 rounded-xl border border-[#FF5500] bg-[var(--bg-secondary)] text-sm font-medium text-[var(--text-primary)] focus:outline-none resize-none"
+                                                    />
+                                                    <div className="flex justify-end gap-2">
+                                                        <button onClick={() => setEditingPostId(null)} className="px-3 py-1.5 text-xs font-bold text-zinc-500 hover:text-zinc-700">İptal</button>
+                                                        <button onClick={handleSaveEdit} className="px-4 py-1.5 text-xs font-bold bg-[#FF5500] text-white rounded-lg hover:bg-[#e64d00]">Kaydet</button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <p className="text-sm text-[var(--text-primary)]/90 leading-relaxed font-medium whitespace-pre-wrap">
+                                                    {p.comment}
+                                                </p>
+                                            )}
 
                                             {/* Redesign Image Side-by-side comparison if uploaded */}
                                             {p.redesign_image_url && (
