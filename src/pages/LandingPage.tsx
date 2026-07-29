@@ -358,144 +358,50 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
 
             <FAQ />
 
-            {/* ── Contact Section - Pixel Perfect Match ── */}
-            <div className="relative w-full overflow-hidden flex flex-col items-center pt-[80px] md:pt-[160px] pb-[12px] bg-[var(--color-brand-light)]">
-                {/* Grid Background */}
+            {/* ── Minimal Newsletter Section ── */}
+            <div className="relative w-full overflow-hidden flex flex-col items-center py-24 md:py-32 bg-[var(--color-brand-light)]">
+                {/* Subtle Grid Background */}
                 <div
-                    className="absolute inset-0 bg-[linear-gradient(to_right,var(--grid-color)_1px,rgba(0,0,0,0)_1px),linear-gradient(to_bottom,var(--grid-color)_1px,rgba(0,0,0,0)_1px)] bg-[size:32px_32px] pointer-events-none"
+                    className="absolute inset-0 bg-[linear-gradient(to_right,var(--grid-color)_1px,rgba(0,0,0,0)_1px),linear-gradient(to_bottom,var(--grid-color)_1px,rgba(0,0,0,0)_1px)] bg-[size:32px_32px] pointer-events-none opacity-50"
                     style={{
-                        maskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%)',
-                        WebkitMaskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%)'
+                        maskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 70%)',
+                        WebkitMaskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 70%)'
                     }}
                 />
 
-                {/* Large "Merhaba" Background Heading */}
-                <div className="w-full flex justify-center relative z-0 h-[100px] md:h-[200px]">
-                    <div
-                        style={{
-                            WebkitMaskImage: 'linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 30%)',
-                            maskImage: 'linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 30%)',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            overflow: 'visible'
-                        }}
-                    >
-                        <h2
-                            className="font-display font-semibold text-center whitespace-nowrap"
-                            style={{
-                                fontSize: 'clamp(80px, 20vw, 320px)',
-                                lineHeight: '1',
-                                letterSpacing: '0px',
-                                color: 'rgba(12, 12, 12, 0.82)',
-                                transform: 'translateY(10px)'
-                            }}
-                        >
-                            <span
-                                style={{
-                                    backgroundImage: 'linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.45) 159%)',
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent',
-                                    backgroundClip: 'text'
-                                }}
-                            >
-                                Merhaba
-                            </span>
+                <div className="w-full max-w-4xl mx-auto px-6 relative z-10 text-center flex flex-col items-center gap-8">
+                    <div className="flex flex-col gap-4 items-center max-w-2xl">
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FF4D00]/10 text-[#FF4D00] text-xs font-bold uppercase tracking-wider mb-2">
+                            Gelişmelerden Haberdar Olun
+                        </div>
+                        <h2 className="text-3xl md:text-5xl font-display font-bold text-[var(--color-brand-dark)] tracking-tight">
+                            Bültenimize Katılın
                         </h2>
+                        <p className="text-[var(--color-brand-dark)]/60 font-medium text-base md:text-lg">
+                            Tasarım ipuçları, yapay zeka güncellemeleri ve ürün yenilikleri için e-posta listemize katılın. Söz veriyoruz, spam yapmıyoruz.
+                        </p>
                     </div>
-                </div>
 
-                {/* Contact Box Container */}
-                <div className="w-full max-w-[1920px] mx-auto px-4 md:px-2 relative z-20">
-                    <div className="relative rounded-[24px] md:rounded-[32px] overflow-hidden flex flex-col pt-16 md:pt-[112px] pb-12 md:pb-[64px] px-6 md:px-[148px]">
-                        {/* Background Image exactly as original */}
-                        <div className="absolute inset-0 z-0">
-                            <img
-                                src="https://framerusercontent.com/images/1sREGvYWbdhqXmijCOMUIsD7A.png"
-                                className="w-full h-full object-cover rounded-[24px] md:rounded-[32px]"
-                                alt="contact-bg"
+                    <form 
+                        className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-md mx-auto" 
+                        onSubmit={e => { e.preventDefault(); alert('Bültene başarıyla kayıt oldunuz!'); }}
+                    >
+                        <div className="relative flex-1 w-full">
+                            <input
+                                type="email"
+                                required
+                                name="Email"
+                                placeholder="E-posta adresiniz..."
+                                className="w-full h-12 md:h-14 px-6 rounded-full border border-[var(--color-brand-dark)]/10 bg-white shadow-sm font-sans text-base text-[var(--color-brand-dark)] placeholder:text-[var(--color-brand-dark)]/40 outline-none focus:border-[#FF4D00]/50 focus:ring-2 focus:ring-[#FF4D00]/20 transition-all"
                             />
                         </div>
-
-                        {/* Content Container */}
-                        <div className="relative z-10 w-full flex flex-col gap-16 md:gap-[224px]">
-
-                            {/* Top Row: Headlines & Form */}
-                            <div className="flex flex-col md:flex-row justify-between items-start w-full max-w-[1144px] gap-12 md:gap-8 mx-auto">
-
-                                {/* Left Side: Headline */}
-                                <div className="flex flex-col gap-4 w-full md:max-w-[456px]">
-                                    <h2
-                                        className="text-white font-sans font-medium leading-[1.1] tracking-tight md:tracking-[-1.8px]"
-                                        style={{ fontSize: 'clamp(32px, 6vw, 64px)' }}
-                                    >
-                                        Bültenimize Katılın
-                                    </h2>
-                                    <p className="text-white/80 text-base md:text-[18px] font-sans">
-                                        Tasarım ipuçları, yapay zeka güncellemeleri ve daha fazlası için kayıt olun.
-                                    </p>
-                                </div>
-
-                                {/* Right Side: Form */}
-                                <div className="flex flex-col items-center gap-16 w-full md:max-w-[456px]">
-                                    <form className="flex flex-col items-start gap-8 w-full" onSubmit={e => { e.preventDefault(); alert('Bültene başarıyla kayıt oldunuz!'); }}>
-                                        <div className="flex flex-col items-start gap-2 w-full">
-                                            <label className="text-white font-sans text-[14px] font-medium tracking-[-0.14px]">
-                                                E-posta Adresiniz
-                                            </label>
-                                            <div className="w-full h-12 border-b border-white/20 relative flex items-center">
-                                                <input
-                                                    type="email"
-                                                    required
-                                                    name="Email"
-                                                    placeholder="hello@example.com"
-                                                    className="w-full h-full bg-transparent font-sans text-[16px] font-medium tracking-[-0.14px] text-white placeholder:text-white/60 outline-none"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="w-full h-12 mt-4 relative">
-                                            <button
-                                                type="submit"
-                                                className="w-full h-full rounded-full bg-[#FF4D00] text-white font-sans text-[16px] font-bold tracking-wide flex items-center justify-center transition-transform hover:scale-[1.02] shadow-lg cursor-pointer"
-                                            >
-                                                Abone Ol
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-
-                            {/* Bottom Marquee (Inline, exact style) */}
-                            <div className="w-full overflow-hidden flex items-center justify-center">
-                                <motion.div
-                                    animate={{ x: ["0%", "-50%"] }}
-                                    transition={{ duration: 15, ease: "linear", repeat: Infinity }}
-                                    className="flex items-center gap-8 w-max pr-8"
-                                    style={{
-                                        WebkitMaskImage: 'linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 12.5%, rgba(0,0,0,1) 87.5%, rgba(0,0,0,0) 100%)',
-                                        maskImage: 'linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 12.5%, rgba(0,0,0,1) 87.5%, rgba(0,0,0,0) 100%)'
-                                    }}
-                                >
-                                    {Array(8).fill(null).map((_, i) => (
-                                        <div key={i} className="flex items-center gap-8">
-                                            <div className="w-4 h-4 rounded-sm flex items-center justify-center">
-                                                <img
-                                                    src="https://framerusercontent.com/images/bPFUMYGmKDGU6pubiY2MFnjtBAk.svg"
-                                                    alt="star"
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            </div>
-                                            <h5 className="font-sans text-[16px] md:text-[24px] font-semibold text-white/90">
-                                                merhaba<span className="text-[#FF4D00]">@</span>revizelesene.com
-                                            </h5>
-                                        </div>
-                                    ))}
-                                </motion.div>
-                            </div>
-
-                        </div>
-                    </div>
+                        <button
+                            type="submit"
+                            className="w-full sm:w-auto h-12 md:h-14 px-8 rounded-full bg-[#FF4D00] text-white font-sans text-base font-bold tracking-wide flex items-center justify-center transition-transform hover:scale-[1.02] hover:shadow-lg hover:shadow-[#FF4D00]/20 shrink-0 cursor-pointer"
+                        >
+                            Abone Ol
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
