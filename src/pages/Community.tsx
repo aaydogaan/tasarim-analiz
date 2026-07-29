@@ -413,6 +413,9 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
             await supabase.from('post_likes').delete().eq('post_id', postId).eq('user_id', kullanici.id);
         } else {
             await supabase.from('post_likes').insert({ post_id: postId, user_id: kullanici.id });
+            try {
+                await supabase.from('user_badges').insert({ user_id: kullanici.id, badge_id: 'takdir-eden' });
+            } catch (_) {}
         }
     };
 

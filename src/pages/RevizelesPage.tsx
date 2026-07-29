@@ -169,6 +169,10 @@ export default function RevizelesPage() {
             setCommentText('');
             setRedesignUrl('');
             fetchPosts(selectedTopic.id);
+            
+            try {
+                await supabase.from('user_badges').insert({ user_id: currentUser.id, badge_id: 'ilk-ses' });
+            } catch (_) {}
         } catch (err: any) {
             toast.error(err.message || 'Gönderilirken bir hata oluştu');
         } finally {
@@ -209,6 +213,9 @@ export default function RevizelesPage() {
         try {
             await supabase.from('revizeles_posts').update({ likes_count: newCount }).eq('id', postId);
             toast.success('Beğeniniz kaydedildi!');
+            try {
+                await supabase.from('user_badges').insert({ user_id: currentUser.id, badge_id: 'takdir-eden' });
+            } catch (_) {}
         } catch (err) {
             console.error('Like error:', err);
         }
