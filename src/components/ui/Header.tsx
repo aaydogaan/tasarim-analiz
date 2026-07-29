@@ -549,21 +549,26 @@ export default function Header({
                                 <Sparkles className="w-4 h-4 text-[#FF4D00]" />
                             </button>
                             
-                            <div className="flex flex-col gap-3">
-                                <span className="text-[13px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Araçlar</span>
-                                <button
-                                    onClick={() => handleNavClick('tools')}
-                                    className={`text-left pl-4 transition-colors ${gorunum === 'tools' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
-                                >
-                                    Renk Atölyesi
-                                </button>
-                                <button
-                                    onClick={() => handleNavClick('typography')}
-                                    className={`text-left pl-4 transition-colors ${gorunum === 'typography' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
-                                >
-                                    Tipografi Lab.
-                                </button>
-                            </div>
+                            <details className="group">
+                                <summary className="flex items-center justify-between cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                                    <span className="text-[13px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Araçlar</span>
+                                    <ChevronDown className="w-4 h-4 text-[var(--text-secondary)] transition-transform group-open:rotate-180" />
+                                </summary>
+                                <div className="flex flex-col gap-4 mt-5 mb-2">
+                                    <button
+                                        onClick={() => handleNavClick('tools')}
+                                        className={`text-left pl-4 transition-colors ${gorunum === 'tools' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                                    >
+                                        Renk Atölyesi
+                                    </button>
+                                    <button
+                                        onClick={() => handleNavClick('typography')}
+                                        className={`text-left pl-4 transition-colors ${gorunum === 'typography' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                                    >
+                                        Tipografi Lab.
+                                    </button>
+                                </div>
+                            </details>
 
                             <button
                                 onClick={() => handleNavClick('vitrin')}
@@ -586,27 +591,32 @@ export default function Header({
                                 Liderlik Tablosu
                             </button>
 
-                            <div className="flex flex-col gap-3">
-                                <span className="text-[13px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Kurumsal</span>
-                                <button
-                                    onClick={() => handleNavClick('about')}
-                                    className={`text-left pl-4 transition-colors ${gorunum === 'about' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
-                                >
-                                    Hakkımızda
-                                </button>
-                                <button
-                                    onClick={() => handleNavClick('iletisim')}
-                                    className={`text-left pl-4 transition-colors ${gorunum === 'iletisim' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
-                                >
-                                    İletişim
-                                </button>
-                                <button
-                                    onClick={() => handleNavClick('nasil-calisir')}
-                                    className={`text-left pl-4 transition-colors ${gorunum === 'nasil-calisir' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
-                                >
-                                    SSS
-                                </button>
-                            </div>
+                            <details className="group">
+                                <summary className="flex items-center justify-between cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                                    <span className="text-[13px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Kurumsal</span>
+                                    <ChevronDown className="w-4 h-4 text-[var(--text-secondary)] transition-transform group-open:rotate-180" />
+                                </summary>
+                                <div className="flex flex-col gap-4 mt-5 mb-2">
+                                    <button
+                                        onClick={() => handleNavClick('about')}
+                                        className={`text-left pl-4 transition-colors ${gorunum === 'about' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                                    >
+                                        Hakkımızda
+                                    </button>
+                                    <button
+                                        onClick={() => handleNavClick('iletisim')}
+                                        className={`text-left pl-4 transition-colors ${gorunum === 'iletisim' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                                    >
+                                        İletişim
+                                    </button>
+                                    <button
+                                        onClick={() => handleNavClick('nasil-calisir')}
+                                        className={`text-left pl-4 transition-colors ${gorunum === 'nasil-calisir' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                                    >
+                                        SSS
+                                    </button>
+                                </div>
+                            </details>
 
                             <div className="h-px bg-[var(--border-primary)] my-2" />
 
