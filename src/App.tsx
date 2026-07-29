@@ -19,6 +19,7 @@ import Pricing from "./pages/Pricing";
 import About from "./pages/About";
 import Tools from "./pages/Tools";
 import TypographyLab from "./pages/TypographyLab";
+import Glassmorphism from "./pages/Glassmorphism";
 import HowItWorks from "./pages/HowItWorks";
 import { Leaderboard } from "./pages/Leaderboard";
 import PublicProfile from "./pages/PublicProfile";
@@ -1113,6 +1114,11 @@ export default function App() {
         <Route path="/typography" element={
           <main className="flex-1 w-full mt-20">
             <TypographyLab />
+          </main>
+        } />
+        <Route path="/glassmorphism" element={
+          <main className="flex-1 w-full mt-20">
+            <Glassmorphism />
           </main>
         } />
         <Route path="/leaderboard" element={

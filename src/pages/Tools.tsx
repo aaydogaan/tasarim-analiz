@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Palette, Copy, Check, Sparkles, Wand2, Maximize } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Palette, Copy, Check, Sparkles, Layout, Layers, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
 
-// Core Tool: Color Conversion Logic
+// Core Color Logic
 const hexToHSL = (hex: string) => {
     let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     if (!result) return { h: 0, s: 0, l: 0 };
@@ -53,6 +53,46 @@ const HSLToHex = (h: number, s: number, l: number) => {
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
 };
 
+const hexToRGB = (hex: string) => {
+    let r = 0, g = 0, b = 0;
+    if (hex.length === 4) {
+        r = parseInt(hex[1] + hex[1], 16);
+        g = parseInt(hex[2] + hex[2], 16);
+        b = parseInt(hex[3] + hex[3], 16);
+    } else if (hex.length === 7) {
+        r = parseInt(hex.substring(1, 3), 16);
+        g = parseInt(hex.substring(3, 5), 16);
+        b = parseInt(hex.substring(5, 7), 16);
+    }
+    return { r, g, b };
+};
+
+const getLuminance = (r: number, g: number, b: number) => {
+    let a = [r, g, b].map(function (v) {
+        v /= 255;
+        return v <= 0.03928
+            ? v / 12.92
+            : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+};
+
+const getContrastRatio = (hex1: string, hex2: string) => {
+    const rgb1 = hexToRGB(hex1);
+    const rgb2 = hexToRGB(hex2);
+    let lum1 = getLuminance(rgb1.r, rgb1.g, rgb1.b);
+    let lum2 = getLuminance(rgb2.r, rgb2.g, rgb2.b);
+    let brightest = Math.max(lum1, lum2);
+    let darkest = Math.min(lum1, lum2);
+    return (brightest + 0.05) / (darkest + 0.05);
+};
+
+const getContrastColor = (hexcolor: string) => {
+    const rgb = hexToRGB(hexcolor);
+    const yiq = ((rgb.r * 299) + (rgb.g * 587) + (rgb.b * 114)) / 1000;
+    return (yiq >= 128) ? '#000000' : '#FFFFFF';
+};
+
 const isValidHex = (hex: string) => /^#([0-9A-F]{3}){1,2}$/i.test(hex);
 
 export default function Tools() {
@@ -60,10 +100,8 @@ export default function Tools() {
     const [inputValue, setInputValue] = useState('#FF4D00');
     const [copiedColor, setCopiedColor] = useState<string | null>(null);
 
-    // Auto-update baseColor when input is a valid hex
     useEffect(() => {
         if (isValidHex(inputValue)) {
-            // Expand 3 digit hex
             let expanded = inputValue;
             if (inputValue.length === 4) {
                 expanded = '#' + inputValue[1] + inputValue[1] + inputValue[2] + inputValue[2] + inputValue[3] + inputValue[3];
@@ -78,54 +116,50 @@ export default function Tools() {
         setTimeout(() => setCopiedColor(null), 1500);
     };
 
-    // Calculate variations based on baseColor
     const { h, s, l } = hexToHSL(baseColor);
 
     const palettes = {
         monochromatic: [
-            HSLToHex(h, s, Math.min(90, l + 40)),
+            HSLToHex(h, s, Math.min(95, l + 40)),
             HSLToHex(h, s, Math.min(80, l + 20)),
             baseColor,
             HSLToHex(h, s, Math.max(20, l - 20)),
             HSLToHex(h, s, Math.max(10, l - 40)),
         ],
         complementary: [
+            HSLToHex(h, s, Math.max(10, l - 20)),
             baseColor,
-            HSLToHex(h, Math.max(0, s - 20), Math.min(90, l + 10)),
+            HSLToHex(h, s, Math.min(90, l + 20)),
             HSLToHex((h + 180) % 360, s, l),
-            HSLToHex((h + 180) % 360, Math.max(0, s - 20), Math.max(10, l - 20)),
+            HSLToHex((h + 180) % 360, s, Math.max(20, l - 20)),
         ],
         analogous: [
             HSLToHex((h - 30 + 360) % 360, s, l),
+            HSLToHex((h - 15 + 360) % 360, s, l),
             baseColor,
+            HSLToHex((h + 15) % 360, s, l),
             HSLToHex((h + 30) % 360, s, l),
-            HSLToHex((h + 60) % 360, Math.max(0, s - 10), Math.min(80, l + 10)),
-        ],
-        triadic: [
-            baseColor,
-            HSLToHex((h + 120) % 360, s, l),
-            HSLToHex((h + 240) % 360, s, l),
         ]
     };
 
-    // Derived typical UI Colors
-    const uiColors = {
-        bg: HSLToHex(h, Math.min(20, s), 98),
-        surface: '#FFFFFF',
-        primary: baseColor,
-        secondary: HSLToHex((h + 180) % 360, s, l),
-        text: HSLToHex(h, Math.min(30, s), 15),
-        textMuted: HSLToHex(h, Math.min(20, s), 45)
-    };
+    // UI Mockup Colors based on Base Color
+    const textColorOnBase = getContrastColor(baseColor);
+    const lightBg = HSLToHex(h, s, 96);
+    const darkText = HSLToHex(h, Math.max(0, s - 30), 15);
+    const mutedText = HSLToHex(h, Math.max(0, s - 20), 40);
+    
+    // Contrast Analysis
+    const contrastRatioWhite = getContrastRatio(baseColor, '#FFFFFF').toFixed(2);
+    const contrastRatioBlack = getContrastRatio(baseColor, '#000000').toFixed(2);
+    const passWhite = parseFloat(contrastRatioWhite) >= 4.5;
+    const passBlack = parseFloat(contrastRatioBlack) >= 4.5;
 
     return (
         <div className="w-full bg-[var(--bg-primary)] min-h-screen font-sans selection:bg-[var(--color-brand-orange)] selection:text-white pb-24">
-
             {/* HEADER HERO */}
-            <section className="relative pt-24 pb-20 px-6 overflow-hidden flex flex-col items-center justify-center text-center">
-                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[120px] opacity-60 pointer-events-none" />
-                <div className="absolute top-[10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-20 pointer-events-none" style={{ backgroundColor: baseColor }} />
-
+            <section className="relative pt-24 pb-16 px-6 overflow-hidden flex flex-col items-center justify-center text-center border-b border-[var(--border-primary)]">
+                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[120px] opacity-60 pointer-events-none" />
+                
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -133,171 +167,187 @@ export default function Tools() {
                     className="relative z-10 max-w-3xl mx-auto"
                 >
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--card-bg)] border border-[var(--border-primary)] shadow-sm text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
-                        <Sparkles className="w-3.5 h-3.5" style={{ color: baseColor }} /> Renk Sentezleyici
+                        <Palette className="w-3.5 h-3.5 text-emerald-500" /> Renk Atölyesi
                     </div>
 
-                    <h1 className="text-[48px] md:text-[72px] font-black text-[var(--text-primary)] tracking-tighter leading-[1.05] mb-6">
-                        Renklerin <br className="hidden md:block" />
-                        <span style={{ color: baseColor }} className="transition-colors duration-500">
-                            Matematiği.
-                        </span>
+                    <h1 className="text-[48px] md:text-[64px] font-black text-[var(--text-primary)] tracking-tighter leading-[1.05] mb-6">
+                        Kusursuz Renkleri <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-400">Keşfedin ve Önizleyin</span>
                     </h1>
-
-                    <p className="text-lg md:text-xl text-[var(--text-secondary)] font-medium max-w-2xl mx-auto leading-relaxed mb-10">
-                        Ana renginizi seçin, yapay zeka ve renk teorisi destekli algoritmamız projeniz için en kusursuz renk kombinasyonlarını ve UI kurallarını anında üretsin.
+                    
+                    <p className="text-[16px] md:text-[18px] text-[var(--text-secondary)] mb-10 max-w-xl mx-auto leading-relaxed">
+                        Seçtiğiniz rengin paletlerini oluşturun, erişilebilirlik (WCAG) skorunu görün ve gerçek bir arayüz üzerinde nasıl durduğunu anında test edin.
                     </p>
-                </motion.div>
 
-                {/* Main Input Control */}
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                    className="relative z-20 w-full max-w-xl mx-auto flex items-center bg-[var(--card-bg)] p-2 rounded-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-[var(--border-primary)]"
-                >
-                    <div
-                        className="w-16 h-16 rounded-[20px] shadow-inner shrink-0 relative overflow-hidden group border border-[var(--border-primary)]"
-                        style={{ backgroundColor: baseColor }}
-                    >
-                        <input
-                            type="color"
-                            value={baseColor}
-                            onChange={(e) => setInputValue(e.target.value.toUpperCase())}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center pointer-events-none">
-                            <Palette className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 drop-shadow-md transition-opacity" />
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
+                        <div className="relative w-full">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <div className="w-6 h-6 rounded-full border border-black/10 shadow-inner" style={{ backgroundColor: baseColor }}></div>
+                            </div>
+                            <input
+                                type="text"
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                className="w-full bg-[var(--card-bg)] border-2 border-[var(--border-primary)] text-[var(--text-primary)] font-mono font-bold text-lg px-14 py-4 rounded-2xl focus:outline-none focus:border-emerald-500 transition-colors shadow-sm"
+                                placeholder="#HEX Kodu"
+                            />
                         </div>
                     </div>
-                    <div className="flex-1 px-4">
-                        <p className="text-[10px] font-bold tracking-widest text-[var(--text-secondary)] uppercase mb-1">Temel Renk</p>
-                        <input
-                            type="text"
-                            value={inputValue}
-                            onChange={(e) => {
-                                let val = e.target.value;
-                                if (!val.startsWith('#')) val = '#' + val;
-                                setInputValue(val);
-                            }}
-                            className="bg-transparent border-none outline-none text-2xl font-black text-[var(--text-primary)] w-full font-mono uppercase"
-                            placeholder="#FF4D00"
-                            maxLength={7}
-                        />
-                    </div>
-                    <button
-                        onClick={() => handleCopy(baseColor)}
-                        className="w-14 h-14 bg-[var(--bg-primary)] hover:bg-[var(--card-bg)] rounded-[20px] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors shrink-0 shrink-0 border border-[var(--border-primary)]"
-                    >
-                        {copiedColor === baseColor ? <Check className="w-5 h-5 text-emerald-500" /> : <Copy className="w-5 h-5" />}
-                    </button>
                 </motion.div>
             </section>
 
-            {/* RESULTS BENTO GRID */}
-            <section className="px-6 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 relative z-10">
-
-                {/* Left Column: UI Preview */}
-                <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.8, delay: 0.3 }}
-                    className="md:col-span-12 lg:col-span-5 bg-[var(--card-bg)] rounded-[40px] p-8 shadow-xl border border-[var(--border-primary)] relative overflow-hidden"
-                >
-                    <div className="flex items-center gap-3 mb-8">
-                        <div className="p-3 bg-[var(--bg-primary)] rounded-2xl">
-                            <Wand2 className="w-5 h-5 text-[var(--text-secondary)]" />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-[var(--text-primary)] text-lg">Arayüz Adaptasyonu</h3>
-                            <p className="text-[var(--text-secondary)] text-sm">Gerçek Dünya Senaryosu</p>
-                        </div>
-                    </div>
-
-                    {/* Mock UI Box */}
-                    <div
-                        className="w-full rounded-[32px] p-6 shadow-2xl transition-colors duration-500 border border-black/5"
-                        style={{ backgroundColor: uiColors.bg }}
-                    >
-                        <div className="flex items-center justify-between mb-10">
-                            <div className="w-10 h-10 rounded-full" style={{ backgroundColor: uiColors.primary }}></div>
-                            <div className="flex gap-2">
-                                <div className="w-12 h-3 rounded-full opacity-20" style={{ backgroundColor: uiColors.text }}></div>
-                                <div className="w-8 h-3 rounded-full opacity-20" style={{ backgroundColor: uiColors.text }}></div>
+            <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                {/* LEFT COL: Palettes */}
+                <div className="lg:col-span-5 space-y-8">
+                    {Object.entries(palettes).map(([name, colors]) => (
+                        <div key={name} className="bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-3xl p-6 shadow-sm">
+                            <h3 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <Layers className="w-4 h-4 text-emerald-500" />
+                                {name === 'monochromatic' ? 'Monokromatik' : name === 'complementary' ? 'Tamamlayıcı' : 'Analog'}
+                            </h3>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                {colors.map((color, i) => (
+                                    <div 
+                                        key={i} 
+                                        onClick={() => handleCopy(color)}
+                                        className="group relative flex-1 h-20 sm:h-32 rounded-2xl cursor-pointer overflow-hidden transition-transform hover:scale-[1.02] hover:shadow-lg hover:z-10 border border-black/5"
+                                        style={{ backgroundColor: color }}
+                                    >
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+                                            {copiedColor === color ? (
+                                                <Check className="w-6 h-6 text-white" />
+                                            ) : (
+                                                <Copy className="w-6 h-6 text-white" />
+                                            )}
+                                        </div>
+                                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-white/90 text-black text-[10px] font-bold px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
+                                            {color}
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
+                    ))}
+                </div>
 
-                        <h4 className="text-3xl font-black mb-4 tracking-tight transition-colors duration-500" style={{ color: uiColors.text }}>
-                            Modern & Şık
-                        </h4>
-                        <p className="text-sm leading-relaxed mb-10 transition-colors duration-500 font-medium" style={{ color: uiColors.textMuted }}>
-                            Tasarımında bu renk şemasını kullanarak, hiyerarşiyi kusursuz bir şekilde oturtabilirsin.
-                        </p>
-
-                        <div className="flex gap-3">
-                            <button
-                                className="px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
-                                style={{ backgroundColor: uiColors.primary }}
-                            >
-                                Hemen Başla
-                            </button>
-                            <button
-                                className="px-6 py-3 rounded-xl font-bold border-2 transition-transform hover:scale-105 active:scale-95"
-                                style={{ borderColor: uiColors.primary, color: uiColors.primary }}
-                            >
-                                İncele
-                            </button>
+                {/* RIGHT COL: Realtime Mockup & Accessibility */}
+                <div className="lg:col-span-7 space-y-8">
+                    
+                    {/* ACCESSIBILITY CHECKER */}
+                    <div className="bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row gap-6">
+                        <div className="flex-1">
+                            <h3 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                                WCAG Kontrast Analizi
+                            </h3>
+                            <p className="text-xs text-[var(--text-secondary)] mb-4">
+                                Seçtiğiniz ana rengin üzerinde beyaz ve siyah metnin ne kadar okunabilir olduğunu WCAG 2.0 standartlarına göre gösterir. (Minimum 4.5 oran gereklidir.)
+                            </p>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="border border-[var(--border-primary)] rounded-2xl p-4 flex flex-col items-center justify-center text-center relative overflow-hidden" style={{ backgroundColor: baseColor }}>
+                                    <span className="text-4xl font-black text-white mb-2">Aa</span>
+                                    <span className="text-white text-xs font-bold bg-white/20 px-2 py-1 rounded-md backdrop-blur-sm">Oran: {contrastRatioWhite}</span>
+                                    <div className="absolute top-2 right-2">
+                                        {passWhite ? <Check className="w-5 h-5 text-emerald-300" /> : <AlertCircle className="w-5 h-5 text-red-300" />}
+                                    </div>
+                                </div>
+                                <div className="border border-[var(--border-primary)] rounded-2xl p-4 flex flex-col items-center justify-center text-center relative overflow-hidden" style={{ backgroundColor: baseColor }}>
+                                    <span className="text-4xl font-black text-black mb-2">Aa</span>
+                                    <span className="text-black text-xs font-bold bg-black/10 px-2 py-1 rounded-md backdrop-blur-sm">Oran: {contrastRatioBlack}</span>
+                                    <div className="absolute top-2 right-2">
+                                        {passBlack ? <Check className="w-5 h-5 text-emerald-600" /> : <AlertCircle className="w-5 h-5 text-red-500" />}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </motion.div>
 
-                {/* Right Column: Palettes */}
-                <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.8, delay: 0.4 }}
-                    className="md:col-span-12 lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6"
-                >
+                    {/* REAL-TIME UI MOCKUP */}
+                    <div className="bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-3xl p-6 shadow-sm">
+                        <h3 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-widest mb-6 flex items-center gap-2">
+                            <Layout className="w-4 h-4 text-emerald-500" />
+                            Canlı Arayüz Önizlemesi
+                        </h3>
+                        
+                        {/* Mockup Container */}
+                        <div className="rounded-2xl border border-[var(--border-primary)] shadow-inner overflow-hidden transition-colors duration-500" style={{ backgroundColor: lightBg }}>
+                            
+                            {/* Mock Navbar */}
+                            <div className="px-6 py-4 border-b border-black/5 bg-white/50 backdrop-blur-md flex justify-between items-center">
+                                <div className="flex items-center gap-2 font-black text-lg transition-colors duration-500" style={{ color: baseColor }}>
+                                    <div className="w-6 h-6 rounded-lg transition-colors duration-500" style={{ backgroundColor: baseColor }}></div>
+                                    BrandUI
+                                </div>
+                                <div className="hidden sm:flex gap-6 text-sm font-medium transition-colors duration-500" style={{ color: mutedText }}>
+                                    <span>Anasayfa</span>
+                                    <span>Özellikler</span>
+                                    <span>Fiyatlandırma</span>
+                                </div>
+                                <div className="px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all duration-500 cursor-pointer" style={{ backgroundColor: baseColor, color: textColorOnBase }}>
+                                    Hemen Başla
+                                </div>
+                            </div>
 
-                    {/* Palette Block Factory */}
-                    <PaletteBlock title="Monokromatik" desc="Ton Geçişleri" colors={palettes.monochromatic} copiedColor={copiedColor} handleCopy={handleCopy} />
-                    <PaletteBlock title="Tamamlayıcı" desc="Kontrast Yaratın" colors={palettes.complementary} copiedColor={copiedColor} handleCopy={handleCopy} />
-                    <PaletteBlock title="Analog" desc="Doğal Uyum" colors={palettes.analogous} copiedColor={copiedColor} handleCopy={handleCopy} />
-                    <PaletteBlock title="Üçlü (Triadic)" desc="Canlı & Dengeli" colors={palettes.triadic} copiedColor={copiedColor} handleCopy={handleCopy} />
+                            {/* Mock Hero */}
+                            <div className="px-6 py-16 flex flex-col md:flex-row items-center gap-10">
+                                <div className="flex-1 space-y-6">
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold transition-colors duration-500" style={{ backgroundColor: baseColor + '15', color: baseColor }}>
+                                        <Sparkles className="w-3.5 h-3.5" /> Yeni Özellikler Yayında
+                                    </div>
+                                    <h2 className="text-4xl md:text-5xl font-black leading-tight tracking-tight transition-colors duration-500" style={{ color: darkText }}>
+                                        Renklerin Gücünü <br />
+                                        <span className="transition-colors duration-500" style={{ color: baseColor }}>Arayüzde Hissedin.</span>
+                                    </h2>
+                                    <p className="text-base leading-relaxed max-w-md transition-colors duration-500" style={{ color: mutedText }}>
+                                        Seçtiğiniz renk paletinin gerçek bir web sitesi şablonunda nasıl durduğunu anında görerek tasarım kararlarınızı hızlandırın.
+                                    </p>
+                                    <div className="flex items-center gap-4 pt-2">
+                                        <div className="px-6 py-3 rounded-xl text-sm font-bold shadow-lg shadow-black/5 cursor-pointer flex items-center gap-2 transition-all duration-500" style={{ backgroundColor: baseColor, color: textColorOnBase }}>
+                                            Ücretsiz Başla <ArrowRight className="w-4 h-4" />
+                                        </div>
+                                        <div className="px-6 py-3 rounded-xl text-sm font-bold border-2 cursor-pointer transition-colors duration-500" style={{ borderColor: baseColor + '30', color: baseColor }}>
+                                            Daha Fazla Bilgi
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex-1 w-full relative">
+                                    {/* Abstract Graphic */}
+                                    <div className="aspect-square rounded-full absolute -right-10 top-0 blur-3xl opacity-30 transition-colors duration-500" style={{ backgroundColor: baseColor }}></div>
+                                    <div className="relative z-10 bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-black/5 p-6 aspect-video flex flex-col justify-between">
+                                        <div className="flex justify-between items-center border-b border-black/5 pb-4">
+                                            <div className="h-4 w-24 rounded-full transition-colors duration-500" style={{ backgroundColor: baseColor + '20' }}></div>
+                                            <div className="flex gap-2">
+                                                <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                                                <div className="w-3 h-3 rounded-full bg-amber-400"></div>
+                                                <div className="w-3 h-3 rounded-full bg-emerald-400"></div>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <div className="flex gap-4">
+                                                <div className="w-12 h-12 rounded-xl flex-shrink-0 transition-colors duration-500" style={{ backgroundColor: baseColor + '20' }}></div>
+                                                <div className="flex-1 space-y-2 pt-1">
+                                                    <div className="h-4 w-3/4 rounded-full transition-colors duration-500" style={{ backgroundColor: baseColor + '40' }}></div>
+                                                    <div className="h-3 w-1/2 rounded-full transition-colors duration-500" style={{ backgroundColor: baseColor + '15' }}></div>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-4">
+                                                <div className="w-12 h-12 rounded-xl flex-shrink-0 transition-colors duration-500" style={{ backgroundColor: baseColor + '50' }}></div>
+                                                <div className="flex-1 space-y-2 pt-1">
+                                                    <div className="h-4 w-2/3 rounded-full transition-colors duration-500" style={{ backgroundColor: baseColor + '40' }}></div>
+                                                    <div className="h-3 w-1/3 rounded-full transition-colors duration-500" style={{ backgroundColor: baseColor + '15' }}></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                </motion.div>
-            </section>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
         </div>
     );
-}
-
-// Subcomponent for Palette Blocks
-function PaletteBlock({ title, desc, colors, copiedColor, handleCopy }: { title: string, desc: string, colors: string[], copiedColor: string | null, handleCopy: (val: string) => void }) {
-    return (
-        <div className="bg-[var(--card-bg)] rounded-[32px] p-6 shadow-xl border border-[var(--border-primary)] flex flex-col justify-between hover:shadow-2xl transition-shadow">
-            <div className="mb-6">
-                <h3 className="font-bold text-[var(--text-primary)] text-lg">{title}</h3>
-                <p className="text-[var(--text-secondary)] text-sm font-medium">{desc}</p>
-            </div>
-            <div className="w-full flex h-24 rounded-2xl overflow-hidden shadow-inner border border-black/5">
-                {colors.map((color, idx) => (
-                    <div
-                        key={idx}
-                        className="flex-1 relative group cursor-pointer hover:flex-[1.5] transition-all duration-300"
-                        style={{ backgroundColor: color }}
-                        onClick={() => handleCopy(color)}
-                    >
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 touch-auto">
-                            {copiedColor === color ? (
-                                <Check className="w-5 h-5 text-white drop-shadow-md" />
-                            ) : (
-                                <span className="text-white font-mono text-[10px] font-bold tracking-wider drop-shadow-md rotate-90 sm:rotate-0">
-                                    {color}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    )
 }

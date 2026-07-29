@@ -238,7 +238,7 @@ export default function Header({
                     >
                         <button
                             onClick={() => setIsToolsDropdownOpen(!isToolsDropdownOpen)}
-                            className={`flex items-center gap-1 transition-colors whitespace-nowrap ${['tools', 'typography'].includes(gorunum) ? 'text-[var(--color-brand-orange)] font-bold' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
+                            className={`flex items-center gap-1 transition-colors whitespace-nowrap ${['tools', 'typography', 'glassmorphism'].includes(gorunum) ? 'text-[var(--color-brand-orange)] font-bold' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
                         >
                             Araçlar <ChevronDown className={`w-3.5 h-3.5 opacity-60 transition-transform duration-300 ${isToolsDropdownOpen ? 'rotate-180' : ''}`} />
                         </button>
@@ -261,7 +261,16 @@ export default function Header({
                                             Tipografi Lab.
                                             <span className="block text-[10px] text-[var(--text-secondary)] font-medium mt-0.5">Yazı Tipi Uyumları</span>
                                         </div>
-                                        <span className="text-[9px] bg-[var(--color-brand-orange)] text-white px-2 py-0.5 rounded-md font-black tracking-wider uppercase">YENİ</span>
+                                    </button>
+                                    <button
+                                        onClick={() => handleNavClick('glassmorphism')}
+                                        className={`w-full text-left px-5 py-3.5 rounded-2xl hover:bg-pink-500/10 text-[13px] font-bold transition-all flex justify-between items-center ${gorunum === 'glassmorphism' ? 'text-pink-500 bg-pink-500/5' : 'text-[var(--text-primary)]/80 hover:text-pink-500'}`}
+                                    >
+                                        <div>
+                                            Glassmorphism
+                                            <span className="block text-[10px] text-[var(--text-secondary)] font-medium mt-0.5">Buzlu Cam Efekti</span>
+                                        </div>
+                                        <span className="text-[9px] bg-gradient-to-r from-pink-500 to-purple-500 text-white px-2 py-0.5 rounded-md font-black tracking-wider uppercase shadow-sm">YENİ</span>
                                     </button>
                                 </div>
                             </div>
