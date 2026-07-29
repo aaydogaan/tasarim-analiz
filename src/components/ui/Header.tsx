@@ -297,7 +297,6 @@ export default function Header({
                         className={`group transition-all whitespace-nowrap flex items-center gap-1.5 ${gorunum.startsWith('revizeles') ? 'text-[var(--text-primary)] font-bold' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
                     >
                         <span>Reviz<span className="text-[#FF4D00] group-hover:drop-shadow-[0_0_8px_rgba(255,77,0,0.5)] transition-all font-black">Eleştir</span></span>
-                        <Sparkles className="w-3.5 h-3.5 text-[#FF4D00]" />
                     </button>
                     <button
                         onClick={() => handleNavClick('leaderboard')}
@@ -555,7 +554,6 @@ export default function Header({
                                 className={`text-left flex items-center gap-1.5 transition-colors ${gorunum.startsWith('revizeles') ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
                             >
                                 <span>Reviz<span className="text-[#FF4D00] font-black">Eleştir</span></span>
-                                <Sparkles className="w-4 h-4 text-[#FF4D00]" />
                             </button>
                             
                             <details className="group">
