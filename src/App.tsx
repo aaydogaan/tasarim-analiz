@@ -70,7 +70,7 @@ const KARUSEL_IPUCLARI = [
   "💡 İnsan gözünün oluşturduğu en estetik denge şekli matematikteki 'Altın Oran' (1.618) formülünde gizlidir.",
   "💡 Metin hiyerarşisi, kullanıcının sayfada nereye bakacağını saniyeler içinde zihinsel olarak yönlendirir."
 ];
-type TasarimTuru = "Sosyal Medya" | "Kurumsal" | "E-Ticaret" | "Baskı Materyali";
+type TasarimTuru = "Sosyal Medya" | "Kurumsal" | "E-Ticaret" | "Baskı Materyali" | "Logo Tasarımı" | "Arayüz (UI/UX)";
 
 const kriterlerMap: Record<TasarimTuru, { key: string; label: string; emoji: React.ReactNode }[]> = {
   "Sosyal Medya": [
@@ -97,13 +97,27 @@ const kriterlerMap: Record<TasarimTuru, { key: string; label: string; emoji: Rea
     { key: "butunluk", label: "Tasarım Bütünlüğü", emoji: <Layout className="w-4 h-4" /> },
     { key: "kompozisyon", label: "Baskı Hazırlığı", emoji: <Grid className="w-4 h-4" /> },
   ],
+  "Logo Tasarımı": [
+    { key: "renk", label: "Marka Uyumu", emoji: <Palette className="w-4 h-4" /> },
+    { key: "font", label: "Özgünlük", emoji: <TypeIcon className="w-4 h-4" /> },
+    { key: "butunluk", label: "Vektörel Denge", emoji: <Grid className="w-4 h-4" /> },
+    { key: "kompozisyon", label: "Sadelik ve Etki", emoji: <Sparkles className="w-4 h-4" /> },
+  ],
+  "Arayüz (UI/UX)": [
+    { key: "renk", label: "Erişilebilirlik", emoji: <ShieldCheck className="w-4 h-4" /> },
+    { key: "font", label: "Metin Hiyerarşisi", emoji: <Layers className="w-4 h-4" /> },
+    { key: "butunluk", label: "UI Tutarlılığı", emoji: <Layout className="w-4 h-4" /> },
+    { key: "kompozisyon", label: "Kullanıcı Deneyimi", emoji: <Monitor className="w-4 h-4" /> },
+  ],
 };
 
 const tasarimTuruConfig: { id: TasarimTuru; icon: React.ReactNode; desc: string }[] = [
-  { id: "Sosyal Medya", icon: <Smartphone className="w-5 h-5" />, desc: "Post, Story, Reels, Banner" },
-  { id: "Kurumsal", icon: <Building2 className="w-5 h-5" />, desc: "Kartvizit, Sunum, Antetli" },
+  { id: "Sosyal Medya", icon: <Smartphone className="w-5 h-5" />, desc: "Post, Story, Reels" },
+  { id: "Kurumsal", icon: <Building2 className="w-5 h-5" />, desc: "Kartvizit, Antetli, Sunum" },
   { id: "E-Ticaret", icon: <ShoppingBag className="w-5 h-5" />, desc: "Ürün, Banner, Kampanya" },
   { id: "Baskı Materyali", icon: <Printer className="w-5 h-5" />, desc: "Broşür, Afiş, Katalog" },
+  { id: "Logo Tasarımı", icon: <Layers className="w-5 h-5" />, desc: "Amblem, Marka Kimliği" },
+  { id: "Arayüz (UI/UX)", icon: <Monitor className="w-5 h-5" />, desc: "Web, Mobil Uygulama" },
 ];
 
 const sosyalMedyaPlatformlari = [

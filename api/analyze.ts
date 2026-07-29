@@ -14,7 +14,7 @@ export const config = {
 
 export const maxDuration = 60; // Vercel hobby plan maximum timeout
 
-type TasarimTuru = "Sosyal Medya" | "Kurumsal" | "E-Ticaret" | "Baskı Materyali";
+type TasarimTuru = "Sosyal Medya" | "Kurumsal" | "E-Ticaret" | "Baskı Materyali" | "Logo Tasarımı" | "Arayüz (UI/UX)";
 
 type AnalyzeRequestBody = {
   imageBase64?: string;
@@ -62,6 +62,20 @@ const kriterBilgisi: Record<TasarimTuru, { renk: string; font: string; butunluk:
     kompozisyon: "Baskı Hazırlığı — Kenar boşlukları, taşma alanı (bleed) ve güvenli alan kullanımı doğru mu?",
     context: "Bu bir baskı materyali. CMYK renk uyumu, baskı teknik gereksinimleri ve fiziksel üretim kalitesi açısından da değerlendir.",
   },
+  "Logo Tasarımı": {
+    renk: "Marka Uyumu — Renkler markanın sektörüne ve hissiyatına uygun mu? Tek renkte bile çalışabilir mi?",
+    font: "Özgünlük — Logotype kullanıldıysa karakterler özgün, okunaklı ve ölçeklenebilir mi?",
+    butunluk: "Vektörel Denge — Sembol ve logotype orantılı mı? Ölçeklendiğinde ince detaylar kayboluyor mu?",
+    kompozisyon: "Sadelik ve Etki — Logo akılda kalıcı, sade ve profesyonel standartlarda mı?",
+    context: "Bu bir LOGO tasarımıdır. Logolarda 'buton', 'uzun metin', 'CTA' (harekete geçirici mesaj) gibi arayüz veya sosyal medya elemanları ARANMAZ. Odak noktan tamamen markalaşma, sadelik ve sembol/tipografi uyumu olmalıdır.",
+  },
+  "Arayüz (UI/UX)": {
+    renk: "Erişilebilirlik — Kontrast oranları (WCAG) uygun mu? Vurgu renkleri (Action colors) doğru kullanılmış mı?",
+    font: "Metin Hiyerarşisi — Başlık (H1) ile gövde metni ayrımı net mi? Okunabilirlik yüksek mi?",
+    butunluk: "UI Tutarlılığı — Bileşenler (buton, kart, grid) kendi içinde görsel bir dil birliğine sahip mi?",
+    kompozisyon: "UX ve Düzen — Beyaz boşluklar (whitespace), odak noktaları ve kullanıcı akışı sezgisel mi?",
+    context: "Bu bir web veya mobil ARAYÜZ (UI/UX) tasarımıdır. Sadece estetiği değil, kullanılabilirliği, modern UI standartlarını ve hiyerarşiyi değerlendir.",
+  }
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -106,7 +120,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const prompt = `${roleDescription}
 
-ÖNEMLİ KURAL: Görselin tam olarak ne olduğuna (Logo, Sosyal Medya Postu, Afiş, Kartvizit vb.) dikkat et. Eğer görsel sadece bir LOGO ise, ondan bir "Buton (CTA)", "Harekete geçirici mesaj" veya "Uzun okunabilir metinler" bekleme! Eleştirilerini görselin doğasına uygun, mantıklı çerçevede yap. Olmaması gereken şeylerin eksikliğini hata olarak sayma.
+ÖNEMLİ UYARI (HALÜSİNASYON ENGELLEYİCİ): Görseli DİKKATLİCE incele. Görselde OLMAYAN bir öğeyi (örneğin tasarımda buton yoksa butonun rengini, fiyat yoksa fiyat etiketini) varmış gibi eleştirme! Eğer görsel bir Logo ise ondan "harekete geçirici mesaj", "call to action", "uzun okunabilir metin" GİBİ ŞEYLER BEKLEME VE EKSİKLİĞİNİ HATA OLARAK SAYMA. SADECE gördüğün gerçek öğeler üzerinden yorum yap. Yorumların mantıklı, yapıcı ve doğrudan görselin içeriğiyle alakalı olmalı. Robotik ve jenerik cümleler yerine, deneyimli bir tasarımcı gibi DOĞAL ve GERÇEKÇİ konuş. Saçma ve alakasız yorumlardan KESİNLİKLE kaçın.
 
 Tasarım Bağlamı:
 - Tasarım Türü: ${tasarimTuru}
