@@ -222,8 +222,8 @@ export default function RevizelesPage() {
                         <Flame className="w-4 h-4 text-[#FF5500]" />
                         <span>CANLI GÜNDEM TARTIŞMALARI</span>
                     </div>
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[var(--text-primary)] tracking-tight">
-                        Revizeleştir
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[var(--text-primary)] tracking-tight flex items-center justify-center gap-2">
+                        <span>Reviz<span className="text-[#FF5500] font-black">Eleştir</span></span>
                     </h1>
                     <p className="text-sm sm:text-base text-[var(--text-secondary)] max-w-xl mx-auto leading-relaxed">
                         Gündemdeki logolar, marka yenilemeleri ve şehir amblemleri burada masaya yatırılıyor. Tasarımı eleştir veya kendi alternatif logosunu paylaş!

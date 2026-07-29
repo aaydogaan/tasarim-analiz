@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, User, LogOut, Info, Settings, CreditCard, HelpCircle, ArrowRight, LayoutDashboard, Crown, LogIn, Mail, Lock, CheckCircle2, AlertCircle, Eye, EyeOff, Check, BarChart2, Layers, ChevronDown, Sun, Moon, Bell, Heart, MessageCircle, Star, Search, Flame } from 'lucide-react';
+import { Menu, X, User, LogOut, Info, Settings, CreditCard, HelpCircle, ArrowRight, LayoutDashboard, Crown, LogIn, Mail, Lock, CheckCircle2, AlertCircle, Eye, EyeOff, Check, BarChart2, Layers, ChevronDown, Sun, Moon, Bell, Heart, MessageCircle, Star, Search, Flame, Sparkles } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { supabase } from '../../lib/supabase';
@@ -285,9 +285,10 @@ export default function Header({
                     </button>
                     <button
                         onClick={() => handleNavClick('revizeles')}
-                        className={`transition-colors whitespace-nowrap ${gorunum.startsWith('revizeles') ? 'text-[var(--text-primary)] font-bold' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
+                        className={`group transition-all whitespace-nowrap flex items-center gap-1.5 ${gorunum.startsWith('revizeles') ? 'text-[var(--text-primary)] font-bold' : 'hover:text-[var(--text-primary)] text-[var(--text-secondary)]'}`}
                     >
-                        Revizeleştir
+                        <span>Reviz<span className="text-[#FF4D00] group-hover:drop-shadow-[0_0_8px_rgba(255,77,0,0.5)] transition-all font-black">Eleştir</span></span>
+                        <Sparkles className="w-3.5 h-3.5 text-[#FF4D00]" />
                     </button>
                     <button
                         onClick={() => handleNavClick('leaderboard')}
@@ -542,9 +543,10 @@ export default function Header({
 
                             <button
                                 onClick={() => handleNavClick('revizeles')}
-                                className={`text-left transition-colors ${gorunum.startsWith('revizeles') ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                                className={`text-left flex items-center gap-1.5 transition-colors ${gorunum.startsWith('revizeles') ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
                             >
-                                Revizeleştir
+                                <span>Reviz<span className="text-[#FF4D00] font-black">Eleştir</span></span>
+                                <Sparkles className="w-4 h-4 text-[#FF4D00]" />
                             </button>
                             
                             <div className="flex flex-col gap-3">

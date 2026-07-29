@@ -217,17 +217,17 @@ export default function Footer({
                                 {[
                                     { label: 'Hakkımızda', view: 'about' as const },
                                     { label: 'Nasıl Çalışır?', view: 'nasil-calisir' as const },
-                                    { label: 'Revizeleştir', view: 'revizeles' as const },
+                                    { label: <span>Reviz<span className="text-[#FF4D00] font-black">Eleştir</span></span>, view: 'revizeles' as const },
                                     { label: 'Keşfet', view: 'vitrin' as const },
                                     { label: 'Araçlar', view: 'tools' as const },
                                     { label: 'Topluluk', view: 'community' as const },
                                 ].map((item) => (
                                     <button 
-                                        key={item.label} 
+                                        key={item.view} 
                                         onClick={() => onNavClick?.(item.view)}
                                         className="footer-link"
                                     >
-                                        <h6 className="footer-link-text">{item.label}</h6>
+                                        <h6 className="footer-link-text flex items-center gap-0.5">{item.label}</h6>
                                     </button>
                                 ))}
                             </div>
