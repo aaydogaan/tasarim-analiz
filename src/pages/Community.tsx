@@ -798,24 +798,26 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
 
                     {/* Left: Latest Activity */}
                     <div className="lg:col-span-2 space-y-12">
-                        {/* New Post Input Box */}
-                        <div 
-                            onClick={() => setYeniGonderiModalAcik(true)}
-                            className="w-full bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-[32px] p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow cursor-text flex items-center gap-4 group"
-                        >
-                            <img 
-                                src={kullanici?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici?.id || 'anonymous'}`}
-                                alt="Avatar"
-                                className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-[var(--border-primary)] bg-[var(--bg-secondary)]"
-                            />
-                            <div className="flex-1 bg-[var(--bg-secondary)] rounded-full px-6 py-3.5 sm:py-4 text-[var(--text-secondary)] font-medium flex justify-between items-center group-hover:bg-[var(--border-primary)]/50 transition-colors">
-                                <span className="text-sm sm:text-base">Bir tasarım veya düşünceni paylaş...</span>
-                                <div className="flex items-center gap-3">
-                                    <ImageIcon className="w-5 h-5 opacity-60" />
-                                    <Send className="w-5 h-5 opacity-60" />
+                        {/* New Post Input Box - Only for logged in users */}
+                        {kullanici && (
+                            <div 
+                                onClick={() => setYeniGonderiModalAcik(true)}
+                                className="w-full bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-[32px] p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow cursor-text flex items-center gap-4 group mb-6"
+                            >
+                                <img 
+                                    src={kullanici?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici?.id || 'anonymous'}`}
+                                    alt="Avatar"
+                                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-[var(--border-primary)] bg-[var(--bg-secondary)]"
+                                />
+                                <div className="flex-1 bg-[var(--bg-secondary)] rounded-full px-6 py-3.5 sm:py-4 text-[var(--text-secondary)] font-medium flex justify-between items-center group-hover:bg-[var(--border-primary)]/50 transition-colors">
+                                    <span className="text-sm sm:text-base">Bir tasarım veya düşünceni paylaş...</span>
+                                    <div className="flex items-center gap-3">
+                                        <ImageIcon className="w-5 h-5 opacity-60" />
+                                        <Send className="w-5 h-5 opacity-60" />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
 
                         <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4 md:gap-0">
                             <div className="flex flex-wrap items-center gap-3 justify-center md:justify-start w-full md:w-auto flex-1">
