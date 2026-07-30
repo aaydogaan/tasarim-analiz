@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import { Heart, Maximize2, X, Star, Loader2, Search, ChevronDown, Filter, Sparkles, Trophy, Flame, Clock, ArrowBigUp, ArrowBigDown, Flag, Pencil, Trash2 } from "lucide-react";
+import { Heart, Maximize2, X, Star, Loader2, Search, ChevronDown, Filter, Sparkles, Trophy, Flame, Clock, ArrowBigUp, ArrowBigDown, Flag, Pencil, Trash2, ChevronLeft, ChevronRight, Layers } from "lucide-react";
 import toast from "react-hot-toast";
 import ReportModal from '../components/ui/ReportModal';
 import ConfirmModal from '../components/ui/ConfirmModal';
@@ -19,6 +19,8 @@ interface VitrinItem {
     platform: string;
     isletme: string;
     gorsel_url: string;
+    extra_images?: string[];
+    all_images?: string[];
     ai_puan: number;
     topluluk_puan: number;
     oy_sayisi: number;
@@ -35,6 +37,7 @@ export function Vitrin() {
     const [items, setItems] = useState<VitrinItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [seciliGorsel, setSeciliGorsel] = useState<VitrinItem | null>(null);
+    const [seciliGorselAktifIndex, setSeciliGorselAktifIndex] = useState<number>(0);
     const [user, setUser] = useState<any>(null);
     const [searchParams, setSearchParams] = useSearchParams();
     const designIdFromUrl = searchParams.get('design');
@@ -231,6 +234,21 @@ export function Vitrin() {
                 const rawG = post.analizler?.gorsel_url || post.gorsel_url || (post.extra_images && post.extra_images[0]);
                 const formattedGorsel = rawG ? (rawG.startsWith('http') || rawG.startsWith('data:') ? rawG : `data:image/jpeg;base64,${rawG}`) : '';
                 
+                let allImages: string[] = [];
+                if (formattedGorsel) {
+                    allImages.push(formattedGorsel);
+                }
+                if (Array.isArray(post.extra_images)) {
+                    post.extra_images.forEach((img: string) => {
+                        if (img) {
+                            const formatted = img.startsWith('http') || img.startsWith('data:') ? img : `data:image/jpeg;base64,${img}`;
+                            if (!allImages.includes(formatted)) {
+                                allImages.push(formatted);
+                            }
+                        }
+                    });
+                }
+
                 // Author name & avatar calculation
                 const isCurrentUser = user && user.id === post.user_id;
                 const currentUserName = user?.user_metadata?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0];
@@ -279,6 +297,8 @@ export function Vitrin() {
                     user_slug: authorSlug,
                     user_vote,
                     gorsel_url: formattedGorsel,
+                    extra_images: post.extra_images || [],
+                    all_images: allImages,
                     tasarim_turu: post.analizler?.tasarim_turu || 'Tasarım',
                     ai_puan: realAiPuan,
                     topluluk_puan: toplulukPuan,
@@ -687,7 +707,10 @@ export function Vitrin() {
                         >
                             <div
                                 className="relative group rounded-[20px] overflow-hidden bg-[var(--bg-secondary)] border border-[var(--border-primary)] cursor-pointer shadow-sm"
-                                onClick={() => setSeciliGorsel(item)}
+                                onClick={() => {
+                                    setSeciliGorsel(item);
+                                    setSeciliGorselAktifIndex(0);
+                                }}
                             >
                                 <div className="relative aspect-auto">
                                     <img
@@ -697,6 +720,15 @@ export function Vitrin() {
                                         loading="lazy"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                                    {item.all_images && item.all_images.length > 1 && (
+                                        <div className="absolute top-4 right-14 pt-1 transition-all duration-300">
+                                            <span className="flex items-center gap-1 px-2.5 py-1 bg-black/70 backdrop-blur-md rounded-lg text-white text-[10px] font-bold border border-white/20 shadow-sm">
+                                                <Layers className="w-3.5 h-3.5 text-[#FF5500]" />
+                                                {item.all_images.length} Görsel
+                                            </span>
+                                        </div>
+                                    )}
 
                                     <div className="absolute top-4 left-4 pt-1 transition-all duration-300 transform -translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100">
                                         <span className="inline-block px-3 py-1.5 bg-[var(--card-bg)]/90 backdrop-blur-md rounded-lg text-[10px] font-bold uppercase tracking-wider text-[var(--text-primary)] border border-[var(--border-primary)] shadow-sm">
@@ -772,12 +804,58 @@ export function Vitrin() {
                         <div
                             className="relative z-[1000] max-w-7xl w-full flex flex-col md:flex-row gap-8 items-center md:items-start justify-center pointer-events-none my-auto"
                         >
-                            <div className="w-full md:w-2/3 flex justify-center pointer-events-auto">
-                                <img
-                                    src={seciliGorsel.gorsel_url}
-                                    alt="Büyütülmüş Görsel"
-                                    className="w-auto h-auto max-w-full max-h-[85vh] object-contain rounded-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]"
-                                />
+                            <div className="w-full md:w-2/3 flex flex-col items-center justify-center pointer-events-auto gap-4">
+                                <div className="relative group flex items-center justify-center w-full">
+                                    {seciliGorsel.all_images && seciliGorsel.all_images.length > 1 && seciliGorselAktifIndex > 0 && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSeciliGorselAktifIndex(prev => Math.max(0, prev - 1));
+                                            }}
+                                            className="absolute left-2 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 hover:bg-[#FF5500] text-white shadow-xl backdrop-blur-md transition-all z-20"
+                                            title="Önceki Görsel"
+                                        >
+                                            <ChevronLeft className="w-6 h-6" />
+                                        </button>
+                                    )}
+
+                                    <img
+                                        src={seciliGorsel.all_images?.[seciliGorselAktifIndex] || seciliGorsel.gorsel_url}
+                                        alt="Büyütülmüş Görsel"
+                                        className="w-auto h-auto max-w-full max-h-[75vh] object-contain rounded-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-300"
+                                    />
+
+                                    {seciliGorsel.all_images && seciliGorsel.all_images.length > 1 && seciliGorselAktifIndex < seciliGorsel.all_images.length - 1 && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSeciliGorselAktifIndex(prev => Math.min((seciliGorsel.all_images?.length || 1) - 1, prev + 1));
+                                            }}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 hover:bg-[#FF5500] text-white shadow-xl backdrop-blur-md transition-all z-20"
+                                            title="Sonraki Görsel"
+                                        >
+                                            <ChevronRight className="w-6 h-6" />
+                                        </button>
+                                    )}
+                                </div>
+
+                                {seciliGorsel.all_images && seciliGorsel.all_images.length > 1 && (
+                                    <div className="flex items-center justify-center gap-2 overflow-x-auto max-w-full p-2 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10">
+                                        {seciliGorsel.all_images.map((imgUrl, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => setSeciliGorselAktifIndex(idx)}
+                                                className={`relative w-14 h-14 rounded-xl overflow-hidden border-2 transition-all shrink-0 ${
+                                                    idx === seciliGorselAktifIndex 
+                                                        ? 'border-[#FF5500] scale-105 shadow-md shadow-[#FF5500]/30' 
+                                                        : 'border-white/20 opacity-60 hover:opacity-100 hover:border-white/50'
+                                                }`}
+                                            >
+                                                <img src={imgUrl} alt={`Önizleme ${idx + 1}`} className="w-full h-full object-cover" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                             <div 
                                 className="w-full md:w-[400px] p-6 sm:p-8 border border-[var(--border-primary)] bg-[var(--card-bg)] backdrop-blur-2xl rounded-[32px] h-fit max-h-[85vh] overflow-y-auto overscroll-contain touch-pan-y flex flex-col justify-center relative shadow-sm pointer-events-auto custom-scrollbar"
