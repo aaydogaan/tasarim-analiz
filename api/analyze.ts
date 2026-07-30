@@ -181,7 +181,7 @@ JSON Formatı Şablonu:
           ],
           config: {
             temperature: 0.25,
-            maxOutputTokens: 1600,
+            maxOutputTokens: 1000,
             responseMimeType: 'application/json',
           }
         });
