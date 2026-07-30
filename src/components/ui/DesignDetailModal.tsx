@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { X, ArrowBigUp, ArrowBigDown, Flag, Heart, MessageCircle, Star, CheckCircle2, AlertCircle, Trash2, Pencil, Send } from 'lucide-react';
+import { X, ArrowBigUp, ArrowBigDown, Flag, Heart, MessageCircle, Star, CheckCircle2, AlertCircle, Trash2, Pencil, Send, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { VerifiedBadge } from './VerifiedBadge';
 import ReportModal from './ReportModal';
@@ -14,7 +14,9 @@ export interface DesignDetailItem {
     tasarim_turu: string;
     isletme?: string;
     gorsel_url: string;
-    ai_puan: number;
+    extra_images?: string[];
+    all_images?: string[];
+    ai_puan?: number | null;
     topluluk_puan?: number;
     oy_sayisi?: number;
     created_at: string;
@@ -34,6 +36,7 @@ interface DesignDetailModalProps {
 
 export default function DesignDetailModal({ item, onClose, currentUser }: DesignDetailModalProps) {
     const [detailItem, setDetailItem] = useState<DesignDetailItem | null>(item);
+    const [activeImgIndex, setActiveImgIndex] = useState<number>(0);
     const [comments, setComments] = useState<any[]>([]);
     const [commentsLoading, setCommentsLoading] = useState(false);
     const [newComment, setNewComment] = useState('');
@@ -48,6 +51,7 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
 
     useEffect(() => {
         setDetailItem(item);
+        setActiveImgIndex(0);
         if (!item) {
             setComments([]);
             return;
@@ -255,12 +259,56 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Left: Image Preview */}
-                    <div className="w-full md:w-3/5 flex justify-center">
-                        <img
-                            src={detailItem.gorsel_url}
-                            alt={detailItem.tasarim_turu}
-                            className="w-auto h-auto max-w-full max-h-[80vh] object-contain rounded-2xl border border-white/10 shadow-2xl"
-                        />
+                    <div className="w-full md:w-3/5 flex flex-col items-center justify-center gap-4">
+                        <div className="relative group flex items-center justify-center w-full">
+                            {detailItem?.all_images && detailItem.all_images.length > 1 && activeImgIndex > 0 && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setActiveImgIndex(prev => Math.max(0, prev - 1));
+                                    }}
+                                    className="absolute left-2 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 hover:bg-[#FF5500] text-white shadow-xl backdrop-blur-md transition-all z-20"
+                                >
+                                    <ChevronLeft className="w-6 h-6" />
+                                </button>
+                            )}
+
+                            <img
+                                src={detailItem?.all_images?.[activeImgIndex] || detailItem?.gorsel_url}
+                                alt={detailItem?.tasarim_turu}
+                                className="w-auto h-auto max-w-full max-h-[75vh] object-contain rounded-2xl border border-white/10 shadow-2xl transition-all duration-300"
+                            />
+
+                            {detailItem?.all_images && detailItem.all_images.length > 1 && activeImgIndex < detailItem.all_images.length - 1 && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setActiveImgIndex(prev => Math.min((detailItem.all_images?.length || 1) - 1, prev + 1));
+                                    }}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 hover:bg-[#FF5500] text-white shadow-xl backdrop-blur-md transition-all z-20"
+                                >
+                                    <ChevronRight className="w-6 h-6" />
+                                </button>
+                            )}
+                        </div>
+
+                        {detailItem?.all_images && detailItem.all_images.length > 1 && (
+                            <div className="flex items-center justify-center gap-2 overflow-x-auto max-w-full p-2 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10">
+                                {detailItem.all_images.map((imgUrl, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => setActiveImgIndex(idx)}
+                                        className={`relative w-12 h-12 rounded-xl overflow-hidden border-2 transition-all shrink-0 ${
+                                            idx === activeImgIndex 
+                                                ? 'border-[#FF5500] scale-105 shadow-md shadow-[#FF5500]/30' 
+                                                : 'border-white/20 opacity-60 hover:opacity-100 hover:border-white/50'
+                                        }`}
+                                    >
+                                        <img src={imgUrl} alt={`Önizleme ${idx + 1}`} className="w-full h-full object-cover" />
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Right: Info Card & Scrollable Comments */}
@@ -307,7 +355,7 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
                             <div className="flex gap-3 mb-6">
                                 <div className="flex-1 p-4 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-center shadow-xs">
                                     <span className="text-[var(--text-secondary)] text-[10px] uppercase font-black tracking-widest block mb-1">YAPAY ZEKA PUANI</span>
-                                    <span className="text-3xl text-[#FF5500] font-black">{detailItem.ai_puan || 85}</span>
+                                    <span className="text-3xl text-[#FF5500] font-black">{detailItem?.ai_puan != null ? detailItem.ai_puan : '-'}</span>
                                 </div>
                                 <div className="flex-1 p-4 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-center shadow-xs">
                                     <span className="text-[var(--text-secondary)] text-[10px] uppercase font-black tracking-widest block mb-1">TOPLULUK ({detailItem.oy_sayisi || 0} OY)</span>

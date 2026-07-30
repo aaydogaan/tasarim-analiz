@@ -1349,8 +1349,23 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                             ) : (
                                 <div data-lenis-prevent="true" className="grid gap-4 sm:grid-cols-2 max-h-[520px] overflow-y-auto pr-1.5 custom-scrollbar">
                                     {userPosts.map((post) => {
-                                        const rawG = post.analizler?.gorsel_url;
+                                        const rawG = post.analizler?.gorsel_url || post.gorsel_url || (post.extra_images && post.extra_images[0]);
                                         const thumbSrc = rawG ? (rawG.startsWith('http') || rawG.startsWith('data:') ? rawG : `data:image/jpeg;base64,${rawG}`) : null;
+
+                                        let allImages: string[] = [];
+                                        if (thumbSrc) {
+                                            allImages.push(thumbSrc);
+                                        }
+                                        if (Array.isArray(post.extra_images)) {
+                                            post.extra_images.forEach((img: string) => {
+                                                if (img) {
+                                                    const formatted = img.startsWith('http') || img.startsWith('data:') ? img : `data:image/jpeg;base64,${img}`;
+                                                    if (!allImages.includes(formatted)) {
+                                                        allImages.push(formatted);
+                                                    }
+                                                }
+                                            });
+                                        }
 
                                         return (
                                             <div 
@@ -1360,9 +1375,11 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                                         setSelectedDesignModal({
                                                             id: post.id,
                                                             gorsel_url: thumbSrc,
-                                                            isletme: post.title || 'Tasarım Analizi',
-                                                            tasarim_turu: post.analizler?.tasarim_turu || 'Tasarım',
-                                                            ai_puan: post.analizler?.genel_skor || post.analizler?.genel_puan || 85,
+                                                            extra_images: post.extra_images || [],
+                                                            all_images: allImages,
+                                                            isletme: post.title || 'Tasarım Paylaşımı',
+                                                            tasarim_turu: post.analizler?.tasarim_turu || 'Topluluk',
+                                                            ai_puan: post.analizler?.genel_skor || post.analizler?.genel_puan || null,
                                                             created_at: post.created_at,
                                                             user_id: normalizedProfile.id,
                                                             user_name: normalizedProfile.display_name,
