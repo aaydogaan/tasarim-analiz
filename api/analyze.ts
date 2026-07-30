@@ -118,8 +118,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const isProUser = body.isPro || false;
 
   const roleDescription = isProUser
-    ? "Sen dünya çapında ödüllü, kıdemli bir Tasarım Direktörü ve Sanat Yönetmenisin. Bu rapor bir PRO ÜYE içindir. Tasarımı en üst düzey teknik derinlik, renk teorisi, izgara (grid) hiyerarşisi, tipografik kerning/leading ve UX psikolojisi ile milimetrik analiz et."
-    : "Sen dünya çapında ödüllü, son derece detaycı ama öz ve net konuşan bir Grafik Tasarım Analiz Yapay Zekasısın. Gönderilen görseli akademik ve teknik bir dille analiz edeceksin. Lütfen cevaplarını KISA, NET ve DOĞRUDAN profesyonel terimlerle ver.";
+    ? "Sen dünya çapında ödüllü, kıdemli bir Tasarım Direktörü ve Sanat Yönetmenisin. Bu rapor bir PRO ÜYE içindir. Tasarımı en üst düzey teknik derinlik, renk teorisi, ızgara (grid) hiyerarşisi, tipografik kerning/leading ve UX psikolojisi ile milimetrik analiz et."
+    : "Sen dünya çapında ödüllü, son derece detaycı, yapıcı ve uzman bir Grafik Tasarım Direktörüsün. Gönderilen görseli yüzeysel geçmeden, hem teknik terimlerle hem de anlaşılır bir dille tatmin edici ve rehberlik edici derinlikte analiz edeceksin.";
 
   const prompt = `${roleDescription}
 
@@ -145,13 +145,13 @@ Lütfen yukarıdaki bağlamlarda tasarımı sert ama yapıcı bir dille eleştir
 YALNIZCA GEÇERLİ BİR JSON NESNESİ DÖNDÜR. (Markdown veya \`\`\`json ekleme, doğrudan salt JSON çıktısı ver).
 JSON Formatı Şablonu:
 {
-  "renk": {"puan": 20, "aciklama": "(${isProUser ? 'Renk teorisi, kontrast oranları ve renk psikolojisine dair teknik profesyonel analiz' : 'Renk teorisi ve harmoni açısından en fazla 1-2 cümlelik kısa profesyonel analiz'})"},
-  "font": {"puan": 18, "aciklama": "(${isProUser ? 'Tipografi hiyerarşisi, font ağırlıkları, okunabilirlik ve punto oranları teknik analizi' : 'Tipografi ve okunabilirlik üzerine teknik terimlerle 1-2 cümlelik net açıklama'})"},
-  "butunluk": {"puan": 22, "aciklama": "(${isProUser ? 'Marka kimliği bütünlüğü, sektör standartları ve görsel dil uyumu analizi' : 'Marka kimliği ve sektör uyumuna dair kısa profesyonel inceleme'})"},
-  "kompozisyon": {"puan": 19, "aciklama": "(${isProUser ? 'Hizalama, negatif alan dengesi, odak noktası ve CTA yerleşimi teknik analizi' : 'Görsel denge ve hizalama ile ilgili nokta atışı analiz'})"},
+  "renk": {"puan": 20, "aciklama": "(${isProUser ? 'Renk teorisi, kontrast oranları ve renk psikolojisine dair teknik profesyonel analiz' : 'Renk teorisi, palet uyumu, renk psikolojisi ve görsel kontrast açısından 2-3 cümlelik net, doyurucu ve teknik analiz'})"},
+  "font": {"puan": 18, "aciklama": "(${isProUser ? 'Tipografi hiyerarşisi, font ağırlıkları, okunabilirlik ve punto oranları teknik analizi' : 'Tipografi hiyerarşisi, font seçimi uyumu ve mobil/baskı okunabilirliği üzerine 2-3 cümlelik açıklayıcı ve yapıcı analiz'})"},
+  "butunluk": {"puan": 22, "aciklama": "(${isProUser ? 'Marka kimliği bütünlüğü, sektör standartları ve görsel dil uyumu analizi' : 'Marka kimliği bütünlüğü, görsel dil uyumu ve sektör standartlarına uygunluğu hakkında 2-3 cümlelik doyurucu değerlendirme'})"},
+  "kompozisyon": {"puan": 19, "aciklama": "(${isProUser ? 'Hizalama, negatif alan dengesi, odak noktası ve CTA yerleşimi teknik analizi' : 'Hizalama, negatif alan (beyaz alan) kullanımı, odak noktası ve görsel hiyerarşi üzerine 2-3 cümlelik somut analiz'})"},
   "genelPuan": 82,
-  "genelYorum": "(Tasarımın neleri başardığı ve eksikleri hakkında ${isProUser ? 'detaylı, profesyonel tasarım direktörü değerlendirmesi' : 'kısa, tek paragraflık net değerlendirme'})",
-  "oneri": "(Gelişim için ${isProUser ? 'uygulanabilir 5 maddelik somut adım adım revizyon önerileri' : 'en fazla 3 maddelik kısa ve spesifik tavsiyeler'})",
+  "genelYorum": "(Tasarımın neleri başardığı, güçlü tarafları ve tam olarak nerelerde geliştirmeye ihtiyacı olduğu hakkında ${isProUser ? 'detaylı, profesyonel tasarım direktörü değerlendirmesi' : '2 paragraflık doyurucu, net ve yol gösterici genel değerlendirme'})",
+  "oneri": "(Gelişim için ${isProUser ? 'uygulanabilir 5 maddelik somut adım adım revizyon önerileri' : 'uygulanabilir 3-4 maddelik spesifik ve somut revizyon tavsiyeleri'})",
   "genelDegerlendirme": "Örn: Profesyonel / Usta İşi / Geliştirilebilir",
   "gucluYon": "(Tasarımı kurtaran 1 temel özellik)",
   "zayifYon": "(En bariz teknik eksiklik)",
@@ -181,7 +181,7 @@ JSON Formatı Şablonu:
           ],
           config: {
             temperature: 0.25,
-            maxOutputTokens: 1000,
+            maxOutputTokens: 1600,
             responseMimeType: 'application/json',
           }
         });
