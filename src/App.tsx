@@ -384,7 +384,7 @@ export default function App() {
   const [platform, setPlatform] = useState<string>(() => getSessionData('ra_platform', 'Instagram Post'));
   const [isletme, setIsletme] = useState(() => getSessionData('ra_isletme', "E-Ticaret"));
   const [digerIsletme, setDigerIsletme] = useState(() => getSessionData('ra_digerIsletme', ""));
-  const [sorular, setSorular] = useState(() => getSessionData('ra_sorular', { markaAdi: "", kurumselRenk: "", isYapisi: "", hedefKitle: "", slogan: "" }));
+  const [sorular, setSorular] = useState(() => getSessionData('ra_sorular', { markaAdi: "", kurumselRenk: "", isYapisi: "", hedefKitle: "", slogan: "", kullanimYeri: "", yapilisAmaci: "", yasGrubu: "" }));
   const [yukleniyor, setYukleniyor] = useState(false);
   const [revizeYukleniyor, setRevizeYukleniyor] = useState(false);
   const [sonuc, setSonuc] = useState<any>(() => getSessionData('ra_sonuc', null));
@@ -418,6 +418,7 @@ export default function App() {
   const [shareModalAcik, setShareModalAcik] = useState(false);
   const [shareTitle, setShareTitle] = useState('');
   const [shareContent, setShareContent] = useState('');
+  const [shareExtraImages, setShareExtraImages] = useState<File[]>([]);
 
   const isMutfak = location.pathname.startsWith('/mutfak');
 
@@ -757,16 +758,34 @@ export default function App() {
       toast.error('Bu analiz zaten keşfette paylaşılmış!');
       return;
     }
-    
+    setYayinlaniyor(true);
+    let extra_images: string[] = [];
+    if (shareExtraImages.length > 0) {
+      for (const file of shareExtraImages) {
+        const fileName = `extra/${kullanici.id}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+        const { error: uploadError } = await supabase.storage
+          .from('designs')
+          .upload(fileName, await file.arrayBuffer(), {
+            contentType: file.type,
+            upsert: false,
+          });
+        if (!uploadError) {
+           extra_images.push(`${import.meta.env.VITE_R2_PUBLIC_URL.replace(/\/$/, "")}/${fileName}`);
+        }
+      }
+    }
+
     // Insert into community_posts
     const { error } = await supabase.from('community_posts').insert({
       user_id: kullanici.id,
       analiz_id: targetAnalizId,
       title: shareTitle || null,
-      content: shareContent || null
+      content: shareContent || null,
+      extra_images: extra_images.length > 0 ? extra_images : []
     });
 
     if (!error) {
+      setShareExtraImages([]);
       // Auto-award badges for sharing & analyzing
       try {
         await supabase.from('user_badges').insert([
@@ -969,7 +988,7 @@ export default function App() {
         body: JSON.stringify({
           imageBase64: gorselBase64,
           oneri,
-          sorular: { markaAdi: sorular.markaAdi },
+          sorular: { markaAdi: sorular.markaAdi, yasGrubu: sorular.yasGrubu, kullanimYeri: sorular.kullanimYeri, yapilisAmaci: sorular.yapilisAmaci },
           isletme: isletme === "Diğer" ? (digerIsletme || "Bilinmiyor") : isletme,
         }),
       });
@@ -1004,7 +1023,7 @@ export default function App() {
   const sifirla = () => {
     sessionStorage.clear();
     setAdim(1); setGorsel(null); setGorselBase64(null); setRevizeGorsel(null); setSonuc(null); setHata(null);
-    setSorular({ markaAdi: "", kurumselRenk: "", isYapisi: "", hedefKitle: "", slogan: "" });
+    setSorular({ markaAdi: "", kurumselRenk: "", isYapisi: "", hedefKitle: "", slogan: "", kullanimYeri: "", yapilisAmaci: "", yasGrubu: "" });
     setDigerIsletme(""); setTasarimTuru("Sosyal Medya"); setPlatform("Instagram Post");
     setImageUrl(""); setUploadMod('dosya');
   };
@@ -1598,8 +1617,38 @@ export default function App() {
                                         type="text"
                                         value={isletme}
                                         onChange={(e) => setIsletme(e.target.value)}
-                                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-full px-6 py-4 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#FF5500] transition-all shadow-sm"
+                                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-xl px-6 py-4 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#FF5500] transition-all shadow-sm"
                                         placeholder="Örn: E-Ticaret, Yazılım, Tekstil"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-bold text-[var(--text-secondary)] mb-3 block tracking-wide">Yaş Grubu (Opsiyonel)</label>
+                                      <input
+                                        type="text"
+                                        value={sorular.yasGrubu}
+                                        onChange={(e) => setSorular({ ...sorular, yasGrubu: e.target.value })}
+                                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-xl px-6 py-4 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#FF5500] transition-all shadow-sm"
+                                        placeholder="Örn: 18-24 Yaş, Genç Yetişkinler"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-bold text-[var(--text-secondary)] mb-3 block tracking-wide">Kullanım Yeri (Opsiyonel)</label>
+                                      <input
+                                        type="text"
+                                        value={sorular.kullanimYeri}
+                                        onChange={(e) => setSorular({ ...sorular, kullanimYeri: e.target.value })}
+                                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-xl px-6 py-4 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#FF5500] transition-all shadow-sm"
+                                        placeholder="Örn: Instagram Reklamı, Web Sitesi Banner"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-bold text-[var(--text-secondary)] mb-3 block tracking-wide">Yapılış Amacı (Opsiyonel)</label>
+                                      <input
+                                        type="text"
+                                        value={sorular.yapilisAmaci}
+                                        onChange={(e) => setSorular({ ...sorular, yapilisAmaci: e.target.value })}
+                                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-xl px-6 py-4 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#FF5500] transition-all shadow-sm"
+                                        placeholder="Örn: Satışları artırmak, Marka bilinirliği"
                                       />
                                     </div>
                                       <AnalizEtButton
@@ -2257,6 +2306,19 @@ export default function App() {
                     rows={4}
                     className="w-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] px-4 py-3 rounded-xl focus:outline-none focus:border-[#FF5500] transition-colors resize-none"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-[var(--text-primary)] mb-2">Ek Görseller (Opsiyonel)</label>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => setShareExtraImages(Array.from(e.target.files || []))}
+                    className="w-full text-sm text-[var(--text-secondary)] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#FF5500]/10 file:text-[#FF5500] hover:file:bg-[#FF5500]/20"
+                  />
+                  {shareExtraImages.length > 0 && (
+                    <div className="mt-2 text-xs text-[var(--text-secondary)]">{shareExtraImages.length} dosya seçildi.</div>
+                  )}
                 </div>
                 <button
                   onClick={submitCommunityPost}

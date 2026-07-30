@@ -779,7 +779,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                     <div className="rounded-2xl border border-[var(--border-primary)] bg-[var(--card-bg)] shadow-sm overflow-hidden">
 
                         {/* Cover Image */}
-                        <div className="relative h-28 w-full bg-gradient-to-r from-orange-100 to-amber-100 group">
+                        <div className="relative h-40 sm:h-48 w-full bg-gradient-to-r from-orange-100 to-amber-100 group">
                             {profileData.coverUrl && profileData.coverUrl.trim() !== '' ? (
                                 <img src={profileData.coverUrl} className="w-full h-full object-cover" alt="Kapak Fotoğrafı" />
                             ) : (

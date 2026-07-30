@@ -28,6 +28,9 @@ type AnalyzeRequestBody = {
     isYapisi: string;
     hedefKitle: string;
     slogan: string;
+    yasGrubu?: string;
+    kullanimYeri?: string;
+    yapilisAmaci?: string;
   };
   guestMode?: boolean;
   isPro?: boolean;
@@ -127,8 +130,9 @@ Tasarım Bağlamı:
 ${platformBilgisi}
 - Sektör: ${isletme} (Tasarımı, bu sektörün dinamiklerine, kullanıcı psikolojisine ve rakip standartlarına göre değerlendir)
 - Marka Adı: ${sorular?.markaAdi || 'Belirtilmedi'}
-- Kurumsal Renkler: ${sorular?.kurumselRenk || 'Belirtilmedi'}
-- Hedef Kitle: ${sorular?.hedefKitle || 'Belirtilmedi'}
+- Yaş Grubu / Hedef Kitle: ${sorular?.yasGrubu || sorular?.hedefKitle || 'Belirtilmedi'}
+- Kullanım Yeri: ${sorular?.kullanimYeri || 'Belirtilmedi'}
+- Tasarımın Yapılış Amacı: ${sorular?.yapilisAmaci || 'Belirtilmedi'}
 
 ${kriterler.context}
 

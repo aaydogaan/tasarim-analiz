@@ -134,12 +134,25 @@ export default function Header({
     };
 
     React.useEffect(() => {
+        const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+            const nav = document.getElementById('notification-panel');
+            const btn = document.getElementById('notification-button');
+            const target = event.target as Node;
+            if (isNotificationsOpen && nav && !nav.contains(target) && btn && !btn.contains(target)) {
+                setIsNotificationsOpen(false);
+            }
+        };
+        
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('touchstart', handleClickOutside, { passive: true });
         return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
             if (dropdownCloseTimeoutRef.current) clearTimeout(dropdownCloseTimeoutRef.current);
             if (toolsCloseTimeoutRef.current) clearTimeout(toolsCloseTimeoutRef.current);
             if (profileCloseTimeoutRef.current) clearTimeout(profileCloseTimeoutRef.current);
         };
-    }, []);
+    }, [isNotificationsOpen]);
 
     const openToolsDropdown = React.useCallback(() => {
         if (toolsCloseTimeoutRef.current) {
@@ -327,6 +340,7 @@ export default function Header({
                             {/* Bildirimler */}
                             <div className="relative">
                                 <button
+                                    id="notification-button"
                                     onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
                                     className="p-1.5 sm:p-2.5 rounded-full hover:bg-[var(--bg-secondary)] transition-colors relative"
                                 >
@@ -339,10 +353,8 @@ export default function Header({
                                 <AnimatePresence>
                                     {isNotificationsOpen && (
                                         <>
-                                            {/* Overlay to dismiss */}
-                                            <div className="fixed inset-0 z-40" onClick={() => setIsNotificationsOpen(false)} />
-
                                             <motion.div
+                                                id="notification-panel"
                                                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                                 exit={{ opacity: 0, y: 10, scale: 0.95 }}

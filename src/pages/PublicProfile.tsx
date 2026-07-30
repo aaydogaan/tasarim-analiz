@@ -304,7 +304,7 @@ export default function PublicProfile() {
                     className="bg-white border border-gray-200/60 rounded-[32px] overflow-hidden mb-8 shadow-sm"
                 >
                     {/* Cover Image */}
-                    <div className="h-32 md:h-48 w-full bg-gradient-to-r from-orange-100 to-amber-100 relative group overflow-hidden">
+                    <div className="h-40 md:h-56 w-full bg-gradient-to-r from-orange-100 to-amber-100 relative group overflow-hidden">
                         {profile.cover_url && profile.cover_url.trim() !== '' ? (
                             <img src={profile.cover_url} className="w-full h-full object-cover" alt="Kapak Fotoğrafı" />
                         ) : (

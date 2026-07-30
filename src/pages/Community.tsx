@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Users, MessageCircle, Heart, Trophy, Zap, Share2, Crown, Star, Sparkles, ArrowRight, Award, X, Send, Loader2, ChevronDown, Flag, Pencil, Trash2 } from 'lucide-react';
+import { Users, MessageCircle, Heart, Trophy, Zap, Share2, Crown, Star, Sparkles, ArrowRight, Award, X, Send, Loader2, ChevronDown, Flag, Pencil, Trash2, Image as ImageIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
@@ -73,6 +73,13 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
     const [commentInput, setCommentInput] = useState('');
     const [inlineComments, setInlineComments] = useState<Record<string, any[]>>({});
     const [inlineLoading, setInlineLoading] = useState<Record<string, boolean>>({});
+
+    // New Direct Post State
+    const [yeniGonderiModalAcik, setYeniGonderiModalAcik] = useState(false);
+    const [yeniGonderiBaslik, setYeniGonderiBaslik] = useState('');
+    const [yeniGonderiIcerik, setYeniGonderiIcerik] = useState('');
+    const [yeniGonderiGorseller, setYeniGonderiGorseller] = useState<File[]>([]);
+    const [gonderiliyor, setGonderiliyor] = useState(false);
 
     const [reportModalOpen, setReportModalOpen] = useState(false);
     const [reportItem, setReportItem] = useState<{ id: string, type: 'post' | 'comment' } | null>(null);
@@ -419,8 +426,53 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         }
     };
 
-    // Realtime for community_posts is handled above
+    const submitDirectPost = async () => {
+        if (!kullanici) {
+            onAuthClick?.();
+            return;
+        }
+        if (!yeniGonderiBaslik && !yeniGonderiIcerik && yeniGonderiGorseller.length === 0) {
+            toast.error('Lütfen bir içerik, başlık veya görsel ekleyin.');
+            return;
+        }
+        setGonderiliyor(true);
+        let extra_images: string[] = [];
+        if (yeniGonderiGorseller.length > 0) {
+            for (const file of yeniGonderiGorseller) {
+                const fileName = `extra/${kullanici.id}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('designs')
+                    .upload(fileName, await file.arrayBuffer(), {
+                        contentType: file.type,
+                        upsert: false,
+                    });
+                if (!uploadError) {
+                    extra_images.push(`${import.meta.env.VITE_R2_PUBLIC_URL.replace(/\/$/, "")}/${fileName}`);
+                }
+            }
+        }
 
+        const { error } = await supabase.from('community_posts').insert({
+            user_id: kullanici.id,
+            analiz_id: null,
+            title: yeniGonderiBaslik || null,
+            content: yeniGonderiIcerik || null,
+            extra_images: extra_images.length > 0 ? extra_images : []
+        });
+
+        if (!error) {
+            toast.success('Gönderi paylaşıldı!');
+            setYeniGonderiModalAcik(false);
+            setYeniGonderiBaslik('');
+            setYeniGonderiIcerik('');
+            setYeniGonderiGorseller([]);
+        } else {
+            toast.error('Bir hata oluştu.');
+        }
+        setGonderiliyor(false);
+    };
+
+    // Load founders and leaderboard
     useEffect(() => {
         let aktif = true;
 
@@ -568,12 +620,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         setJoiningChallenge(false);
     };
 
-    const liveFounderCount = founderSource === 'live' ? founders.length : 0;
-    const wallCount = Math.min(CORE_FOUNDER_COUNT + liveFounderCount, FOUNDER_LIMIT);
-    const visibleFounders = founderSource === 'live' ? founders.slice(0, MEMBER_FOUNDER_LIMIT) : founders.slice(0, 18);
-    const placeholderCount = founderSource === 'live'
-        ? Math.min(Math.max(FOUNDER_LIMIT - CORE_FOUNDER_COUNT - liveFounderCount, 0), 24)
-        : 18;
+    const wallCount = Math.min(CORE_FOUNDER_COUNT + (founderSource === 'live' ? founders.length : 0), FOUNDER_LIMIT);
     const founderProgress = Math.min((wallCount / FOUNDER_LIMIT) * 100, 100);
 
     return (
@@ -660,7 +707,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                             </div>
                         ))}
 
-                        {visibleFounders.map((founder) => {
+                        {founderSource === 'live' && founders.map((founder) => {
                             const rank = getMemberFounderDisplayNumber(founder.founderNumber) || 0;
                             const isGold = founder.verificationBadge === 'gold';
 
@@ -681,7 +728,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                         <img
                                             src={founder.avatarUrl}
                                             style={{ backfaceVisibility: 'hidden', transform: 'translateZ(0)' }}
-                                            className={`w-full h-full rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--bg-primary)] object-cover transform-gpu ${founderSource === 'preview' ? 'saturate-0 opacity-40' : ''}`}
+                                            className={`w-full h-full rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--bg-primary)] object-cover transform-gpu`}
                                             alt=""
                                         />
                                         {founder.verificationBadge && (
@@ -703,23 +750,6 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                 </div>
                             );
                         })}
-
-                        {Array.from({ length: Math.min(Math.max(FOUNDER_LIMIT - CORE_FOUNDER_COUNT - liveFounderCount, 0), 15) }).map((_, i) => (
-                            <div
-                                key={`empty-founder-${i}`}
-                                className="group relative flex w-16 h-16 md:w-[84px] md:h-[84px] items-center justify-center rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--border-primary)] opacity-40 saturate-0 hover:opacity-80 transition-opacity cursor-pointer"
-                            >
-                                <img
-                                    src={`https://api.dicebear.com/7.x/notionists/svg?seed=placeholder-${i}`}
-                                    className="w-full h-full rounded-full object-cover blur-[1px]"
-                                    alt="Açık Kontenjan"
-                                />
-                                <div className="absolute -top-14 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none w-max bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-2xl px-4 py-3 shadow-2xl z-50">
-                                    <span className="text-xs font-bold text-[var(--text-secondary)]">Açık destekçi yeri</span>
-                                    <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[var(--card-bg)] border-r border-b border-[var(--border-primary)] rotate-45" />
-                                </div>
-                            </div>
-                        ))}
                     </div>
 
                     {!kullanici && (
@@ -750,8 +780,27 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
 
                     {/* Left: Latest Activity */}
                     <div className="lg:col-span-2 space-y-12">
+                        {/* New Post Input Box */}
+                        <div 
+                            onClick={() => setYeniGonderiModalAcik(true)}
+                            className="w-full bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-[32px] p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow cursor-text flex items-center gap-4 group"
+                        >
+                            <img 
+                                src={kullanici?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici?.id || 'anonymous'}`}
+                                alt="Avatar"
+                                className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-[var(--border-primary)] bg-[var(--bg-secondary)]"
+                            />
+                            <div className="flex-1 bg-[var(--bg-secondary)] rounded-full px-6 py-3.5 sm:py-4 text-[var(--text-secondary)] font-medium flex justify-between items-center group-hover:bg-[var(--border-primary)]/50 transition-colors">
+                                <span className="text-sm sm:text-base">Bir tasarım veya düşünceni paylaş...</span>
+                                <div className="flex items-center gap-3">
+                                    <ImageIcon className="w-5 h-5 opacity-60" />
+                                    <Send className="w-5 h-5 opacity-60" />
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4 md:gap-0">
-                            <div className="flex flex-wrap items-center gap-3 justify-center md:justify-start">
+                            <div className="flex flex-wrap items-center gap-3 justify-center md:justify-start w-full md:w-auto flex-1">
                                 <h2 className="text-3xl font-bold tracking-tight">Topluluk Akışı</h2>
                                 <div className="flex items-center gap-1 p-1 bg-[var(--card-bg)] rounded-full border border-[var(--border-primary)] shadow-sm">
                                     <button
@@ -794,7 +843,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                 <div className="w-8 h-8 border-4 border-[#FF5500]/30 border-t-[#FF5500] rounded-full animate-spin mb-4" />
                                 Gönderiler yükleniyor...
                             </div>
-                        ) : posts.filter(p => feedSource === 'all' || (p.user_id && followedUsers.has(p.user_id))).length === 0 ? (
+                        ) : [...posts].filter(p => feedSource === 'all' || (p.user_id && followedUsers.has(p.user_id))).sort((a, b) => postSort === 'popular' ? b.likes_count - a.likes_count : new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).length === 0 ? (
                             <div className="text-center py-20 text-[var(--text-secondary)] bg-[var(--card-bg)] rounded-[40px] border border-[var(--border-primary)] shadow-sm px-6">
                                 <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50 text-[var(--color-brand-orange)]" />
                                 <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1">
@@ -888,6 +937,20 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                     alt="Post thumbnail"
                                                     loading="lazy"
                                                 />
+                                            </div>
+                                        )}
+
+                                        {post.extra_images && post.extra_images.length > 0 && (
+                                            <div className={`grid gap-2 mb-6 ${post.extra_images.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                                                {post.extra_images.map((img: string, i: number) => (
+                                                    <div 
+                                                        key={i} 
+                                                        className="relative aspect-video rounded-2xl overflow-hidden bg-[var(--bg-secondary)] border border-[var(--border-primary)] cursor-zoom-in group"
+                                                        onClick={() => setSeciliGorsel(img)}
+                                                    >
+                                                        <img src={img} className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-90" alt={`Extra ${i}`} loading="lazy" />
+                                                    </div>
+                                                ))}
                                             </div>
                                         )}
                                         
@@ -1244,22 +1307,18 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                 </div>
             </main>
 
-            {/* Tam Ekran Görsel Modalı */}
             <AnimatePresence>
                 {seciliGorsel && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[999] flex flex-col items-center justify-start p-4 pt-24 pb-12 md:p-12 overflow-y-auto overflow-x-hidden"
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-black/90 backdrop-blur-sm"
+                        onClick={() => setSeciliGorsel(null)}
                     >
-                        <div
-                            className="fixed inset-0 bg-white/95 backdrop-blur-xl cursor-zoom-out"
-                            onClick={() => setSeciliGorsel(null)}
-                        />
                         <button
+                            className="absolute top-4 right-4 sm:top-8 sm:right-8 text-white/50 hover:text-white transition-colors bg-black/20 hover:bg-black/40 rounded-full p-2 z-[1001]"
                             onClick={() => setSeciliGorsel(null)}
-                            className="fixed top-20 right-4 md:top-24 md:right-8 z-[1001] p-2.5 md:p-3 rounded-full bg-[var(--card-bg)] border border-[var(--border-primary)] hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] shadow-lg backdrop-blur-xl transition-all hover:rotate-90"
                         >
                             <X className="w-6 h-6 md:w-7 md:h-7" />
                         </button>
@@ -1269,9 +1328,84 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                     src={seciliGorsel}
                                     alt="Büyütülmüş Görsel"
                                     className="w-auto h-auto max-w-full max-h-[85vh] object-contain rounded-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]"
+                                    onClick={(e) => e.stopPropagation()}
                                 />
                             </div>
                         </div>
+                    </motion.div>
+                )}
+
+                {yeniGonderiModalAcik && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+                        onClick={() => setYeniGonderiModalAcik(false)}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="relative w-full max-w-lg bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-[32px] overflow-hidden shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="px-8 pt-8 pb-6 border-b border-[var(--border-primary)]">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="w-12 h-12 bg-[#FF5500]/10 rounded-full flex items-center justify-center text-[#FF5500]">
+                                        <Pencil className="w-6 h-6" />
+                                    </div>
+                                    <button onClick={() => setYeniGonderiModalAcik(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--bg-secondary)] text-[var(--text-secondary)] transition-colors">
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+                                <h3 className="text-2xl font-black text-[var(--text-primary)]">Yeni Gönderi</h3>
+                                <p className="text-[var(--text-secondary)] mt-1">Toplulukla fikirlerini veya tasarımlarını paylaş.</p>
+                            </div>
+                            <div className="p-8 space-y-6">
+                                <div>
+                                    <label className="block text-sm font-bold text-[var(--text-primary)] mb-2">Başlık (Opsiyonel)</label>
+                                    <input
+                                        type="text"
+                                        value={yeniGonderiBaslik}
+                                        onChange={(e) => setYeniGonderiBaslik(e.target.value)}
+                                        placeholder="Örn: Yeni tasarım trendleri hakkında..."
+                                        className="w-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] px-4 py-3 rounded-xl focus:outline-none focus:border-[#FF5500] transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-[var(--text-primary)] mb-2">İçerik</label>
+                                    <textarea
+                                        value={yeniGonderiIcerik}
+                                        onChange={(e) => setYeniGonderiIcerik(e.target.value)}
+                                        placeholder="Düşüncelerini paylaş..."
+                                        rows={4}
+                                        className="w-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] px-4 py-3 rounded-xl focus:outline-none focus:border-[#FF5500] transition-colors resize-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-[var(--text-primary)] mb-2">Görseller (Opsiyonel)</label>
+                                    <input
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        onChange={(e) => setYeniGonderiGorseller(Array.from(e.target.files || []))}
+                                        className="w-full text-sm text-[var(--text-secondary)] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#FF5500]/10 file:text-[#FF5500] hover:file:bg-[#FF5500]/20"
+                                    />
+                                    {yeniGonderiGorseller.length > 0 && (
+                                        <div className="mt-2 text-xs text-[var(--text-secondary)]">{yeniGonderiGorseller.length} dosya seçildi.</div>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={submitDirectPost}
+                                    disabled={gonderiliyor}
+                                    className="w-full py-4 bg-[#FF5500] text-white font-bold rounded-xl shadow-md shadow-[#FF5500]/20 hover:bg-[#e64d00] transition-colors flex items-center justify-center gap-2"
+                                >
+                                    {gonderiliyor ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send className="w-5 h-5" />}
+                                    {gonderiliyor ? 'Gönderiliyor...' : 'Paylaş'}
+                                </button>
+                            </div>
+                        </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
