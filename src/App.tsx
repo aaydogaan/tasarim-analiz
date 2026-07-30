@@ -761,17 +761,32 @@ export default function App() {
     setYayinlaniyor(true);
     let extra_images: string[] = [];
     if (shareExtraImages.length > 0) {
-      for (const file of shareExtraImages) {
-        const fileName = `extra/${kullanici.id}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
-        const { error: uploadError } = await supabase.storage
-          .from('designs')
-          .upload(fileName, await file.arrayBuffer(), {
-            contentType: file.type,
-            upsert: false,
-          });
-        if (!uploadError) {
-           extra_images.push(`${import.meta.env.VITE_R2_PUBLIC_URL.replace(/\/$/, "")}/${fileName}`);
+      try {
+        const s3Client = new S3Client({
+            region: 'auto',
+            endpoint: `https://${import.meta.env.VITE_R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+            credentials: {
+                accessKeyId: import.meta.env.VITE_R2_ACCESS_KEY_ID,
+                secretAccessKey: import.meta.env.VITE_R2_SECRET_ACCESS_KEY,
+            },
+        });
+        
+        for (const file of shareExtraImages) {
+          const fileName = `extra/${kullanici.id}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+          const fileBuffer = await file.arrayBuffer();
+          await s3Client.send(new PutObjectCommand({
+              Bucket: import.meta.env.VITE_R2_BUCKET_NAME,
+              Key: fileName,
+              Body: new Uint8Array(fileBuffer),
+              ContentType: file.type,
+          }));
+          extra_images.push(`${import.meta.env.VITE_R2_PUBLIC_URL.replace(/\/$/, "")}/${fileName}`);
         }
+      } catch (err) {
+        console.error("Görsel yükleme hatası:", err);
+        toast.error("Görseller yüklenirken bir hata oluştu.");
+        setYayinlaniyor(false);
+        return;
       }
     }
 
@@ -2313,7 +2328,15 @@ export default function App() {
                     type="file"
                     multiple
                     accept="image/*"
-                    onChange={(e) => setShareExtraImages(Array.from(e.target.files || []))}
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      if (files.length > 3) {
+                          toast.error('En fazla 3 görsel seçebilirsiniz.');
+                          setShareExtraImages(files.slice(0, 3));
+                      } else {
+                          setShareExtraImages(files);
+                      }
+                    }}
                     className="w-full text-sm text-[var(--text-secondary)] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#FF5500]/10 file:text-[#FF5500] hover:file:bg-[#FF5500]/20"
                   />
                   {shareExtraImages.length > 0 && (

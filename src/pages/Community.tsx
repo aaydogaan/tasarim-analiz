@@ -4,6 +4,7 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Users, MessageCircle, Heart, Trophy, Zap, Share2, Crown, Star, Sparkles, ArrowRight, Award, X, Send, Loader2, ChevronDown, Flag, Pencil, Trash2, Image as ImageIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import {
     CORE_FOUNDERS,
@@ -438,17 +439,34 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         setGonderiliyor(true);
         let extra_images: string[] = [];
         if (yeniGonderiGorseller.length > 0) {
-            for (const file of yeniGonderiGorseller) {
-                const fileName = `extra/${kullanici.id}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
-                const { error: uploadError } = await supabase.storage
-                    .from('designs')
-                    .upload(fileName, await file.arrayBuffer(), {
-                        contentType: file.type,
-                        upsert: false,
-                    });
-                if (!uploadError) {
+            try {
+                const s3Client = new S3Client({
+                    region: 'auto',
+                    endpoint: `https://${import.meta.env.VITE_R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+                    credentials: {
+                        accessKeyId: import.meta.env.VITE_R2_ACCESS_KEY_ID,
+                        secretAccessKey: import.meta.env.VITE_R2_SECRET_ACCESS_KEY,
+                    },
+                });
+
+                for (const file of yeniGonderiGorseller) {
+                    const fileName = `extra/${kullanici.id}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+                    const fileBuffer = await file.arrayBuffer();
+                    
+                    await s3Client.send(new PutObjectCommand({
+                        Bucket: import.meta.env.VITE_R2_BUCKET_NAME,
+                        Key: fileName,
+                        Body: new Uint8Array(fileBuffer),
+                        ContentType: file.type,
+                    }));
+                    
                     extra_images.push(`${import.meta.env.VITE_R2_PUBLIC_URL.replace(/\/$/, "")}/${fileName}`);
                 }
+            } catch (err: any) {
+                console.error("Görsel yükleme hatası:", err);
+                toast.error("Görseller yüklenirken bir hata oluştu.");
+                setGonderiliyor(false);
+                return;
             }
         }
 
@@ -1389,7 +1407,15 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                         type="file"
                                         multiple
                                         accept="image/*"
-                                        onChange={(e) => setYeniGonderiGorseller(Array.from(e.target.files || []))}
+                                        onChange={(e) => {
+                                            const files = Array.from(e.target.files || []);
+                                            if (files.length > 3) {
+                                                toast.error('En fazla 3 görsel seçebilirsiniz.');
+                                                setYeniGonderiGorseller(files.slice(0, 3));
+                                            } else {
+                                                setYeniGonderiGorseller(files);
+                                            }
+                                        }}
                                         className="w-full text-sm text-[var(--text-secondary)] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#FF5500]/10 file:text-[#FF5500] hover:file:bg-[#FF5500]/20"
                                     />
                                     {yeniGonderiGorseller.length > 0 && (
