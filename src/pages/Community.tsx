@@ -1404,25 +1404,56 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-[var(--text-primary)] mb-2">Görseller (Opsiyonel)</label>
-                                    <input
-                                        type="file"
-                                        multiple
-                                        accept="image/*"
-                                        onChange={(e) => {
-                                            const files = Array.from(e.target.files || []);
-                                            if (files.length > 3) {
-                                                toast.error('En fazla 3 görsel seçebilirsiniz.');
-                                                setYeniGonderiGorseller(files.slice(0, 3));
-                                            } else {
-                                                setYeniGonderiGorseller(files);
-                                            }
-                                        }}
-                                        className="w-full text-sm text-[var(--text-secondary)] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#FF5500]/10 file:text-[#FF5500] hover:file:bg-[#FF5500]/20"
-                                    />
-                                    {yeniGonderiGorseller.length > 0 && (
-                                        <div className="mt-2 text-xs text-[var(--text-secondary)]">{yeniGonderiGorseller.length} dosya seçildi.</div>
-                                    )}
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="block text-sm font-bold text-[var(--text-primary)]">Görseller (Opsiyonel, En Fazla 3 Adet)</label>
+                                        <span className="text-xs font-semibold text-[var(--text-secondary)]">{yeniGonderiGorseller.length}/3</span>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {yeniGonderiGorseller.map((file, idx) => (
+                                            <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-[var(--border-primary)] group bg-[var(--bg-secondary)]">
+                                                <img 
+                                                    src={URL.createObjectURL(file)} 
+                                                    alt={`Önizleme ${idx + 1}`} 
+                                                    className="w-full h-full object-cover"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setYeniGonderiGorseller(prev => prev.filter((_, i) => i !== idx))}
+                                                    className="absolute top-1 right-1 p-1 bg-black/70 hover:bg-red-500 text-white rounded-full transition-colors shadow-md z-10"
+                                                    title="Görseli Kaldır"
+                                                >
+                                                    <X className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                        ))}
+
+                                        {yeniGonderiGorseller.length < 3 && (
+                                            <label className="flex flex-col items-center justify-center aspect-square rounded-xl border-2 border-dashed border-[var(--border-primary)] hover:border-[#FF5500] bg-[var(--bg-secondary)] hover:bg-[#FF5500]/5 transition-colors cursor-pointer text-center p-2 group">
+                                                <ImageIcon className="w-6 h-6 text-[#FF5500] mb-1 group-hover:scale-110 transition-transform" />
+                                                <span className="text-[11px] font-bold text-[var(--text-primary)]">Görsel Ekle</span>
+                                                <input
+                                                    type="file"
+                                                    multiple
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={(e) => {
+                                                        const selectedFiles = Array.from(e.target.files || []);
+                                                        if (selectedFiles.length === 0) return;
+                                                        setYeniGonderiGorseller(prev => {
+                                                            const combined = [...prev, ...selectedFiles];
+                                                            if (combined.length > 3) {
+                                                                toast.error('En fazla 3 görsel ekleyebilirsiniz.');
+                                                                return combined.slice(0, 3);
+                                                            }
+                                                            return combined;
+                                                        });
+                                                        e.target.value = '';
+                                                    }}
+                                                />
+                                            </label>
+                                        )}
+                                    </div>
                                 </div>
                                 <button
                                     onClick={submitDirectPost}

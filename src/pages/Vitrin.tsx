@@ -216,6 +216,9 @@ export function Vitrin() {
             .select(`
                 id,
                 user_id,
+                title,
+                content,
+                extra_images,
                 created_at,
                 likes_count,
                 analizler(*, begeniler(vote_type, user_id)),
@@ -225,7 +228,7 @@ export function Vitrin() {
 
         if (data) {
             const formatted = data.map((post: any) => {
-                const rawG = post.analizler?.gorsel_url || post.gorsel_url;
+                const rawG = post.analizler?.gorsel_url || post.gorsel_url || (post.extra_images && post.extra_images[0]);
                 const formattedGorsel = rawG ? (rawG.startsWith('http') || rawG.startsWith('data:') ? rawG : `data:image/jpeg;base64,${rawG}`) : '';
                 
                 // Author name & avatar calculation
