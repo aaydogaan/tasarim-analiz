@@ -21,7 +21,7 @@ interface VitrinItem {
     gorsel_url: string;
     extra_images?: string[];
     all_images?: string[];
-    ai_puan: number;
+    ai_puan: number | null;
     topluluk_puan: number;
     oy_sayisi: number;
     created_at: string;
@@ -269,7 +269,7 @@ export function Vitrin() {
 
                 let authorSlug = post.profiles?.slug || 'tasarimci';
 
-                const realAiPuan = post.analizler?.genel_puan ?? 75;
+                const realAiPuan = post.analizler?.genel_puan ?? null;
                 
                 const begeniler = post.analizler?.begeniler || [];
                 const oySayisi = begeniler.length;
@@ -313,7 +313,7 @@ export function Vitrin() {
 
             // Automatically check and notify today's winner
             if (formatted.length > 0) {
-                const winner = [...formatted].sort((a, b) => (b.ai_puan || 0) - (a.ai_puan || 0))[0];
+                const winner = [...formatted].filter(a => a.ai_puan !== null && a.ai_puan !== undefined).sort((a, b) => (b.ai_puan || 0) - (a.ai_puan || 0))[0];
                 if (winner && winner.user_id && winner.user_id !== 'anonymous') {
                     const todayStr = new Date().toISOString().split('T')[0];
                     
@@ -519,7 +519,7 @@ export function Vitrin() {
             if (siralama === 'topluluk') {
                 return b.topluluk_puan - a.topluluk_puan;
             } else if (siralama === 'ai') {
-                return b.ai_puan - a.ai_puan;
+                return (b.ai_puan ?? -1) - (a.ai_puan ?? -1);
             } else if (siralama === 'oy') {
                 return b.oy_sayisi - a.oy_sayisi;
             } else {
@@ -527,8 +527,9 @@ export function Vitrin() {
             }
         });
 
-    const gununTasarimiItem = items.length > 0
-        ? [...items].sort((a, b) => (b.ai_puan || 0) - (a.ai_puan || 0))[0]
+    const itemsWithAi = items.filter(a => a.ai_puan !== null && a.ai_puan !== undefined);
+    const gununTasarimiItem = itemsWithAi.length > 0
+        ? [...itemsWithAi].sort((a, b) => (b.ai_puan || 0) - (a.ai_puan || 0))[0]
         : null;
 
     return (
@@ -763,10 +764,16 @@ export function Vitrin() {
                                 </Link>
 
                                 <div className="flex flex-col items-end gap-1 shrink-0">
-                                    <div className="flex items-center gap-1.5 group cursor-help" title="AI Puanı">
-                                        <Star className="w-3.5 h-3.5 text-[var(--text-secondary)]/20 group-hover:text-amber-500 group-hover:fill-amber-500 transition-colors" />
-                                        <span className="text-[var(--text-secondary)]/80 text-xs font-semibold tabular-nums">{item.ai_puan}</span>
-                                    </div>
+                                    {item.ai_puan != null ? (
+                                        <div className="flex items-center gap-1.5 group cursor-help" title="AI Puanı">
+                                            <Star className="w-3.5 h-3.5 text-[var(--text-secondary)]/20 group-hover:text-amber-500 group-hover:fill-amber-500 transition-colors" />
+                                            <span className="text-[var(--text-secondary)]/80 text-xs font-semibold tabular-nums">{item.ai_puan}</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-1 group cursor-help" title="Topluluk Gönderisi (AI Analizsiz)">
+                                            <span className="text-[9px] font-bold text-[var(--text-secondary)]/60 bg-[var(--bg-secondary)] px-1.5 py-0.5 rounded border border-[var(--border-primary)]">Topluluk</span>
+                                        </div>
+                                    )}
                                     <div className="flex items-center gap-1.5 group cursor-help" title="Topluluk Puanı">
                                         <Heart className="w-3.5 h-3.5 text-[var(--text-secondary)]/20 group-hover:text-emerald-500 group-hover:fill-emerald-500 transition-colors" />
                                         <span className="text-[var(--text-secondary)]/80 text-xs font-semibold tabular-nums tracking-tighter">{item.topluluk_puan || 0}</span>
@@ -903,7 +910,12 @@ export function Vitrin() {
                                         <div className="flex-1 p-5 rounded-[24px] bg-[var(--bg-secondary)] border border-[var(--border-primary)] flex flex-col items-center text-center shadow-sm relative overflow-hidden group">
                                             <div className="absolute inset-0 bg-[var(--color-brand-orange)]/5 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                                             <span className="text-[var(--text-secondary)] text-[10px] uppercase font-black tracking-widest mb-1 relative z-10">Yapay Zeka Puanı</span>
-                                            <span className="text-4xl text-[var(--color-brand-orange)] font-black tracking-tighter relative z-10">{seciliGorsel.ai_puan}</span>
+                                            <span className="text-4xl text-[var(--color-brand-orange)] font-black tracking-tighter relative z-10">
+                                                {seciliGorsel.ai_puan != null ? seciliGorsel.ai_puan : '-'}
+                                            </span>
+                                            {seciliGorsel.ai_puan == null && (
+                                                <span className="text-[10px] text-[var(--text-secondary)] mt-1 relative z-10 font-medium">Analizsiz Gönderi</span>
+                                            )}
                                         </div>
                                         <div className="flex-1 p-5 rounded-[24px] bg-[var(--bg-secondary)] border border-[var(--border-primary)] flex flex-col items-center text-center shadow-sm relative overflow-hidden group">
                                             <div className="absolute inset-0 bg-[#ff7b00]/5 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
