@@ -31,7 +31,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { userEmail, userId, userName } = req.body || {};
+    const requestBody = (typeof req.body === 'string' ? (req.body ? JSON.parse(req.body) : {}) : req.body) || {};
+    const { userEmail, userId, userName } = requestBody;
 
     // 1. Fetch Auth Token from ÖdeAl Auth API (Prioritize Production Live URLs)
     let token = '';
@@ -117,7 +118,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         paymentUrl = vposData.paymentUrl || vposData.url || vposData.link || vposData.redirectUrl || vposData.data?.url || '';
 
         if (vposData.message || vposData.error || vposData.description) {
-          lastError = vposData.message || vposData.error || vposData.description;
+          const rawErr = vposData.message || vposData.error || vposData.description;
+          lastError = typeof rawErr === 'string' ? rawErr : (rawErr.message || rawErr.description || JSON.stringify(rawErr));
         }
 
         if (threeDFormHtml || paymentUrl) break;

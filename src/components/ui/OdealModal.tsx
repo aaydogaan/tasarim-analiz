@@ -13,6 +13,15 @@ export default function OdealModal({ isOpen, onClose }: OdealModalProps) {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [htmlForm, setHtmlForm] = useState<string | null>(null);
 
+    const formatErrorMessage = (err: any): string => {
+        if (!err) return '';
+        if (typeof err === 'string') return err;
+        if (typeof err === 'object') {
+            return err.message || err.description || err.error || JSON.stringify(err);
+        }
+        return String(err);
+    };
+
     const handleStartCheckout = async () => {
         setLoading(true);
         setErrorMsg(null);
@@ -38,11 +47,11 @@ export default function OdealModal({ isOpen, onClose }: OdealModalProps) {
             } else if (data.paymentUrl) {
                 window.location.href = data.paymentUrl;
             } else {
-                setErrorMsg(data.error || 'ÖdeAl 3D Secure ödeme ekranı yanıt vermedi.');
+                setErrorMsg(formatErrorMessage(data.error) || 'ÖdeAl 3D Secure ödeme ekranı yanıt vermedi.');
             }
         } catch (err: any) {
             console.error('ÖdeAl checkout hatası:', err);
-            setErrorMsg('ÖdeAl Sanal POS ödeme sistemine bağlanırken bir hata oluştu.');
+            setErrorMsg(formatErrorMessage(err) || 'ÖdeAl Sanal POS ödeme sistemine bağlanırken bir hata oluştu.');
         } finally {
             setLoading(false);
         }
@@ -121,7 +130,7 @@ export default function OdealModal({ isOpen, onClose }: OdealModalProps) {
 
                                         {errorMsg && (
                                             <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-red-500 font-medium text-center">
-                                                {errorMsg}
+                                                {typeof errorMsg === 'string' ? errorMsg : formatErrorMessage(errorMsg)}
                                             </div>
                                         )}
 
