@@ -76,8 +76,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         token = tokenData.token || tokenData.accessToken || tokenData.id_token || tokenData.data?.token || tokenData.result?.token || '';
         
-        if (!token && (tokenData.message || tokenData.error || tokenData.description)) {
-          const rawErr = tokenData.message || tokenData.error || tokenData.description;
+        if (!token && (tokenData.userMessage || tokenData.detail || tokenData.message || tokenData.error || tokenData.description)) {
+          const rawErr = tokenData.userMessage || tokenData.detail || tokenData.message || tokenData.error || tokenData.description;
           lastError = typeof rawErr === 'string' ? rawErr : (rawErr.message || rawErr.description || JSON.stringify(rawErr));
         }
       } catch (err: any) {
@@ -117,8 +117,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             threeDFormHtml = vposData.threeDFormHtml || vposData.result?.threeDFormHtml || vposData.data?.threeDFormHtml || '';
             paymentUrl = vposData.paymentUrl || vposData.url || vposData.link || vposData.redirectUrl || vposData.data?.url || '';
 
-            if (vposData.message || vposData.error || vposData.description) {
-              const rawErr = vposData.message || vposData.error || vposData.description;
+            if (vposData.message || vposData.error || vposData.description || vposData.userMessage) {
+              const rawErr = vposData.userMessage || vposData.message || vposData.error || vposData.description;
               lastError = typeof rawErr === 'string' ? rawErr : (rawErr.message || rawErr.description || JSON.stringify(rawErr));
             }
 
@@ -142,8 +142,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     let friendlyError = lastError;
-    if (lastError.includes('could not be authorized') || lastError.includes('unauthorized') || lastError.includes('401')) {
-      friendlyError = 'ÖdeAl Canlı API Anahtarı Doğrulaması Başarısız: Lütfen ÖdeAl üye işyeri panelinizdeki (portal.odeal.com) Canlı API Key ve Secret Key bilgilerinizle Vercel panelinizi güncelleyin.';
+    if (lastError.includes('could not be authorized') || lastError.includes('unauthorized') || lastError.includes('401') || lastError.includes('İstemci bulunamadı') || lastError.includes('pasif')) {
+      friendlyError = 'ÖdeAl Canlı API Anahtarı Doğrulaması Başarısız (İstemci bulunamadı veya pasif): Lütfen ÖdeAl üye işyeri panelinizden (portal.odeal.com) firmanıza özel yeni tanımlanan Canlı API Key ve Secret Key bilgilerini Vercel panelinize ekleyin.';
     }
 
     return res.status(200).json({
