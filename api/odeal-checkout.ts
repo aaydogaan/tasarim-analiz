@@ -33,13 +33,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const { userEmail, userId, userName } = req.body || {};
 
-    // 1. Fetch Auth Token from ÖdeAl Auth API (Prioritize Stage/Sandbox URL)
+    // 1. Fetch Auth Token from ÖdeAl Auth API (Prioritize Production Live URLs)
     let token = '';
     const authEndpoints = [
-      'https://auth-sandbox.odeal.com/api/v1/token',
       'https://auth.odeal.com/api/v1/token',
-      'https://api-stg.odeal.com/api/v1/token',
-      'https://api.odeal.com/api/v1/token'
+      'https://api.odeal.com/api/v1/token',
+      'https://auth-sandbox.odeal.com/api/v1/token',
+      'https://api-stg.odeal.com/api/v1/token'
     ];
 
     for (const authUrl of authEndpoints) {
@@ -74,10 +74,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const description = 'Revizelesene PRO Paket Abonelik (59 TL)';
 
     const vposEndpoints = [
-      'https://api-stg.odeal.com/vpos/init-3d',
       'https://api.odeal.com/vpos/init-3d',
-      'https://api-stg.odeal.com/api/v1/pay-by-link',
-      'https://api.odeal.com/api/v1/pay-by-link'
+      'https://api.odeal.com/api/v1/pay-by-link',
+      'https://api.odeal.com/vpos/payment',
+      'https://api-stg.odeal.com/vpos/init-3d',
+      'https://api-stg.odeal.com/api/v1/pay-by-link'
     ];
 
     let threeDFormHtml = '';
@@ -91,7 +92,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+            'X-Api-Key': ODEAL_API_KEY,
+            'X-Client-Id': ODEAL_API_KEY
           },
           body: JSON.stringify({
             amount,
@@ -113,8 +116,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         threeDFormHtml = vposData.threeDFormHtml || vposData.result?.threeDFormHtml || vposData.data?.threeDFormHtml || '';
         paymentUrl = vposData.paymentUrl || vposData.url || vposData.link || vposData.redirectUrl || vposData.data?.url || '';
 
-        if (vposData.message || vposData.error) {
-          lastError = vposData.message || vposData.error;
+        if (vposData.message || vposData.error || vposData.description) {
+          lastError = vposData.message || vposData.error || vposData.description;
         }
 
         if (threeDFormHtml || paymentUrl) break;
@@ -133,7 +136,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(200).json({
       success: false,
-      error: lastError || 'ÖdeAl Stage (Test) ortamı API yanıtı bekleniyor. Lütfen ÖdeAl paneli test tamamlamasını kontrol edin.'
+      error: lastError || 'ÖdeAl Sanal POS API yanıt vermedi. Lütfen Vercel panelinizde ODEAL_API_KEY ve ODEAL_SECRET_KEY değerlerini kontrol edin.'
     });
 
   } catch (err: any) {

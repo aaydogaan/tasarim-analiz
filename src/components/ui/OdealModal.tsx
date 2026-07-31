@@ -36,8 +36,7 @@ export default function OdealModal({ isOpen, onClose }: OdealModalProps) {
             if (data.threeDFormHtml) {
                 setHtmlForm(data.threeDFormHtml);
             } else if (data.paymentUrl) {
-                window.open(data.paymentUrl, '_blank', 'noopener,noreferrer');
-                onClose();
+                window.location.href = data.paymentUrl;
             } else {
                 setErrorMsg(data.error || 'ÖdeAl 3D Secure ödeme ekranı yanıt vermedi.');
             }
