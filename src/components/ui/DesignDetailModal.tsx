@@ -8,7 +8,7 @@ import { VerifiedBadge } from './VerifiedBadge';
 import ReportModal from './ReportModal';
 import { FormattedCommentText } from './FormattedCommentText';
 import { CommentInputWithMentions } from './CommentInputWithMentions';
-import { sendMentionNotifications, getCleanUserTag } from '../../lib/mentionHelper';
+import { sendMentionNotifications, getCleanUserTag, organizeCommentsIntoThreads } from '../../lib/mentionHelper';
 
 export interface DesignDetailItem {
     id: string;
@@ -472,61 +472,128 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
                                     ) : comments.length === 0 ? (
                                         <p className="text-xs text-[var(--text-secondary)] italic text-center py-4">Henüz yorum yok. İlk yorumu sen yaz!</p>
                                     ) : (
-                                        comments.map((c) => {
+                                        organizeCommentsIntoThreads(comments).map((c) => {
                                             const isMyComment = currentUser && currentUser.id === c.user_id;
                                             const isEditing = editingCommentId === c.id;
 
                                             return (
-                                                <div key={c.id || c.created_at} className="flex gap-2.5 items-start bg-[var(--bg-secondary)] p-3 rounded-2xl border border-[var(--border-primary)]">
-                                                    <Link to={`/${c.user_slug || c.user_id}`} onClick={onClose}>
-                                                        <img src={c.user_avatar} className="w-7 h-7 rounded-full object-cover shrink-0 mt-0.5" alt={c.user_name} />
-                                                    </Link>
-                                                    <div className="min-w-0 flex-1">
-                                                        <div className="flex items-center justify-between gap-1 mb-1">
-                                                            <Link to={`/${c.user_slug || c.user_id}`} onClick={onClose} className="text-xs font-bold text-[var(--text-primary)] hover:text-[#FF5500] truncate">
-                                                                {c.user_name}
-                                                            </Link>
-                                                            <span className="text-[9px] text-[var(--text-secondary)] shrink-0">
-                                                                {new Date(c.created_at).toLocaleDateString('tr-TR')}
-                                                            </span>
-                                                        </div>
+                                                <div key={c.id || c.created_at} className="bg-[var(--bg-secondary)] p-3 rounded-2xl border border-[var(--border-primary)] space-y-2.5">
+                                                    {/* Parent Comment */}
+                                                    <div className="flex gap-2.5 items-start">
+                                                        <Link to={`/${c.user_slug || c.user_id}`} onClick={onClose}>
+                                                            <img src={c.user_avatar} className="w-7 h-7 rounded-full object-cover shrink-0 mt-0.5" alt={c.user_name} />
+                                                        </Link>
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="flex items-center justify-between gap-1 mb-1">
+                                                                <Link to={`/${c.user_slug || c.user_id}`} onClick={onClose} className="text-xs font-bold text-[var(--text-primary)] hover:text-[#FF5500] truncate">
+                                                                    {c.user_name}
+                                                                </Link>
+                                                                <span className="text-[9px] text-[var(--text-secondary)] shrink-0">
+                                                                    {new Date(c.created_at).toLocaleDateString('tr-TR')}
+                                                                </span>
+                                                            </div>
 
-                                                        {isEditing ? (
-                                                            <div className="mt-1 space-y-2">
-                                                                <input
-                                                                    type="text"
-                                                                    value={editCommentText}
-                                                                    onChange={(e) => setEditCommentText(e.target.value)}
-                                                                    className="w-full text-xs p-2 rounded-lg bg-[var(--card-bg)] border border-[var(--border-primary)] text-[var(--text-primary)] focus:outline-none"
-                                                                />
-                                                                <div className="flex gap-1.5 justify-end">
-                                                                    <button onClick={() => setEditingCommentId(null)} className="px-2 py-1 text-[10px] font-bold text-[var(--text-secondary)]">Vazgeç</button>
-                                                                    <button onClick={() => handleUpdateComment(c.id)} className="px-2.5 py-1 text-[10px] font-bold bg-[#FF5500] text-white rounded-md">Kaydet</button>
+                                                            {isEditing ? (
+                                                                <div className="mt-1 space-y-2">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editCommentText}
+                                                                        onChange={(e) => setEditCommentText(e.target.value)}
+                                                                        className="w-full text-xs p-2 rounded-lg bg-[var(--card-bg)] border border-[var(--border-primary)] text-[var(--text-primary)] focus:outline-none"
+                                                                    />
+                                                                    <div className="flex gap-1.5 justify-end">
+                                                                        <button onClick={() => setEditingCommentId(null)} className="px-2 py-1 text-[10px] font-bold text-[var(--text-secondary)]">Vazgeç</button>
+                                                                        <button onClick={() => handleUpdateComment(c.id)} className="px-2.5 py-1 text-[10px] font-bold bg-[#FF5500] text-white rounded-md">Kaydet</button>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        ) : (
-                                                            <p className="text-xs text-[var(--text-primary)]/90 font-medium mt-0.5 leading-relaxed break-words">
-                                                                <FormattedCommentText text={c.content || c.comment} onUserClick={onClose} />
-                                                            </p>
-                                                        )}
+                                                            ) : (
+                                                                <p className="text-xs text-[var(--text-primary)]/90 font-medium mt-0.5 leading-relaxed break-words">
+                                                                    <FormattedCommentText text={c.content || c.comment || ''} onUserClick={onClose} />
+                                                                </p>
+                                                            )}
 
-                                                        {!isEditing && (
-                                                            <div className="flex gap-2.5 justify-end mt-1.5 items-center">
-                                                                <button
-                                                                    onClick={() => handleReplyToComment(c)}
-                                                                    className="text-[10px] font-bold text-[#FF5500] hover:underline flex items-center gap-0.5 cursor-pointer"
-                                                                >
-                                                                    <Reply className="w-3 h-3" /> Cevapla
-                                                                </button>
-                                                                {isMyComment && (
-                                                                    <>
-                                                                        <button onClick={() => { setEditingCommentId(c.id); setEditCommentText(c.content || c.comment); }} className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Düzenle</button>
-                                                                        <button onClick={() => handleDeleteComment(c.id)} className="text-[10px] text-red-500 hover:text-red-600">Sil</button>
-                                                                    </>
-                                                                )}
-                                                            </div>
-                                                        )}
+                                                            {!isEditing && (
+                                                                <div className="flex gap-2.5 justify-end mt-1.5 items-center">
+                                                                    <button
+                                                                        onClick={() => handleReplyToComment(c)}
+                                                                        className="text-[10px] font-bold text-[#FF5500] hover:underline flex items-center gap-0.5 cursor-pointer"
+                                                                    >
+                                                                        <Reply className="w-3 h-3" /> Cevapla
+                                                                    </button>
+                                                                    {isMyComment && (
+                                                                        <>
+                                                                            <button onClick={() => { setEditingCommentId(c.id); setEditCommentText(c.content || c.comment || ''); }} className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Düzenle</button>
+                                                                            <button onClick={() => handleDeleteComment(c.id)} className="text-[10px] text-red-500 hover:text-red-600">Sil</button>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
+
+                                                    {/* Nested Replies inside the SAME outer box */}
+                                                    {c.replies && c.replies.length > 0 && (
+                                                        <div className="pl-3 md:pl-4 border-l-2 border-[#FF5500]/40 space-y-2 mt-2 pt-2 border-t border-[var(--border-primary)]/40">
+                                                            {c.replies.map(reply => {
+                                                                const isMyReply = currentUser && currentUser.id === reply.user_id;
+                                                                const isReplyEditing = editingCommentId === reply.id;
+
+                                                                return (
+                                                                    <div key={reply.id} className="flex gap-2 items-start bg-[var(--card-bg)]/80 p-2.5 rounded-xl border border-[var(--border-primary)]/60">
+                                                                        <Link to={`/${reply.user_slug || reply.user_id}`} onClick={onClose}>
+                                                                            <img src={reply.user_avatar} className="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5" alt={reply.user_name} />
+                                                                        </Link>
+                                                                        <div className="min-w-0 flex-1">
+                                                                            <div className="flex items-center justify-between gap-1 mb-0.5">
+                                                                                <Link to={`/${reply.user_slug || reply.user_id}`} onClick={onClose} className="text-[11px] font-bold text-[var(--text-primary)] hover:text-[#FF5500] truncate">
+                                                                                    {reply.user_name}
+                                                                                </Link>
+                                                                                <span className="text-[9px] text-[var(--text-secondary)] shrink-0">
+                                                                                    {new Date(reply.created_at).toLocaleDateString('tr-TR')}
+                                                                                </span>
+                                                                            </div>
+
+                                                                            {isReplyEditing ? (
+                                                                                <div className="mt-1 space-y-2">
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        value={editCommentText}
+                                                                                        onChange={(e) => setEditCommentText(e.target.value)}
+                                                                                        className="w-full text-xs p-1.5 rounded-lg bg-[var(--card-bg)] border border-[var(--border-primary)] text-[var(--text-primary)] focus:outline-none"
+                                                                                    />
+                                                                                    <div className="flex gap-1.5 justify-end">
+                                                                                        <button onClick={() => setEditingCommentId(null)} className="px-2 py-0.5 text-[10px] font-bold text-[var(--text-secondary)]">Vazgeç</button>
+                                                                                        <button onClick={() => handleUpdateComment(reply.id)} className="px-2 py-0.5 text-[10px] font-bold bg-[#FF5500] text-white rounded-md">Kaydet</button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            ) : (
+                                                                                <p className="text-[11px] text-[var(--text-primary)]/90 font-medium mt-0.5 leading-relaxed break-words">
+                                                                                    <FormattedCommentText text={reply.content || reply.comment || ''} onUserClick={onClose} />
+                                                                                </p>
+                                                                            )}
+
+                                                                            {!isReplyEditing && (
+                                                                                <div className="flex gap-2.5 justify-end mt-1 items-center">
+                                                                                    <button
+                                                                                        onClick={() => handleReplyToComment(reply)}
+                                                                                        className="text-[10px] font-bold text-[#FF5500] hover:underline flex items-center gap-0.5 cursor-pointer"
+                                                                                    >
+                                                                                        <Reply className="w-3 h-3" /> Cevapla
+                                                                                    </button>
+                                                                                    {isMyReply && (
+                                                                                        <>
+                                                                                            <button onClick={() => { setEditingCommentId(reply.id); setEditCommentText(reply.content || reply.comment || ''); }} className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Düzenle</button>
+                                                                                            <button onClick={() => handleDeleteComment(reply.id)} className="text-[10px] text-red-500 hover:text-red-600">Sil</button>
+                                                                                        </>
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             );
                                         })

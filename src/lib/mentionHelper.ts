@@ -77,3 +77,65 @@ export function getCleanUserTag(prof: { display_name?: string; slug?: string; us
     const name = prof.display_name || prof.user_name || 'tasarimci';
     return name.replace(/\s+/g, '');
 }
+
+export interface ThreadComment {
+    id: string;
+    parent_id?: string | null;
+    user_id: string;
+    content: string;
+    comment?: string;
+    created_at: string;
+    user_name?: string;
+    user_avatar?: string;
+    user_slug?: string;
+    profiles?: any;
+    replies?: ThreadComment[];
+}
+
+/**
+ * Groups comments into parent threads and nested replies
+ */
+export function organizeCommentsIntoThreads(comments: any[]): ThreadComment[] {
+    if (!comments || comments.length === 0) return [];
+
+    const threadMap = new Map<string, ThreadComment>();
+    const topLevelComments: ThreadComment[] = [];
+
+    // Map each comment with initialized replies array
+    comments.forEach(c => {
+        threadMap.set(c.id, { ...c, replies: [] });
+    });
+
+    comments.forEach(c => {
+        const item = threadMap.get(c.id)!;
+
+        // 1. Check explicit parent_id
+        if (c.parent_id && threadMap.has(c.parent_id) && c.parent_id !== c.id) {
+            threadMap.get(c.parent_id)!.replies!.push(item);
+            return;
+        }
+
+        // 2. Check implicit @mention matching at start of text
+        const text = (c.content || c.comment || '').trim();
+        const match = text.match(/^@([a-zA-Z0-9_çğıöşüÇĞİÖŞÜ.-]+)/);
+        if (match) {
+            const tag = match[1].toLowerCase();
+            // Find parent comment before this one whose slug or display_name matches tag
+            const parent = comments.find(p => {
+                if (p.id === c.id) return false;
+                const pSlug = (p.profiles?.slug || p.user_slug || '').toLowerCase();
+                const pName = (p.profiles?.display_name || p.user_name || '').toLowerCase().replace(/\s+/g, '');
+                return (pSlug && pSlug === tag) || (pName && pName === tag);
+            });
+
+            if (parent && threadMap.has(parent.id)) {
+                threadMap.get(parent.id)!.replies!.push(item);
+                return;
+            }
+        }
+
+        topLevelComments.push(item);
+    });
+
+    return topLevelComments;
+}

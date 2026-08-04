@@ -8,7 +8,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import { FormattedCommentText } from '../components/ui/FormattedCommentText';
 import { CommentInputWithMentions } from '../components/ui/CommentInputWithMentions';
-import { sendMentionNotifications, getCleanUserTag } from '../lib/mentionHelper';
+import { sendMentionNotifications, getCleanUserTag, organizeCommentsIntoThreads } from '../lib/mentionHelper';
 import {
     CORE_FOUNDERS,
     CORE_FOUNDER_COUNT,
@@ -1074,9 +1074,10 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                 ) : (
                                                     <div className="space-y-2.5">
                                                         {(() => {
-                                                            const allComments = inlineComments[post.id] || [];
+                                                            const rawComments = inlineComments[post.id] || [];
+                                                            const threadComments = organizeCommentsIntoThreads(rawComments);
                                                             const isExpanded = expandedComments[post.id];
-                                                            const visibleComments = isExpanded ? allComments : allComments.slice(0, 2);
+                                                            const visibleComments = isExpanded ? threadComments : threadComments.slice(0, 2);
 
                                                             return (
                                                                 <>
@@ -1088,97 +1089,179 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                                         const isEditing = editingCommentId === c.id;
 
                                                                         return (
-                                                                        <div key={c.id} className="flex gap-3 bg-[var(--bg-secondary)] p-3 rounded-2xl border border-[var(--border-primary)] text-xs">
-                                                                            <Link to={`/${cSlug}`}>
-                                                                                <img src={cAvatar} className="w-7 h-7 rounded-full object-cover shrink-0 hover:opacity-80 transition-opacity" alt="" />
-                                                                            </Link>
-                                                                            <div className="min-w-0 flex-1">
-                                                                                <div className="flex justify-between items-center mb-0.5">
-                                                                                    <Link to={`/${cSlug}`} className="font-bold text-[var(--text-primary)] hover:text-[var(--color-brand-orange)] transition-colors">
-                                                                                        {cName}
-                                                                                    </Link>
-                                                                                    <span className="text-[10px] text-[var(--text-secondary)]">{new Date(c.created_at).toLocaleDateString('tr-TR')}</span>
-                                                                                </div>
-
-                                                                                {isEditing ? (
-                                                                                    <div className="mt-1.5 space-y-2">
-                                                                                        <input
-                                                                                            type="text"
-                                                                                            value={editingCommentText}
-                                                                                            onChange={(e) => setEditingCommentText(e.target.value)}
-                                                                                            className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-[var(--color-brand-orange)] bg-[var(--bg-primary)] text-[var(--text-primary)] outline-none"
-                                                                                            autoFocus
-                                                                                            onKeyDown={(e) => { if (e.key === 'Enter') handleSaveEditComment(post.id, c.id); }}
-                                                                                        />
-                                                                                        <div className="flex justify-end gap-1.5">
-                                                                                            <button
-                                                                                                onClick={() => { setEditingCommentId(null); setEditingCommentText(''); }}
-                                                                                                className="px-2.5 py-1 text-[10px] font-bold text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] rounded-lg"
-                                                                                            >
-                                                                                                İptal
-                                                                                            </button>
-                                                                                            <button
-                                                                                                onClick={() => handleSaveEditComment(post.id, c.id)}
-                                                                                                className="px-3 py-1 text-[10px] font-bold bg-[var(--color-brand-orange)] text-white rounded-lg hover:bg-[#e64500]"
-                                                                                            >
-                                                                                                Kaydet
-                                                                                            </button>
-                                                                                        </div>
+                                                                        <div key={c.id} className="bg-[var(--bg-secondary)] p-3 rounded-2xl border border-[var(--border-primary)] text-xs space-y-2.5">
+                                                                            {/* Parent Comment */}
+                                                                            <div className="flex gap-3">
+                                                                                <Link to={`/${cSlug}`}>
+                                                                                    <img src={cAvatar} className="w-7 h-7 rounded-full object-cover shrink-0 hover:opacity-80 transition-opacity" alt="" />
+                                                                                </Link>
+                                                                                <div className="min-w-0 flex-1">
+                                                                                    <div className="flex justify-between items-center mb-0.5">
+                                                                                        <Link to={`/${cSlug}`} className="font-bold text-[var(--text-primary)] hover:text-[var(--color-brand-orange)] transition-colors">
+                                                                                            {cName}
+                                                                                        </Link>
+                                                                                        <span className="text-[10px] text-[var(--text-secondary)]">{new Date(c.created_at).toLocaleDateString('tr-TR')}</span>
                                                                                     </div>
-                                                                                ) : (
-                                                                                    <>
-                                                                                        <p className="text-[var(--text-secondary)] leading-relaxed">
-                                                                                            <FormattedCommentText text={c.content} />
-                                                                                        </p>
-                                                                                        <div className="mt-2 flex items-center justify-end gap-2.5">
-                                                                                            <button
-                                                                                                onClick={(e) => {
-                                                                                                    e.stopPropagation();
-                                                                                                    const cleanTag = getCleanUserTag(c.profiles ? { display_name: c.profiles.display_name, slug: c.profiles.slug } : { display_name: cName, slug: cSlug });
-                                                                                                    setInlineReplyTarget(prev => ({ ...prev, [post.id]: { name: cName, slug: cleanTag, userId: c.user_id } }));
-                                                                                                    setCommentInput(`@${cleanTag} `);
-                                                                                                }}
-                                                                                                className="text-[10px] font-bold text-[var(--color-brand-orange)] hover:underline transition-colors flex items-center gap-1 cursor-pointer"
-                                                                                            >
-                                                                                                <Reply size={10} /> Cevapla
-                                                                                            </button>
-                                                                                            {isCAuthorCurrent ? (
-                                                                                                <>
-                                                                                                    <button
-                                                                                                        onClick={(e) => { e.stopPropagation(); setEditingCommentId(c.id); setEditingCommentText(c.content); }}
-                                                                                                        className="text-[10px] font-bold text-[var(--text-secondary)]/60 hover:text-[var(--color-brand-orange)] transition-colors flex items-center gap-1"
-                                                                                                    >
-                                                                                                        <Pencil size={10} /> Düzenle
-                                                                                                    </button>
-                                                                                                    <button
-                                                                                                        onClick={(e) => { e.stopPropagation(); handleDeleteComment(post.id, c.id); }}
-                                                                                                        className="text-[10px] font-bold text-[var(--text-secondary)]/60 hover:text-red-500 transition-colors flex items-center gap-1"
-                                                                                                    >
-                                                                                                        <Trash2 size={10} /> Sil
-                                                                                                    </button>
-                                                                                                </>
-                                                                                            ) : (
-                                                                                                <button 
-                                                                                                    onClick={(e) => { e.stopPropagation(); handleReportClick(c.id, 'comment'); }}
-                                                                                                    className="text-[10px] font-bold text-[var(--text-secondary)]/40 hover:text-amber-500 transition-colors flex items-center gap-1"
+
+                                                                                    {isEditing ? (
+                                                                                        <div className="mt-1.5 space-y-2">
+                                                                                            <input
+                                                                                                type="text"
+                                                                                                value={editingCommentText}
+                                                                                                onChange={(e) => setEditingCommentText(e.target.value)}
+                                                                                                className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-[var(--color-brand-orange)] bg-[var(--bg-primary)] text-[var(--text-primary)] outline-none"
+                                                                                                autoFocus
+                                                                                                onKeyDown={(e) => { if (e.key === 'Enter') handleSaveEditComment(post.id, c.id); }}
+                                                                                            />
+                                                                                            <div className="flex justify-end gap-1.5">
+                                                                                                <button
+                                                                                                    onClick={() => { setEditingCommentId(null); setEditingCommentText(''); }}
+                                                                                                    className="px-2.5 py-1 text-[10px] font-bold text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] rounded-lg"
                                                                                                 >
-                                                                                                    <Flag size={10} /> Şikayet
+                                                                                                    İptal
                                                                                                 </button>
-                                                                                            )}
+                                                                                                <button
+                                                                                                    onClick={() => handleSaveEditComment(post.id, c.id)}
+                                                                                                    className="px-3 py-1 text-[10px] font-bold bg-[var(--color-brand-orange)] text-white rounded-lg hover:bg-[#e64500]"
+                                                                                                >
+                                                                                                    Kaydet
+                                                                                                </button>
+                                                                                            </div>
                                                                                         </div>
-                                                                                    </>
-                                                                                )}
+                                                                                    ) : (
+                                                                                        <>
+                                                                                            <p className="text-[var(--text-secondary)] leading-relaxed">
+                                                                                                <FormattedCommentText text={c.content} />
+                                                                                            </p>
+                                                                                            <div className="mt-2 flex items-center justify-end gap-2.5">
+                                                                                                <button
+                                                                                                    onClick={(e) => {
+                                                                                                        e.stopPropagation();
+                                                                                                        const cleanTag = getCleanUserTag(c.profiles ? { display_name: c.profiles.display_name, slug: c.profiles.slug } : { display_name: cName, slug: cSlug });
+                                                                                                        setInlineReplyTarget(prev => ({ ...prev, [post.id]: { name: cName, slug: cleanTag, userId: c.user_id } }));
+                                                                                                        setCommentInput(`@${cleanTag} `);
+                                                                                                    }}
+                                                                                                    className="text-[10px] font-bold text-[var(--color-brand-orange)] hover:underline transition-colors flex items-center gap-1 cursor-pointer"
+                                                                                                >
+                                                                                                    <Reply size={10} /> Cevapla
+                                                                                                </button>
+                                                                                                {isCAuthorCurrent ? (
+                                                                                                    <>
+                                                                                                        <button
+                                                                                                            onClick={(e) => { e.stopPropagation(); setEditingCommentId(c.id); setEditingCommentText(c.content); }}
+                                                                                                            className="text-[10px] font-bold text-[var(--text-secondary)]/60 hover:text-[var(--color-brand-orange)] transition-colors flex items-center gap-1"
+                                                                                                        >
+                                                                                                            <Pencil size={10} /> Düzenle
+                                                                                                        </button>
+                                                                                                        <button
+                                                                                                            onClick={(e) => { e.stopPropagation(); handleDeleteComment(post.id, c.id); }}
+                                                                                                            className="text-[10px] font-bold text-[var(--text-secondary)]/60 hover:text-red-500 transition-colors flex items-center gap-1"
+                                                                                                        >
+                                                                                                            <Trash2 size={10} /> Sil
+                                                                                                        </button>
+                                                                                                    </>
+                                                                                                ) : (
+                                                                                                    <button 
+                                                                                                        onClick={(e) => { e.stopPropagation(); handleReportClick(c.id, 'comment'); }}
+                                                                                                        className="text-[10px] font-bold text-[var(--text-secondary)]/40 hover:text-amber-500 transition-colors flex items-center gap-1"
+                                                                                                    >
+                                                                                                        <Flag size={10} /> Şikayet
+                                                                                                    </button>
+                                                                                                )}
+                                                                                            </div>
+                                                                                        </>
+                                                                                    )}
+                                                                                </div>
                                                                             </div>
+
+                                                                            {/* Nested Replies inside the SAME outer box */}
+                                                                            {c.replies && c.replies.length > 0 && (
+                                                                                <div className="pl-3 md:pl-4 border-l-2 border-[#FF5500]/40 space-y-2 mt-2 pt-2 border-t border-[var(--border-primary)]/40">
+                                                                                    {c.replies.map((reply: any) => {
+                                                                                        const isReplyAuthorCurrent = kullanici && kullanici.id === reply.user_id;
+                                                                                        const replyName = reply.profiles?.display_name || reply.user_name || (isReplyAuthorCurrent ? (kullanici.user_metadata?.display_name || 'Tasarımcı') : 'Tasarımcı');
+                                                                                        const replyAvatar = (isReplyAuthorCurrent && kullanici.user_metadata?.avatar_url) ? kullanici.user_metadata.avatar_url : (reply.profiles?.avatar_url || reply.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${reply.user_id}`);
+                                                                                        const replySlug = reply.profiles?.slug || reply.user_id;
+                                                                                        const isReplyEditing = editingCommentId === reply.id;
+
+                                                                                        return (
+                                                                                            <div key={reply.id} className="flex gap-2.5 bg-[var(--bg-primary)] p-2.5 rounded-xl border border-[var(--border-primary)] text-xs">
+                                                                                                <Link to={`/${replySlug}`}>
+                                                                                                    <img src={replyAvatar} className="w-6 h-6 rounded-full object-cover shrink-0 hover:opacity-80 transition-opacity" alt="" />
+                                                                                                </Link>
+                                                                                                <div className="min-w-0 flex-1">
+                                                                                                    <div className="flex justify-between items-center mb-0.5">
+                                                                                                        <Link to={`/${replySlug}`} className="font-bold text-[var(--text-primary)] hover:text-[var(--color-brand-orange)] transition-colors text-[11px]">
+                                                                                                            {replyName}
+                                                                                                        </Link>
+                                                                                                        <span className="text-[9px] text-[var(--text-secondary)]">{new Date(reply.created_at).toLocaleDateString('tr-TR')}</span>
+                                                                                                    </div>
+
+                                                                                                    {isReplyEditing ? (
+                                                                                                        <div className="mt-1 space-y-2">
+                                                                                                            <input
+                                                                                                                type="text"
+                                                                                                                value={editingCommentText}
+                                                                                                                onChange={(e) => setEditingCommentText(e.target.value)}
+                                                                                                                className="w-full px-2 py-1 text-xs rounded-xl border border-[var(--color-brand-orange)] bg-[var(--bg-primary)] text-[var(--text-primary)] outline-none"
+                                                                                                                autoFocus
+                                                                                                                onKeyDown={(e) => { if (e.key === 'Enter') handleSaveEditComment(post.id, reply.id); }}
+                                                                                                            />
+                                                                                                            <div className="flex justify-end gap-1.5">
+                                                                                                                <button onClick={() => { setEditingCommentId(null); setEditingCommentText(''); }} className="px-2 py-0.5 text-[10px] font-bold text-[var(--text-secondary)]">İptal</button>
+                                                                                                                <button onClick={() => handleSaveEditComment(post.id, reply.id)} className="px-2 py-0.5 text-[10px] font-bold bg-[var(--color-brand-orange)] text-white rounded-lg">Kaydet</button>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    ) : (
+                                                                                                        <>
+                                                                                                            <p className="text-[var(--text-secondary)] leading-relaxed text-[11px]">
+                                                                                                                <FormattedCommentText text={reply.content} />
+                                                                                                            </p>
+                                                                                                            <div className="mt-1.5 flex items-center justify-end gap-2.5">
+                                                                                                                <button
+                                                                                                                    onClick={(e) => {
+                                                                                                                        e.stopPropagation();
+                                                                                                                        const cleanTag = getCleanUserTag(reply.profiles ? { display_name: reply.profiles.display_name, slug: reply.profiles.slug } : { display_name: replyName, slug: replySlug });
+                                                                                                                        setInlineReplyTarget(prev => ({ ...prev, [post.id]: { name: replyName, slug: cleanTag, userId: reply.user_id } }));
+                                                                                                                        setCommentInput(`@${cleanTag} `);
+                                                                                                                    }}
+                                                                                                                    className="text-[10px] font-bold text-[var(--color-brand-orange)] hover:underline transition-colors flex items-center gap-1 cursor-pointer"
+                                                                                                                >
+                                                                                                                    <Reply size={10} /> Cevapla
+                                                                                                                </button>
+                                                                                                                {isReplyAuthorCurrent ? (
+                                                                                                                    <>
+                                                                                                                        <button onClick={(e) => { e.stopPropagation(); setEditingCommentId(reply.id); setEditingCommentText(reply.content); }} className="text-[10px] font-bold text-[var(--text-secondary)]/60 hover:text-[var(--color-brand-orange)] transition-colors flex items-center gap-1">
+                                                                                                                            <Pencil size={10} /> Düzenle
+                                                                                                                        </button>
+                                                                                                                        <button onClick={(e) => { e.stopPropagation(); handleDeleteComment(post.id, reply.id); }} className="text-[10px] font-bold text-[var(--text-secondary)]/60 hover:text-red-500 transition-colors flex items-center gap-1">
+                                                                                                                            <Trash2 size={10} /> Sil
+                                                                                                                        </button>
+                                                                                                                    </>
+                                                                                                                ) : (
+                                                                                                                    <button onClick={(e) => { e.stopPropagation(); handleReportClick(reply.id, 'comment'); }} className="text-[10px] font-bold text-[var(--text-secondary)]/40 hover:text-amber-500 transition-colors flex items-center gap-1">
+                                                                                                                        <Flag size={10} /> Şikayet
+                                                                                                                    </button>
+                                                                                                                )}
+                                                                                                            </div>
+                                                                                                        </>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        );
+                                                                                    })}
+                                                                                </div>
+                                                                            )}
                                                                         </div>
                                                                         );
                                                                     })}
 
-                                                                    {allComments.length > 2 && (
+                                                                    {threadComments.length > 2 && (
                                                                         <button
                                                                             onClick={() => setExpandedComments(prev => ({ ...prev, [post.id]: !isExpanded }))}
                                                                             className="text-xs font-bold text-[var(--color-brand-orange)] hover:underline pt-1 text-left block"
                                                                         >
-                                                                            {isExpanded ? 'Yorumları daralt' : `Diğer ${allComments.length - 2} yorumu daha gör...`}
+                                                                            {isExpanded ? 'Yorumları daralt' : `Diğer ${threadComments.length - 2} konuyu daha gör...`}
                                                                         </button>
                                                                     )}
                                                                 </>
