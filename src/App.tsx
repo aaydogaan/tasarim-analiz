@@ -1484,7 +1484,7 @@ export default function App() {
                                   ) : (
                                     <div className="flex items-center gap-2">
                                       <span className="flex items-center gap-1 text-[#FF5500] font-extrabold">
-                                        <Zap className="w-4 h-4 fill-[#FF5500]" /> Kalan Hak: {3 - getTodayUsageCount()} / 3
+                                        <Zap className="w-4 h-4 fill-[#FF5500]" /> Bugünkü Kullanım: {getTodayUsageCount()} / 3 (Kalan Hak: {Math.max(0, 3 - getTodayUsageCount())})
                                       </span>
                                       {getTodayUsageCount() >= 3 && (
                                         <button

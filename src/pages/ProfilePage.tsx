@@ -1003,7 +1003,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                             <div className="flex items-center justify-between text-xs font-bold text-[var(--text-primary)]">
                                                 <span>Bugünkü Kullanım:</span>
                                                 <span className={getTodayUsageCount() >= 3 ? "text-red-500 font-black" : "text-[#FF5500] font-black"}>
-                                                    {getTodayUsageCount()} / 3 Analiz
+                                                    {getTodayUsageCount()} / 3 Analiz (Kalan: {Math.max(0, 3 - getTodayUsageCount())})
                                                 </span>
                                             </div>
                                             <p className="text-[10px] text-[var(--text-secondary)] font-medium leading-normal">
