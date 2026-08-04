@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
-import { Flame, ThumbsUp, MessageSquare, Image as ImageIcon, Send, Sparkles, AlertCircle, Share2, UploadCloud, Loader2, ArrowLeft, Pencil, Trash2, X, Check } from 'lucide-react';
+import { Flame, ThumbsUp, MessageSquare, Image as ImageIcon, Send, Sparkles, AlertCircle, Share2, UploadCloud, Loader2, ArrowLeft, Pencil, Trash2, X, Check, Maximize2 } from 'lucide-react';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
@@ -14,6 +14,16 @@ export default function RevizelesPage() {
     const [posts, setPosts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [postsLoading, setPostsLoading] = useState(false);
+    const [expandedGorsel, setExpandedGorsel] = useState<string | null>(null);
+
+    // Modal Escape Key
+    useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setExpandedGorsel(null);
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, []);
 
     // Form states
     const [currentUser, setCurrentUser] = useState<any>(null);
@@ -306,14 +316,23 @@ export default function RevizelesPage() {
                         <div className="bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-[32px] overflow-hidden shadow-sm">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 sm:p-8 items-center">
                                 {/* Target Logo Image */}
-                                <div className="md:col-span-1 relative group rounded-2xl overflow-hidden border border-[var(--border-primary)] bg-[var(--bg-secondary)] aspect-square flex items-center justify-center p-4">
+                                <div 
+                                    onClick={() => setExpandedGorsel(selectedTopic.image_url)}
+                                    className="md:col-span-1 relative group rounded-2xl overflow-hidden border border-[var(--border-primary)] bg-[var(--bg-secondary)] aspect-square flex items-center justify-center p-4 cursor-pointer hover:border-[#FF5500]/50 transition-all shadow-sm"
+                                    title="Görseli büyütmek için tıklayın"
+                                >
                                     <img
                                         src={selectedTopic.image_url}
                                         alt={selectedTopic.title}
-                                        className="max-h-full max-w-full object-contain rounded-xl"
+                                        referrerPolicy="no-referrer"
+                                        className="max-h-full max-w-full object-contain rounded-xl group-hover:scale-105 transition-transform duration-300"
                                     />
-                                    <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">
-                                        Gündem Logosı
+                                    <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider z-10 shadow-sm border border-white/10">
+                                        Gündem Logosu
+                                    </div>
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity text-white font-bold text-xs gap-1.5 backdrop-blur-[2px] z-20">
+                                        <Maximize2 className="w-6 h-6 text-[#FF5500] drop-shadow-md" />
+                                        <span className="bg-black/60 px-3 py-1 rounded-full text-[11px] font-bold border border-white/20">Büyütmek İçin Tıkla</span>
                                     </div>
                                 </div>
 
@@ -475,13 +494,21 @@ export default function RevizelesPage() {
                                                         Tasarımcının Alternatif Revizyon Logosu:
                                                     </span>
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                        <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-2xl text-center">
+                                                        <div 
+                                                            onClick={() => setExpandedGorsel(selectedTopic.image_url)}
+                                                            className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-3 rounded-2xl text-center cursor-pointer hover:border-[#FF5500]/50 transition-all group relative overflow-hidden"
+                                                            title="Görseli büyütmek için tıklayın"
+                                                        >
                                                             <span className="text-[10px] font-bold text-[var(--text-secondary)] block mb-1.5">Orijinal Logo</span>
-                                                            <img src={selectedTopic.image_url} alt="Orijinal" className="max-h-48 mx-auto object-contain rounded-xl" />
+                                                            <img src={selectedTopic.image_url} alt="Orijinal" referrerPolicy="no-referrer" className="max-h-48 mx-auto object-contain rounded-xl group-hover:scale-105 transition-transform duration-300" />
                                                         </div>
-                                                        <div className="bg-[var(--bg-secondary)] border border-[#FF5500]/30 p-3 rounded-2xl text-center">
+                                                        <div 
+                                                            onClick={() => setExpandedGorsel(p.redesign_image_url)}
+                                                            className="bg-[var(--bg-secondary)] border border-[#FF5500]/30 p-3 rounded-2xl text-center cursor-pointer hover:border-[#FF5500] transition-all group relative overflow-hidden"
+                                                            title="Görseli büyütmek için tıklayın"
+                                                        >
                                                             <span className="text-[10px] font-bold text-[#FF5500] block mb-1.5">Alternatif Revizyon</span>
-                                                            <img src={p.redesign_image_url} alt="Revizyon" className="max-h-48 mx-auto object-contain rounded-xl" />
+                                                            <img src={p.redesign_image_url} alt="Revizyon" referrerPolicy="no-referrer" className="max-h-48 mx-auto object-contain rounded-xl group-hover:scale-105 transition-transform duration-300" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -495,6 +522,39 @@ export default function RevizelesPage() {
                     </div>
                 )}
             </div>
+
+            {/* Lightbox Enlarged Image Modal */}
+            <AnimatePresence>
+                {expandedGorsel && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 sm:p-6 bg-black/92 backdrop-blur-md select-none"
+                        onClick={() => setExpandedGorsel(null)}
+                    >
+                        <button
+                            className="absolute top-4 right-4 sm:top-6 sm:right-6 text-white/70 hover:text-white bg-black/40 hover:bg-black/80 border border-white/20 rounded-full p-2.5 z-[10002] transition-all cursor-pointer shadow-xl backdrop-blur-md"
+                            onClick={() => setExpandedGorsel(null)}
+                            aria-label="Kapat"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+
+                        <div
+                            className="relative z-[10000] max-w-4xl w-full flex items-center justify-center my-auto pointer-events-auto px-4"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <img
+                                src={expandedGorsel}
+                                alt="Büyütülmüş Görsel"
+                                referrerPolicy="no-referrer"
+                                className="w-auto h-auto max-w-full max-h-[82vh] object-contain rounded-2xl border border-white/15 shadow-[0_0_60px_rgba(0,0,0,0.8)] transition-all duration-300 select-none"
+                            />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
