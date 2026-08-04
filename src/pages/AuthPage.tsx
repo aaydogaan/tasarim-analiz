@@ -83,6 +83,22 @@ export default function AuthPage() {
         return () => subscription.unsubscribe();
     }, []);
 
+    const googleIleGirisYap = async () => {
+        setAuthYukleniyor(true);
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/`
+                }
+            });
+            if (error) throw error;
+        } catch (err: any) {
+            toast.error(err.message || 'Google ile giriş yapılırken bir hata oluştu.');
+            setAuthYukleniyor(false);
+        }
+    };
+
     const girisYap = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
         setAuthHata(null);
@@ -463,125 +479,151 @@ export default function AuthPage() {
 
                     <div className="space-y-4">
                         {authAdim === 1 ? (
-                            <form onSubmit={girisYap} className="space-y-4">
-                                {authMod !== 'sifre-yenile' && authMod !== 'kayit' && (
-                                    <input type="email" placeholder="E-posta" value={authEmail} onChange={e => setAuthEmail(e.target.value)} required
-                                        className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
-                                )}
-
-                                {authMod === 'kayit' && (
-                                    <>
-                                        <input type="text" placeholder="Profil adın" value={authAdSoyad} onChange={e => setAuthAdSoyad(e.target.value)} required
-                                            className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
-
+                            <>
+                                <form onSubmit={girisYap} className="space-y-4">
+                                    {authMod !== 'sifre-yenile' && authMod !== 'kayit' && (
                                         <input type="email" placeholder="E-posta" value={authEmail} onChange={e => setAuthEmail(e.target.value)} required
                                             className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
+                                    )}
 
-                                        <CustomSelect
-                                            value={authDesignRank}
-                                            onChange={setAuthDesignRank}
-                                            options={RANK_OPTIONS}
-                                            placeholder="Unvanınız"
-                                            required
-                                        />
+                                    {authMod === 'kayit' && (
+                                        <>
+                                            <input type="text" placeholder="Profil adın" value={authAdSoyad} onChange={e => setAuthAdSoyad(e.target.value)} required
+                                                className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
 
-                                        <div className="flex gap-3">
+                                            <input type="email" placeholder="E-posta" value={authEmail} onChange={e => setAuthEmail(e.target.value)} required
+                                                className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
+
                                             <CustomSelect
-                                                value={authSpecialty}
-                                                onChange={setAuthSpecialty}
-                                                options={SPECIALTY_OPTIONS}
-                                                placeholder="Tasarım Alanınız"
+                                                value={authDesignRank}
+                                                onChange={setAuthDesignRank}
+                                                options={RANK_OPTIONS}
+                                                placeholder="Unvanınız"
                                                 required
-                                                className="flex-1"
                                             />
-                                            <CustomSelect
-                                                value={authExperienceLevel}
-                                                onChange={setAuthExperienceLevel}
-                                                options={EXPERIENCE_OPTIONS}
-                                                placeholder="Deneyim"
-                                                required
-                                                className="flex-1"
-                                            />
+
+                                            <div className="flex gap-3">
+                                                <CustomSelect
+                                                    value={authSpecialty}
+                                                    onChange={setAuthSpecialty}
+                                                    options={SPECIALTY_OPTIONS}
+                                                    placeholder="Tasarım Alanınız"
+                                                    required
+                                                    className="flex-1"
+                                                />
+                                                <CustomSelect
+                                                    value={authExperienceLevel}
+                                                    onChange={setAuthExperienceLevel}
+                                                    options={EXPERIENCE_OPTIONS}
+                                                    placeholder="Deneyim"
+                                                    required
+                                                    className="flex-1"
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {authMod !== 'sifremi-unuttum' && (
+                                        <div className="relative">
+                                            <input type={authSifreGoster ? "text" : "password"} placeholder="Şifre" value={authSifre} onChange={e => setAuthSifre(e.target.value)} required
+                                                className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full pr-10 outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
+                                            <button type="button" onClick={() => setAuthSifreGoster(!authSifreGoster)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                                {authSifreGoster ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                            </button>
                                         </div>
-                                    </>
-                                )}
+                                    )}
 
-                                {authMod !== 'sifremi-unuttum' && (
-                                    <div className="relative">
-                                        <input type={authSifreGoster ? "text" : "password"} placeholder="Şifre" value={authSifre} onChange={e => setAuthSifre(e.target.value)} required
-                                            className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full pr-10 outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
-                                        <button type="button" onClick={() => setAuthSifreGoster(!authSifreGoster)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                                            {authSifreGoster ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                        </button>
-                                    </div>
-                                )}
+                                    {(authMod === 'kayit' || authMod === 'sifre-yenile') && (
+                                        <div className="relative">
+                                            <input type={authSifreTekrarGoster ? "text" : "password"} placeholder="Şifre (Tekrar)" value={authSifreTekrar} onChange={e => setAuthSifreTekrar(e.target.value)} required
+                                                className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full pr-10 outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
+                                            <button type="button" onClick={() => setAuthSifreTekrarGoster(!authSifreTekrarGoster)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                                {authSifreTekrarGoster ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                            </button>
+                                        </div>
+                                    )}
 
-                                {(authMod === 'kayit' || authMod === 'sifre-yenile') && (
-                                    <div className="relative">
-                                        <input type={authSifreTekrarGoster ? "text" : "password"} placeholder="Şifre (Tekrar)" value={authSifreTekrar} onChange={e => setAuthSifreTekrar(e.target.value)} required
-                                            className="bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm p-3 w-full pr-10 outline-none focus:border-[var(--color-brand-orange)]/50 focus:bg-white transition-colors placeholder:text-gray-400" />
-                                        <button type="button" onClick={() => setAuthSifreTekrarGoster(!authSifreTekrarGoster)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                                            {authSifreTekrarGoster ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                        </button>
-                                    </div>
-                                )}
-
-                                {authMod === 'kayit' && (
-                                    <div className="space-y-3 mt-2 mb-2">
-                                        <label className="flex items-start gap-2 cursor-pointer group">
-                                            <div className="relative flex items-center justify-center mt-0.5">
-                                                <input type="checkbox" className="peer sr-only" checked={kabulKosuullarGizlilik} onChange={(e) => setKabulKosuullarGizlilik(e.target.checked)} />
-                                                <div className="w-4 h-4 rounded border border-gray-300 peer-checked:bg-[var(--color-brand-orange)] peer-checked:border-[var(--color-brand-orange)] flex items-center justify-center transition-colors">
-                                                    <svg className={`w-3 h-3 text-white ${kabulKosuullarGizlilik ? 'block' : 'hidden'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                    {authMod === 'kayit' && (
+                                        <div className="space-y-3 mt-2 mb-2">
+                                            <label className="flex items-start gap-2 cursor-pointer group">
+                                                <div className="relative flex items-center justify-center mt-0.5">
+                                                    <input type="checkbox" className="peer sr-only" checked={kabulKosuullarGizlilik} onChange={(e) => setKabulKosuullarGizlilik(e.target.checked)} />
+                                                    <div className="w-4 h-4 rounded border border-gray-300 peer-checked:bg-[var(--color-brand-orange)] peer-checked:border-[var(--color-brand-orange)] flex items-center justify-center transition-colors">
+                                                        <svg className={`w-3 h-3 text-white ${kabulKosuullarGizlilik ? 'block' : 'hidden'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <span className="text-[12px] text-gray-600 leading-snug select-none">
-                                                <a href="/kosullar" target="_blank" className="text-[var(--color-brand-orange)] hover:underline" onClick={e => e.stopPropagation()}>Kullanım Koşulları</a> ve <a href="/gizlilik" target="_blank" className="text-[var(--color-brand-orange)] hover:underline" onClick={e => e.stopPropagation()}>Gizlilik Politikası</a>'nı okudum, kabul ediyorum. <span className="text-red-500">*</span>
-                                            </span>
-                                        </label>
-                                        <label className="flex items-start gap-2 cursor-pointer group">
-                                            <div className="relative flex items-center justify-center mt-0.5">
-                                                <input type="checkbox" className="peer sr-only" checked={kabulKvkk} onChange={(e) => setKabulKvkk(e.target.checked)} />
-                                                <div className="w-4 h-4 rounded border border-gray-300 peer-checked:bg-[var(--color-brand-orange)] peer-checked:border-[var(--color-brand-orange)] flex items-center justify-center transition-colors">
-                                                    <svg className={`w-3 h-3 text-white ${kabulKvkk ? 'block' : 'hidden'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                                <span className="text-[12px] text-gray-600 leading-snug select-none">
+                                                    <a href="/kosullar" target="_blank" className="text-[var(--color-brand-orange)] hover:underline" onClick={e => e.stopPropagation()}>Kullanım Koşulları</a> ve <a href="/gizlilik" target="_blank" className="text-[var(--color-brand-orange)] hover:underline" onClick={e => e.stopPropagation()}>Gizlilik Politikası</a>'nı okudum, kabul ediyorum. <span className="text-red-500">*</span>
+                                                </span>
+                                            </label>
+                                            <label className="flex items-start gap-2 cursor-pointer group">
+                                                <div className="relative flex items-center justify-center mt-0.5">
+                                                    <input type="checkbox" className="peer sr-only" checked={kabulKvkk} onChange={(e) => setKabulKvkk(e.target.checked)} />
+                                                    <div className="w-4 h-4 rounded border border-gray-300 peer-checked:bg-[var(--color-brand-orange)] peer-checked:border-[var(--color-brand-orange)] flex items-center justify-center transition-colors">
+                                                        <svg className={`w-3 h-3 text-white ${kabulKvkk ? 'block' : 'hidden'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <span className="text-[12px] text-gray-600 leading-snug select-none">
-                                                KVKK kapsamında kişisel verilerimin işlenmesine ilişkin <a href="/kvkk" target="_blank" className="text-[var(--color-brand-orange)] hover:underline" onClick={e => e.stopPropagation()}>Aydınlatma Metni</a>'ni okudum. <span className="text-red-500">*</span>
-                                            </span>
-                                        </label>
-                                        <label className="flex items-start gap-2 cursor-pointer group">
-                                            <div className="relative flex items-center justify-center mt-0.5">
-                                                <input type="checkbox" className="peer sr-only" checked={kabulPazarlama} onChange={(e) => setKabulPazarlama(e.target.checked)} />
-                                                <div className="w-4 h-4 rounded border border-gray-300 peer-checked:bg-[var(--color-brand-orange)] peer-checked:border-[var(--color-brand-orange)] flex items-center justify-center transition-colors">
-                                                    <svg className={`w-3 h-3 text-white ${kabulPazarlama ? 'block' : 'hidden'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                                <span className="text-[12px] text-gray-600 leading-snug select-none">
+                                                    KVKK kapsamında kişisel verilerimin işlenmesine ilişkin <a href="/kvkk" target="_blank" className="text-[var(--color-brand-orange)] hover:underline" onClick={e => e.stopPropagation()}>Aydınlatma Metni</a>'ni okudum. <span className="text-red-500">*</span>
+                                                </span>
+                                            </label>
+                                            <label className="flex items-start gap-2 cursor-pointer group">
+                                                <div className="relative flex items-center justify-center mt-0.5">
+                                                    <input type="checkbox" className="peer sr-only" checked={kabulPazarlama} onChange={(e) => setKabulPazarlama(e.target.checked)} />
+                                                    <div className="w-4 h-4 rounded border border-gray-300 peer-checked:bg-[var(--color-brand-orange)] peer-checked:border-[var(--color-brand-orange)] flex items-center justify-center transition-colors">
+                                                        <svg className={`w-3 h-3 text-white ${kabulPazarlama ? 'block' : 'hidden'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <span className="text-[12px] text-gray-600 leading-snug select-none">
-                                                İletişim bilgilerime kampanya, duyuru ve bilgilendirme mesajları gönderilmesini kabul ediyorum.
-                                            </span>
-                                        </label>
-                                    </div>
-                                )}
+                                                <span className="text-[12px] text-gray-600 leading-snug select-none">
+                                                    İletişim bilgilerime kampanya, duyuru ve bilgilendirme mesajları gönderilmesini kabul ediyorum.
+                                                </span>
+                                            </label>
+                                        </div>
+                                    )}
 
-                                {authHata && (
-                                    <div className="bg-red-50 text-red-600 p-3.5 rounded-xl text-[13px] font-medium border border-red-100 leading-snug">
-                                        <p>{authHata}</p>
-                                    </div>
-                                )}
+                                    {authHata && (
+                                        <div className="bg-red-50 text-red-600 p-3.5 rounded-xl text-[13px] font-medium border border-red-100 leading-snug">
+                                            <p>{authHata}</p>
+                                        </div>
+                                    )}
 
-                                <button type="submit" disabled={authYukleniyor}
-                                    className="w-full bg-[var(--color-brand-orange)] text-white text-[13px] font-bold py-3 px-4 rounded-xl shadow-md shadow-[var(--color-brand-orange)]/20 hover:shadow-lg hover:shadow-[var(--color-brand-orange)]/30 transition-all hover:-translate-y-0.5 flex justify-center disabled:opacity-50 disabled:hover:translate-y-0">
-                                    {authYukleniyor ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> :
-                                        (authMod === 'giris' ? 'Giriş Yap' : authMod === 'sifremi-unuttum' ? 'Sıfırlama Linki Gönder' : authMod === 'sifre-yenile' ? 'Şifremi Yenile' : 'Kayıt Ol')}
-                                </button>
-
-                                {authMod === 'giris' && (
-                                    <button type="button" onClick={() => setAuthMod('sifremi-unuttum')} className="w-full text-[12px] font-medium text-gray-500 hover:text-gray-900 transition-colors">
-                                        Şifremi Unuttum
+                                    <button type="submit" disabled={authYukleniyor}
+                                        className="w-full bg-[var(--color-brand-orange)] text-white text-[13px] font-bold py-3 px-4 rounded-xl shadow-md shadow-[var(--color-brand-orange)]/20 hover:shadow-lg hover:shadow-[var(--color-brand-orange)]/30 transition-all hover:-translate-y-0.5 flex justify-center disabled:opacity-50 disabled:hover:translate-y-0">
+                                        {authYukleniyor ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> :
+                                            (authMod === 'giris' ? 'Giriş Yap' : authMod === 'sifremi-unuttum' ? 'Sıfırlama Linki Gönder' : authMod === 'sifre-yenile' ? 'Şifremi Yenile' : 'Kayıt Ol')}
                                     </button>
+
+                                    {authMod === 'giris' && (
+                                        <button type="button" onClick={() => setAuthMod('sifremi-unuttum')} className="w-full text-[12px] font-medium text-gray-500 hover:text-gray-900 transition-colors">
+                                            Şifremi Unuttum
+                                        </button>
+                                    )}
+                                </form>
+
+                                {(authMod === 'giris' || authMod === 'kayit') && (
+                                    <div className="space-y-4">
+                                        <div className="relative my-4 flex items-center justify-center">
+                                            <div className="border-t border-gray-200 w-full" />
+                                            <span className="bg-white px-3 text-xs text-gray-400 font-medium absolute">veya</span>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={googleIleGirisYap}
+                                            disabled={authYukleniyor}
+                                            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 text-gray-700 font-bold text-sm transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                                        >
+                                            <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                                            </svg>
+                                            <span>Google ile Giriş Yap</span>
+                                        </button>
+                                    </div>
                                 )}
-                            </form>
+                            </>
                         ) : authAdim === 2 ? (
                             <div className="space-y-4">
                                 <div className="flex flex-col items-center gap-4 text-center">
