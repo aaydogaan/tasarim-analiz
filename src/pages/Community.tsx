@@ -53,13 +53,55 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
     const [wordIndex, setWordIndex] = useState(0);
     const [founders, setFounders] = useState<NormalizedCommunityProfile[]>([]);
     const [founderSource, setFounderSource] = useState<'loading' | 'live' | 'preview'>('loading');
-    const [activeChallenge, setActiveChallenge] = useState<any>(null);
-    const [challengeEntryCount, setChallengeEntryCount] = useState(0);
-    const [challengeTimeLeft, setChallengeTimeLeft] = useState('');
-    const [userEnteredChallenge, setUserEnteredChallenge] = useState(false);
-    const [joiningChallenge, setJoiningChallenge] = useState(false);
+    const [activeContest, setActiveContest] = useState<any | null>(null);
+    const [contestParticipantCount, setContestParticipantCount] = useState(0);
+    const [contestTimeLeft, setContestTimeLeft] = useState('');
     const [trendData, setTrendData] = useState<{ type: string; count: number }[]>([]);
     const [leaderboard, setLeaderboard] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchActiveContest = async () => {
+            try {
+                const { data } = await supabase
+                    .from('contests')
+                    .select('*')
+                    .neq('status', 'draft')
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                if (data) {
+                    setActiveContest(data);
+                    const { count } = await supabase
+                        .from('contest_entries')
+                        .select('id', { count: 'exact', head: true })
+                        .eq('contest_id', data.id);
+
+                    setContestParticipantCount(Math.max(data.participant_count || 0, count || 0));
+
+                    const end = new Date(data.end_date).getTime();
+                    const now = Date.now();
+                    const diff = end - now;
+
+                    if (diff <= 0 || data.status === 'ended') {
+                        setContestTimeLeft('Süresi Doldu');
+                    } else {
+                        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        if (days > 0) {
+                            setContestTimeLeft(`${days} Gün Kaldı`);
+                        } else {
+                            setContestTimeLeft(`${hours} Saat Kaldı`);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Active contest fetch error:", err);
+            }
+        };
+
+        fetchActiveContest();
+    }, []);
     
     // Community Posts State
     const [posts, setPosts] = useState<any[]>([]);
@@ -1411,53 +1453,58 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                             </AnimatePresence>
                         </div>
 
-                        {/* Weekly Challenge — Real Data */}
-                        <div className="bg-[#111] p-8 rounded-[40px] text-white overflow-hidden relative">
+                        {/* Weekly Challenge — Real Active Contest Data */}
+                        <div className="bg-[#111] p-8 rounded-[40px] text-white overflow-hidden relative border border-white/10 shadow-xl">
                             <div className="absolute top-0 right-0 w-48 h-48 bg-[var(--color-brand-orange)]/10 blur-[60px] rounded-full pointer-events-none" />
                             <div className="flex items-center gap-3 mb-6 relative z-10">
                                 <Crown className="text-[var(--color-brand-orange)] w-6 h-6" />
                                 <h3 className="font-bold text-xl tracking-tight">Haftalık Yarışma</h3>
                             </div>
 
-                            {activeChallenge ? (
-                                <div className="relative z-10">
-                                    <div className="relative rounded-3xl overflow-hidden aspect-video bg-white/5 mb-5 group">
-                                        {activeChallenge.cover_url && (
-                                            <img src={activeChallenge.cover_url} className="w-full h-full object-cover opacity-40 group-hover:opacity-60 transition-opacity duration-700" alt="Challenge" />
-                                        )}
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-                                            <span className="px-3 py-1 bg-[var(--color-brand-orange)] text-white text-[10px] font-bold rounded-full mb-3 uppercase tracking-widest">AKTİF</span>
-                                            <h4 className="font-black text-lg mb-1 leading-tight">{activeChallenge.title}</h4>
-                                            <p className="text-white/50 text-xs font-medium">{challengeEntryCount} katılımcı</p>
-                                        </div>
-                                    </div>
-                                    <p className="text-white/60 text-xs leading-relaxed mb-4">{activeChallenge.description}</p>
-                                    <div className="flex items-center justify-between mb-5">
-                                        <div className="text-center">
-                                            <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1">Kalan Süre</p>
-                                            <p className="text-sm font-black text-[var(--color-brand-orange)]">{challengeTimeLeft}</p>
-                                        </div>
-                                        <div className="text-center">
-                                            <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1">Ödül</p>
-                                            <p className="text-xs font-bold text-white/80">{activeChallenge.prize_text}</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={joinChallenge}
-                                        disabled={joiningChallenge}
-                                        className={`w-full py-3.5 rounded-2xl text-xs font-black transition-all border ${
-                                            userEnteredChallenge
-                                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 cursor-default'
-                                                : 'bg-[var(--color-brand-orange)] text-white border-transparent hover:bg-[#e64500]'
-                                        }`}
+                            {activeContest ? (
+                                <div className="relative z-10 space-y-4">
+                                    <div 
+                                        onClick={() => navigate(`/yarisma/${activeContest.slug || activeContest.id}`)}
+                                        className="relative rounded-3xl overflow-hidden aspect-video bg-[#0c0c0e] group cursor-pointer border border-white/10 shadow-md"
                                     >
-                                        {userEnteredChallenge ? '✓ Katıldın!' : joiningChallenge ? 'Katılıyor...' : 'Yarışmaya Katıl'}
+                                        {activeContest.cover_images && activeContest.cover_images[0] && (
+                                            <img 
+                                                src={activeContest.cover_images[0]} 
+                                                className="w-full h-full object-contain p-2 group-hover:scale-[1.03] transition-transform duration-500" 
+                                                alt={activeContest.title} 
+                                            />
+                                        )}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-5">
+                                            <span className="self-start px-3 py-1 bg-[var(--color-brand-orange)] text-white text-[10px] font-black rounded-full mb-2 uppercase tracking-widest shadow">YAYINDA</span>
+                                            <h4 className="font-extrabold text-lg text-white mb-1 leading-tight group-hover:text-[var(--color-brand-orange)] transition-colors">{activeContest.title}</h4>
+                                            <p className="text-white/70 text-xs font-semibold">{contestParticipantCount} Katılımcı</p>
+                                        </div>
+                                    </div>
+
+                                    <p className="text-white/70 text-xs leading-relaxed line-clamp-2">{activeContest.short_description}</p>
+
+                                    <div className="flex items-center justify-between bg-white/5 p-3.5 rounded-2xl border border-white/5">
+                                        <div>
+                                            <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-0.5">Kalan Süre</p>
+                                            <p className="text-xs font-black text-[var(--color-brand-orange)]">{contestTimeLeft}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-0.5">Yarışma Ödülü</p>
+                                            <p className="text-xs font-bold text-white/90 truncate max-w-[140px]">{activeContest.reward_title || 'Ödüllü Yarışma'}</p>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={() => navigate(`/yarisma/${activeContest.slug || activeContest.id}`)}
+                                        className="w-full py-3.5 rounded-2xl text-xs font-black transition-all bg-[var(--color-brand-orange)] text-white hover:bg-[#e64500] shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                                    >
+                                        Yarışmaya Katıl & Detaylar →
                                     </button>
                                 </div>
                             ) : (
                                 <div className="relative z-10 text-center py-6">
                                     <Crown className="w-10 h-10 text-white/20 mx-auto mb-3" />
-                                    <p className="text-white/40 text-sm">Şu an aktif yarışma yok.</p>
+                                    <p className="text-white/40 text-sm font-semibold">Şu an aktif yarışma yok.</p>
                                     <p className="text-white/30 text-xs mt-1">Yakında yeni bir yarışma başlayacak!</p>
                                 </div>
                             )}
