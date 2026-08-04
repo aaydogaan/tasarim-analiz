@@ -60,6 +60,17 @@ export function Vitrin() {
     const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
     const [editingCommentText, setEditingCommentText] = useState('');
 
+    // Handle ?design=ID from notification click
+    useEffect(() => {
+        if (designIdFromUrl && items.length > 0) {
+            const matchedItem = items.find(i => i.id === designIdFromUrl || i.analiz_id === designIdFromUrl);
+            if (matchedItem) {
+                setSeciliGorsel(matchedItem);
+                setSeciliGorselAktifIndex(0);
+            }
+        }
+    }, [designIdFromUrl, items]);
+
     const handleSaveEditComment = async (commentId: string) => {
         if (!editingCommentText.trim()) return;
         const newContent = editingCommentText.trim();

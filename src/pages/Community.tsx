@@ -184,27 +184,27 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
 
     // Scroll to and open specific post from URL
     useEffect(() => {
-        if (postIdFromUrl && posts.length > 0 && !openInlinePostId) {
+        if (postIdFromUrl && posts.length > 0) {
             const postExists = posts.some(p => p.id === postIdFromUrl);
             if (postExists) {
-                // Remove url param
-                const newParams = new URLSearchParams(searchParams);
-                newParams.delete('post');
-                setSearchParams(newParams, { replace: true });
+                setOpenInlinePostId(postIdFromUrl);
+                if (!inlineComments[postIdFromUrl]) {
+                    toggleInlineComments(postIdFromUrl);
+                }
                 
-                // Open comments
-                toggleInlineComments(postIdFromUrl);
-                
-                // Scroll to post after a small delay
                 setTimeout(() => {
                     const el = document.getElementById(`post-${postIdFromUrl}`);
                     if (el) {
                         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        el.classList.add('ring-2', 'ring-[#FF5500]', 'ring-offset-2');
+                        setTimeout(() => {
+                            el.classList.remove('ring-2', 'ring-[#FF5500]', 'ring-offset-2');
+                        }, 3500);
                     }
-                }, 100);
+                }, 150);
             }
         }
-    }, [posts, postIdFromUrl, openInlinePostId, searchParams, setSearchParams]);
+    }, [posts, postIdFromUrl]);
 
     const toggleInlineComments = async (postId: string) => {
         if (openInlinePostId === postId) {

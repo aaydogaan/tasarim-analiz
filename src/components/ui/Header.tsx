@@ -117,16 +117,25 @@ export default function Header({
         }
         setIsNotificationsOpen(false);
 
-        if (notification.type === 'vote_design' && notification.analiz_id) {
-            navigate(`/vitrin?design=${notification.analiz_id}`);
-        } else if ((notification.type === 'like_post' || notification.type === 'comment_post') && notification.post_id) {
-            navigate(`/community?post=${notification.post_id}`);
+        const targetPostId = notification.post_id;
+        const targetAnalizId = notification.analiz_id;
+
+        if (notification.type === 'vote_design' || (targetAnalizId && !targetPostId)) {
+            navigate(`/vitrin?design=${targetAnalizId || targetPostId}`);
+        } else if (targetPostId || notification.type === 'like_post' || notification.type === 'comment_post' || notification.type === 'mention_user' || notification.type === 'comment_reply') {
+            if (targetPostId) {
+                navigate(`/community?post=${targetPostId}`);
+            } else if (targetAnalizId) {
+                navigate(`/vitrin?design=${targetAnalizId}`);
+            } else {
+                navigate('/community');
+            }
         } else if (notification.type === 'follow_user') {
             const target = notification.actor?.slug || notification.actor_id;
             if (target) navigate(`/${target}`);
         } else if (notification.type === 'new_post') {
-            if (notification.post_id) navigate(`/community?post=${notification.post_id}`);
-            else if (notification.analiz_id) navigate(`/vitrin?design=${notification.analiz_id}`);
+            if (targetPostId) navigate(`/community?post=${targetPostId}`);
+            else if (targetAnalizId) navigate(`/vitrin?design=${targetAnalizId}`);
             else navigate('/revizeles');
         } else if (notification.type === 'revizeles') {
             navigate('/revizeles');
