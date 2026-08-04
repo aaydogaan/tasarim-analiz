@@ -7,7 +7,8 @@ import {
   Crown, 
   Check, 
   ShieldCheck,
-  User
+  User,
+  ExternalLink
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
@@ -22,6 +23,7 @@ export default function ContestDetailPage() {
   const [loading, setLoading] = useState(true);
   const [userJoined, setUserJoined] = useState(false);
   const [currentUser, setCurrentUser] = useState<any | null>(null);
+  const [userSlug, setUserSlug] = useState<string | null>(null);
   const [joining, setJoining] = useState(false);
 
   const [countdownText, setCountdownText] = useState('');
@@ -64,7 +66,7 @@ export default function ContestDetailPage() {
 
         const realContestId = contestData.id;
 
-        // Check if user joined
+        // Check if user joined & fetch profile slug
         if (user) {
           const { data: entry } = await supabase
             .from('contest_entries')
@@ -74,6 +76,14 @@ export default function ContestDetailPage() {
             .maybeSingle();
 
           if (entry) setUserJoined(true);
+
+          const { data: userProf } = await supabase
+            .from('profiles')
+            .select('slug')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          if (userProf?.slug) setUserSlug(userProf.slug);
         }
 
         // Fetch entries & winners
@@ -381,7 +391,7 @@ export default function ContestDetailPage() {
                         Yarışmaya Katıldınız!
                       </div>
                       <button
-                        onClick={() => navigate('/profilim')}
+                        onClick={() => navigate(userSlug ? `/${userSlug}` : '/profilim')}
                         className="w-full py-3.5 px-6 rounded-2xl bg-[#18181b] hover:bg-black dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 font-extrabold text-sm transition-all cursor-pointer"
                       >
                         Profilimden Tasarım Yükle

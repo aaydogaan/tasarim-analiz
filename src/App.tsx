@@ -2265,6 +2265,8 @@ export default function App() {
         <Route path="/cerez-politikasi" element={<CerezPolitikasi />} />
         <Route path="/yenilikler" element={<ChangelogPage />} />
         <Route path="/changelog" element={<ChangelogPage />} />
+        <Route path="/profil" element={<ProfilePage kullanici={kullanici} />} />
+        <Route path="/profilim" element={<ProfilePage kullanici={kullanici} />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/yarisma/:id" element={<ContestDetailPage />} />
 
