@@ -284,7 +284,7 @@ export default function NasilCalisir() {
                         className="lg:hidden overflow-hidden"
                       >
                         <div className="pt-4 pb-2 px-1">
-                          <div className="relative aspect-[4/3] w-full max-w-[400px] mx-auto">
+                          <div className="relative h-[320px] w-full max-w-[400px] mx-auto">
                             <div className="relative h-full w-full bg-[var(--bg-secondary)] rounded-[24px] border border-[var(--border-primary)] shadow-lg p-3 sm:p-4 flex items-center justify-center">
                               {step.mockup}
                             </div>
