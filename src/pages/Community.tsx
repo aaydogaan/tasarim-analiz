@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Users, MessageCircle, Heart, Trophy, Zap, Share2, Crown, Star, Sparkles, ArrowRight, Award, X, Send, Loader2, ChevronDown, Flag, Pencil, Trash2, Image as ImageIcon, ChevronLeft, ChevronRight, Images } from 'lucide-react';
+import { Users, MessageCircle, Heart, Trophy, Zap, Share2, Crown, Star, Sparkles, ArrowRight, Award, X, Send, Loader2, ChevronDown, Flag, Pencil, Trash2, Image as ImageIcon, ChevronLeft, ChevronRight, Images, Reply } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
+import { FormattedCommentText } from '../components/ui/FormattedCommentText';
+import { CommentInputWithMentions } from '../components/ui/CommentInputWithMentions';
 import {
     CORE_FOUNDERS,
     CORE_FOUNDER_COUNT,
@@ -74,6 +76,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
     const [commentInput, setCommentInput] = useState('');
     const [inlineComments, setInlineComments] = useState<Record<string, any[]>>({});
     const [inlineLoading, setInlineLoading] = useState<Record<string, boolean>>({});
+    const [inlineReplyTarget, setInlineReplyTarget] = useState<Record<string, { name: string; slug: string } | null>>({});
 
     // New Direct Post State
     const [yeniGonderiModalAcik, setYeniGonderiModalAcik] = useState(false);
@@ -1114,8 +1117,21 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                                                     </div>
                                                                                 ) : (
                                                                                     <>
-                                                                                        <p className="text-[var(--text-secondary)] leading-relaxed">{c.content}</p>
+                                                                                        <p className="text-[var(--text-secondary)] leading-relaxed">
+                                                                                            <FormattedCommentText text={c.content} />
+                                                                                        </p>
                                                                                         <div className="mt-2 flex items-center justify-end gap-2.5">
+                                                                                            <button
+                                                                                                onClick={(e) => {
+                                                                                                    e.stopPropagation();
+                                                                                                    const targetSlug = cSlug || cName.replace(/\s+/g, '');
+                                                                                                    setInlineReplyTarget(prev => ({ ...prev, [post.id]: { name: cName, slug: targetSlug } }));
+                                                                                                    setCommentInput(`@${targetSlug} `);
+                                                                                                }}
+                                                                                                className="text-[10px] font-bold text-[var(--color-brand-orange)] hover:underline transition-colors flex items-center gap-1 cursor-pointer"
+                                                                                            >
+                                                                                                <Reply size={10} /> Cevapla
+                                                                                            </button>
                                                                                             {isCAuthorCurrent ? (
                                                                                                 <>
                                                                                                     <button
@@ -1161,23 +1177,20 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                     </div>
                                                 )}
 
-                                                {/* Input box */}
-                                                <div className="flex gap-2 pt-1">
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Yorumunuzu yazın..."
+                                                {/* Input box with @ Mentions & Replying Banner */}
+                                                <div className="pt-1">
+                                                    <CommentInputWithMentions
                                                         value={commentInput}
-                                                        onChange={(e) => setCommentInput(e.target.value)}
-                                                        onKeyDown={(e) => { if (e.key === 'Enter') submitInlineComment(post.id); }}
-                                                        className="flex-1 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] px-3.5 py-2 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--color-brand-orange)]"
+                                                        onChange={setCommentInput}
+                                                        onSubmit={(e) => {
+                                                            e.preventDefault();
+                                                            submitInlineComment(post.id);
+                                                            setInlineReplyTarget(prev => ({ ...prev, [post.id]: null }));
+                                                        }}
+                                                        submitting={submittingComment}
+                                                        replyTarget={inlineReplyTarget[post.id]}
+                                                        onCancelReply={() => setInlineReplyTarget(prev => ({ ...prev, [post.id]: null }))}
                                                     />
-                                                    <button
-                                                        onClick={() => submitInlineComment(post.id)}
-                                                        disabled={submittingComment || !commentInput.trim()}
-                                                        className="px-4 py-2 bg-[var(--color-brand-orange)] text-white text-xs font-bold rounded-xl hover:bg-[#e64500] transition-colors disabled:opacity-50 shrink-0"
-                                                    >
-                                                        {submittingComment ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Gönder'}
-                                                    </button>
                                                 </div>
                                             </div>
                                         )}

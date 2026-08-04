@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { X, ArrowBigUp, ArrowBigDown, Flag, Heart, MessageCircle, Star, CheckCircle2, AlertCircle, Trash2, Pencil, Send, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ArrowBigUp, ArrowBigDown, Flag, Heart, MessageCircle, Star, CheckCircle2, AlertCircle, Trash2, Pencil, Send, ChevronLeft, ChevronRight, Reply } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { VerifiedBadge } from './VerifiedBadge';
 import ReportModal from './ReportModal';
+import { FormattedCommentText } from './FormattedCommentText';
+import { CommentInputWithMentions } from './CommentInputWithMentions';
 
 export interface DesignDetailItem {
     id: string;
@@ -44,6 +46,8 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
     const [commentSubmitting, setCommentSubmitting] = useState(false);
     const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
     const [editCommentText, setEditCommentText] = useState('');
+    const [replyTarget, setReplyTarget] = useState<{ name: string; slug: string } | null>(null);
+    const commentInputRef = useRef<HTMLInputElement>(null);
 
     // Report modal
     const [reportModalOpen, setReportModalOpen] = useState(false);
@@ -53,6 +57,7 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
     useEffect(() => {
         setDetailItem(item);
         setActiveImgIndex(0);
+        setReplyTarget(null);
         if (!item) {
             setComments([]);
             return;
@@ -188,12 +193,26 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
             }]);
 
             setNewComment('');
+            setReplyTarget(null);
             toast.success('Yorumunuz eklendi');
         } catch (err: any) {
             toast.error(err.message || 'Yorum eklenirken hata oluştu');
         } finally {
             setCommentSubmitting(false);
         }
+    };
+
+    const handleReplyToComment = (c: any) => {
+        const slugOrName = c.user_slug || c.user_name.replace(/\s+/g, '');
+        setReplyTarget({ name: c.user_name, slug: c.user_slug || c.user_id });
+        setNewComment(`@${slugOrName} `);
+        setTimeout(() => {
+            if (commentInputRef.current) {
+                commentInputRef.current.focus();
+                const len = `@${slugOrName} `.length;
+                commentInputRef.current.setSelectionRange(len, len);
+            }
+        }, 50);
     };
 
     const handleDeleteComment = async (commentId: string) => {
@@ -477,13 +496,25 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
                                                                 </div>
                                                             </div>
                                                         ) : (
-                                                            <p className="text-xs text-[var(--text-primary)]/90 font-medium mt-0.5 leading-relaxed break-words">{c.content || c.comment}</p>
+                                                            <p className="text-xs text-[var(--text-primary)]/90 font-medium mt-0.5 leading-relaxed break-words">
+                                                                <FormattedCommentText text={c.content || c.comment} onUserClick={onClose} />
+                                                            </p>
                                                         )}
 
-                                                        {isMyComment && !isEditing && (
-                                                            <div className="flex gap-2 justify-end mt-1.5">
-                                                                <button onClick={() => { setEditingCommentId(c.id); setEditCommentText(c.content || c.comment); }} className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Düzenle</button>
-                                                                <button onClick={() => handleDeleteComment(c.id)} className="text-[10px] text-red-500 hover:text-red-600">Sil</button>
+                                                        {!isEditing && (
+                                                            <div className="flex gap-2.5 justify-end mt-1.5 items-center">
+                                                                <button
+                                                                    onClick={() => handleReplyToComment(c)}
+                                                                    className="text-[10px] font-bold text-[#FF5500] hover:underline flex items-center gap-0.5 cursor-pointer"
+                                                                >
+                                                                    <Reply className="w-3 h-3" /> Cevapla
+                                                                </button>
+                                                                {isMyComment && (
+                                                                    <>
+                                                                        <button onClick={() => { setEditingCommentId(c.id); setEditCommentText(c.content || c.comment); }} className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Düzenle</button>
+                                                                        <button onClick={() => handleDeleteComment(c.id)} className="text-[10px] text-red-500 hover:text-red-600">Sil</button>
+                                                                    </>
+                                                                )}
                                                             </div>
                                                         )}
                                                     </div>
@@ -494,22 +525,17 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
                                 </div>
 
                                 {/* Add Comment Input */}
-                                <form onSubmit={handleAddComment} className="flex items-center gap-2 pt-2">
-                                    <input
-                                        type="text"
-                                        placeholder="Yorumunuzu yazın..."
+                                <div className="pt-2">
+                                    <CommentInputWithMentions
                                         value={newComment}
-                                        onChange={(e) => setNewComment(e.target.value)}
-                                        className="flex-1 text-xs px-4 py-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] focus:outline-none focus:border-[#FF5500]"
+                                        onChange={setNewComment}
+                                        onSubmit={handleAddComment}
+                                        submitting={commentSubmitting}
+                                        replyTarget={replyTarget}
+                                        onCancelReply={() => setReplyTarget(null)}
+                                        inputRef={commentInputRef}
                                     />
-                                    <button
-                                        type="submit"
-                                        disabled={commentSubmitting || !newComment.trim()}
-                                        className="px-4 py-2.5 bg-[#FF5500] hover:bg-[#e64d00] disabled:opacity-50 text-white font-bold text-xs rounded-xl transition-all shadow-md shrink-0 flex items-center gap-1"
-                                    >
-                                        <span>Gönder</span>
-                                    </button>
-                                </form>
+                                </div>
                             </div>
                         </div>
                     </div>
