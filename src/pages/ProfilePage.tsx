@@ -1002,6 +1002,34 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                         {saveState === 'saved' && <p className="mt-3 text-center text-xs font-bold text-emerald-500">Profil güncellendi.</p>}
                         {saveState === 'error' && <p className="mt-3 text-center text-xs font-bold text-red-500">Kaydedilirken hata oluştu.</p>}
 
+                        {/* Portfolyo Ekle Butonu */}
+                        {isOwnProfile && !isEditing && (
+                            <label className={`mt-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition-all ${
+                                profileData.portfolioPdfUrl
+                                    ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20'
+                                    : 'border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:border-[var(--color-brand-orange)]/50 hover:text-[var(--color-brand-orange)]'
+                            }`}>
+                                {uploadingPortfolio ? (
+                                    <><Loader2 className="h-4 w-4 animate-spin" /> Yükleniyor...</>
+                                ) : profileData.portfolioPdfUrl ? (
+                                    <><FileText className="h-4 w-4" /> Portfolyo Yüklendi — Değiştir</>
+                                ) : (
+                                    <><FileText className="h-4 w-4" /> Portfolyo Ekle (PDF)</>
+                                )}
+                                <input type="file" accept="application/pdf" className="hidden" onChange={handlePortfolioUpload} disabled={uploadingPortfolio} />
+                            </label>
+                        )}
+                        {isOwnProfile && !isEditing && profileData.portfolioPdfUrl && (
+                            <a
+                                href={profileData.portfolioPdfUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-1 flex w-full items-center justify-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] transition-colors"
+                            >
+                                <ExternalLink className="h-3.5 w-3.5" /> Portfolyoyu Görüntüle
+                            </a>
+                        )}
+
                         {/* Abonelik & Analiz Hakları Card */}
                         {isOwnProfile && (
                             <div className="mt-5 pt-4 border-t border-[var(--border-primary)] space-y-3">
@@ -1163,38 +1191,6 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     <input type="url" placeholder="Behance URL" value={profileData.behanceUrl} onChange={(e) => setProfileData({ ...profileData, behanceUrl: e.target.value })} className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]" />
                                     <input type="url" placeholder="Dribbble URL" value={profileData.dribbbleUrl} onChange={(e) => setProfileData({ ...profileData, dribbbleUrl: e.target.value })} className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]" />
                                     <input type="url" placeholder="Twitter / X URL" value={profileData.twitterUrl} onChange={(e) => setProfileData({ ...profileData, twitterUrl: e.target.value })} className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)] col-span-1 md:col-span-2" />
-
-                                    {/* Portfolio PDF Upload */}
-                                    <div className="col-span-1 md:col-span-2">
-                                        <span className="mb-1.5 block text-xs font-semibold text-[var(--text-secondary)]">Portfolyo (PDF)</span>
-                                        <div className="flex items-center gap-2">
-                                            <label className={`flex-1 flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-bold cursor-pointer transition-all ${
-                                                profileData.portfolioPdfUrl
-                                                    ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600'
-                                                    : 'border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:border-[var(--color-brand-orange)]/50 hover:text-[var(--color-brand-orange)]'
-                                            }`}>
-                                                {uploadingPortfolio ? (
-                                                    <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Yükleniyor...</>
-                                                ) : profileData.portfolioPdfUrl ? (
-                                                    <><CheckCircle2 className="h-3.5 w-3.5" /> Portfolyo Yüklendi — Değiştir</>
-                                                ) : (
-                                                    <><FileText className="h-3.5 w-3.5" /> PDF Yükle (maks. 20MB)</>
-                                                )}
-                                                <input type="file" accept="application/pdf" className="hidden" onChange={handlePortfolioUpload} disabled={uploadingPortfolio} />
-                                            </label>
-                                            {profileData.portfolioPdfUrl && (
-                                                <a
-                                                    href={profileData.portfolioPdfUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="shrink-0 flex items-center gap-1 rounded-xl border border-[var(--border-primary)] px-3 py-2.5 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] hover:border-[var(--color-brand-orange)]/50 transition-all bg-[var(--bg-secondary)]"
-                                                    title="Portfolyoyu Görüntüle"
-                                                >
-                                                    <ExternalLink className="h-3.5 w-3.5" />
-                                                </a>
-                                            )}
-                                        </div>
-                                    </div>
                                 </div>
                             )}
 
