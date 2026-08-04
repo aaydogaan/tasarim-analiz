@@ -232,52 +232,74 @@ export default function NasilCalisir() {
             {/* Steps List */}
             <div className="space-y-3">
               {steps.map((step, index) => (
-                <button
-                  key={index}
-                  onClick={() => setActiveStep(index)}
-                  className={`w-full group text-left p-5 rounded-2xl transition-all duration-400 border relative overflow-hidden cursor-pointer ${
-                    activeStep === index
-                      ? 'bg-[var(--card-bg)] border-[#FF5500]/40 shadow-xl shadow-black/[0.04]'
-                      : 'bg-transparent border-transparent hover:bg-[var(--card-bg)]/40'
-                  }`}
-                >
-                  {/* Progress line for active step */}
-                  {activeStep === index && (
-                    <motion.div
-                      layoutId="progress-bar"
-                      className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#FF5500]"
-                    />
-                  )}
+                <div key={index} className="flex flex-col">
+                  <button
+                    onClick={() => setActiveStep(index)}
+                    className={`w-full group text-left p-4 lg:p-5 rounded-2xl transition-all duration-400 border relative overflow-hidden cursor-pointer ${
+                      activeStep === index
+                        ? 'bg-[var(--card-bg)] border-[#FF5500]/40 shadow-xl shadow-black/[0.04]'
+                        : 'bg-transparent border-transparent hover:bg-[var(--card-bg)]/40'
+                    }`}
+                  >
+                    {/* Progress line for active step */}
+                    {activeStep === index && (
+                      <motion.div
+                        layoutId="progress-bar"
+                        className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#FF5500]"
+                      />
+                    )}
 
-                  <div className="flex items-start gap-4">
-                    <span className={`text-xs font-black pt-1 ${activeStep === index ? 'text-[#FF5500]' : 'text-[var(--text-secondary)]/40'}`}>
-                      {step.number}
-                    </span>
-                    <div>
-                      <h3 className={`font-extrabold text-base transition-colors ${activeStep === index ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
-                        {step.title}
-                      </h3>
-                      <AnimatePresence mode="wait">
-                        {activeStep === index && (
-                          <motion.p
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="text-xs text-[var(--text-secondary)] leading-relaxed mt-1.5 font-medium"
-                          >
-                            {step.description}
-                          </motion.p>
-                        )}
-                      </AnimatePresence>
+                    <div className="flex items-start gap-3 lg:gap-4">
+                      <span className={`text-xs font-black pt-1 ${activeStep === index ? 'text-[#FF5500]' : 'text-[var(--text-secondary)]/40'}`}>
+                        {step.number}
+                      </span>
+                      <div>
+                        <h3 className={`font-extrabold text-sm lg:text-base transition-colors ${activeStep === index ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
+                          {step.title}
+                        </h3>
+                        <AnimatePresence mode="wait">
+                          {activeStep === index && (
+                            <motion.p
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="text-xs text-[var(--text-secondary)] leading-relaxed mt-1.5 font-medium"
+                            >
+                              {step.description}
+                            </motion.p>
+                          )}
+                        </AnimatePresence>
+                      </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
+
+                  {/* Mobile Accordion Mockup */}
+                  <AnimatePresence>
+                    {activeStep === index && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="lg:hidden overflow-hidden"
+                      >
+                        <div className="pt-4 pb-2 px-1">
+                          <div className="relative aspect-[4/3] w-full max-w-[400px] mx-auto">
+                            <div className="relative h-full w-full bg-[var(--bg-secondary)] rounded-[24px] border border-[var(--border-primary)] shadow-lg p-3 sm:p-4 flex items-center justify-center">
+                              {step.mockup}
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               ))}
             </div>
           </div>
 
           {/* Right Side: Interactive Visual Product Showcase */}
-          <div className="lg:col-span-7 sticky top-28">
+          <div className="hidden lg:block lg:col-span-7 sticky top-28">
             <div className="relative aspect-[4/3] w-full max-w-[560px] mx-auto">
               {/* Decorative background cards */}
               <div className="absolute inset-0 bg-[#FF5500]/10 blur-3xl scale-95 translate-y-6 rounded-[40px] pointer-events-none" />
