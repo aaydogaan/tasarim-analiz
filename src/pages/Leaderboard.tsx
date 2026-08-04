@@ -465,19 +465,50 @@ export function Leaderboard() {
           </div>
         </div>
 
-        {/* Dynamic Contest Hero Card */}
+        {/* Minimalist Compact Contest Banner */}
         {activeContest && (
-          <ContestHeroCard
-            contest={activeContest}
-            onOpenDetail={(c) => {
-              setSelectedContest(c);
-              setIsDetailModalOpen(true);
-            }}
-            onOpenSubmit={(c) => {
-              setSelectedContest(c);
-              setIsSubmitModalOpen(true);
-            }}
-          />
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="my-6 p-4 sm:p-5 bg-gradient-to-r from-zinc-900 via-zinc-900 to-zinc-950 dark:from-zinc-900 dark:to-black rounded-2xl border border-zinc-800 shadow-md text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          >
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-[#FF5500]/10 border border-[#FF5500]/20 flex items-center justify-center shrink-0">
+                <TrophyLucide className="w-5 h-5 text-[#FF5500]" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                  <span className="px-2 py-0.5 rounded-full bg-[#FF5500] text-white text-[10px] font-black uppercase tracking-wider">
+                    Aktif Yarışma
+                  </span>
+                  <span className="text-xs text-zinc-400 font-medium">
+                    {activeContest.reward_title ? `Ödül: ${activeContest.reward_title}` : 'Ödüllü Yarışma'}
+                  </span>
+                </div>
+                <h3 className="text-sm sm:text-base font-extrabold text-white truncate">
+                  {activeContest.title}
+                </h3>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+              <button
+                onClick={() => {
+                  setSelectedContest(activeContest);
+                  setIsDetailModalOpen(true);
+                }}
+                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-colors cursor-pointer"
+              >
+                İncele
+              </button>
+              <Link
+                to={`/yarisma/${activeContest.slug || activeContest.id}`}
+                className="px-4 py-2.5 rounded-xl bg-[#FF5500] hover:bg-[#e64d00] text-white font-bold text-xs transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5" /> Yarışmaya Git →
+              </Link>
+            </div>
+          </motion.div>
         )}
 
         {/* Contest Modals */}
