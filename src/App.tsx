@@ -840,13 +840,38 @@ export default function App() {
     }
   }, [adim, gorsel, gorselBase64, revizeGorsel, tasarimTuru, platform, isletme, digerIsletme, sorular, sonuc, gorunum]);
 
-  const handleLink = (url: string) => {
-    if (!url) return;
+  const handleLink = async (url: string) => {
+    if (!url || !url.trim()) {
+      toast.error('Lütfen bir bağlantı adresi girin.');
+      return;
+    }
     setSonuc(null); setHata(null); setRevizeGorsel(null);
-    setGorselBase64(null);
-    setGorsel(url);
-    setImageUrl(url);
-    setAdim(2);
+    setYukleniyor(true);
+
+    try {
+      const res = await fetch('/api/fetch-url-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url.trim() })
+      });
+      const data = await res.json();
+
+      if (data.success && (data.base64 || data.imageUrl)) {
+        const finalImage = data.base64 || data.imageUrl;
+        setGorsel(finalImage);
+        setGorselBase64(data.base64 || null);
+        setImageUrl(url);
+        setAdim(2);
+        toast.success('Görsel bağlantıdan başarıyla çekildi!');
+      } else {
+        toast.error(data.error || 'Bu bağlantıdan görsel çekilemedi. Lütfen doğrudan görsel linki veya Behance/Dribbble linki girin.');
+      }
+    } catch (err: any) {
+      console.error('URL image fetch error:', err);
+      toast.error('Görsel çekilirken hata oluştu.');
+    } finally {
+      setYukleniyor(false);
+    }
   };
 
   const handleDosya = (f: File) => {
