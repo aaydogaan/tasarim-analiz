@@ -25,7 +25,7 @@ export default function LiveActivityFeed() {
                 // Fetch top post of the day for Günün Tasarımı notification
                 const { data: topPostData } = await supabase
                     .from('community_posts')
-                    .select('id, tasarim_turu, created_at, profiles(display_name), analizler(genel_skor)')
+                    .select('id, tasarim_turu, created_at, profiles(display_name), analizler(genel_puan)')
                     .order('created_at', { ascending: false })
                     .limit(10);
 
@@ -54,8 +54,8 @@ export default function LiveActivityFeed() {
 
                 if (topPostData && topPostData.length > 0) {
                     const topOne: any = [...topPostData].sort((a: any, b: any) => {
-                        const scoreA = (Array.isArray(a.analizler) ? a.analizler[0]?.genel_skor : a.analizler?.genel_skor) || 0;
-                        const scoreB = (Array.isArray(b.analizler) ? b.analizler[0]?.genel_skor : b.analizler?.genel_skor) || 0;
+                        const scoreA = (Array.isArray(a.analizler) ? a.analizler[0]?.genel_puan : a.analizler?.genel_puan) || 0;
+                        const scoreB = (Array.isArray(b.analizler) ? b.analizler[0]?.genel_puan : b.analizler?.genel_puan) || 0;
                         return scoreB - scoreA;
                     })[0];
 
@@ -64,7 +64,7 @@ export default function LiveActivityFeed() {
                         const alz = Array.isArray(topOne.analizler) ? topOne.analizler[0] : topOne.analizler;
                         mixed.push({
                             id: `top-design-${topOne.id}`,
-                            text: `👑 ${prof?.display_name || 'Bir tasarımcı'}, ${alz?.genel_skor || 85}/100 AI skoru ile "Günün Tasarımı" seçildi!`,
+                            text: `👑 ${prof?.display_name || 'Bir tasarımcı'}, ${alz?.genel_puan || 85}/100 AI skoru ile "Günün Tasarımı" seçildi!`,
                             icon: Crown,
                             color: "text-amber-500",
                             createdAt: Date.now() + 100000 // Highest priority

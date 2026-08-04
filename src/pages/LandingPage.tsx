@@ -107,7 +107,7 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                         isletme,
                         created_at,
                         user_id,
-                        analizler ( genel_skor, skor_detayi ),
+                        analizler ( genel_puan ),
                         profiles ( display_name, avatar_url, slug )
                     `)
                     .limit(20);
@@ -122,7 +122,7 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                         user_name: p.profiles?.display_name || 'Tasarımcı',
                         user_avatar: p.profiles?.avatar_url,
                         user_slug: p.profiles?.slug,
-                        ai_puan: p.analizler?.genel_skor || Math.floor(Math.random() * 15) + 85
+                        ai_puan: p.analizler?.genel_puan || Math.floor(Math.random() * 15) + 85
                     }));
                     formatted.sort((a, b) => b.ai_puan - a.ai_puan);
                     setGununTasarimi(formatted[0]);

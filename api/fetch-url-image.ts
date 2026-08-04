@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { Buffer } from 'node:buffer';
 
 export const maxDuration = 30;
 
