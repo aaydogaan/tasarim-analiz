@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Trophy, 
   ArrowLeft, 
@@ -8,7 +8,9 @@ import {
   Check, 
   ShieldCheck,
   User,
-  ExternalLink
+  ExternalLink,
+  Maximize2,
+  X
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
@@ -25,6 +27,7 @@ export default function ContestDetailPage() {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [userSlug, setUserSlug] = useState<string | null>(null);
   const [joining, setJoining] = useState(false);
+  const [selectedImageModal, setSelectedImageModal] = useState<string | null>(null);
 
   const [countdownText, setCountdownText] = useState('');
   const [isExpired, setIsExpired] = useState(false);
@@ -280,18 +283,17 @@ export default function ContestDetailPage() {
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {contest.cover_images.slice(1).map((imgUrl: string, imgIdx: number) => (
-                      <a
+                      <button
                         key={imgIdx}
-                        href={imgUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group relative rounded-2xl overflow-hidden border border-[var(--border-primary)] bg-[var(--bg-secondary)] block shadow-sm hover:border-[#FF5500] transition-all"
+                        type="button"
+                        onClick={() => setSelectedImageModal(imgUrl)}
+                        className="group relative rounded-2xl overflow-hidden border border-[var(--border-primary)] bg-[#0c0c0e] block shadow-sm hover:border-[#FF5500] transition-all cursor-pointer text-left w-full"
                       >
                         <img src={imgUrl} alt={`Detay Görseli ${imgIdx + 1}`} className="w-full h-auto object-cover max-h-[350px]" />
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5 backdrop-blur-xs">
-                          <ExternalLink className="w-4 h-4 text-[#FF5500]" /> Görseli Büyüt / İncele
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-2 backdrop-blur-xs">
+                          <Maximize2 className="w-4 h-4 text-[#FF5500]" /> Görseli Büyüt / İncele
                         </div>
-                      </a>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -463,6 +465,41 @@ export default function ContestDetailPage() {
         </div>
 
       </div>
+
+      {/* GÖRSEL BÜYÜTME (LIGHTBOX) MODAL */}
+      <AnimatePresence>
+        {selectedImageModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedImageModal(null)}
+            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md p-4 sm:p-8 flex items-center justify-center cursor-zoom-out"
+          >
+            <button
+              type="button"
+              onClick={() => setSelectedImageModal(null)}
+              className="absolute top-6 right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer z-50"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative max-w-5xl max-h-[90vh] flex flex-col items-center justify-center"
+            >
+              <img
+                src={selectedImageModal}
+                alt="Detay Görseli Büyütülmüş"
+                className="max-w-full max-h-[85vh] object-contain rounded-2xl border border-white/10 shadow-2xl"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
