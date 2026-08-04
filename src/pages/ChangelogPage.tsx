@@ -19,12 +19,12 @@ const CHANGELOG_DATA: ChangelogEntry[] = [
     version: 'v1.4.0',
     date: '4 Ağustos 2026',
     title: 'Portfolyo PDF Desteği ve Kimlik Doğrulama İyileştirmeleri',
-    summary: 'Tasarımcı profillerinin niteliğini artırmak amacıyla PDF portfolyo yükleme özelliği yayına alındı. Google OAuth kimlik senkronizasyonu güncellendi.',
+    summary: 'Tasarımcı profillerinin niteliğini artırmak amacıyla PDF portfolyo yükleme özelliği yayına alındı. Google hesabı ile giriş senkronizasyonu güncellendi.',
     changes: [
-      { type: 'Yeni', text: 'Tasarımcı profillerine doğrudan Cloudflare R2 altyapısı ile çalışan PDF portfolyo ekleme desteği getirildi.' },
-      { type: 'Yeni', text: 'Ziyaretçilerin tek tıkla portfolyoları inceleyebileceği kurumsal Portfolyoyu İncele erişim butonu eklendi.' },
-      { type: 'İyileştirme', text: 'Google OAuth ile giriş yapan kullanıcıların profil resmi senkronizasyonu optimize edildi.' },
-      { type: 'Güvenlik', text: 'Supabase RLS güvenlik kuralları ve veri erişim politikaları güncellendi.' }
+      { type: 'Yeni', text: 'Tasarımcı profillerine PDF portfolyo yükleme ve sergileme desteği getirildi.' },
+      { type: 'Yeni', text: 'Ziyaretçilerin tek tıkla portfolyoları inceleyebileceği Portfolyoyu İncele erişim butonu eklendi.' },
+      { type: 'İyileştirme', text: 'Google hesabı ile giriş yapan kullanıcıların profil resmi senkronizasyonu optimize edildi.' },
+      { type: 'Güvenlik', text: 'Profil verileri erişim izinleri ve altyapı güvenlik politikaları güncellendi.' }
     ]
   },
   {
@@ -93,28 +93,8 @@ export default function ChangelogPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans antialiased selection:bg-[#FF5500]/20 selection:text-[#FF5500]">
-      {/* Header Bar */}
-      <header className="sticky top-0 z-30 border-b border-[var(--border-primary)] bg-[var(--bg-primary)]/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
-          <button
-            onClick={() => navigate('/')}
-            className="group flex items-center gap-2 text-xs font-semibold text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-          >
-            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            Ana Sayfaya Dön
-          </button>
-
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-1 text-[11px] font-bold tracking-wide text-[var(--text-primary)] shadow-sm">
-              <Sparkles className="h-3 w-3 text-[var(--text-secondary)]" />
-              Sistem Güncellemeleri
-            </span>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content Container */}
-      <main className="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16">
+      <main className="mx-auto max-w-4xl px-4 pt-24 pb-12 sm:px-6 sm:pt-28 sm:pb-16">
         {/* Title Section */}
         <div className="mb-12 border-b border-[var(--border-primary)] pb-8">
           <div className="mb-3 inline-flex items-center gap-2 rounded-lg bg-[var(--bg-secondary)] px-3 py-1.5 text-xs font-bold text-[var(--text-primary)] border border-[var(--border-primary)] shadow-sm">
