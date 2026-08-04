@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
-import { Trophy, Calendar, Link as LinkIcon, Briefcase, Award, Star, Activity, ArrowLeft, X, Bell, BellOff, Users, Sparkles, Clock, Images } from 'lucide-react';
+import { Trophy, Calendar, Link as LinkIcon, Briefcase, Award, Star, Activity, ArrowLeft, X, Bell, BellOff, Users, Sparkles, Clock, Images, FileText } from 'lucide-react';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import FollowModal from '../components/ui/FollowModal';
 import DesignDetailModal from '../components/ui/DesignDetailModal';
@@ -523,6 +523,17 @@ export default function PublicProfile() {
                             {profile.social_handle && (
                                 <a href={profile.social_handle.startsWith('http') ? profile.social_handle : `https://${profile.social_handle}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-[#E4405F] bg-[#E4405F]/10 hover:bg-[#E4405F]/20 px-4 py-2.5 rounded-xl transition-colors">
                                     <InstagramIcon className="w-3.5 h-3.5" /> Instagram
+                                </a>
+                            )}
+                            {profile.portfolio_pdf_url && (
+                                <a
+                                    href={profile.portfolio_pdf_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-[#FF5500] to-[#FF8800] hover:opacity-90 transition-all shadow-md shadow-[#FF5500]/20"
+                                >
+                                    <FileText className="w-4 h-4" />
+                                    Portfolyoyu İncele
                                 </a>
                             )}
                         </div>

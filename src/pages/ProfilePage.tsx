@@ -40,7 +40,8 @@ import {
     ShieldCheck,
     KeyRound,
     ChevronRight,
-    AlertTriangle
+    AlertTriangle,
+    FileText
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
@@ -113,6 +114,7 @@ type ProfileForm = {
     dribbbleUrl: string;
     twitterUrl: string;
     coverUrl: string;
+    portfolioPdfUrl: string;
 };
 
 const defaultStats = {
@@ -239,6 +241,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
         dribbbleUrl: '',
         twitterUrl: '',
         coverUrl: normalizedProfile.coverUrl || '',
+        portfolioPdfUrl: normalizedProfile.portfolioPdfUrl || '',
     });
 
     useEffect(() => {
@@ -288,6 +291,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                 behanceUrl: (profileRecord as any)?.behance_url || '',
                 dribbbleUrl: (profileRecord as any)?.dribbble_url || '',
                 twitterUrl: (profileRecord as any)?.twitter_url || '',
+                portfolioPdfUrl: (profileRecord as any)?.portfolio_pdf_url || '',
             });
         }
     }, [normalizedProfile, profileRecord, isEditing]);
@@ -656,6 +660,55 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
         }
     };
 
+    const [uploadingPortfolio, setUploadingPortfolio] = useState(false);
+
+    const handlePortfolioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !kullanici) return;
+        if (file.type !== 'application/pdf') {
+            toast.error('Lütfen sadece PDF dosyası yükleyin.');
+            return;
+        }
+        if (file.size > 20 * 1024 * 1024) {
+            toast.error('PDF dosyası 20MB\'den küçük olmalıdır.');
+            return;
+        }
+        setUploadingPortfolio(true);
+        try {
+            const s3Client = new S3Client({
+                region: 'auto',
+                endpoint: `https://${import.meta.env.VITE_R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+                credentials: {
+                    accessKeyId: import.meta.env.VITE_R2_ACCESS_KEY_ID,
+                    secretAccessKey: import.meta.env.VITE_R2_SECRET_ACCESS_KEY,
+                },
+            });
+            const safeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+            const fileName = `portfolios/${kullanici.id}_${Date.now()}_${safeFileName}`;
+            const fileBuffer = await file.arrayBuffer();
+
+            await s3Client.send(new PutObjectCommand({
+                Bucket: import.meta.env.VITE_R2_BUCKET_NAME,
+                Key: fileName,
+                Body: new Uint8Array(fileBuffer),
+                ContentType: 'application/pdf',
+            }));
+
+            const r2PublicUrl = import.meta.env.VITE_R2_PUBLIC_URL.replace(/\/$/, '');
+            const portfolioPdfUrl = `${r2PublicUrl}/${fileName}`;
+            setProfileData((prev) => ({ ...prev, portfolioPdfUrl }));
+
+            await supabase.from('profiles').update({ portfolio_pdf_url: portfolioPdfUrl }).eq('id', kullanici.id);
+            toast.success('Portfolyo PDF\'iniz başarıyla yüklendi! 🎉');
+        } catch (err: any) {
+            console.error('Portfolyo yükleme hatası:', err);
+            toast.error('Portfolyo yüklenirken hata oluştu.');
+        } finally {
+            setUploadingPortfolio(false);
+            e.target.value = '';
+        }
+    };
+
     const handleSave = async () => {
         if (!isOwnProfile || !kullanici) return;
         setSaving(true);
@@ -702,6 +755,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                 behance_url: profileData.behanceUrl.trim() || null,
                 dribbble_url: profileData.dribbbleUrl.trim() || null,
                 twitter_url: profileData.twitterUrl.trim() || null,
+                portfolio_pdf_url: profileData.portfolioPdfUrl.trim() || null,
             })
             .eq('id', kullanici.id)
             .select('*')
@@ -1109,6 +1163,38 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     <input type="url" placeholder="Behance URL" value={profileData.behanceUrl} onChange={(e) => setProfileData({ ...profileData, behanceUrl: e.target.value })} className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]" />
                                     <input type="url" placeholder="Dribbble URL" value={profileData.dribbbleUrl} onChange={(e) => setProfileData({ ...profileData, dribbbleUrl: e.target.value })} className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)]" />
                                     <input type="url" placeholder="Twitter / X URL" value={profileData.twitterUrl} onChange={(e) => setProfileData({ ...profileData, twitterUrl: e.target.value })} className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[var(--color-brand-orange)] col-span-1 md:col-span-2" />
+
+                                    {/* Portfolio PDF Upload */}
+                                    <div className="col-span-1 md:col-span-2">
+                                        <span className="mb-1.5 block text-xs font-semibold text-[var(--text-secondary)]">Portfolyo (PDF)</span>
+                                        <div className="flex items-center gap-2">
+                                            <label className={`flex-1 flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-bold cursor-pointer transition-all ${
+                                                profileData.portfolioPdfUrl
+                                                    ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600'
+                                                    : 'border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:border-[var(--color-brand-orange)]/50 hover:text-[var(--color-brand-orange)]'
+                                            }`}>
+                                                {uploadingPortfolio ? (
+                                                    <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Yükleniyor...</>
+                                                ) : profileData.portfolioPdfUrl ? (
+                                                    <><CheckCircle2 className="h-3.5 w-3.5" /> Portfolyo Yüklendi — Değiştir</>
+                                                ) : (
+                                                    <><FileText className="h-3.5 w-3.5" /> PDF Yükle (maks. 20MB)</>
+                                                )}
+                                                <input type="file" accept="application/pdf" className="hidden" onChange={handlePortfolioUpload} disabled={uploadingPortfolio} />
+                                            </label>
+                                            {profileData.portfolioPdfUrl && (
+                                                <a
+                                                    href={profileData.portfolioPdfUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="shrink-0 flex items-center gap-1 rounded-xl border border-[var(--border-primary)] px-3 py-2.5 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] hover:border-[var(--color-brand-orange)]/50 transition-all bg-[var(--bg-secondary)]"
+                                                    title="Portfolyoyu Görüntüle"
+                                                >
+                                                    <ExternalLink className="h-3.5 w-3.5" />
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 
@@ -1138,6 +1224,11 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     {profileData.website && (
                                         <a href={profileData.website.startsWith('http') ? profileData.website : `https://${profileData.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--color-brand-orange)] hover:border-[var(--color-brand-orange)]/30 transition-all">
                                             <Globe className="w-3.5 h-3.5" /> Website
+                                        </a>
+                                    )}
+                                    {profileData.portfolioPdfUrl && (
+                                        <a href={profileData.portfolioPdfUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-xs font-bold text-emerald-600 hover:bg-emerald-500/20 transition-all">
+                                            <FileText className="w-3.5 h-3.5" /> 📂 Portfolyo (PDF)
                                         </a>
                                     )}
                                 </div>

@@ -20,6 +20,7 @@ export type NormalizedCommunityProfile = {
     isCoreFounder?: boolean;
     coverUrl?: string;
     verificationBadge?: string | null;
+    portfolioPdfUrl?: string;
 };
 
 export type CommunityProfileRecord = {
@@ -42,6 +43,7 @@ export type CommunityProfileRecord = {
     featured_badge?: string;
     cover_url?: string;
     verification_badge?: string;
+    portfolio_pdf_url?: string;
 };
 
 export const CORE_FOUNDERS: NormalizedCommunityProfile[] = [];
@@ -286,6 +288,7 @@ export function normalizeCommunityProfile(authData: any, profile: any): Normaliz
         createdAt: profile?.created_at,
         isCoreFounder: isCore,
         coverUrl: profile?.cover_url || '',
-        verificationBadge: profile?.verification_badge || null
+        verificationBadge: profile?.verification_badge || null,
+        portfolioPdfUrl: profile?.portfolio_pdf_url || ''
     };
 }
