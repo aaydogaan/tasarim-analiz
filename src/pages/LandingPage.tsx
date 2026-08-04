@@ -159,78 +159,9 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                     className="flex flex-col items-center text-center w-full"
                 >
                     <div className="relative mt-2 md:mt-4 group w-full">
-                        {/* Moving Glossy Blur Effect - Wandering Blobs */}
-                        <div className="absolute -inset-4 md:-inset-10 pointer-events-none z-20 overflow-hidden select-none">
-                            {/* Blob 1: Large wandering blur */}
-                            <motion.div
-                                animate={{
-                                    left: ["-10%", "40%", "80%", "20%", "-10%"],
-                                    top: ["10%", "60%", "20%", "80%", "10%"],
-                                    scale: [1, 1.2, 0.9, 1.1, 1],
-                                }}
-                                transition={{
-                                    duration: 20,
-                                    repeat: Infinity,
-                                    ease: "easeInOut",
-                                }}
-                                className="absolute w-[200px] md:w-[350px] h-[200px] md:h-[350px] bg-white/[0.04] backdrop-blur-[8px] md:backdrop-blur-[12px] rounded-full"
-                                style={{
-                                    maskImage: 'radial-gradient(circle at center, black 0%, transparent 75%)',
-                                    WebkitMaskImage: 'radial-gradient(circle at center, black 0%, transparent 75%)',
-                                }}
-                            />
-
-                            {/* Blob 2: Medium wandering blur (opposite rhythm) */}
-                            <motion.div
-                                animate={{
-                                    left: ["90%", "20%", "50%", "80%", "90%"],
-                                    top: ["70%", "20%", "80%", "30%", "70%"],
-                                    scale: [1, 0.8, 1.3, 1, 1],
-                                }}
-                                transition={{
-                                    duration: 25,
-                                    repeat: Infinity,
-                                    ease: "easeInOut",
-                                    delay: 2
-                                }}
-                                className="absolute w-[150px] md:w-[300px] h-[150px] md:h-[300px] bg-white/[0.03] backdrop-blur-[6px] md:backdrop-blur-[8px] rounded-full"
-                                style={{
-                                    maskImage: 'radial-gradient(circle at center, black 0%, transparent 75%)',
-                                    WebkitMaskImage: 'radial-gradient(circle at center, black 0%, transparent 75%)',
-                                }}
-                            />
-
-                            {/* Blob 3: Faster, smaller 'highlight' blur */}
-                            <motion.div
-                                animate={{
-                                    left: ["20%", "70%", "10%", "90%", "20%"],
-                                    top: ["40%", "10%", "90%", "50%", "40%"],
-                                }}
-                                transition={{
-                                    duration: 15,
-                                    repeat: Infinity,
-                                    ease: "easeInOut",
-                                }}
-                                className="absolute w-[100px] md:w-[200px] h-[100px] md:h-[200px] bg-white/[0.05] backdrop-blur-[4px] rounded-full"
-                                style={{
-                                    maskImage: 'radial-gradient(circle at center, black 0%, transparent 70%)',
-                                    WebkitMaskImage: 'radial-gradient(circle at center, black 0%, transparent 70%)',
-                                }}
-                            />
-
-                            {/* Fast Gloss Streak remains for premium feel */}
-                            <motion.div
-                                animate={{
-                                    left: ["-100%", "200%"],
-                                }}
-                                transition={{
-                                    duration: 7,
-                                    repeat: Infinity,
-                                    ease: "easeInOut",
-                                    delay: 3
-                                }}
-                                className="absolute w-[150px] h-full bg-gradient-to-r from-transparent via-white/[0.08] to-transparent skew-x-[-20deg] blur-[30px] z-30"
-                            />
+                        {/* Lightweight Ambient Soft Glow (No CPU/GPU Backdrop-Blur Lag) */}
+                        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden select-none flex items-center justify-center">
+                            <div className="w-[300px] md:w-[600px] h-[200px] md:h-[350px] bg-[#FF4D00]/[0.05] rounded-full blur-[100px] transform-gpu" />
                         </div>
 
                         <div className="text-[32px] sm:text-[42px] md:text-[64px] lg:text-[88px] font-display font-bold leading-[1.1] tracking-[-0.03em] flex flex-col items-center relative z-10 transition-all duration-700 group-hover:scale-[1.01]">
@@ -363,7 +294,7 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                         transition={{ duration: 200, ease: "linear", repeat: Infinity }}
                         className="flex items-center text-white text-xl md:text-3xl lg:text-4xl font-display font-black tracking-tight w-max"
                     >
-                        {Array(15).fill("Arayüz Analizi ✕ Renk Uyumu ✕ Tipografi ✕ Kompozisyon ✕").map((text, i) => (
+                        {Array(4).fill("Arayüz Analizi ✕ Renk Uyumu ✕ Tipografi ✕ Kompozisyon ✕ ").map((text, i) => (
                             <span key={i} className="mx-4 md:mx-6 px-2">{text}</span>
                         ))}
                     </motion.div>
@@ -375,7 +306,7 @@ export default function LandingPage({ onStart, onVitrinClick, onCommunityClick }
                         transition={{ duration: 200, ease: "linear", repeat: Infinity }}
                         className="flex items-center text-[#e0e0e0] text-lg md:text-2xl font-bold tracking-wide w-max"
                     >
-                        {Array(15).fill("Hızlı Sonuçlar ✕ Profesyonel Geri Bildirim ✕ 100+ Mutlu Tasarımcı ✕").map((text, i) => (
+                        {Array(4).fill("Hızlı Sonuçlar ✕ Profesyonel Geri Bildirim ✕ 100+ Mutlu Tasarımcı ✕ ").map((text, i) => (
                             <span key={i} className="mx-4 md:mx-6 px-2">{text}</span>
                         ))}
                     </motion.div>
