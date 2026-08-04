@@ -8,6 +8,7 @@ import { VerifiedBadge } from './VerifiedBadge';
 import ReportModal from './ReportModal';
 import { FormattedCommentText } from './FormattedCommentText';
 import { CommentInputWithMentions } from './CommentInputWithMentions';
+import { sendMentionNotifications, getCleanUserTag } from '../../lib/mentionHelper';
 
 export interface DesignDetailItem {
     id: string;
@@ -192,6 +193,14 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
                 user_slug: prof?.slug || currentUser.id
             }]);
 
+            // Send mention & reply notifications
+            sendMentionNotifications({
+                text,
+                actorId: currentUser.id,
+                postId: detailItem.id,
+                replyAuthorId: replyTarget?.userId
+            });
+
             setNewComment('');
             setReplyTarget(null);
             toast.success('Yorumunuz eklendi');
@@ -203,13 +212,13 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
     };
 
     const handleReplyToComment = (c: any) => {
-        const slugOrName = c.user_slug || c.user_name.replace(/\s+/g, '');
-        setReplyTarget({ name: c.user_name, slug: c.user_slug || c.user_id });
-        setNewComment(`@${slugOrName} `);
+        const cleanTag = getCleanUserTag(c);
+        setReplyTarget({ name: c.user_name || 'Tasarımcı', slug: cleanTag, userId: c.user_id });
+        setNewComment(`@${cleanTag} `);
         setTimeout(() => {
             if (commentInputRef.current) {
                 commentInputRef.current.focus();
-                const len = `@${slugOrName} `.length;
+                const len = `@${cleanTag} `.length;
                 commentInputRef.current.setSelectionRange(len, len);
             }
         }, 50);

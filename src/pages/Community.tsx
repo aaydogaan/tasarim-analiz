@@ -8,6 +8,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import { FormattedCommentText } from '../components/ui/FormattedCommentText';
 import { CommentInputWithMentions } from '../components/ui/CommentInputWithMentions';
+import { sendMentionNotifications, getCleanUserTag } from '../lib/mentionHelper';
 import {
     CORE_FOUNDERS,
     CORE_FOUNDER_COUNT,
@@ -272,6 +273,15 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
             setInlineComments(prev => ({ ...prev, [postId]: [...(prev[postId] || []), commentObj] }));
             setPosts(prev => prev.map(p => p.id === postId ? { ...p, comments_count: (p.comments_count || 0) + 1 } : p));
             toast.success('Yorumunuz eklendi!');
+
+            // Send mention & reply notifications
+            sendMentionNotifications({
+                text: content,
+                actorId: kullanici.id,
+                postId,
+                replyAuthorId: inlineReplyTarget[postId]?.userId
+            });
+            setInlineReplyTarget(prev => ({ ...prev, [postId]: null }));
 
             // Award badge 'ilk-ses'
             try {
@@ -1124,9 +1134,9 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                                                             <button
                                                                                                 onClick={(e) => {
                                                                                                     e.stopPropagation();
-                                                                                                    const targetSlug = cSlug || cName.replace(/\s+/g, '');
-                                                                                                    setInlineReplyTarget(prev => ({ ...prev, [post.id]: { name: cName, slug: targetSlug } }));
-                                                                                                    setCommentInput(`@${targetSlug} `);
+                                                                                                    const cleanTag = getCleanUserTag(c.profiles ? { display_name: c.profiles.display_name, slug: c.profiles.slug } : { display_name: cName, slug: cSlug });
+                                                                                                    setInlineReplyTarget(prev => ({ ...prev, [post.id]: { name: cName, slug: cleanTag, userId: c.user_id } }));
+                                                                                                    setCommentInput(`@${cleanTag} `);
                                                                                                 }}
                                                                                                 className="text-[10px] font-bold text-[var(--color-brand-orange)] hover:underline transition-colors flex items-center gap-1 cursor-pointer"
                                                                                             >

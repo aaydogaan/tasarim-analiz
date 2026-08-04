@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, User, LogOut, Info, Settings, CreditCard, HelpCircle, ArrowRight, LayoutDashboard, Crown, LogIn, Mail, Lock, CheckCircle2, AlertCircle, Eye, EyeOff, Check, BarChart2, Layers, ChevronDown, Sun, Moon, Bell, Heart, MessageCircle, Star, Search, Flame, Sparkles } from 'lucide-react';
+import { Menu, X, User, LogOut, Info, Settings, CreditCard, HelpCircle, ArrowRight, LayoutDashboard, Crown, LogIn, Mail, Lock, CheckCircle2, AlertCircle, Eye, EyeOff, Check, BarChart2, Layers, ChevronDown, Sun, Moon, Bell, Heart, MessageCircle, Star, Search, Flame, Sparkles, AtSign } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { supabase } from '../../lib/supabase';
@@ -389,6 +389,8 @@ export default function Header({
                                                                     <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[var(--bg-primary)] border border-[var(--border-primary)] flex items-center justify-center">
                                                                         {notif.type === 'like_post' && <Heart className="w-2.5 h-2.5 text-red-500 fill-red-500" />}
                                                                         {notif.type === 'comment_post' && <MessageCircle className="w-2.5 h-2.5 text-blue-500 fill-blue-500" />}
+                                                                        {notif.type === 'comment_reply' && <MessageCircle className="w-2.5 h-2.5 text-orange-500 fill-orange-500" />}
+                                                                        {notif.type === 'mention_user' && <AtSign className="w-2.5 h-2.5 text-orange-500" />}
                                                                         {notif.type === 'vote_design' && <Star className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />}
                                                                         {notif.type === 'report_resolved' && <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500" />}
                                                                         {notif.type === 'report_dismissed' && <AlertCircle className="w-2.5 h-2.5 text-red-500" />}
@@ -409,6 +411,8 @@ export default function Header({
                                                                         <span className="text-[var(--text-secondary)]">
                                                                             {notif.type === 'like_post' && 'gönderini beğendi.'}
                                                                             {notif.type === 'comment_post' && 'gönderine yorum yaptı.'}
+                                                                            {notif.type === 'comment_reply' && 'yorumuna cevap verdi.'}
+                                                                            {notif.type === 'mention_user' && 'seni bir yorumda etiketledi. 💬'}
                                                                             {notif.type === 'vote_design' && 'tasarımına oy verdi.'}
                                                                             {notif.type === 'report_resolved' && 'yaptığın şikayeti inceledi ve haklı bularak gereken işlemi uyguladı.'}
                                                                             {notif.type === 'report_dismissed' && 'yaptığın şikayeti inceledi ancak kurallara aykırı bir durum bulamadı.'}
