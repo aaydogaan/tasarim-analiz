@@ -225,7 +225,13 @@ export default function Footer({
                                 ].map((item) => (
                                     <button 
                                         key={item.view} 
-                                        onClick={() => onNavClick?.(item.view)}
+                                        onClick={() => {
+                                            if (onNavClick) {
+                                                onNavClick(item.view);
+                                            } else {
+                                                window.location.href = `/${item.view}`;
+                                            }
+                                        }}
                                         className="footer-link"
                                     >
                                         <h6 className="footer-link-text flex items-center gap-0.5">{item.label}</h6>

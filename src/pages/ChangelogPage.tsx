@@ -33,7 +33,7 @@ const CHANGELOG_DATA: ChangelogEntry[] = [
     title: 'Mobil Arayüz ve Layout Optimizasyonları',
     summary: 'Platform genelinde mobil cihaz uyumluluğunu artırmak ve taşma sorunlarını gidermek için kapsamlı tipografi ve düzen güncellemeleri yapıldı.',
     changes: [
-      { type: 'İyileştirme', text: 'Yönetim paneli ve içerik kartlarının mobil cihazlardaki kapsayıcı yükseklikleri (aspect-ratio) yeniden düzenlendi.' },
+      { type: 'İyileştirme', text: 'Profil kartlarının ve içerik modüllerinin mobil cihazlardaki kapsayıcı yükseklikleri (aspect-ratio) yeniden düzenlendi.' },
       { type: 'İyileştirme', text: 'Profil düzenleme modülü ve buton konumlandırmaları kullanıcı deneyimi standartlarına uygun hale getirildi.' },
       { type: 'Düzeltme', text: 'Küçük ekranlı cihazlarda oluşan yatay kaydırma (horizontal scroll) sorunu giderildi.' }
     ]
@@ -41,12 +41,12 @@ const CHANGELOG_DATA: ChangelogEntry[] = [
   {
     version: 'v1.3.0',
     date: '28 Temmuz 2026',
-    title: 'Yönetim Paneli (/mutfak) ve İçerik Modülleri',
-    summary: 'Platform operasyonlarının kesintisiz yürütülmesi için kapsamlı bir yönetim arayüzü ve içerik kontrol modülleri devreye alındı.',
+    title: 'Tasarım Yarışmaları ve Arama Altyapısı',
+    summary: 'Tasarımcıların ödüllü yarışmalara katılabileceği etkinlik sistemi ve gelişmiş platform içi arama entegre edildi.',
     changes: [
-      { type: 'Yeni', text: 'Admin paneli (/mutfak) üzerinden istatistik takibi, kullanıcı ve rol yönetimi modülleri erişime açıldı.' },
-      { type: 'Yeni', text: 'Tasarım yarışmaları ve başvuru değerlendirme yönetim paneli entegre edildi.' },
-      { type: 'İyileştirme', text: 'Kullanıcı ve analiz raporu arama sisteminin sorgu performansı artırıldı.' }
+      { type: 'Yeni', text: 'Topluluğa özel ödüllü Tasarım Yarışmaları ve katılım altyapısı aktif edildi.' },
+      { type: 'Yeni', text: 'Platform içi kullanıcı, tasarım ve içerik arama (⌘K) hızlı arama sistemi eklendi.' },
+      { type: 'İyileştirme', text: 'Kullanıcı ve analiz raporu sorgu süreleri optimize edildi.' }
     ]
   },
   {
@@ -105,8 +105,8 @@ export default function ChangelogPage() {
           </button>
 
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-700/60 bg-slate-800/40 px-3 py-1 text-[11px] font-semibold tracking-wide text-slate-300">
-              <Sparkles className="h-3 w-3 text-slate-400" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-1 text-[11px] font-bold tracking-wide text-[var(--text-primary)] shadow-sm">
+              <Sparkles className="h-3 w-3 text-[var(--text-secondary)]" />
               Sistem Güncellemeleri
             </span>
           </div>
@@ -117,9 +117,9 @@ export default function ChangelogPage() {
       <main className="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16">
         {/* Title Section */}
         <div className="mb-12 border-b border-[var(--border-primary)] pb-8">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-md bg-slate-800/50 px-2.5 py-1 text-xs font-medium text-slate-400 border border-slate-700/40">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-lg bg-[var(--bg-secondary)] px-3 py-1.5 text-xs font-bold text-[var(--text-primary)] border border-[var(--border-primary)] shadow-sm">
             <span>Sürüm Geçmişi</span>
-            <span>•</span>
+            <span className="text-[var(--text-secondary)]">•</span>
             <span>Değişiklik Günlüğü</span>
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">
@@ -131,7 +131,7 @@ export default function ChangelogPage() {
         </div>
 
         {/* Timeline Entries */}
-        <div className="relative border-l border-slate-700/40 sm:ml-4 ml-2 space-y-12 pl-6 sm:pl-8">
+        <div className="relative border-l-2 border-[var(--border-primary)] sm:ml-4 ml-2 space-y-12 pl-6 sm:pl-8">
           {CHANGELOG_DATA.map((entry, index) => (
             <motion.article
               key={entry.version}
@@ -141,14 +141,14 @@ export default function ChangelogPage() {
               className="relative group"
             >
               {/* Timeline Dot */}
-              <div className="absolute -left-[31px] sm:-left-[39px] top-1.5 h-3 w-3 rounded-full border-2 border-slate-400 bg-[var(--bg-primary)] group-hover:border-[#FF5500] group-hover:bg-[#FF5500] transition-colors" />
+              <div className="absolute -left-[31px] sm:-left-[39px] top-1.5 h-3.5 w-3.5 rounded-full border-2 border-[var(--border-primary)] bg-[var(--bg-primary)] group-hover:border-[#FF5500] group-hover:bg-[#FF5500] transition-colors shadow-sm" />
 
               {/* Version & Date */}
               <div className="flex flex-wrap items-center gap-3">
-                <span className="rounded-md border border-slate-700 bg-slate-800/80 px-2.5 py-1 text-xs font-mono font-bold text-slate-200">
+                <span className="rounded-md border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-2.5 py-1 text-xs font-mono font-bold text-[var(--text-primary)] shadow-sm">
                   {entry.version}
                 </span>
-                <span className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                <span className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] font-semibold">
                   <Calendar className="h-3.5 w-3.5" />
                   {entry.date}
                 </span>
@@ -163,24 +163,16 @@ export default function ChangelogPage() {
               </p>
 
               {/* Changes List */}
-              <div className="mt-4 rounded-xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-4 sm:p-5">
+              <div className="mt-4 rounded-xl border border-[var(--border-primary)] bg-[var(--card-bg)] p-4 sm:p-5 shadow-sm">
                 <ul className="space-y-3">
                   {entry.changes.map((change, cIdx) => (
                     <li key={cIdx} className="flex items-start gap-3 text-xs sm:text-sm">
                       <span
-                        className={`inline-block shrink-0 rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
-                          change.type === 'Yeni'
-                            ? 'bg-slate-700/50 text-slate-200 border border-slate-600/50'
-                            : change.type === 'İyileştirme'
-                            ? 'bg-slate-800 text-slate-300 border border-slate-700/60'
-                            : change.type === 'Güvenlik'
-                            ? 'bg-slate-800 text-slate-300 border border-slate-700/60'
-                            : 'bg-slate-800 text-slate-400 border border-slate-700/40'
-                        }`}
+                        className="inline-block shrink-0 rounded-md px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider bg-[var(--bg-secondary)] text-[var(--text-primary)] border border-[var(--border-primary)] shadow-xs"
                       >
                         {change.type}
                       </span>
-                      <span className="text-[var(--text-primary)] leading-normal">
+                      <span className="text-[var(--text-primary)] leading-normal font-medium">
                         {change.text}
                       </span>
                     </li>
