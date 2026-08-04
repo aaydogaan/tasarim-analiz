@@ -106,7 +106,7 @@ export default function CommunitySpotlight({ onExploreClick }: { onExploreClick:
                     extra_images,
                     tasarim_turu,
                     likes_count,
-                    analizler(isletme, tasarim_turu, gorsel_url, genel_puan, user_name, user_avatar),
+                    analizler(isletme, tasarim_turu, gorsel_url, genel_puan),
                     profiles:user_id(display_name, avatar_url, slug)
                 `)
                 .order("likes_count", { ascending: false })
@@ -122,8 +122,8 @@ export default function CommunitySpotlight({ onExploreClick }: { onExploreClick:
                     return {
                         id: post.id,
                         isletme: post.analizler?.isletme || post.isletme || post.title || 'Tasarım Paylaşımı',
-                        user_name: post.profiles?.display_name || post.analizler?.user_name || 'Tasarımcı',
-                        user_avatar: post.profiles?.avatar_url || post.analizler?.user_avatar,
+                        user_name: post.profiles?.display_name || 'Tasarımcı',
+                        user_avatar: post.profiles?.avatar_url,
                         user_slug: post.profiles?.slug || 'tasarimci',
                         gorsel_url: imageSrc,
                         tasarim_turu: post.analizler?.tasarim_turu || post.tasarim_turu || 'Tasarım',
