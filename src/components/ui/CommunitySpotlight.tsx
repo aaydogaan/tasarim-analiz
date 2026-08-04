@@ -23,6 +23,7 @@ const VitrinCard: React.FC<{ item: VitrinItem }> = ({ item }) => (
                 <img
                     src={item.gorsel_url}
                     alt={item.isletme}
+                    referrerPolicy="no-referrer"
                     className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
                     loading="lazy"
                 />
@@ -99,6 +100,11 @@ export default function CommunitySpotlight({ onExploreClick }: { onExploreClick:
                 .select(`
                     id,
                     user_id,
+                    title,
+                    isletme,
+                    gorsel_url,
+                    extra_images,
+                    tasarim_turu,
                     likes_count,
                     analizler(isletme, tasarim_turu, gorsel_url, genel_puan, user_name, user_avatar),
                     profiles:user_id(display_name, avatar_url, slug)
@@ -107,17 +113,24 @@ export default function CommunitySpotlight({ onExploreClick }: { onExploreClick:
                 .limit(10);
 
             if (data && data.length > 0) {
-                const formatted = data.map((post: any) => ({
-                    id: post.id,
-                    isletme: post.analizler?.isletme || 'Bilinmeyen Tasarım',
-                    user_name: post.profiles?.display_name || post.analizler?.user_name,
-                    user_avatar: post.profiles?.avatar_url || post.analizler?.user_avatar,
-                    user_slug: post.profiles?.slug || 'tasarimci',
-                    gorsel_url: post.analizler?.gorsel_url,
-                    tasarim_turu: post.analizler?.tasarim_turu || 'Tasarım',
-                    ai_puan: post.analizler?.genel_puan || 0,
-                    topluluk_puan: post.likes_count
-                }));
+                const formatted = data.map((post: any) => {
+                    const mainG = post.analizler?.gorsel_url || post.gorsel_url;
+                    const extraFirst = Array.isArray(post.extra_images) && post.extra_images.length > 0 ? post.extra_images[0] : null;
+                    const rawG = mainG || extraFirst;
+                    const imageSrc = rawG ? (rawG.startsWith('http') || rawG.startsWith('data:') ? rawG : `data:image/jpeg;base64,${rawG}`) : '';
+
+                    return {
+                        id: post.id,
+                        isletme: post.analizler?.isletme || post.isletme || post.title || 'Tasarım Paylaşımı',
+                        user_name: post.profiles?.display_name || post.analizler?.user_name || 'Tasarımcı',
+                        user_avatar: post.profiles?.avatar_url || post.analizler?.user_avatar,
+                        user_slug: post.profiles?.slug || 'tasarimci',
+                        gorsel_url: imageSrc,
+                        tasarim_turu: post.analizler?.tasarim_turu || post.tasarim_turu || 'Tasarım',
+                        ai_puan: post.analizler?.genel_puan || 0,
+                        topluluk_puan: post.likes_count || 0
+                    };
+                });
                 setVitrinItems(formatted);
             } else {
                 setVitrinItems([]);
