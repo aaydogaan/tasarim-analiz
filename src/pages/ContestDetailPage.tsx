@@ -235,12 +235,13 @@ export default function ContestDetailPage() {
           Geri Dön
         </button>
 
-        {/* ÜST KAPAK GÖRSELİ (BANNER) */}
-        <div className="w-full h-64 sm:h-80 md:h-96 rounded-3xl overflow-hidden relative border border-zinc-200/80 dark:border-zinc-800 shadow-sm bg-zinc-100 dark:bg-zinc-800">
-          <img src={coverImage} alt={contest.title} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
+        {/* ÜST KAPAK GÖRSELİ (BANNER - Kesilmeden Sığdırma & Bulanık Arka Plan) */}
+        <div className="w-full h-64 sm:h-80 md:h-96 rounded-3xl overflow-hidden relative border border-zinc-200/80 dark:border-zinc-800 shadow-sm bg-zinc-950/90 flex items-center justify-center">
+          <img src={coverImage} alt="" className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none" />
+          <img src={coverImage} alt={contest.title} className="w-full h-full object-contain relative z-10 p-3 sm:p-4" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none z-10" />
           
-          <div className="absolute bottom-6 left-6 right-6 text-white space-y-1">
+          <div className="absolute bottom-6 left-6 right-6 text-white space-y-1 z-20">
             <span className="inline-block px-3 py-1 rounded-full bg-[#FF5500] text-white text-xs font-extrabold shadow">
               {contest.title}
             </span>

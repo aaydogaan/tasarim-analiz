@@ -266,16 +266,23 @@ export const ContestHeroCard: React.FC<ContestHeroCardProps> = ({
 
         </div>
 
-        {/* Sağ Taraf: Tekli Statik Yatay Görsel (HİÇBİR HOVER SCALE VEYA TİTREŞİM EFEKTİ YOKTUR) */}
-        <div className="lg:col-span-6 h-[260px] sm:h-[340px] w-full relative rounded-2xl overflow-hidden border border-zinc-200/80 dark:border-zinc-800 shadow-sm bg-zinc-100 dark:bg-zinc-800">
+        {/* Sağ Taraf: Görsel (Yatay, Kare ve Instagram Dikey Post Formatına Uyumlu - Kesmeden Sığdır) */}
+        <div className="lg:col-span-6 h-[260px] sm:h-[340px] w-full relative rounded-2xl overflow-hidden border border-zinc-200/80 dark:border-zinc-800 shadow-sm bg-zinc-950/90 flex items-center justify-center group">
+          {/* Bulanık Arka Plan (Her Format Görselde Alana Kesintisiz Derinlik Katacak) */}
+          <img 
+            src={coverImage} 
+            alt="" 
+            className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none" 
+          />
+          {/* Ön Plan Görsel (Orijinal Görsel Kesilmeden %100 Tam Görünür) */}
           <img 
             src={coverImage} 
             alt={contest.title} 
-            className="w-full h-full object-cover" 
+            className="w-full h-full object-contain relative z-10 p-2 sm:p-3" 
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none z-10" />
           
-          <div className="absolute bottom-4 left-4 right-4 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md px-4 py-3 rounded-xl border border-white/20 dark:border-zinc-700/50 flex items-center justify-between pointer-events-none">
+          <div className="absolute bottom-4 left-4 right-4 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md px-4 py-3 rounded-xl border border-white/20 dark:border-zinc-700/50 flex items-center justify-between pointer-events-none z-20">
             <div className="flex items-center gap-2">
               <Trophy className="w-4 h-4 text-zinc-700 dark:text-zinc-200" />
               <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate">
