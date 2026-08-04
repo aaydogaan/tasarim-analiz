@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Crown, Sparkles, Check, Mail, Users, Trophy } from 'lucide-react';
+import { Crown, Sparkles, Check, Mail, Users, Trophy, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
 
@@ -37,6 +37,25 @@ export const ContestHeroCard: React.FC<ContestHeroCardProps> = ({
   const [newsletterLoading, setNewsletterLoading] = useState(false);
   const [newsletterSuccess, setNewsletterSuccess] = useState(false);
   const [winnerEntry, setWinnerEntry] = useState<any | null>(null);
+  const [userJoined, setUserJoined] = useState(false);
+
+  useEffect(() => {
+    const checkUserJoined = async () => {
+      if (!contest.id) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: entry } = await supabase
+          .from('contest_entries')
+          .select('id')
+          .eq('contest_id', contest.id)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (entry) setUserJoined(true);
+      }
+    };
+    checkUserJoined();
+  }, [contest.id]);
 
   useEffect(() => {
     const fetchWinner = async () => {
@@ -171,13 +190,23 @@ export const ContestHeroCard: React.FC<ContestHeroCardProps> = ({
           {/* Butonlar */}
           {!timeLeft.isExpired ? (
             <div className="w-full space-y-3 pt-1">
-              <button
-                onClick={() => navigate(`/yarisma/${contest.slug || contest.id}`)}
-                className="w-full py-3.5 px-6 rounded-2xl bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 font-bold text-sm sm:text-base transition-all shadow-md active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Sparkles className="w-4 h-4 text-[#FF5500]" />
-                Yarışmaya Katıl
-              </button>
+              {userJoined ? (
+                <button
+                  onClick={() => navigate(`/yarisma/${contest.slug || contest.id}`)}
+                  className="w-full py-3.5 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base transition-all shadow-md active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <CheckCircle2 className="w-5 h-5 text-white" />
+                  Yarışmaya Katıldınız (Detayları Gör)
+                </button>
+              ) : (
+                <button
+                  onClick={() => navigate(`/yarisma/${contest.slug || contest.id}`)}
+                  className="w-full py-3.5 px-6 rounded-2xl bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 font-bold text-sm sm:text-base transition-all shadow-md active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-[#FF5500]" />
+                  Yarışmaya Katıl
+                </button>
+              )}
 
               <button
                 onClick={() => navigate(`/yarisma/${contest.slug || contest.id}`)}
@@ -266,21 +295,15 @@ export const ContestHeroCard: React.FC<ContestHeroCardProps> = ({
 
         </div>
 
-        {/* Sağ Taraf: Görsel (Yatay, Kare ve Instagram Dikey Post Formatına Uyumlu - Kesmeden Sığdır) */}
-        <div className="lg:col-span-6 h-[260px] sm:h-[340px] w-full relative rounded-2xl overflow-hidden border border-zinc-200/80 dark:border-zinc-800 shadow-sm bg-zinc-950/90 flex items-center justify-center group">
-          {/* Bulanık Arka Plan (Her Format Görselde Alana Kesintisiz Derinlik Katacak) */}
-          <img 
-            src={coverImage} 
-            alt="" 
-            className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none" 
-          />
-          {/* Ön Plan Görsel (Orijinal Görsel Kesilmeden %100 Tam Görünür) */}
+        {/* Sağ Taraf: Görsel (Yatay, Kare ve Instagram Dikey Post Formatına Uyumlu - Net Görünüm) */}
+        <div className="lg:col-span-6 h-[260px] sm:h-[340px] w-full relative rounded-2xl overflow-hidden border border-zinc-200/90 dark:border-zinc-800 shadow-sm bg-[#0c0c0e] flex items-center justify-center group">
+          {/* Orijinal Görsel (Kesilmeden %100 Tam Görünür) */}
           <img 
             src={coverImage} 
             alt={contest.title} 
             className="w-full h-full object-contain relative z-10 p-2 sm:p-3" 
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none z-10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none z-10" />
           
           <div className="absolute bottom-4 left-4 right-4 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md px-4 py-3 rounded-xl border border-white/20 dark:border-zinc-700/50 flex items-center justify-between pointer-events-none z-20">
             <div className="flex items-center gap-2">

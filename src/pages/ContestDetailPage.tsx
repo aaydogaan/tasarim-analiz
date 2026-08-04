@@ -235,9 +235,8 @@ export default function ContestDetailPage() {
           Geri Dön
         </button>
 
-        {/* ÜST KAPAK GÖRSELİ (BANNER - Kesilmeden Sığdırma & Bulanık Arka Plan) */}
-        <div className="w-full h-64 sm:h-80 md:h-96 rounded-3xl overflow-hidden relative border border-zinc-200/80 dark:border-zinc-800 shadow-sm bg-zinc-950/90 flex items-center justify-center">
-          <img src={coverImage} alt="" className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none" />
+        {/* ÜST KAPAK GÖRSELİ (BANNER - Kesilmeden Sığdırma & Net Arka Plan) */}
+        <div className="w-full h-64 sm:h-80 md:h-96 rounded-3xl overflow-hidden relative border border-zinc-200/80 dark:border-zinc-800 shadow-sm bg-[#0c0c0e] flex items-center justify-center">
           <img src={coverImage} alt={contest.title} className="w-full h-full object-contain relative z-10 p-3 sm:p-4" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none z-10" />
           
@@ -262,6 +261,31 @@ export default function ContestDetailPage() {
                 <p>{contest.short_description}</p>
                 <p>{contest.rules_content || 'Özel bir açıklama girilmemiştir. Özgün tasarımlarınızla katılabilirsiniz.'}</p>
               </div>
+
+              {/* Detay & Brief Görselleri (Eğer eklenmişse) */}
+              {contest.cover_images && contest.cover_images.length > 1 && (
+                <div className="mt-6 space-y-3">
+                  <h3 className="text-sm font-extrabold text-[var(--text-primary)] uppercase tracking-wider flex items-center gap-2">
+                    📌 Detaylı Brief & Referans Görselleri
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {contest.cover_images.slice(1).map((imgUrl: string, imgIdx: number) => (
+                      <a
+                        key={imgIdx}
+                        href={imgUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group relative rounded-2xl overflow-hidden border border-[var(--border-primary)] bg-[var(--bg-secondary)] block shadow-sm hover:border-[#FF5500] transition-all"
+                      >
+                        <img src={imgUrl} alt={`Detay Görseli ${imgIdx + 1}`} className="w-full h-auto object-cover max-h-[350px]" />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5 backdrop-blur-xs">
+                          <ExternalLink className="w-4 h-4 text-[#FF5500]" /> Görseli Büyüt / İncele
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Kazananlar Bölümü (Eğer sonuçlandıysa) */}

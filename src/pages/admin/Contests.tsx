@@ -83,7 +83,9 @@ export default function Contests() {
   const [formEndDate, setFormEndDate] = useState('');
   const [formStatus, setFormStatus] = useState<'active' | 'ended' | 'draft'>('active');
   const [coverImageUrl, setCoverImageUrl] = useState('');
+  const [detailImageUrl, setDetailImageUrl] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingDetailImage, setUploadingDetailImage] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // PRO JURY EVALUATION MODAL STATES
@@ -181,6 +183,7 @@ export default function Contests() {
     setFormEndDate(nextWeek);
     setFormStatus('active');
     setCoverImageUrl('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000&auto=format&fit=crop&q=80');
+    setDetailImageUrl('');
     setIsModalOpen(true);
   };
 
@@ -194,6 +197,7 @@ export default function Contests() {
     setFormEndDate(new Date(contest.end_date).toISOString().slice(0, 16));
     setFormStatus(contest.status || 'active');
     setCoverImageUrl((contest.cover_images && contest.cover_images[0]) || '');
+    setDetailImageUrl((contest.cover_images && contest.cover_images[1]) || '');
     setIsModalOpen(true);
   };
 
@@ -254,6 +258,33 @@ export default function Contests() {
     }
   };
 
+  const handleDetailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0]) return;
+    const file = e.target.files[0];
+
+    setUploadingDetailImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `contest_detail_${Date.now()}.${fileExt}`;
+      const filePath = `contests/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from('analyses')
+        .upload(filePath, file);
+
+      const { data: publicUrlData } = supabase.storage
+        .from('analyses')
+        .getPublicUrl(filePath);
+
+      setDetailImageUrl(publicUrlData.publicUrl);
+      toast.success('Detay görseli yüklendi!');
+    } catch (err: any) {
+      toast.error('Görsel yüklenirken bir hata oluştu.');
+    } finally {
+      setUploadingDetailImage(false);
+    }
+  };
+
   const handleSaveContest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formTitle.trim() || !formEndDate) {
@@ -263,7 +294,7 @@ export default function Contests() {
 
     setSaving(true);
     try {
-      const coverArray = coverImageUrl ? [coverImageUrl] : [];
+      const coverArray = [coverImageUrl, detailImageUrl].filter(Boolean);
 
       const generatedSlug = formTitle
         .toString()
@@ -883,6 +914,41 @@ export default function Contests() {
                         type="file"
                         accept="image/*"
                         onChange={handleCoverUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* PC File Upload for Detail / Brief Image */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-700 block">
+                    Detay / Brief Görseli (Detay Metninde Görünecek - Opsiyonel)
+                  </label>
+                  
+                  <div className="flex items-center gap-3">
+                    {detailImageUrl && (
+                      <img
+                        src={detailImageUrl}
+                        alt="Detail Preview"
+                        className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0"
+                      />
+                    )}
+
+                    <label className="flex-1 border border-dashed border-slate-300 hover:border-emerald-500 bg-slate-50 p-3.5 rounded-xl text-center cursor-pointer transition-colors flex items-center justify-center gap-2 text-xs font-bold text-slate-700">
+                      {uploadingDetailImage ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin text-emerald-600" /> Görsel Yükleniyor...
+                        </>
+                      ) : (
+                        <>
+                          <UploadCloud className="w-4 h-4 text-emerald-600" /> Bilgisayardan Detay / Brief Görseli Yükle
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleDetailUpload}
                         className="hidden"
                       />
                     </label>
