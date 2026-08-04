@@ -268,18 +268,36 @@ export default function Contests() {
       const fileName = `contest_detail_${Date.now()}.${fileExt}`;
       const filePath = `contests/${fileName}`;
 
-      const { data, error } = await supabase.storage
-        .from('analyses')
-        .upload(filePath, file);
+      const { error: uploadErr } = await supabase.storage
+        .from('analiz-gorselleri')
+        .upload(filePath, file, { upsert: true });
 
-      const { data: publicUrlData } = supabase.storage
-        .from('analyses')
-        .getPublicUrl(filePath);
+      if (!uploadErr) {
+        const { data: publicUrlData } = supabase.storage
+          .from('analiz-gorselleri')
+          .getPublicUrl(filePath);
 
-      setDetailImageUrl(publicUrlData.publicUrl);
-      toast.success('Detay görseli yüklendi!');
+        if (publicUrlData?.publicUrl) {
+          setDetailImageUrl(publicUrlData.publicUrl);
+          toast.success('Detay görseli yüklendi!');
+          setUploadingDetailImage(false);
+          return;
+        }
+      }
+
+      const compressedDataUrl = await compressImageFile(file);
+      if (compressedDataUrl) {
+        setDetailImageUrl(compressedDataUrl);
+        toast.success('Detay görseli yüklendi!');
+      }
     } catch (err: any) {
-      toast.error('Görsel yüklenirken bir hata oluştu.');
+      const compressedDataUrl = await compressImageFile(file);
+      if (compressedDataUrl) {
+        setDetailImageUrl(compressedDataUrl);
+        toast.success('Detay görseli yüklendi!');
+      } else {
+        toast.error('Görsel yüklenirken bir hata oluştu.');
+      }
     } finally {
       setUploadingDetailImage(false);
     }
