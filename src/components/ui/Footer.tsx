@@ -5,7 +5,7 @@ export default function Footer({
     onNavClick 
 }: { 
     onLogoClick?: () => void,
-    onNavClick?: (view: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography' | 'nasil-calisir' | 'revizeles') => void
+    onNavClick?: (view: 'landing' | 'app' | 'vitrin' | 'community' | 'pricing' | 'about' | 'tools' | 'typography' | 'nasil-calisir' | 'revizeles' | 'yenilikler' | 'changelog') => void
 }) {
 
     return (
@@ -217,6 +217,7 @@ export default function Footer({
                                 {[
                                     { label: 'Hakkımızda', view: 'about' as const },
                                     { label: 'Nasıl Çalışır?', view: 'nasil-calisir' as const },
+                                    { label: 'Güncelleme Notları', view: 'yenilikler' as const },
                                     { label: <span>Reviz<span className="text-[#FF4D00] font-black">Eleştir</span></span>, view: 'revizeles' as const },
                                     { label: 'Keşfet', view: 'vitrin' as const },
                                     { label: 'Araçlar', view: 'tools' as const },

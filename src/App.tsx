@@ -21,6 +21,7 @@ import Tools from "./pages/Tools";
 import TypographyLab from "./pages/TypographyLab";
 import Glassmorphism from "./pages/Glassmorphism";
 import HowItWorks from "./pages/HowItWorks";
+import ChangelogPage from "./pages/ChangelogPage";
 import { Leaderboard } from "./pages/Leaderboard";
 import PublicProfile from "./pages/PublicProfile";
 import LiveActivityFeed from "./components/ui/LiveActivityFeed";
@@ -2262,6 +2263,8 @@ export default function App() {
         <Route path="/gizlilik" element={<Gizlilik />} />
         <Route path="/kosullar" element={<Kosullar />} />
         <Route path="/cerez-politikasi" element={<CerezPolitikasi />} />
+        <Route path="/yenilikler" element={<ChangelogPage />} />
+        <Route path="/changelog" element={<ChangelogPage />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/yarisma/:id" element={<ContestDetailPage />} />
 

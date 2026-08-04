@@ -330,6 +330,18 @@ export default function Header({
 
                 {/* Right Side Actions */}
                 <div className="flex items-center gap-1 sm:gap-2.5">
+                    {/* Yenilikler (Changelog) Button */}
+                    <button
+                        onClick={() => navigate('/yenilikler')}
+                        title="Yenilikler & Güncelleme Notları"
+                        className={`px-2.5 py-1.5 rounded-full border border-[var(--border-primary)] bg-[var(--bg-secondary)]/50 hover:bg-[var(--bg-secondary)] transition-all flex items-center gap-1.5 text-xs font-bold ${
+                            gorunum === 'yenilikler' || gorunum === 'changelog' ? 'text-[var(--text-primary)] border-slate-500' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                        }`}
+                    >
+                        <Sparkles className="w-3.5 h-3.5 text-slate-300" />
+                        <span className="hidden sm:inline">Yenilikler</span>
+                    </button>
+
                     {/* Search Button */}
                     <button
                         onClick={() => setIsSearchOpen(true)}
@@ -572,6 +584,17 @@ export default function Header({
                                 className={`text-left transition-colors ${gorunum === 'nasil-calisir' ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
                             >
                                 Nasıl Çalışır?
+                            </button>
+                            <button
+                                onClick={() => {
+                                    navigate('/yenilikler');
+                                    setIsMobileMenuOpen(false);
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className={`text-left transition-colors flex items-center gap-2 ${['yenilikler', 'changelog'].includes(gorunum) ? 'text-[var(--color-brand-orange)] font-bold' : 'text-[var(--text-primary)]'}`}
+                            >
+                                <Sparkles className="w-4 h-4 text-amber-400" />
+                                Yenilikler & Güncellemeler
                             </button>
 
                             <button
