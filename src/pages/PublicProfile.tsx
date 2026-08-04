@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
-import { Trophy, Calendar, Link as LinkIcon, Briefcase, Award, Star, Activity, ArrowLeft, X, Bell, BellOff, Users, Sparkles, Clock } from 'lucide-react';
+import { Trophy, Calendar, Link as LinkIcon, Briefcase, Award, Star, Activity, ArrowLeft, X, Bell, BellOff, Users, Sparkles, Clock, Images } from 'lucide-react';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import FollowModal from '../components/ui/FollowModal';
 import DesignDetailModal from '../components/ui/DesignDetailModal';
@@ -166,13 +166,28 @@ export default function PublicProfile() {
                 setDailyWinCount(winCount || 0);
                 
                 const formattedShowcases = (showcaseData || []).map(post => {
-                    const rawG = post.analizler?.gorsel_url || post.gorsel_url;
+                    const mainG = post.analizler?.gorsel_url || post.gorsel_url;
+                    const extraFirst = Array.isArray(post.extra_images) && post.extra_images.length > 0 ? post.extra_images[0] : null;
+                    const rawG = mainG || extraFirst;
                     const imageSrc = rawG ? (rawG.startsWith('http') || rawG.startsWith('data:') ? rawG : `data:image/jpeg;base64,${rawG}`) : '';
+
+                    const allImages: string[] = [];
+                    if (imageSrc) allImages.push(imageSrc);
+                    if (Array.isArray(post.extra_images)) {
+                        post.extra_images.forEach((img: string) => {
+                            if (img && typeof img === 'string') {
+                                const formatted = img.startsWith('http') || img.startsWith('data:') ? img : `data:image/jpeg;base64,${img}`;
+                                if (!allImages.includes(formatted)) allImages.push(formatted);
+                            }
+                        });
+                    }
+
                     return {
                         ...post,
-                        image_url: imageSrc,
-                        isletme: post.analizler?.isletme || post.title || 'Genel',
-                        tasarim_turu: post.analizler?.tasarim_turu || 'Tasarım',
+                        image_url: imageSrc || (allImages.length > 0 ? allImages[0] : ''),
+                        all_images: allImages.length > 0 ? allImages : (imageSrc ? [imageSrc] : []),
+                        isletme: post.analizler?.isletme || post.title || 'Tasarım Paylaşımı',
+                        tasarim_turu: post.analizler?.tasarim_turu || 'Topluluk',
                         genel_puan: post.analizler?.genel_puan || 0
                     };
                 });
@@ -549,56 +564,67 @@ export default function PublicProfile() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {showcases.map((post) => (
-                            <div 
-                                key={post.id} 
-                                onClick={() => {
-                                    if (post.image_url) {
-                                        setSeciliGorsel({
-                                            id: post.id,
-                                            gorsel_url: post.image_url,
-                                            isletme: post.isletme,
-                                            tasarim_turu: post.tasarim_turu,
-                                            ai_puan: post.genel_puan || 85,
-                                            created_at: post.created_at,
-                                            user_id: profile.id,
-                                            user_name: profile.display_name,
-                                            user_avatar: profile.avatar_url,
-                                            user_slug: profile.slug,
-                                            verification_badge: profile.verification_badge
-                                        });
-                                    }
-                                }}
-                                className="bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-[24px] overflow-hidden hover:border-[#FF5500]/50 transition-all group block shadow-sm hover:shadow-md cursor-pointer"
-                            >
-                                <div className="aspect-[4/3] bg-gray-50 relative overflow-hidden">
-                                    {post.image_url ? (
-                                        <img 
-                                            src={post.image_url} 
-                                            alt={post.isletme} 
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                            Görsel Bulunamadı
-                                        </div>
-                                    )}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                </div>
-                                <div className="p-5 border-t border-[var(--border-primary)] flex items-start justify-between gap-4">
-                                    <div>
-                                        <h3 className="text-base font-bold text-[var(--text-primary)] mb-1 truncate">{post.isletme}</h3>
-                                        <p className="text-[var(--text-secondary)] text-sm font-medium">{post.tasarim_turu}</p>
+                        {showcases.map((post) => {
+                            const displayImg = post.image_url || (post.all_images && post.all_images[0]);
+                            return (
+                                <div 
+                                    key={post.id} 
+                                    onClick={() => {
+                                        if (displayImg) {
+                                            setSeciliGorsel({
+                                                id: post.id,
+                                                gorsel_url: displayImg,
+                                                extra_images: post.extra_images,
+                                                all_images: post.all_images && post.all_images.length > 0 ? post.all_images : [displayImg],
+                                                isletme: post.isletme,
+                                                tasarim_turu: post.tasarim_turu,
+                                                ai_puan: post.genel_puan || null,
+                                                created_at: post.created_at,
+                                                user_id: profile.id,
+                                                user_name: profile.display_name,
+                                                user_avatar: profile.avatar_url,
+                                                user_slug: profile.slug,
+                                                verification_badge: profile.verification_badge
+                                            });
+                                        }
+                                    }}
+                                    className="bg-[var(--card-bg)] border border-[var(--border-primary)] rounded-[24px] overflow-hidden hover:border-[#FF5500]/50 transition-all group block shadow-sm hover:shadow-md cursor-pointer"
+                                >
+                                    <div className="aspect-[4/3] bg-gray-50 dark:bg-zinc-900 relative overflow-hidden">
+                                        {displayImg ? (
+                                            <img 
+                                                src={displayImg} 
+                                                alt={post.isletme} 
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-medium">
+                                                Görsel Bulunamadı
+                                            </div>
+                                        )}
+                                        {post.all_images && post.all_images.length > 1 && (
+                                            <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-extrabold flex items-center gap-1 shadow-md border border-white/20">
+                                                <Images size={12} className="text-[#FF5500]" />
+                                                <span>{post.all_images.length} Görsel</span>
+                                            </div>
+                                        )}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                     </div>
-                                    {post.genel_puan > 0 && (
-                                        <div className="flex items-center gap-1 bg-amber-500/10 text-amber-500 font-bold px-2.5 py-1 rounded-lg text-sm shrink-0 border border-amber-500/20">
-                                            <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                                            {post.genel_puan}
+                                    <div className="p-5 border-t border-[var(--border-primary)] flex items-start justify-between gap-4">
+                                        <div>
+                                            <h3 className="text-base font-bold text-[var(--text-primary)] mb-1 truncate">{post.isletme}</h3>
+                                            <p className="text-[var(--text-secondary)] text-sm font-medium">{post.tasarim_turu}</p>
                                         </div>
-                                    )}
+                                        {post.genel_puan > 0 && (
+                                            <div className="flex items-center gap-1 bg-amber-500/10 text-amber-500 font-bold px-2.5 py-1 rounded-lg text-sm shrink-0 border border-amber-500/20">
+                                                <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                                                {post.genel_puan}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
 
