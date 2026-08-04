@@ -522,8 +522,7 @@ export default function App() {
     const checkAndAwardBadges = async () => {
       try {
         await supabase.from('user_badges').upsert([
-          { user_id: kullanici.id, badge_id: 'aramiza-hos-geldin' },
-          { user_id: kullanici.id, badge_id: 'ai-ile-tanisma' }
+          { user_id: kullanici.id, badge_id: 'aramiza-hos-geldin' }
         ], { onConflict: 'user_id, badge_id', ignoreDuplicates: true });
       } catch (_) {}
     };
