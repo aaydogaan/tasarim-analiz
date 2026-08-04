@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Users, MessageCircle, Heart, Trophy, Zap, Share2, Crown, Star, Sparkles, ArrowRight, Award, X, Send, Loader2, ChevronDown, Flag, Pencil, Trash2, Image as ImageIcon } from 'lucide-react';
+import { Users, MessageCircle, Heart, Trophy, Zap, Share2, Crown, Star, Sparkles, ArrowRight, Award, X, Send, Loader2, ChevronDown, Flag, Pencil, Trash2, Image as ImageIcon, ChevronLeft, ChevronRight, Images } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
@@ -86,7 +86,8 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
     const [reportItem, setReportItem] = useState<{ id: string, type: 'post' | 'comment' } | null>(null);
     const [submittingComment, setSubmittingComment] = useState(false);
     const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
-    const [seciliGorsel, setSeciliGorsel] = useState<string | null>(null);
+    const [seciliGorsel, setSeciliGorsel] = useState<{ images: string[]; index: number } | null>(null);
+    const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
     // Comment Editing State
     const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
@@ -158,16 +159,24 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         };
     }, [seciliGorsel]);
 
-    // ESC ile kapatma
+    // ESC ve Klavye Sol/Sağ ok tuşları ile gezinme
     useEffect(() => {
-        const handleEsc = (event: KeyboardEvent) => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (!seciliGorsel) return;
             if (event.key === "Escape") setSeciliGorsel(null);
+            if (seciliGorsel.images.length > 1) {
+                if (event.key === "ArrowRight") {
+                    setSeciliGorsel(prev => prev ? { ...prev, index: (prev.index + 1) % prev.images.length } : null);
+                } else if (event.key === "ArrowLeft") {
+                    setSeciliGorsel(prev => prev ? { ...prev, index: (prev.index - 1 + prev.images.length) % prev.images.length } : null);
+                }
+            }
         };
-        window.addEventListener("keydown", handleEsc);
+        window.addEventListener("keydown", handleKeyDown);
         return () => {
-            window.removeEventListener("keydown", handleEsc);
+            window.removeEventListener("keydown", handleKeyDown);
         };
-    }, []);
+    }, [seciliGorsel]);
 
     // Scroll to and open specific post from URL
     useEffect(() => {
@@ -946,33 +955,74 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                             {post.content || 'Bu tasarım analiz edildi.'}
                                         </p>
                                         
-                                        {imageSrc && (
-                                            <div 
-                                                className="relative aspect-video rounded-3xl overflow-hidden mb-6 bg-[var(--bg-secondary)] border border-[var(--border-primary)] cursor-zoom-in group"
-                                                onClick={() => setSeciliGorsel(imageSrc)}
-                                            >
-                                                <img
-                                                    src={imageSrc}
-                                                    className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-90"
-                                                    alt="Post thumbnail"
-                                                    loading="lazy"
-                                                />
-                                            </div>
-                                        )}
+                                        {(() => {
+                                            const postImages: string[] = [];
+                                            const mainImg = post.analizler?.gorsel_url || post.gorsel_url;
+                                            if (mainImg) postImages.push(mainImg);
+                                            if (Array.isArray(post.extra_images)) {
+                                                post.extra_images.forEach((img: string) => {
+                                                    if (img && typeof img === 'string' && !postImages.includes(img)) {
+                                                        postImages.push(img);
+                                                    }
+                                                });
+                                            }
 
-                                        {post.extra_images && post.extra_images.length > 0 && (
-                                            <div className={`grid gap-2 mb-6 ${post.extra_images.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                                                {post.extra_images.map((img: string, i: number) => (
-                                                    <div 
-                                                        key={i} 
-                                                        className="relative aspect-video rounded-2xl overflow-hidden bg-[var(--bg-secondary)] border border-[var(--border-primary)] cursor-zoom-in group"
-                                                        onClick={() => setSeciliGorsel(img)}
-                                                    >
-                                                        <img src={img} className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-90" alt={`Extra ${i}`} loading="lazy" />
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
+                                            if (postImages.length === 0) return null;
+
+                                            return (
+                                                <div className="relative mb-6">
+                                                    {postImages.length === 1 ? (
+                                                        <div 
+                                                            className="relative aspect-video max-h-[420px] rounded-3xl overflow-hidden bg-[var(--bg-secondary)] border border-[var(--border-primary)] cursor-zoom-in group"
+                                                            onClick={() => setSeciliGorsel({ images: postImages, index: 0 })}
+                                                        >
+                                                            <img
+                                                                src={postImages[0]}
+                                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                                                                alt="Post thumbnail"
+                                                                loading="lazy"
+                                                            />
+                                                        </div>
+                                                    ) : postImages.length === 2 ? (
+                                                        <div className="grid grid-cols-2 gap-2.5 aspect-video max-h-[380px]">
+                                                            {postImages.map((img, idx) => (
+                                                                <div 
+                                                                    key={idx}
+                                                                    className="relative rounded-2xl overflow-hidden bg-[var(--bg-secondary)] border border-[var(--border-primary)] cursor-zoom-in group h-full"
+                                                                    onClick={() => setSeciliGorsel({ images: postImages, index: idx })}
+                                                                >
+                                                                    <img src={img} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" alt={`Thumbnail ${idx + 1}`} loading="lazy" />
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="grid grid-cols-3 gap-2 aspect-video max-h-[380px]">
+                                                            {postImages.slice(0, 3).map((img, idx) => (
+                                                                <div 
+                                                                    key={idx}
+                                                                    className="relative rounded-2xl overflow-hidden bg-[var(--bg-secondary)] border border-[var(--border-primary)] cursor-zoom-in group h-full"
+                                                                    onClick={() => setSeciliGorsel({ images: postImages, index: idx })}
+                                                                >
+                                                                    <img src={img} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" alt={`Thumbnail ${idx + 1}`} loading="lazy" />
+                                                                    {idx === 2 && postImages.length > 3 && (
+                                                                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-black text-lg backdrop-blur-xs">
+                                                                            +{postImages.length - 3}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+
+                                                    {postImages.length > 1 && (
+                                                        <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[11px] font-extrabold flex items-center gap-1.5 shadow-md border border-white/20 pointer-events-none">
+                                                            <Images size={12} className="text-[#FF5500]" />
+                                                            <span>{postImages.length} Görsel</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
                                         
                                         <div className="flex items-center justify-between mt-6">
                                             <div className="flex items-center gap-6">
@@ -1328,29 +1378,102 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
             </main>
 
             <AnimatePresence>
-                {seciliGorsel && (
+                {seciliGorsel && seciliGorsel.images.length > 0 && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-black/90 backdrop-blur-sm"
+                        className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 sm:p-6 bg-black/92 backdrop-blur-md select-none"
                         onClick={() => setSeciliGorsel(null)}
                     >
+                        {/* Close Button */}
                         <button
-                            className="absolute top-4 right-4 sm:top-8 sm:right-8 text-white/50 hover:text-white transition-colors bg-black/20 hover:bg-black/40 rounded-full p-2 z-[1001]"
+                            className="absolute top-4 right-4 sm:top-6 sm:right-6 text-white/70 hover:text-white bg-black/40 hover:bg-black/80 border border-white/20 rounded-full p-2.5 z-[10002] transition-all cursor-pointer shadow-xl backdrop-blur-md"
                             onClick={() => setSeciliGorsel(null)}
+                            aria-label="Kapat"
                         >
-                            <X className="w-6 h-6 md:w-7 md:h-7" />
+                            <X className="w-6 h-6" />
                         </button>
-                        <div className="relative z-[1000] max-w-7xl w-full flex justify-center pointer-events-none my-auto">
-                            <div className="w-full flex justify-center pointer-events-auto">
-                                <img
-                                    src={seciliGorsel}
-                                    alt="Büyütülmüş Görsel"
-                                    className="w-auto h-auto max-w-full max-h-[85vh] object-contain rounded-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]"
-                                    onClick={(e) => e.stopPropagation()}
-                                />
+
+                        {/* Top Image Counter */}
+                        {seciliGorsel.images.length > 1 && (
+                            <div className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-black tracking-widest border border-white/20 z-[10002] shadow-lg flex items-center gap-1.5">
+                                <Images size={14} className="text-[#FF5500]" />
+                                <span>{seciliGorsel.index + 1} / {seciliGorsel.images.length}</span>
                             </div>
+                        )}
+
+                        {/* Left/Right Navigation Chevron Buttons (Desktop & Mobile) */}
+                        {seciliGorsel.images.length > 1 && (
+                            <>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSeciliGorsel(prev => prev ? { ...prev, index: (prev.index - 1 + prev.images.length) % prev.images.length } : null);
+                                    }}
+                                    className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-full bg-black/60 hover:bg-[#FF5500] text-white shadow-2xl backdrop-blur-md border border-white/20 transition-all z-[10002] cursor-pointer active:scale-90 flex items-center justify-center"
+                                    aria-label="Önceki Görsel"
+                                >
+                                    <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8" />
+                                </button>
+
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSeciliGorsel(prev => prev ? { ...prev, index: (prev.index + 1) % prev.images.length } : null);
+                                    }}
+                                    className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-full bg-black/60 hover:bg-[#FF5500] text-white shadow-2xl backdrop-blur-md border border-white/20 transition-all z-[10002] cursor-pointer active:scale-90 flex items-center justify-center"
+                                    aria-label="Sonraki Görsel"
+                                >
+                                    <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />
+                                </button>
+                            </>
+                        )}
+
+                        {/* Image Display Container with Touch Swipe Support */}
+                        <div
+                            className="relative z-[10000] max-w-4xl w-full flex flex-col items-center justify-center my-auto pointer-events-auto px-4"
+                            onClick={(e) => e.stopPropagation()}
+                            onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
+                            onTouchEnd={(e) => {
+                                if (touchStartX === null || !seciliGorsel || seciliGorsel.images.length <= 1) return;
+                                const touchEndX = e.changedTouches[0].clientX;
+                                const diff = touchStartX - touchEndX;
+                                if (diff > 40) {
+                                    setSeciliGorsel(prev => prev ? { ...prev, index: (prev.index + 1) % prev.images.length } : null);
+                                } else if (diff < -40) {
+                                    setSeciliGorsel(prev => prev ? { ...prev, index: (prev.index - 1 + prev.images.length) % prev.images.length } : null);
+                                }
+                                setTouchStartX(null);
+                            }}
+                        >
+                            <img
+                                src={seciliGorsel.images[seciliGorsel.index] || seciliGorsel.images[0]}
+                                alt="Büyütülmüş Görsel"
+                                className="w-auto h-auto max-w-full max-h-[68vh] sm:max-h-[74vh] object-contain rounded-2xl border border-white/15 shadow-[0_0_60px_rgba(0,0,0,0.8)] transition-all duration-300 select-none"
+                            />
+
+                            {/* Bottom Thumbnails */}
+                            {seciliGorsel.images.length > 1 && (
+                                <div className="flex items-center justify-center gap-2 mt-4 max-w-full p-2 rounded-2xl bg-black/60 backdrop-blur-md border border-white/10 overflow-x-auto">
+                                    {seciliGorsel.images.map((imgUrl, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSeciliGorsel(prev => prev ? { ...prev, index: idx } : null);
+                                            }}
+                                            className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden border-2 transition-all shrink-0 cursor-pointer ${
+                                                idx === seciliGorsel.index 
+                                                    ? 'border-[#FF5500] scale-105 shadow-lg shadow-[#FF5500]/40' 
+                                                    : 'border-white/20 opacity-60 hover:opacity-100 hover:border-white/50'
+                                            }`}
+                                        >
+                                            <img src={imgUrl} alt={`Önizleme ${idx + 1}`} className="w-full h-full object-cover" />
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </motion.div>
                 )}
