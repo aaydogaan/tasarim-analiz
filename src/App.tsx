@@ -1621,7 +1621,7 @@ export default function App() {
                                   <div className="w-full xl:w-1/2 aspect-square max-w-md rounded-[32px] border border-[var(--border-primary)] overflow-hidden relative shadow-sm bg-[var(--bg-primary)] group">
                                   {gorsel ? (
                                     <>
-                                      <img src={gorsel} alt="Yüklenen" className="w-full h-full object-contain p-4" />
+                                      <img src={gorsel} alt="Yüklenen" referrerPolicy="no-referrer" className="w-full h-full object-contain p-4" />
                                       {yukleniyor && <ScanningOverlay />}
                                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10">
                                         <button onClick={() => setAdim(1)} className="bg-[var(--card-bg)] text-[var(--text-primary)] px-6 py-3 rounded-full text-sm font-bold flex items-center gap-2 hover:scale-105 transition-transform shadow-xl">
