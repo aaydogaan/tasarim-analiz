@@ -534,9 +534,28 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
             }
         }
 
+        // Create corresponding analizler entry first to satisfy FK references & voting
+        let createdAnalizId: string | null = null;
+        try {
+            const { data: newAnaliz } = await supabase.from('analizler').insert({
+                user_id: kullanici.id,
+                user_name: kullanici.user_metadata?.display_name || kullanici.user_metadata?.full_name || 'Tasarımcı',
+                user_avatar: kullanici.user_metadata?.avatar_url || null,
+                tasarim_turu: 'Tasarım',
+                isletme: yeniGonderiBaslik || 'Topluluk Paylaşımı',
+                genel_puan: 85,
+                gorsel_url: extra_images.length > 0 ? extra_images[0] : null,
+                is_shared: true
+            }).select('id').single();
+
+            if (newAnaliz?.id) {
+                createdAnalizId = newAnaliz.id;
+            }
+        } catch (_) {}
+
         const { error } = await supabase.from('community_posts').insert({
             user_id: kullanici.id,
-            analiz_id: null,
+            analiz_id: createdAnalizId,
             title: yeniGonderiBaslik || null,
             content: yeniGonderiIcerik || null,
             extra_images: extra_images.length > 0 ? extra_images : []

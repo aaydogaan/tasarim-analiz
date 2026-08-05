@@ -484,7 +484,7 @@ export function Vitrin() {
             const itemObj = seciliGorsel || items.find(i => i.id === analiz_id || i.analiz_id === analiz_id);
             const { error: shadowErr } = await supabase.from('analizler').insert({
                 id: analiz_id,
-                user_id: itemObj?.user_id || user.id,
+                user_id: user.id, // Must be current user.id to satisfy Supabase RLS policy (auth.uid() = user_id)
                 user_name: itemObj?.user_name || 'Tasarımcı',
                 user_avatar: itemObj?.user_avatar || null,
                 tasarim_turu: itemObj?.tasarim_turu || 'Tasarım',
