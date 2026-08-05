@@ -460,59 +460,96 @@ export function Vitrin() {
         if (seciliGorsel && seciliGorsel.user_id === user.id) {
             return toast.error("Kendi tasarımınıza puan veremezsiniz.");
         }
-        if (!analiz_id) return toast.error("Bu tasarımın kimliği bulunamadı.");
+        
+        const targetId = analiz_id || seciliGorsel?.analiz_id || seciliGorsel?.id;
+        if (!targetId) return toast.error("Bu tasarımın kimliği bulunamadı.");
 
-        // Check if voted already
-        const { data: existing } = await supabase
+        // Check if voted already in begeniler
+        const { data: existingBegeniler } = await supabase
             .from("begeniler")
             .select("id")
-            .eq("analiz_id", analiz_id)
+            .eq("analiz_id", targetId)
             .eq("user_id", user.id)
             .maybeSingle();
 
-        if (existing) {
+        if (existingBegeniler) {
             toast.error("Bu tasarıma zaten puan verdiniz.");
             return;
         }
 
-        let { error } = await supabase
+        // Check if voted already in post_likes
+        const { data: existingLikes } = await supabase
+            .from("post_likes")
+            .select("id")
+            .eq("post_id", targetId)
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+        if (existingLikes) {
+            toast.error("Bu tasarıma zaten puan verdiniz.");
+            return;
+        }
+
+        let isSuccess = false;
+        let voteErr: any = null;
+
+        // Strategy 1: Insert into 'begeniler'
+        const { error: begeniErr } = await supabase
             .from("begeniler")
-            .insert({ analiz_id, user_id: user.id, vote_type: puan });
+            .insert({ analiz_id: targetId, user_id: user.id, vote_type: puan });
 
-        // If Foreign Key constraint error happens (e.g. direct community post not yet in 'analizler' table)
-        if (error && (error.code === '23503' || error.message?.includes('foreign key constraint') || error.message?.includes('violates foreign key constraint'))) {
-            const itemObj = seciliGorsel || items.find(i => i.id === analiz_id || i.analiz_id === analiz_id);
-            const { error: shadowErr } = await supabase.from('analizler').insert({
-                id: analiz_id,
-                user_id: user.id, // Must be current user.id to satisfy Supabase RLS policy (auth.uid() = user_id)
-                user_name: itemObj?.user_name || 'Tasarımcı',
-                user_avatar: itemObj?.user_avatar || null,
-                tasarim_turu: itemObj?.tasarim_turu || 'Tasarım',
-                isletme: itemObj?.isletme || 'Topluluk Paylaşımı',
-                genel_puan: itemObj?.ai_puan || 85,
-                gorsel_url: itemObj?.gorsel_url || null,
-                is_shared: true
-            });
+        if (!begeniErr) {
+            isSuccess = true;
+        } else {
+            voteErr = begeniErr;
+            // Strategy 2: If Foreign Key constraint error (e.g. direct community post not yet in 'analizler' table), fallback to 'post_likes' table
+            if (begeniErr.code === '23503' || begeniErr.message?.includes('foreign key constraint') || begeniErr.message?.includes('violates foreign key constraint')) {
+                const { error: likeErr } = await supabase
+                    .from("post_likes")
+                    .insert({ post_id: targetId, user_id: user.id });
 
-            if (!shadowErr || shadowErr.code === '23505') {
-                const { error: retryErr } = await supabase
-                    .from("begeniler")
-                    .insert({ analiz_id, user_id: user.id, vote_type: puan });
-                error = retryErr;
+                if (!likeErr || likeErr.code === '23505') {
+                    isSuccess = true;
+                    voteErr = null;
+                } else {
+                    // Strategy 3: Shadow insert into 'analizler' table and retry begeniler
+                    try {
+                        const itemObj = seciliGorsel || items.find(i => i.id === targetId || i.analiz_id === targetId);
+                        await supabase.from('analizler').insert({
+                            id: targetId,
+                            user_id: user.id,
+                            user_name: itemObj?.user_name || 'Tasarımcı',
+                            user_avatar: itemObj?.user_avatar || null,
+                            tasarim_turu: itemObj?.tasarim_turu || 'Tasarım',
+                            isletme: itemObj?.isletme || 'Topluluk Paylaşımı',
+                            genel_puan: itemObj?.ai_puan || 85,
+                            gorsel_url: itemObj?.gorsel_url || null,
+                            is_shared: true
+                        });
+
+                        const { error: retryErr } = await supabase
+                            .from("begeniler")
+                            .insert({ analiz_id: targetId, user_id: user.id, vote_type: puan });
+                        
+                        if (!retryErr || retryErr.code === '23505') {
+                            isSuccess = true;
+                            voteErr = null;
+                        }
+                    } catch (_) {}
+                }
             }
         }
 
-        if (!error) {
+        if (isSuccess || !voteErr) {
             toast.success("Oyunuz başarıyla kaydedildi!");
             // Local optimistik güncelleme
             setItems((prev) =>
                 prev.map((item) => {
-                    // Update matching analiz_id
-                    if (item.analiz_id === analiz_id || item.id === analiz_id) {
+                    if (item.analiz_id === targetId || item.id === targetId) {
                         const eskiUpvote = Math.round((item.topluluk_puan * item.oy_sayisi) / 100);
                         const yeniOySayisi = item.oy_sayisi + 1;
                         const yeniUpvote = eskiUpvote + (puan === 1 ? 1 : 0);
-                        const yeniPuan = Math.round((yeniUpvote / yeniOySayisi) * 100);
+                        const yeniPuan = Math.round((yeniUpvote / (yeniOySayisi || 1)) * 100);
                         return { ...item, oy_sayisi: yeniOySayisi, topluluk_puan: yeniPuan, user_vote: puan };
                     }
                     return item;
@@ -522,12 +559,12 @@ export function Vitrin() {
                  const eskiUpvote = Math.round((seciliGorsel.topluluk_puan * seciliGorsel.oy_sayisi) / 100);
                  const yeniOySayisi = seciliGorsel.oy_sayisi + 1;
                  const yeniUpvote = eskiUpvote + (puan === 1 ? 1 : 0);
-                 const yeniPuan = Math.round((yeniUpvote / yeniOySayisi) * 100);
+                 const yeniPuan = Math.round((yeniUpvote / (yeniOySayisi || 1)) * 100);
                  setSeciliGorsel({ ...seciliGorsel, oy_sayisi: yeniOySayisi, topluluk_puan: yeniPuan, user_vote: puan });
             }
         } else {
-            console.error(error);
-            toast.error("Oyunuz kaydedilirken bir hata oluştu: " + error.message);
+            console.error(voteErr);
+            toast.error("Oyunuz kaydedilirken bir hata oluştu: " + (voteErr.message || "Bilinmeyen hata"));
         }
     };
 

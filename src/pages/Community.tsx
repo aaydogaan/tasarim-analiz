@@ -1023,10 +1023,28 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                             <span className="text-[var(--text-secondary)] text-xs">{new Date(post.created_at).toLocaleDateString('tr-TR')}</span>
                                         </div>
                                     </Link>
-                                    <div className="w-full">
-                                        {post.title && <h3 className="font-bold text-[var(--text-primary)] mb-2">{post.title}</h3>}
-                                        <p className="text-[var(--text-secondary)] leading-relaxed mb-6 whitespace-pre-wrap">
-                                            {post.content || 'Bu tasarım analiz edildi.'}
+                                    <div className="w-full min-w-0">
+                                        {post.title && <h3 className="font-bold text-[var(--text-primary)] mb-2 break-words [word-break:break-word] [overflow-wrap:anywhere]">{post.title}</h3>}
+                                        <p className="text-[var(--text-secondary)] leading-relaxed mb-6 whitespace-pre-wrap break-words [word-break:break-word] [overflow-wrap:anywhere]">
+                                            {post.content ? (
+                                                post.content.split(/(https?:\/\/[^\s]+)/g).map((part: string, idx: number) => {
+                                                    if (part.match(/^https?:\/\//)) {
+                                                        return (
+                                                            <a
+                                                                key={idx}
+                                                                href={part}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                                className="text-[#FF5500] hover:underline font-semibold break-all [word-break:break-all] [overflow-wrap:anywhere]"
+                                                            >
+                                                                {part}
+                                                            </a>
+                                                        );
+                                                    }
+                                                    return part;
+                                                })
+                                            ) : 'Bu tasarım analiz edildi.'}
                                         </p>
                                         
                                         {(() => {
