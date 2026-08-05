@@ -626,51 +626,6 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         return () => { aktif = false; };
     }, []);
 
-    // Load active challenge
-    useEffect(() => {
-        const loadChallenge = async () => {
-            const { data } = await supabase
-                .from('weekly_challenges')
-                .select('*')
-                .eq('is_active', true)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .maybeSingle();
-            if (data) {
-                setActiveChallenge(data);
-                // Get entry count
-                const { count } = await supabase
-                    .from('challenge_entries')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('challenge_id', data.id);
-                setChallengeEntryCount(count || 0);
-                // Check if current user already entered
-                if (kullanici) {
-                    const { data: entry } = await supabase
-                        .from('challenge_entries')
-                        .select('id')
-                        .eq('challenge_id', data.id)
-                        .eq('user_id', kullanici.id)
-                        .maybeSingle();
-                    setUserEnteredChallenge(!!entry);
-                }
-                // Countdown
-                const updateCountdown = () => {
-                    const diff = new Date(data.end_date).getTime() - Date.now();
-                    if (diff <= 0) { setChallengeTimeLeft('Sona erdi'); return; }
-                    const d = Math.floor(diff / 86400000);
-                    const h = Math.floor((diff % 86400000) / 3600000);
-                    const m = Math.floor((diff % 3600000) / 60000);
-                    setChallengeTimeLeft(`${d}g ${h}s ${m}d`);
-                };
-                updateCountdown();
-                const timer = setInterval(updateCountdown, 60000);
-                return () => clearInterval(timer);
-            }
-        };
-        loadChallenge();
-    }, [kullanici]);
-
     // Load design trends from vitrin
     useEffect(() => {
         const loadTrends = async () => {
@@ -691,35 +646,6 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         };
         loadTrends();
     }, []);
-
-    const joinChallenge = async () => {
-        if (!kullanici) { onAuthClick?.(); return; }
-        if (!activeChallenge || userEnteredChallenge) return;
-        setJoiningChallenge(true);
-        // Use latest analysis of user
-        const { data: latestAnaliz } = await supabase
-            .from('analizler')
-            .select('id')
-            .eq('user_id', kullanici.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-        if (!latestAnaliz) {
-            alert('Katılmak için önce bir tasarım analizi yapmış olman gerekiyor.');
-            setJoiningChallenge(false);
-            return;
-        }
-        const { error } = await supabase.from('challenge_entries').insert({
-            challenge_id: activeChallenge.id,
-            analiz_id: latestAnaliz.id,
-            user_id: kullanici.id,
-        });
-        if (!error) {
-            setUserEnteredChallenge(true);
-            setChallengeEntryCount(prev => prev + 1);
-        }
-        setJoiningChallenge(false);
-    };
 
     const wallCount = Math.min(CORE_FOUNDER_COUNT + (founderSource === 'live' ? founders.length : 0), FOUNDER_LIMIT);
     const founderProgress = Math.min((wallCount / FOUNDER_LIMIT) * 100, 100);
