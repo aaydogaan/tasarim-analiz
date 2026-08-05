@@ -460,7 +460,7 @@ export function Vitrin() {
         if (seciliGorsel && seciliGorsel.user_id === user.id) {
             return toast.error("Kendi tasarımınıza puan veremezsiniz.");
         }
-        if (!analiz_id) return toast.error("Bu tasarımın orijinal analizi bulunamadı.");
+        if (!analiz_id) return toast.error("Bu tasarımın kimliği bulunamadı.");
 
         // Check if voted already
         const { data: existing } = await supabase
@@ -468,16 +468,39 @@ export function Vitrin() {
             .select("id")
             .eq("analiz_id", analiz_id)
             .eq("user_id", user.id)
-            .single();
+            .maybeSingle();
 
         if (existing) {
             toast.error("Bu tasarıma zaten puan verdiniz.");
             return;
         }
 
-        const { error } = await supabase
+        let { error } = await supabase
             .from("begeniler")
             .insert({ analiz_id, user_id: user.id, vote_type: puan });
+
+        // If Foreign Key constraint error happens (e.g. direct community post not yet in 'analizler' table)
+        if (error && (error.code === '23503' || error.message?.includes('foreign key constraint') || error.message?.includes('violates foreign key constraint'))) {
+            const itemObj = seciliGorsel || items.find(i => i.id === analiz_id || i.analiz_id === analiz_id);
+            const { error: shadowErr } = await supabase.from('analizler').insert({
+                id: analiz_id,
+                user_id: itemObj?.user_id || user.id,
+                user_name: itemObj?.user_name || 'Tasarımcı',
+                user_avatar: itemObj?.user_avatar || null,
+                tasarim_turu: itemObj?.tasarim_turu || 'Tasarım',
+                isletme: itemObj?.isletme || 'Topluluk Paylaşımı',
+                genel_puan: itemObj?.ai_puan || 85,
+                gorsel_url: itemObj?.gorsel_url || null,
+                is_shared: true
+            });
+
+            if (!shadowErr || shadowErr.code === '23505') {
+                const { error: retryErr } = await supabase
+                    .from("begeniler")
+                    .insert({ analiz_id, user_id: user.id, vote_type: puan });
+                error = retryErr;
+            }
+        }
 
         if (!error) {
             toast.success("Oyunuz başarıyla kaydedildi!");
