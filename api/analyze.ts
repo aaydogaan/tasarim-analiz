@@ -109,20 +109,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!imageBase64) {
     return res.status(400).json({ error: 'Görsel (base64 veya URL) gerekli.' });
   }
+
   const kriterler = kriterBilgisi[tasarimTuru];
   const platformBilgisi = tasarimTuru === "Sosyal Medya" && platform ? `Platform: ${platform}` : "";
-
   const ai = new GoogleGenAI({ apiKey });
-
   const isProUser = body.isPro || false;
 
   const roleDescription = isProUser
-    ? "Sen dünya çapında ödüllü, kıdemli bir Tasarım Direktörü ve Sanat Yönetmenisin. Bu rapor bir PRO ÜYE içindir. Tasarımı en üst düzey teknik derinlik, renk teorisi, ızgara (grid) hiyerarşisi, tipografik kerning/leading ve UX psikolojisi ile milimetrik analiz et."
-    : "Sen dünya çapında ödüllü, son derece detaycı, yapıcı ve uzman bir Grafik Tasarım Direktörüsün. Gönderilen görseli yüzeysel geçmeden, hem teknik terimlerle hem de anlaşılır bir dille tatmin edici ve rehberlik edici derinlikte analiz edeceksin.";
+    ? "Sen dünya çapında ödüllü, kıdemli bir Tasarım Direktörü ve Sanat Yönetmenisin. Bu rapor bir PRO ÜYE içindir. Tasarımı en üst düzey teknik derinlik, renk teorisi, ızgara (grid) hiyerarşisi, tipografik kerning/leading, WCAG erişilebilirlik kontrast oranları ve UX psikolojisi ile milimetrik analiz et."
+    : "Sen dünya çapında ödüllü, son derece detaycı, yapıcı ve uzman bir Grafik Tasarım Direktörüsün. Gönderilen görseli yüzeysel geçmeden, hem teknik terimlerle hem de anlaşılır bir dille tatmin edici ve rehberlik edici derinlikte analiz et.";
 
   const prompt = `${roleDescription}
 
-ÖNEMLİ UYARI (HALÜSİNASYON ENGELLEYİCİ): Görseli DİKKATLİCE incele. Görselde OLMAYAN bir öğeyi (örneğin tasarımda buton yoksa butonun rengini, fiyat yoksa fiyat etiketini) varmış gibi eleştirme! Eğer görsel bir Logo ise ondan "harekete geçirici mesaj", "call to action", "uzun okunabilir metin" GİBİ ŞEYLER BEKLEME VE EKSİKLİĞİNİ HATA OLARAK SAYMA. SADECE gördüğün gerçek öğeler üzerinden yorum yap. Yorumların mantıklı, yapıcı ve doğrudan görselin içeriğiyle alakalı olmalı. Robotik ve jenerik cümleler yerine, deneyimli bir tasarımcı gibi DOĞAL ve GERÇEKÇİ konuş. Saçma ve alakasız yorumlardan KESİNLİKLE kaçın.
+ÖNEMLİ PUANLAMA VE DEĞERLENDİRME KURALLARI:
+1. PUAN ÇEŞİTLİLİĞİ VE GERÇEKÇİLİK: Her tasarıma ortalama 70-80 puan verme! Gerçekten zayıf, acemi veya dengesiz tasarımlara 35-65 arası düşük puan ver. Gerçekten kusursuz, profesyonel tasarımlara 85-98 arası yüksek puan ver. Puanların cesur, adil ve görselin GERÇEK kalitesini yansıtacak şekilde geniş bir yelpazede dağılmasını sağla.
+2. PUAN MATEMATİĞİ: 4 alt kriterin her birine 0 ile 25 arasında tam puan ver. "genelPuan" DEĞERİ MUTLAKA BU 4 ALANIN PUANLARININ TOPLAMI OLMALIDIR (0 - 100 arası).
+3. HALÜSİNASYON ENGELLEYİCİ: Görselde OLMAYAN bir öğeyi varmış gibi eleştirme! Görsel bir Logo ise "buton", "CTA", "fiyat" gibi arayüz öğeleri arama ve yokluğunu hata sayma.
+4. DOĞALLIK: Jenerik veya robotik cümleler yerine, deneyimli bir sanat yönetmeni gibi DOĞAL, SPESİFİK ve GERÇEKÇİ konuş.
 
 Tasarım Bağlamı:
 - Tasarım Türü: ${tasarimTuru}
@@ -135,27 +138,27 @@ ${platformBilgisi}
 
 ${kriterler.context}
 
-Lütfen yukarıdaki bağlamlarda tasarımı sert ama yapıcı bir dille eleştir. 4 temel kriter için 0-25 arası puan ver:
+Lütfen 4 temel kriter için (her biri 0-25 puan arası) değerlendirme yap:
 1. RENK: ${kriterler.renk}
 2. FONT: ${kriterler.font}
 3. BÜTÜNLÜK: ${kriterler.butunluk}
 4. KOMPOZİSYON: ${kriterler.kompozisyon}
 
 YALNIZCA GEÇERLİ BİR JSON NESNESİ DÖNDÜR. (Markdown veya \`\`\`json ekleme, doğrudan salt JSON çıktısı ver).
-JSON Formatı Şablonu:
+JSON Şablonu (Puanlar tasarıma göre 0-25 arası özgürce belirlenmeli, genelPuan bunların toplamı olmalıdır):
 {
-  "renk": {"puan": 20, "aciklama": "(${isProUser ? 'Renk teorisi, kontrast oranları ve renk psikolojisine dair teknik profesyonel analiz' : 'Renk teorisi, palet uyumu, renk psikolojisi ve görsel kontrast açısından 2-3 cümlelik net, doyurucu ve teknik analiz'})"},
-  "font": {"puan": 18, "aciklama": "(${isProUser ? 'Tipografi hiyerarşisi, font ağırlıkları, okunabilirlik ve punto oranları teknik analizi' : 'Tipografi hiyerarşisi, font seçimi uyumu ve mobil/baskı okunabilirliği üzerine 2-3 cümlelik açıklayıcı ve yapıcı analiz'})"},
-  "butunluk": {"puan": 22, "aciklama": "(${isProUser ? 'Marka kimliği bütünlüğü, sektör standartları ve görsel dil uyumu analizi' : 'Marka kimliği bütünlüğü, görsel dil uyumu ve sektör standartlarına uygunluğu hakkında 2-3 cümlelik doyurucu değerlendirme'})"},
-  "kompozisyon": {"puan": 19, "aciklama": "(${isProUser ? 'Hizalama, negatif alan dengesi, odak noktası ve CTA yerleşimi teknik analizi' : 'Hizalama, negatif alan (beyaz alan) kullanımı, odak noktası ve görsel hiyerarşi üzerine 2-3 cümlelik somut analiz'})"},
-  "genelPuan": 82,
-  "genelYorum": "(Tasarımın neleri başardığı, güçlü tarafları ve tam olarak nerelerde geliştirmeye ihtiyacı olduğu hakkında ${isProUser ? 'detaylı, profesyonel tasarım direktörü değerlendirmesi' : '2 paragraflık doyurucu, net ve yol gösterici genel değerlendirme'})",
-  "oneri": "(Gelişim için ${isProUser ? 'uygulanabilir 5 maddelik somut adım adım revizyon önerileri' : 'uygulanabilir 3-4 maddelik spesifik ve somut revizyon tavsiyeleri'})",
-  "genelDegerlendirme": "Örn: Profesyonel / Usta İşi / Geliştirilebilir",
-  "gucluYon": "(Tasarımı kurtaran 1 temel özellik)",
-  "zayifYon": "(En bariz teknik eksiklik)",
-  "renkPaleti": ["#1a1a2e","#16213e","#0f3460","#e94560","#ffffff"],
-  "teknikOzet": {"baskınRenkSayisi": 4, "detayYogunlugu": 35, "negatifAlanOrani": 55}
+  "renk": {"puan": 0, "aciklama": "${isProUser ? 'Renk teorisi, WCAG kontrast oranları, renk psikolojisi ve palet uyumu üzerine teknik derin analiz' : 'Renk paleti uyumu, renk psikolojisi ve görsel kontrast açısından 2-3 cümlelik net ve yapıcı analiz'}"},
+  "font": {"puan": 0, "aciklama": "${isProUser ? 'Tipografi hiyerarşisi, font ağırlıkları, kerning/leading, okunabilirlik ve punto oranları teknik analizi' : 'Tipografi hiyerarşisi, font seçimi uyumu ve okunabilirlik üzerine 2-3 cümlelik açıklayıcı analiz'}"},
+  "butunluk": {"puan": 0, "aciklama": "${isProUser ? 'Marka kimliği bütünlüğü, sektör standartları ve görsel dil uyumu teknik analizi' : 'Marka kimliği bütünlüğü ve sektör standartlarına uygunluk hakkında 2-3 cümlelik değerlendirme'}"},
+  "kompozisyon": {"puan": 0, "aciklama": "${isProUser ? 'Grid hiyerarşisi, negatif alan dengesi, odak noktası ve CTA yerleşimi teknik analizi' : 'Hizalama, negatif alan kullanımı, odak noktası ve görsel hiyerarşi üzerine 2-3 cümlelik analiz'}"},
+  "genelPuan": 0,
+  "genelYorum": "${isProUser ? 'Tasarımın neleri başardığı, güçlü tarafları ve geliştirmeye açık noktaları hakkında kapsayıcı, profesyonel tasarım direktörü değerlendirmesi' : '2 paragraflık doyurucu, net ve yol gösterici genel değerlendirme'}",
+  "oneri": "${isProUser ? 'Gelişim için uygulanabilir 5 maddelik detaylı adım adım revizyon tavsiyesi' : 'Gelişim için uygulanabilir 3 maddelik net revizyon tavsiyesi'}",
+  "genelDegerlendirme": "Eksik / Geliştirilebilir / Başarılı / Usta İşi",
+  "gucluYon": "Tasarımı öne çıkaran 1 temel özellik",
+  "zayifYon": "En bariz teknik eksiklik",
+  "renkPaleti": ["#HEX1","#HEX2","#HEX3","#HEX4","#HEX5"],
+  "teknikOzet": {"baskınRenkSayisi": 3, "detayYogunlugu": 40, "negatifAlanOrani": 50}
 }`;
 
   try {
@@ -179,8 +182,8 @@ JSON Formatı Şablonu:
             }
           ],
           config: {
-            temperature: 0.25,
-            maxOutputTokens: 1000,
+            temperature: 0.45,
+            maxOutputTokens: 1200,
             responseMimeType: 'application/json',
           }
         });
@@ -192,7 +195,6 @@ JSON Formatı Şablonu:
       } catch (modErr: any) {
         console.warn(`Model [${mod}] hatası:`, modErr?.message);
         if (!firstError) firstError = modErr;
-        // Hata durumunda döngü devam edecek ve sonraki modele geçecek
       }
     }
 
