@@ -936,7 +936,7 @@ export function Vitrin() {
                                 )}
                             </div>
                             <div 
-                                className="w-full md:w-[400px] p-6 sm:p-8 border border-[var(--border-primary)] bg-[var(--card-bg)] backdrop-blur-2xl rounded-[32px] h-fit max-h-[85vh] overflow-y-auto overscroll-contain touch-pan-y flex flex-col justify-center relative shadow-sm pointer-events-auto custom-scrollbar"
+                                className="w-full md:w-[400px] p-6 sm:p-8 border border-[var(--border-primary)] bg-[var(--card-bg)] backdrop-blur-2xl rounded-[32px] h-fit max-h-[85vh] overflow-y-auto overscroll-contain touch-pan-y flex flex-col justify-start relative shadow-sm pointer-events-auto custom-scrollbar"
                                 data-lenis-prevent="true"
                                 onWheel={(e) => e.stopPropagation()}
                             >
@@ -944,15 +944,15 @@ export function Vitrin() {
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-brand-orange)]/5 blur-[100px] rounded-full pointer-events-none" />
 
                                 {/* Üst Profil Bölümü */}
-                                <div className="flex items-center justify-between gap-4 mb-8 relative z-10 pb-6 border-b border-[var(--color-brand-dark)]/5">
+                                <div className="flex items-center justify-between gap-4 mb-6 relative z-10 pb-5 border-b border-[var(--border-primary)]/40 shrink-0">
                                     <Link to={`/${seciliGorsel.user_slug}`} className="flex items-center gap-4 group/profile" onClick={() => setSeciliGorsel(null)}>
                                         <img
                                             src={seciliGorsel.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${seciliGorsel.id}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`}
                                             alt="Designer"
-                                            className="w-14 h-14 rounded-full border border-[var(--border-primary)] object-cover bg-[var(--bg-secondary)] group-hover/profile:border-[var(--color-brand-orange)] transition-colors"
+                                            className="w-12 h-12 rounded-full border border-[var(--border-primary)] object-cover bg-[var(--bg-secondary)] group-hover/profile:border-[var(--color-brand-orange)] transition-colors shrink-0"
                                         />
                                         <div>
-                                            <h3 className="text-[var(--text-primary)] text-lg font-bold leading-tight mb-1 group-hover/profile:text-[var(--color-brand-orange)] transition-colors flex items-center gap-1.5">
+                                            <h3 className="text-[var(--text-primary)] text-base font-bold leading-tight mb-1 group-hover/profile:text-[var(--color-brand-orange)] transition-colors flex items-center gap-1.5">
                                                 <span>{seciliGorsel.user_name || "Tasarımcı"}</span>
                                                 <VerifiedBadge badge={seciliGorsel.verification_badge} size="xs" />
                                             </h3>
@@ -966,7 +966,7 @@ export function Vitrin() {
                                     {seciliGorsel.user_id && user && user.id !== seciliGorsel.user_id && !followedUsers.has(seciliGorsel.user_id) && (
                                         <button 
                                             onClick={(e) => handleFollow(e, seciliGorsel.user_id)}
-                                            className="px-4 py-2 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors shrink-0 shadow-sm"
+                                            className="px-3.5 py-1.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors shrink-0 shadow-sm"
                                         >
                                             Takip Et
                                         </button>
@@ -974,8 +974,32 @@ export function Vitrin() {
                                 </div>
 
                                 <div className="relative z-10">
-                                    <h4 className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mb-2">Marka / Şirket</h4>
-                                    <h2 className="text-[var(--text-primary)] text-3xl font-black mb-8 leading-tight">{seciliGorsel.isletme}</h2>
+                                    <h4 className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mb-2">Marka / Açıklama</h4>
+                                    <div className="text-[var(--text-primary)] text-sm sm:text-base font-semibold leading-relaxed whitespace-pre-wrap break-words [word-break:break-word] [overflow-wrap:anywhere] mb-6">
+                                        {(() => {
+                                            const rawText = seciliGorsel.content || seciliGorsel.isletme;
+                                            if (!rawText) return 'Açıklama bulunmuyor.';
+                                            const urlRegex = /(https?:\/\/[^\s]+)/g;
+                                            const parts = rawText.split(urlRegex);
+                                            return parts.map((part: string, idx: number) => {
+                                                if (part.match(/^https?:\/\//)) {
+                                                    return (
+                                                        <a
+                                                            key={idx}
+                                                            href={part}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            className="text-[#FF5500] hover:underline font-semibold break-all inline-block"
+                                                        >
+                                                            {part}
+                                                        </a>
+                                                    );
+                                                }
+                                                return part;
+                                            });
+                                        })()}
+                                    </div>
 
                                     <div className="flex gap-4 mb-6">
                                         <div className="flex-1 p-5 rounded-[24px] bg-[var(--bg-secondary)] border border-[var(--border-primary)] flex flex-col items-center text-center shadow-sm relative overflow-hidden group">
