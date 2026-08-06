@@ -325,9 +325,16 @@ export function Vitrin() {
             });
             setItems(formatted);
 
-            // Automatically check and notify today's winner
+            // Automatically check and notify today's winner (only if posted in the last 24 hours)
             if (formatted.length > 0) {
-                const winner = [...formatted].filter(a => a.ai_puan !== null && a.ai_puan !== undefined).sort((a, b) => (b.ai_puan || 0) - (a.ai_puan || 0))[0];
+                const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                const todayItemsWithAi = formatted.filter(a => 
+                    a.ai_puan !== null && 
+                    a.ai_puan !== undefined && 
+                    a.created_at && 
+                    new Date(a.created_at) >= twentyFourHoursAgo
+                );
+                const winner = todayItemsWithAi.sort((a, b) => (b.ai_puan || 0) - (a.ai_puan || 0))[0];
                 if (winner && winner.user_id && winner.user_id !== 'anonymous') {
                     const todayStr = new Date().toISOString().split('T')[0];
                     
@@ -601,9 +608,15 @@ export function Vitrin() {
             }
         });
 
-    const itemsWithAi = items.filter(a => a.ai_puan !== null && a.ai_puan !== undefined);
-    const gununTasarimiItem = itemsWithAi.length > 0
-        ? [...itemsWithAi].sort((a, b) => (b.ai_puan || 0) - (a.ai_puan || 0))[0]
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const itemsTodayWithAi = items.filter(a => 
+        a.ai_puan !== null && 
+        a.ai_puan !== undefined && 
+        a.created_at && 
+        new Date(a.created_at) >= twentyFourHoursAgo
+    );
+    const gununTasarimiItem = itemsTodayWithAi.length > 0
+        ? [...itemsTodayWithAi].sort((a, b) => (b.ai_puan || 0) - (a.ai_puan || 0))[0]
         : null;
 
     return (
