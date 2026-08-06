@@ -194,11 +194,13 @@ export function Vitrin() {
         };
         window.addEventListener("keydown", handleEsc);
 
-        // Modal açıkken kaydırmayı engelle
+        // Modal açıkken arkaplan sayfa kaydırmasını tamamen engelle
         if (seciliGorsel) {
             document.body.style.overflow = "hidden";
+            document.documentElement.style.overflow = "hidden";
         } else {
-            document.body.style.overflow = "auto";
+            document.body.style.overflow = "";
+            document.documentElement.style.overflow = "";
             // Clear URL param when modal is closed
             if (designIdFromUrl) {
                 const newParams = new URLSearchParams(searchParams);
@@ -209,7 +211,8 @@ export function Vitrin() {
 
         return () => {
             window.removeEventListener("keydown", handleEsc);
-            document.body.style.overflow = "auto";
+            document.body.style.overflow = "";
+            document.documentElement.style.overflow = "";
         };
     }, [seciliGorsel, designIdFromUrl, searchParams, setSearchParams]);
 
@@ -863,7 +866,8 @@ export function Vitrin() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[999] flex flex-col items-center justify-start p-4 pt-24 pb-12 md:p-12 overflow-y-auto overflow-x-hidden"
+                        onWheel={(e) => e.stopPropagation()}
+                        className="fixed inset-0 z-[99999] flex flex-col items-center justify-start p-4 pt-28 pb-12 md:pt-28 md:px-12 overflow-y-auto overflow-x-hidden overscroll-none"
                     >
                         {/* Arkaplan Katmanı - Tıklanabilir alan */}
                         <div
@@ -874,13 +878,13 @@ export function Vitrin() {
                         {/* Kapatma Butonu */}
                         <button
                             onClick={() => setSeciliGorsel(null)}
-                            className="fixed top-20 right-4 md:top-24 md:right-8 z-[1001] p-2.5 md:p-3 rounded-full bg-[var(--card-bg)] border border-[var(--border-primary)] hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] shadow-lg backdrop-blur-xl transition-all hover:rotate-90"
+                            className="fixed top-20 right-4 md:top-24 md:right-8 z-[100001] p-2.5 md:p-3 rounded-full bg-[var(--card-bg)] border border-[var(--border-primary)] hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] shadow-lg backdrop-blur-xl transition-all hover:rotate-90"
                         >
                             <X className="w-6 h-6 md:w-7 md:h-7" />
                         </button>
 
                         <div
-                            className="relative z-[1000] max-w-7xl w-full flex flex-col md:flex-row gap-8 items-center md:items-start justify-center pointer-events-none my-auto"
+                            className="relative z-[100000] max-w-7xl w-full flex flex-col md:flex-row gap-8 items-center md:items-start justify-center pointer-events-none mt-4 md:mt-6 mb-12"
                         >
                             <div className="w-full md:w-2/3 flex flex-col items-center justify-center pointer-events-auto gap-4">
                                 <div className="relative group flex items-center justify-center w-full">
