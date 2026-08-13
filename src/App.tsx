@@ -1251,22 +1251,33 @@ export default function App() {
                 </nav>
 
                 <div className="p-4 mt-auto">
-                  <div 
-                    onClick={() => navigate('/pricing')}
-                    className="bg-gradient-to-br from-[#FF5500] to-[#FF8800] rounded-xl p-4 text-white shadow-lg shadow-[#FF5500]/20 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
-                  >
-                    <div className="absolute inset-0 bg-white/5 opacity-40 pointer-events-none"></div>
-                    <div className="relative z-10">
+                  {Boolean(kullaniciProfile?.is_pro || kullaniciProfile?.role === 'pro' || kullaniciProfile?.role === 'admin') ? (
+                    <div className="bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-transparent border border-amber-500/30 rounded-xl p-4 text-[var(--text-primary)] shadow-sm relative overflow-hidden">
                       <div className="flex items-center gap-2 mb-1">
-                        <Sparkles className="w-4 h-4 text-white" />
-                        <h4 className="font-bold text-sm">Pro'ya Geç</h4>
+                        <Crown className="w-4 h-4 text-amber-500 fill-amber-500" />
+                        <h4 className="font-extrabold text-sm text-[var(--text-primary)]">PRO Üyelik Aktif</h4>
                       </div>
-                      <p className="text-xs text-white/80 mb-3">Sınırsız analiz ve PDF raporları için yükseltin.</p>
-                      <div className="w-full bg-white text-[#FF5500] text-center text-xs font-bold py-2 rounded-lg shadow-sm">
-                        Planları İncele
+                      <p className="text-xs text-[var(--text-secondary)] font-medium">Sınırsız analiz & derin AI raporlama erişiminiz var.</p>
+                    </div>
+                  ) : (
+                    <div 
+                      onClick={() => navigate('/pricing')}
+                      className="bg-gradient-to-br from-[#FF5500] to-[#FF8800] rounded-xl p-4 text-white shadow-lg shadow-[#FF5500]/20 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
+                    >
+                      <div className="absolute inset-0 bg-white/5 opacity-40 pointer-events-none"></div>
+                      <div className="relative z-10">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Sparkles className="w-4 h-4 text-white" />
+                          <h4 className="font-bold text-sm">Pro'ya Geç</h4>
+                        </div>
+                        <p className="text-xs text-white/80 mb-3">Sınırsız analiz ve PDF raporları için yükseltin.</p>
+                        <div className="w-full bg-white text-[#FF5500] text-center text-xs font-bold py-2 rounded-lg shadow-sm">
+                          Planları İncele
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
+
                   <div className="mt-4 flex items-center gap-3 px-2">
                     <div className="w-8 h-8 rounded-full bg-[var(--bg-primary)] flex items-center justify-center border border-[var(--border-primary)]">
                       {kullanici ? (
@@ -1277,7 +1288,9 @@ export default function App() {
                     </div>
                     <div className="flex-1 truncate">
                       <p className="text-xs font-bold text-[var(--text-primary)] truncate">{kullanici ? kullanici.email : 'Misafir Kullanıcı'}</p>
-                      <p className="text-[10px] text-[var(--text-secondary)]">Ücretsiz Plan</p>
+                      <p className={`text-[10px] font-extrabold ${Boolean(kullaniciProfile?.is_pro || kullaniciProfile?.role === 'pro' || kullaniciProfile?.role === 'admin') ? 'text-amber-500' : 'text-[var(--text-secondary)]'}`}>
+                        {kullaniciProfile?.role === 'admin' ? '👑 Admin Planı' : (kullaniciProfile?.is_pro || kullaniciProfile?.role === 'pro') ? '⚡ PRO Plan (Sınırsız)' : 'Ücretsiz Plan'}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1442,7 +1455,9 @@ export default function App() {
                                   </div>
                                   <div>
                                     <p className="font-bold text-[var(--text-primary)] text-lg">{kullanici ? kullanici.email : 'Misafir Kullanıcı'}</p>
-                                    <p className="text-sm text-emerald-600 font-medium">Ücretsiz Plan</p>
+                                     <p className={`text-sm font-bold ${Boolean(kullaniciProfile?.is_pro || kullaniciProfile?.role === 'pro' || kullaniciProfile?.role === 'admin') ? 'text-amber-500' : 'text-emerald-600'}`}>
+                                       {kullaniciProfile?.role === 'admin' ? '👑 Admin Planı' : (kullaniciProfile?.is_pro || kullaniciProfile?.role === 'pro') ? '⚡ PRO Plan (Sınırsız)' : 'Ücretsiz Plan'}
+                                     </p>
                                   </div>
                                 </div>
                                 <button className="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors">Düzenle</button>
