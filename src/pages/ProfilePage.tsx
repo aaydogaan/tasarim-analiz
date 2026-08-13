@@ -47,6 +47,7 @@ import toast from 'react-hot-toast';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { supabase } from '../lib/supabase';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
+import { ProBadge } from '../components/ui/ProBadge';
 import FollowModal from '../components/ui/FollowModal';
 import { ContestUploadModal } from '../components/ui/ContestUploadModal';
 import DesignDetailModal from '../components/ui/DesignDetailModal';
@@ -850,13 +851,16 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
 
                         {/* Avatar + Name centered */}
                         <div className="flex flex-col items-center text-center gap-3 pb-5 px-5 border-b border-[var(--border-primary)] relative -mt-10">
-                            {/* Turuncu ring — gold badge (Kurucu) olan herkes için */}
+                            {/* Turuncu/Altın ring — gold veya PRO olan herkes için */}
                             {(() => {
                                 const isFounder = ((profileRecord as any)?.verification_badge || (publicProfile as any)?.verification_badge) === 'gold';
+                                const isPro = Boolean((profileRecord as any)?.is_pro || (profileRecord as any)?.role === 'pro' || (profileRecord as any)?.role === 'admin' || (publicProfile as any)?.is_pro || (publicProfile as any)?.role === 'pro' || (publicProfile as any)?.role === 'admin');
                                 return (
                                     <div className={`relative h-20 w-20 shrink-0 rounded-full p-[3px] ${
                                         isFounder
                                             ? 'bg-gradient-to-br from-orange-300 via-[var(--color-brand-orange)] to-amber-500 shadow-[0_0_20px_rgba(255,120,0,0.5)]'
+                                            : isPro
+                                            ? 'bg-gradient-to-tr from-amber-400 via-orange-500 to-red-500 shadow-[0_0_20px_rgba(245,158,11,0.5)]'
                                             : 'bg-[var(--border-primary)]'
                                     }`}>
                                         <div className="h-full w-full rounded-full border-2 border-[var(--card-bg)] bg-[var(--bg-secondary)] overflow-hidden"><img src={profileData.avatarUrl} className="h-full w-full object-cover" alt="Profil fotografi" /></div>
@@ -881,9 +885,10 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                         className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-lg font-black outline-none focus:border-[var(--color-brand-orange)] text-center"
                                     />
                                 ) : (
-                                    <h1 className="truncate text-xl font-black tracking-tight flex items-center justify-center gap-1.5">
+                                    <h1 className="truncate text-xl font-black tracking-tight flex items-center justify-center gap-1.5 flex-wrap">
                                         <span>{profileData.displayName}</span>
                                         <VerifiedBadge badge={(profileRecord as any)?.verification_badge || (publicProfile as any)?.verification_badge} size="sm" />
+                                        <ProBadge isPro={(profileRecord as any)?.is_pro || (publicProfile as any)?.is_pro} role={(profileRecord as any)?.role || (publicProfile as any)?.role} size="sm" />
                                     </h1>
                                 )}
                                 <p className="mt-1 text-xs font-semibold text-[var(--text-secondary)] flex items-center justify-center gap-1.5 flex-wrap">
@@ -893,6 +898,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                             ✦ Kurucu
                                         </span>
                                     )}
+                                    <ProBadge isPro={(profileRecord as any)?.is_pro || (publicProfile as any)?.is_pro} role={(profileRecord as any)?.role || (publicProfile as any)?.role} size="xs" />
                                     {normalizedProfile.founderNumber ? <span className="text-[var(--text-secondary)] font-semibold">#{normalizedProfile.founderNumber}</span> : null}
                                 </p>
                                 {dailyWinCount > 0 && (

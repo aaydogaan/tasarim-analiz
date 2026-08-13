@@ -46,6 +46,8 @@ interface LeaderboardUser {
   trend: 'up' | 'down';
   isCurrentUser?: boolean;
   verificationBadge?: string | null;
+  isPro?: boolean;
+  role?: string | null;
 }
 
 type SortOption = 'total_score' | 'ai_score' | 'community';
@@ -203,7 +205,7 @@ export function Leaderboard() {
       });
 
       // 5. Build user registry from user_xp_stats
-      const userMetaRegistry: Record<string, { name: string; avatar: string; xp: number; slug: string; verificationBadge?: string | null }> = {};
+      const userMetaRegistry: Record<string, { name: string; avatar: string; xp: number; slug: string; verificationBadge?: string | null; isPro?: boolean; role?: string | null }> = {};
 
       if (xpStatsData) {
         xpStatsData.forEach(u => {
@@ -213,7 +215,9 @@ export function Leaderboard() {
               avatar: u.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${u.id}`,
               xp: u.total_xp || 0,
               slug: u.slug || 'tasarimci',
-              verificationBadge: u.verification_badge
+              verificationBadge: u.verification_badge,
+              isPro: Boolean(u.is_pro || u.role === 'pro' || u.role === 'admin'),
+              role: u.role
             };
           }
         });
@@ -255,6 +259,9 @@ export function Leaderboard() {
           slug: meta.slug,
           userIdTag: `ID ${userId.slice(0, 7).toUpperCase()}`,
           avatar: meta.avatar,
+          verificationBadge: meta.verificationBadge,
+          isPro: meta.isPro,
+          role: meta.role,
           tasksCompleted: periodTasks,
           totalScore,
           totalAiScore,
@@ -696,6 +703,7 @@ export function Leaderboard() {
                                 <p className="font-bold text-slate-900 text-sm group-hover/profile:text-blue-600 transition-colors flex items-center gap-1.5">
                                   <span>{user.name}</span>
                                   <VerifiedBadge badge={user.verificationBadge} size="xs" />
+                                  <ProBadge isPro={user.isPro} role={user.role} size="xs" />
                                   {user.isCurrentUser && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">SEN</span>}
                                   {user.verificationBadge === 'gold' && (
                                     <span className="text-[9px] font-black text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded-full border border-orange-200 uppercase tracking-wide">✦ Kurucu</span>

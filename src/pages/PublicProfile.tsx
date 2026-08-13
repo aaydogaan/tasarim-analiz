@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { Trophy, Calendar, Link as LinkIcon, Briefcase, Award, Star, Activity, ArrowLeft, X, Bell, BellOff, Users, Sparkles, Clock, Images, FileText } from 'lucide-react';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
+import { ProBadge } from '../components/ui/ProBadge';
 import FollowModal from '../components/ui/FollowModal';
 import DesignDetailModal from '../components/ui/DesignDetailModal';
 import { getDesignRankById, DESIGN_RANKS, DESIGN_SPECIALTIES, EXPERIENCE_LEVELS } from '../lib/communityProfile';
@@ -342,6 +343,16 @@ export default function PublicProfile() {
                                             />
                                         </div>
                                     </div>
+                                ) : (profile.is_pro || profile.role === 'pro' || profile.role === 'admin') ? (
+                                    <div className="p-[3.5px] rounded-full bg-gradient-to-tr from-amber-400 via-orange-500 to-red-500 shadow-[0_0_24px_rgba(245,158,11,0.45)]">
+                                        <div className="p-[2.5px] rounded-full bg-white">
+                                            <img 
+                                                src={profile.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.id}`} 
+                                                alt={profile.display_name} 
+                                                className="w-28 h-28 md:w-36 md:h-36 rounded-full object-cover bg-white"
+                                            />
+                                        </div>
+                                    </div>
                                 ) : (
                                     <img 
                                         src={profile.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.id}`} 
@@ -358,10 +369,11 @@ export default function PublicProfile() {
                             <div className="flex-1 text-center md:text-left pt-2 md:pt-4 pb-2 flex flex-col md:items-start justify-center gap-4 w-full">
                                 
                                 {/* Üst Satır: İsim ve Buton */}
-                                <div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-4 md:gap-6 w-full">
-                                    <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight flex items-center gap-2">
+                                <div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-3 md:gap-4 w-full flex-wrap">
+                                    <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight flex items-center gap-2 flex-wrap">
                                         <span>{profile.display_name}</span>
                                         <VerifiedBadge badge={profile.verification_badge} size="md" />
+                                        <ProBadge isPro={profile.is_pro} role={profile.role} size="md" />
                                     </h1>
                                     {currentUser && currentUser.id !== profile.id && (
                                         <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -394,7 +406,7 @@ export default function PublicProfile() {
                                 </div>
 
                                  {/* Alt Satır: Rozet ve İstatistikler */}
-                                <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-gray-500 font-medium">
+                                <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-gray-500 font-medium">
                                     <span className="flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-lg text-sm font-semibold">
                                         <Award className="w-4 h-4" /> {levelTitle}
                                     </span>
@@ -403,6 +415,7 @@ export default function PublicProfile() {
                                             ✦ Kurucu
                                         </span>
                                     )}
+                                    <ProBadge isPro={profile.is_pro} role={profile.role} size="sm" />
                                     <div className="flex items-center gap-6">
                                         <button
                                             type="button"

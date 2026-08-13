@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
+import { ProBadge } from '../components/ui/ProBadge';
 import { FormattedCommentText } from '../components/ui/FormattedCommentText';
 import { CommentInputWithMentions } from '../components/ui/CommentInputWithMentions';
 import { sendMentionNotifications, getCleanUserTag, organizeCommentsIntoThreads } from '../lib/mentionHelper';
@@ -926,6 +927,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                 <span className="font-bold text-base md:text-lg text-[var(--text-primary)] truncate group-hover/profile:text-[var(--color-brand-orange)] transition-colors flex items-center gap-1.5">
                                                     <span>{authorName}</span>
                                                     <VerifiedBadge badge={post.profiles?.verification_badge} size="xs" />
+                                                    <ProBadge isPro={post.profiles?.is_pro} role={post.profiles?.role} size="xs" />
                                                 </span>
                                                 {post.user_id && kullanici && kullanici.id !== post.user_id && !followedUsers.has(post.user_id) && (
                                                     <button 
