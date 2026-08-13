@@ -132,10 +132,14 @@ export function Leaderboard() {
       setRealAnalysisCount(totalAnalysisCount || 0);
 
       // 2. Canonical XP data from user_xp_stats view & profiles table for PRO status
-      const [{ data: xpStatsData }, { data: allProfiles }] = await Promise.all([
+      const [{ data: xpStatsData }, { data: allProfiles, error: profErr }] = await Promise.all([
         supabase.from('user_xp_stats').select('*').order('total_xp', { ascending: false }),
-        supabase.from('profiles').select('id, display_name, full_name, avatar_url, slug, verification_badge, is_pro, role')
+        supabase.from('profiles').select('*')
       ]);
+
+      if (profErr) {
+        console.warn('Leaderboard profiles fetch warning:', profErr.message);
+      }
 
       const profileMap: Record<string, any> = {};
       if (allProfiles) {
@@ -225,8 +229,24 @@ export function Leaderboard() {
               xp: u.total_xp || 0,
               slug: p.slug || u.slug || 'tasarimci',
               verificationBadge: p.verification_badge || u.verification_badge,
-              isPro: Boolean(p.is_pro || p.role === 'pro' || p.role === 'admin' || u.is_pro || u.role === 'pro' || u.role === 'admin'),
+              isPro: Boolean(p.is_pro === true || p.is_pro === 'true' || p.role === 'pro' || p.role === 'admin' || u.is_pro === true || u.is_pro === 'true' || u.role === 'pro' || u.role === 'admin'),
               role: p.role || u.role
+            };
+          }
+        });
+      }
+
+      if (allProfiles) {
+        allProfiles.forEach(p => {
+          if (p.id && !userMetaRegistry[p.id]) {
+            userMetaRegistry[p.id] = {
+              name: p.display_name || p.full_name || 'Tasarımcı',
+              avatar: p.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${p.id}`,
+              xp: p.total_xp || 0,
+              slug: p.slug || 'tasarimci',
+              verificationBadge: p.verification_badge,
+              isPro: Boolean(p.is_pro === true || p.is_pro === 'true' || p.role === 'pro' || p.role === 'admin'),
+              role: p.role
             };
           }
         });
