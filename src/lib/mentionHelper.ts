@@ -88,6 +88,9 @@ export interface ThreadComment {
     user_name?: string;
     user_avatar?: string;
     user_slug?: string;
+    verification_badge?: string | null;
+    is_pro?: boolean;
+    role?: string | null;
     profiles?: any;
     replies?: ThreadComment[];
 }
