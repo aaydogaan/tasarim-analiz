@@ -1962,25 +1962,25 @@ export default function App() {
                         </div>
                       )}
 
-                      {/* AI Pro Improvement Banner */}
-                      <div className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6 md:p-8 flex flex-col relative overflow-hidden group">
-                        <div className="absolute top-[-50%] right-[-10%] w-[150%] h-[150%] bg-gradient-to-br from-[#FF5500]/10 via-purple-600/5 to-transparent blur-3xl rounded-full opacity-60 pointer-events-none"></div>
+                      {/* AI Pro Improvement Plan (Only for PRO Users) */}
+                      {Boolean(kullaniciProfile?.is_pro || kullaniciProfile?.role === 'pro' || kullaniciProfile?.role === 'admin') && sonuc.oneri && (
+                        <div className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6 md:p-8 flex flex-col relative overflow-hidden group">
+                          <div className="absolute top-[-50%] right-[-10%] w-[150%] h-[150%] bg-gradient-to-br from-[#FF5500]/10 via-purple-600/5 to-transparent blur-3xl rounded-full opacity-60 pointer-events-none"></div>
 
-                        <div className="relative z-10 flex items-center justify-between mb-6">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF5500]/20 to-amber-500/20 flex items-center justify-center border border-[#FF5500]/30 shadow-inner">
-                              <Sparkles className="w-5 h-5 text-[#FF5500]" />
+                          <div className="relative z-10 flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF5500]/20 to-amber-500/20 flex items-center justify-center border border-[#FF5500]/30 shadow-inner">
+                                <Sparkles className="w-5 h-5 text-[#FF5500]" />
+                              </div>
+                              <div>
+                                <span className="text-[var(--text-primary)] font-black text-lg tracking-tight block leading-tight">AI Tasarım Revizyon Planı</span>
+                                <span className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mt-0.5 block">Adım Adım İyileştirme Rehberi</span>
+                              </div>
                             </div>
-                            <div>
-                              <span className="text-[var(--text-primary)] font-black text-lg tracking-tight block leading-tight">AI Tasarım Revizyon Planı</span>
-                              <span className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mt-0.5 block">Adım Adım İyileştirme Rehberi</span>
-                            </div>
+                            <span className="bg-gradient-to-r from-[#FF5500] to-amber-500 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-lg uppercase tracking-widest shadow-md border border-white/20">PRO</span>
                           </div>
-                          <span className="bg-gradient-to-r from-[#FF5500] to-amber-500 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-lg uppercase tracking-widest shadow-md border border-white/20">PRO</span>
-                        </div>
 
-                        {Boolean(kullaniciProfile?.is_pro || kullaniciProfile?.role === 'pro' || kullaniciProfile?.role === 'admin') ? (
-                          <div className="relative z-10 flex-1 border border-emerald-500/30 bg-emerald-500/[0.03] rounded-2xl p-6 mb-4 backdrop-blur-md flex flex-col space-y-3 text-left">
+                          <div className="relative z-10 flex-1 border border-emerald-500/30 bg-emerald-500/[0.03] rounded-2xl p-6 backdrop-blur-md flex flex-col space-y-3 text-left">
                             <div className="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-wider mb-1">
                               <Check className="w-4 h-4" /> PRO Üye Revizyon Tavsiyeleri
                             </div>
@@ -1988,29 +1988,8 @@ export default function App() {
                               {sonuc.oneri}
                             </p>
                           </div>
-                        ) : (
-                          <div className="relative z-10 flex-1 border border-[#FF5500]/20 bg-gradient-to-br from-[#FF5500]/[0.05] to-transparent rounded-2xl p-6 mb-4 backdrop-blur-md flex flex-col items-center justify-center text-center overflow-hidden">
-                            <div className="absolute inset-0 bg-[var(--card-bg)]/40 backdrop-blur-md z-10 flex flex-col items-center justify-center p-6">
-                              <div className="w-10 h-10 bg-[var(--card-bg)] rounded-full flex items-center justify-center mb-3 shadow-sm">
-                                <Sparkles className="w-5 h-5 text-[#FF5500]" />
-                              </div>
-                              <p className="text-[var(--text-primary)] font-bold text-xs mb-1 uppercase tracking-tight">Revizyon Detayları Kilitli</p>
-                              <p className="text-[var(--text-secondary)] text-[10px] uppercase font-bold tracking-wider max-w-md mb-3">
-                                AI ile tasarımınızı otomatik iyileştirmek ve teknik revizyonları görmek için PRO plana geçin.
-                              </p>
-                              <button 
-                                onClick={() => navigate('/pricing')}
-                                className="px-4 py-2 rounded-xl bg-[#FF5500] text-white font-bold text-xs shadow-md hover:bg-[#e64d00] transition-colors"
-                              >
-                                PRO'ya Yükselt
-                              </button>
-                            </div>
-                            <p className="text-[var(--text-primary)] text-xs opacity-20 select-none blur-[2px]">
-                              {sonuc.oneri}
-                            </p>
-                          </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
 
                     </div>
 

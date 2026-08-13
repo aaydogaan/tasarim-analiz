@@ -174,7 +174,7 @@ JSON Şablonu (Puanlar tasarıma göre 0-25 arası özgürce belirlenmeli, genel
   "kompozisyon": {"puan": 0, "aciklama": "${isProUser ? 'Grid hiyerarşisi, negatif alan dengesi, visual weight ve CTA yerleşimi üzerine 3-4 teknik detaylı cümle' : 'Hizalama, negatif alan kullanımı, odak noktası ve görsel hiyerarşi üzerine analiz'}"},
   "genelPuan": 0,
   "genelYorum": "${isProUser ? 'Tasarımın genel başarısı, güçlü ve zayıf yönleri, kullanıcı psikolojisi üzerindeki etkisi ve sektör standartları kıyaslamasını içeren 3 kapsayıcı paragraflık kıdemli tasarım direktörü raporu' : '2 paragraflık doyurucu, net ve yol gösterici genel değerlendirme'}",
-  "oneri": "${isProUser ? '1. [Adım 1], 2. [Adım 2], 3. [Adım 3], 4. [Adım 4], 5. [Adım 5] formatında tasarıma özel tam 5 maddelik uygulanabilir teknik revizyon tavsiyesi' : 'Gelişim için uygulanabilir 3 maddelik net revizyon tavsiyesi'}",
+  "oneri": "${isProUser ? '1. [Adım 1], 2. [Adım 2], 3. [Adım 3], 4. [Adım 4], 5. [Adım 5] formatında tasarıma özel tam 5 maddelik uygulanabilir teknik revizyon tavsiyesi' : ''}",
   "genelDegerlendirme": "Eksik / Geliştirilebilir / Başarılı / Usta İşi",
   "gucluYon": "Tasarımı öne çıkaran 1 temel teknik özellik",
   "zayifYon": "En bariz düzeltilmesi gereken teknik eksiklik",
