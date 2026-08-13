@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { X, ArrowBigUp, ArrowBigDown, Flag, Heart, MessageCircle, Star, CheckCircle2, AlertCircle, Trash2, Pencil, Send, ChevronLeft, ChevronRight, Reply } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { VerifiedBadge } from './VerifiedBadge';
+import { ProBadge } from './ProBadge';
 import ReportModal from './ReportModal';
 import { FormattedCommentText } from './FormattedCommentText';
 import { CommentInputWithMentions } from './CommentInputWithMentions';
@@ -79,7 +80,7 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
                 const userIds = Array.from(new Set(commentsData.map(c => c.user_id)));
                 const { data: profiles } = await supabase
                     .from('profiles')
-                    .select('id, display_name, avatar_url, slug')
+                    .select('id, display_name, avatar_url, slug, verification_badge, is_pro, role')
                     .in('id', userIds);
 
                 const profileMap = new Map(profiles?.map(p => [p.id, p]));
@@ -90,7 +91,10 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
                         ...c,
                         user_name: prof?.display_name || 'Tasarımcı',
                         user_avatar: prof?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${c.user_id}`,
-                        user_slug: prof?.slug || c.user_id
+                        user_slug: prof?.slug || c.user_id,
+                        verification_badge: prof?.verification_badge,
+                        is_pro: prof?.is_pro,
+                        role: prof?.role
                     };
                 }));
             }
@@ -182,7 +186,7 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
 
             if (error) throw error;
 
-            const { data: prof } = await supabase.from('profiles').select('display_name, avatar_url, slug').eq('id', currentUser.id).single();
+            const { data: prof } = await supabase.from('profiles').select('display_name, avatar_url, slug, verification_badge, is_pro, role').eq('id', currentUser.id).single();
 
             setComments(prev => [...prev, {
                 ...data,
@@ -190,7 +194,10 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
                 comment: text,
                 user_name: prof?.display_name || 'Ben',
                 user_avatar: prof?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${currentUser.id}`,
-                user_slug: prof?.slug || currentUser.id
+                user_slug: prof?.slug || currentUser.id,
+                verification_badge: prof?.verification_badge,
+                is_pro: prof?.is_pro,
+                role: prof?.role
             }]);
 
             // Send mention & reply notifications
@@ -481,12 +488,20 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
                                                     {/* Parent Comment */}
                                                     <div className="flex gap-2.5 items-start">
                                                         <Link to={`/${c.user_slug || c.user_id}`} onClick={onClose}>
-                                                            <img src={c.user_avatar} className="w-7 h-7 rounded-full object-cover shrink-0 mt-0.5" alt={c.user_name} />
+                                                            <div className={`w-7 h-7 rounded-full overflow-hidden shrink-0 mt-0.5 ${
+                                                                Boolean(c.is_pro || c.role === 'pro' || c.role === 'admin')
+                                                                ? 'p-[1.5px] bg-gradient-to-tr from-amber-400 via-orange-500 to-red-500 shadow-sm'
+                                                                : ''
+                                                            }`}>
+                                                                <img src={c.user_avatar} className="w-full h-full rounded-full object-cover shrink-0" alt={c.user_name} />
+                                                            </div>
                                                         </Link>
                                                         <div className="min-w-0 flex-1">
                                                             <div className="flex items-center justify-between gap-1 mb-1">
-                                                                <Link to={`/${c.user_slug || c.user_id}`} onClick={onClose} className="text-xs font-bold text-[var(--text-primary)] hover:text-[#FF5500] truncate">
-                                                                    {c.user_name}
+                                                                <Link to={`/${c.user_slug || c.user_id}`} onClick={onClose} className="text-xs font-bold text-[var(--text-primary)] hover:text-[#FF5500] truncate flex items-center gap-1.5">
+                                                                    <span>{c.user_name}</span>
+                                                                    <VerifiedBadge badge={c.verification_badge} size="xs" />
+                                                                    <ProBadge isPro={c.is_pro} role={c.role} size="xs" />
                                                                 </Link>
                                                                 <span className="text-[9px] text-[var(--text-secondary)] shrink-0">
                                                                     {new Date(c.created_at).toLocaleDateString('tr-TR')}
@@ -541,12 +556,20 @@ export default function DesignDetailModal({ item, onClose, currentUser }: Design
                                                                 return (
                                                                     <div key={reply.id} className="flex gap-2 items-start bg-[var(--card-bg)]/80 p-2.5 rounded-xl border border-[var(--border-primary)]/60">
                                                                         <Link to={`/${reply.user_slug || reply.user_id}`} onClick={onClose}>
-                                                                            <img src={reply.user_avatar} className="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5" alt={reply.user_name} />
+                                                                            <div className={`w-6 h-6 rounded-full overflow-hidden shrink-0 mt-0.5 ${
+                                                                                Boolean(reply.is_pro || reply.role === 'pro' || reply.role === 'admin')
+                                                                                ? 'p-[1.5px] bg-gradient-to-tr from-amber-400 via-orange-500 to-red-500 shadow-sm'
+                                                                                : ''
+                                                                            }`}>
+                                                                                <img src={reply.user_avatar} className="w-full h-full rounded-full object-cover shrink-0" alt={reply.user_name} />
+                                                                            </div>
                                                                         </Link>
                                                                         <div className="min-w-0 flex-1">
                                                                             <div className="flex items-center justify-between gap-1 mb-0.5">
-                                                                                <Link to={`/${reply.user_slug || reply.user_id}`} onClick={onClose} className="text-[11px] font-bold text-[var(--text-primary)] hover:text-[#FF5500] truncate">
-                                                                                    {reply.user_name}
+                                                                                <Link to={`/${reply.user_slug || reply.user_id}`} onClick={onClose} className="text-[11px] font-bold text-[var(--text-primary)] hover:text-[#FF5500] truncate flex items-center gap-1.5">
+                                                                                    <span>{reply.user_name}</span>
+                                                                                    <VerifiedBadge badge={reply.verification_badge} size="xs" />
+                                                                                    <ProBadge isPro={reply.is_pro} role={reply.role} size="xs" />
                                                                                 </Link>
                                                                                 <span className="text-[9px] text-[var(--text-secondary)] shrink-0">
                                                                                     {new Date(reply.created_at).toLocaleDateString('tr-TR')}

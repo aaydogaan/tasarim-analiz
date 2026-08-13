@@ -268,7 +268,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                 if (userIds.length > 0) {
                     const { data: profilesData } = await supabase
                         .from('profiles')
-                        .select('id, display_name, avatar_url')
+                        .select('id, display_name, avatar_url, slug, verification_badge, is_pro, role')
                         .in('id', userIds);
                     if (profilesData) {
                         profileMap = Object.fromEntries(profilesData.map(p => [p.id, p]));
@@ -276,6 +276,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                 }
                 const formatted = data.map(c => ({
                     ...c,
+                    profiles: profileMap[c.user_id],
                     user_name: profileMap[c.user_id]?.display_name || c.user_name || 'Tasarımcı',
                     user_avatar: profileMap[c.user_id]?.avatar_url || c.user_avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${c.user_id}`
                 }));
@@ -310,6 +311,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         if (!error && data) {
             const commentObj = {
                 ...data,
+                profiles: profileData,
                 user_name: finalName,
                 user_avatar: finalAvatar
             };
@@ -1100,12 +1102,20 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                                             {/* Parent Comment */}
                                                                             <div className="flex gap-3">
                                                                                 <Link to={`/${cSlug}`}>
-                                                                                    <img src={cAvatar} className="w-7 h-7 rounded-full object-cover shrink-0 hover:opacity-80 transition-opacity" alt="" />
+                                                                                    <div className={`w-7 h-7 rounded-full overflow-hidden shrink-0 ${
+                                                                                        Boolean(c.profiles?.is_pro || c.profiles?.role === 'pro' || c.profiles?.role === 'admin')
+                                                                                        ? 'p-[1.5px] bg-gradient-to-tr from-amber-400 via-orange-500 to-red-500 shadow-sm'
+                                                                                        : ''
+                                                                                    }`}>
+                                                                                        <img src={cAvatar} className="w-full h-full rounded-full object-cover shrink-0 hover:opacity-80 transition-opacity" alt="" />
+                                                                                    </div>
                                                                                 </Link>
                                                                                 <div className="min-w-0 flex-1">
                                                                                     <div className="flex justify-between items-center mb-0.5">
-                                                                                        <Link to={`/${cSlug}`} className="font-bold text-[var(--text-primary)] hover:text-[var(--color-brand-orange)] transition-colors">
-                                                                                            {cName}
+                                                                                        <Link to={`/${cSlug}`} className="font-bold text-[var(--text-primary)] hover:text-[var(--color-brand-orange)] transition-colors flex items-center gap-1.5">
+                                                                                            <span>{cName}</span>
+                                                                                            <VerifiedBadge badge={c.profiles?.verification_badge} size="xs" />
+                                                                                            <ProBadge isPro={c.profiles?.is_pro} role={c.profiles?.role} size="xs" />
                                                                                         </Link>
                                                                                         <span className="text-[10px] text-[var(--text-secondary)]">{new Date(c.created_at).toLocaleDateString('tr-TR')}</span>
                                                                                     </div>
@@ -1194,12 +1204,20 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                                                                         return (
                                                                                             <div key={reply.id} className="flex gap-2.5 bg-[var(--bg-primary)] p-2.5 rounded-xl border border-[var(--border-primary)] text-xs">
                                                                                                 <Link to={`/${replySlug}`}>
-                                                                                                    <img src={replyAvatar} className="w-6 h-6 rounded-full object-cover shrink-0 hover:opacity-80 transition-opacity" alt="" />
+                                                                                                    <div className={`w-6 h-6 rounded-full overflow-hidden shrink-0 ${
+                                                                                                        Boolean(reply.profiles?.is_pro || reply.profiles?.role === 'pro' || reply.profiles?.role === 'admin')
+                                                                                                        ? 'p-[1.5px] bg-gradient-to-tr from-amber-400 via-orange-500 to-red-500 shadow-sm'
+                                                                                                        : ''
+                                                                                                    }`}>
+                                                                                                        <img src={replyAvatar} className="w-full h-full rounded-full object-cover shrink-0 hover:opacity-80 transition-opacity" alt="" />
+                                                                                                    </div>
                                                                                                 </Link>
                                                                                                 <div className="min-w-0 flex-1">
                                                                                                     <div className="flex justify-between items-center mb-0.5">
-                                                                                                        <Link to={`/${replySlug}`} className="font-bold text-[var(--text-primary)] hover:text-[var(--color-brand-orange)] transition-colors text-[11px]">
-                                                                                                            {replyName}
+                                                                                                        <Link to={`/${replySlug}`} className="font-bold text-[var(--text-primary)] hover:text-[var(--color-brand-orange)] transition-colors text-[11px] flex items-center gap-1.5">
+                                                                                                            <span>{replyName}</span>
+                                                                                                            <VerifiedBadge badge={reply.profiles?.verification_badge} size="xs" />
+                                                                                                            <ProBadge isPro={reply.profiles?.is_pro} role={reply.profiles?.role} size="xs" />
                                                                                                         </Link>
                                                                                                         <span className="text-[9px] text-[var(--text-secondary)]">{new Date(reply.created_at).toLocaleDateString('tr-TR')}</span>
                                                                                                     </div>
