@@ -131,11 +131,18 @@ export function Leaderboard() {
         .select('*', { count: 'exact', head: true });
       setRealAnalysisCount(totalAnalysisCount || 0);
 
-      // 2. Canonical XP data from user_xp_stats view
-      const { data: xpStatsData } = await supabase
-        .from('user_xp_stats')
-        .select('*')
-        .order('total_xp', { ascending: false });
+      // 2. Canonical XP data from user_xp_stats view & profiles table for PRO status
+      const [{ data: xpStatsData }, { data: allProfiles }] = await Promise.all([
+        supabase.from('user_xp_stats').select('*').order('total_xp', { ascending: false }),
+        supabase.from('profiles').select('id, display_name, full_name, avatar_url, slug, verification_badge, is_pro, role')
+      ]);
+
+      const profileMap: Record<string, any> = {};
+      if (allProfiles) {
+        allProfiles.forEach(p => {
+          profileMap[p.id] = p;
+        });
+      }
 
       // 3. Analyses with date filter — count + AI score per user
       let analysesQuery = supabase
@@ -205,20 +212,21 @@ export function Leaderboard() {
           userTotalCommunityScoreMap[ownerId] = (userTotalCommunityScoreMap[ownerId] || 0) + stats.upvotes;
       });
 
-      // 5. Build user registry from user_xp_stats
+      // 5. Build user registry from user_xp_stats & profiles
       const userMetaRegistry: Record<string, { name: string; avatar: string; xp: number; slug: string; verificationBadge?: string | null; isPro?: boolean; role?: string | null }> = {};
 
       if (xpStatsData) {
         xpStatsData.forEach(u => {
           if (u.id) {
+            const p = profileMap[u.id] || {};
             userMetaRegistry[u.id] = {
-              name: u.display_name || u.full_name || 'Tasarımcı',
-              avatar: u.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${u.id}`,
+              name: p.display_name || p.full_name || u.display_name || u.full_name || 'Tasarımcı',
+              avatar: p.avatar_url || u.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${u.id}`,
               xp: u.total_xp || 0,
-              slug: u.slug || 'tasarimci',
-              verificationBadge: u.verification_badge,
-              isPro: Boolean(u.is_pro || u.role === 'pro' || u.role === 'admin'),
-              role: u.role
+              slug: p.slug || u.slug || 'tasarimci',
+              verificationBadge: p.verification_badge || u.verification_badge,
+              isPro: Boolean(p.is_pro || p.role === 'pro' || p.role === 'admin' || u.is_pro || u.role === 'pro' || u.role === 'admin'),
+              role: p.role || u.role
             };
           }
         });
@@ -226,12 +234,16 @@ export function Leaderboard() {
 
       // Ensure current user is always included
       if (currentUser && !userMetaRegistry[currentUser.id]) {
+        const p = profileMap[currentUser.id] || {};
         const periodTasks = periodAnalizCountMap[currentUser.id] || 0;
         userMetaRegistry[currentUser.id] = {
-          name: currentUser.user_metadata?.display_name || currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Tasarımcı',
-          avatar: currentUser.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${currentUser.id}`,
+          name: p.display_name || p.full_name || currentUser.user_metadata?.display_name || currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Tasarımcı',
+          avatar: p.avatar_url || currentUser.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${currentUser.id}`,
           xp: periodTasks * 250,
-          slug: 'tasarimci'
+          slug: p.slug || 'tasarimci',
+          verificationBadge: p.verification_badge,
+          isPro: Boolean(p.is_pro || p.role === 'pro' || p.role === 'admin'),
+          role: p.role
         };
       }
 
@@ -688,6 +700,12 @@ export function Leaderboard() {
                             <Link to={`/${user.slug}`} className="flex items-center gap-3 group/profile">
                               {user.verificationBadge === 'gold' ? (
                                 <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-br from-orange-300 via-orange-500 to-amber-500 shadow-[0_0_10px_rgba(255,120,0,0.4)]">
+                                  <div className="w-full h-full rounded-full overflow-hidden border border-white">
+                                    <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                                  </div>
+                                </div>
+                              ) : user.isPro ? (
+                                <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-amber-400 via-orange-500 to-red-500 shadow-[0_0_10px_rgba(245,158,11,0.45)]">
                                   <div className="w-full h-full rounded-full overflow-hidden border border-white">
                                     <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
                                   </div>

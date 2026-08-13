@@ -888,7 +888,7 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                     <h1 className="truncate text-xl font-black tracking-tight flex items-center justify-center gap-1.5 flex-wrap">
                                         <span>{profileData.displayName}</span>
                                         <VerifiedBadge badge={(profileRecord as any)?.verification_badge || (publicProfile as any)?.verification_badge} size="sm" />
-                                        <ProBadge isPro={(profileRecord as any)?.is_pro || (publicProfile as any)?.is_pro} role={(profileRecord as any)?.role || (publicProfile as any)?.role} size="sm" />
+                                        <ProBadge isPro={(profileRecord as any)?.is_pro || (profileRecord as any)?.is_pro} role={(profileRecord as any)?.role || (publicProfile as any)?.role} size="sm" />
                                     </h1>
                                 )}
                                 <p className="mt-1 text-xs font-semibold text-[var(--text-secondary)] flex items-center justify-center gap-1.5 flex-wrap">
@@ -898,7 +898,6 @@ export default function ProfilePage({ kullanici, publicProfile, onAuthClick, onC
                                             ✦ Kurucu
                                         </span>
                                     )}
-                                    <ProBadge isPro={(profileRecord as any)?.is_pro || (publicProfile as any)?.is_pro} role={(profileRecord as any)?.role || (publicProfile as any)?.role} size="xs" />
                                     {normalizedProfile.founderNumber ? <span className="text-[var(--text-secondary)] font-semibold">#{normalizedProfile.founderNumber}</span> : null}
                                 </p>
                                 {dailyWinCount > 0 && (

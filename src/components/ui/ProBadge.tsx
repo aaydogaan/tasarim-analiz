@@ -1,5 +1,5 @@
 import React from 'react';
-import { Zap, Crown } from 'lucide-react';
+import { Crown } from 'lucide-react';
 
 interface ProBadgeProps {
   isPro?: boolean;
@@ -25,18 +25,18 @@ export const ProBadge: React.FC<ProBadgeProps> = ({
     return (
       <span 
         title={isAdmin ? "Admin Kullanıcı" : "PRO Tasarımcı"}
-        className={`inline-flex items-center justify-center shrink-0 rounded-full p-1 ${isAdmin ? 'bg-amber-500 text-white' : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm'} ${className}`}
+        className={`inline-flex items-center justify-center shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-black uppercase text-white ${isAdmin ? 'bg-amber-500' : 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-sm'} ${className}`}
       >
-        {isAdmin ? <Crown className="w-3 h-3 fill-white" /> : <Zap className="w-3 h-3 fill-white" />}
+        {isAdmin ? <Crown className="w-3 h-3 fill-white" /> : 'PRO'}
       </span>
     );
   }
 
   const sizeClasses = {
-    xs: 'px-2 py-0.5 text-[9px] gap-1',
-    sm: 'px-2.5 py-0.5 text-[10px] gap-1',
-    md: 'px-3 py-1 text-xs gap-1.5',
-    lg: 'px-3.5 py-1.5 text-sm gap-2',
+    xs: 'px-2 py-0.5 text-[9px]',
+    sm: 'px-2.5 py-0.5 text-[10px]',
+    md: 'px-3 py-1 text-xs',
+    lg: 'px-3.5 py-1.5 text-sm',
   };
 
   const iconSizes = {
@@ -50,7 +50,7 @@ export const ProBadge: React.FC<ProBadgeProps> = ({
     return (
       <span 
         title="Admin Kullanıcı"
-        className={`inline-flex items-center font-extrabold uppercase tracking-wider rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/30 shrink-0 ${sizeClasses[size]} ${className}`}
+        className={`inline-flex items-center font-extrabold uppercase tracking-wider rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/30 shrink-0 gap-1 ${sizeClasses[size]} ${className}`}
       >
         <Crown className={`${iconSizes[size]} fill-amber-500`} />
         <span>ADMİN</span>
@@ -63,7 +63,6 @@ export const ProBadge: React.FC<ProBadgeProps> = ({
       title="PRO Tasarımcı — Revizelesene Premium Üye"
       className={`inline-flex items-center font-black uppercase tracking-widest rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 text-white shadow-[0_0_12px_rgba(245,158,11,0.35)] border border-white/20 select-none shrink-0 ${sizeClasses[size]} ${className}`}
     >
-      <Zap className={`${iconSizes[size]} fill-white`} />
       <span>PRO</span>
     </span>
   );

@@ -415,7 +415,6 @@ export default function PublicProfile() {
                                             ✦ Kurucu
                                         </span>
                                     )}
-                                    <ProBadge isPro={profile.is_pro} role={profile.role} size="sm" />
                                     <div className="flex items-center gap-6">
                                         <button
                                             type="button"
