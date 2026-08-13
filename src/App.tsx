@@ -1854,19 +1854,26 @@ export default function App() {
                           <div className="lg:col-span-7 space-y-4">
                             <span className="text-[var(--text-primary)] font-bold text-sm tracking-wide block mb-2">Detaylı Kriter Analizi</span>
                             {kriterler.slice(0, 4).map((k) => (
-                              <div key={k.key}>
-                                <div className="flex justify-between items-end mb-1.5">
-                                  <span className="text-[var(--text-secondary)] text-xs font-semibold">{k.label}</span>
-                                  <span className="text-[var(--text-primary)] text-xs font-black">{sonuc[k.key]?.puan}/25</span>
+                              <div key={k.key} className="space-y-1.5 bg-[var(--bg-secondary)]/50 p-3 rounded-xl border border-[var(--border-primary)]/50">
+                                <div className="flex justify-between items-end">
+                                  <span className="text-[var(--text-primary)] text-xs font-bold flex items-center gap-1.5">
+                                    {k.emoji} {k.label}
+                                  </span>
+                                  <span className="text-[#FF5500] text-xs font-black">{sonuc[k.key]?.puan}/25</span>
                                 </div>
                                 <div className="h-2 w-full bg-[var(--text-primary)]/10 rounded-full overflow-hidden">
                                   <motion.div
                                     initial={{ width: 0 }}
-                                    animate={{ width: `${(sonuc[k.key]?.puan / 25) * 100}%` }}
+                                    animate={{ width: `${((sonuc[k.key]?.puan || 0) / 25) * 100}%` }}
                                     transition={{ duration: 1, delay: 0.3 }}
                                     className="h-full bg-[#FF5500] rounded-full"
                                   />
                                 </div>
+                                {sonuc[k.key]?.aciklama && (
+                                  <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed font-medium pt-1">
+                                    {sonuc[k.key]?.aciklama}
+                                  </p>
+                                )}
                               </div>
                             ))}
                           </div>
@@ -1876,13 +1883,20 @@ export default function App() {
 
                       {/* Feedback Section */}
                       <div className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6 md:p-8 space-y-6">
-                        <div className="flex items-center gap-2">
-                          <AlertCircle className="w-5 h-5 text-[#FF5500]" />
-                          <h4 className="text-[var(--text-primary)] font-bold text-base tracking-tight">Geri Bildirimler & Değerlendirme</h4>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <AlertCircle className="w-5 h-5 text-[#FF5500]" />
+                            <h4 className="text-[var(--text-primary)] font-bold text-base tracking-tight">Genel Direktör Raporu</h4>
+                          </div>
+                          {Boolean(kullaniciProfile?.is_pro || kullaniciProfile?.role === 'pro' || kullaniciProfile?.role === 'admin') && (
+                            <span className="bg-amber-500/10 text-amber-500 border border-amber-500/30 text-[10px] font-black uppercase px-2.5 py-1 rounded-full flex items-center gap-1">
+                              <Crown className="w-3 h-3 fill-amber-500" /> PRO Raporu
+                            </span>
+                          )}
                         </div>
 
                         <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-5 rounded-2xl">
-                          <p className="text-[var(--text-primary)] text-sm font-medium leading-relaxed">"{sonuc.genelYorum}"</p>
+                          <p className="text-[var(--text-primary)] text-sm font-medium leading-relaxed whitespace-pre-line">"{sonuc.genelYorum}"</p>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1911,6 +1925,43 @@ export default function App() {
                         </div>
                       </div>
 
+                      {/* AI PRO Deep Breakdown Section */}
+                      {Boolean(kullaniciProfile?.is_pro || kullaniciProfile?.role === 'pro' || kullaniciProfile?.role === 'admin') && sonuc.proDetaylar && (
+                        <div className="bg-[var(--card-bg)] rounded-[24px] border border-amber-500/30 shadow-sm p-6 md:p-8 space-y-4 bg-gradient-to-br from-amber-500/[0.03] to-transparent">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Crown className="w-5 h-5 text-amber-500 fill-amber-500" />
+                            <h4 className="text-[var(--text-primary)] font-bold text-base tracking-tight">PRO Derin Teknik Analiz</h4>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {sonuc.proDetaylar.renkKontrast && (
+                              <div className="p-4 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)]">
+                                <h5 className="text-xs font-bold text-[#FF5500] uppercase tracking-wider mb-1">🎨 Renk & WCAG Kontrast</h5>
+                                <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-medium">{sonuc.proDetaylar.renkKontrast}</p>
+                              </div>
+                            )}
+                            {sonuc.proDetaylar.tipografiDengesi && (
+                              <div className="p-4 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)]">
+                                <h5 className="text-xs font-bold text-purple-500 uppercase tracking-wider mb-1">✍️ Tipografi & Hiyerarşi</h5>
+                                <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-medium">{sonuc.proDetaylar.tipografiDengesi}</p>
+                              </div>
+                            )}
+                            {sonuc.proDetaylar.kompozisyonVeGrid && (
+                              <div className="p-4 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)]">
+                                <h5 className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1">📐 Grid & Negatif Alan</h5>
+                                <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-medium">{sonuc.proDetaylar.kompozisyonVeGrid}</p>
+                              </div>
+                            )}
+                            {sonuc.proDetaylar.uxVeDonusum && (
+                              <div className="p-4 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)]">
+                                <h5 className="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-1">🚀 UX & Dönüşüm Potansiyeli</h5>
+                                <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-medium">{sonuc.proDetaylar.uxVeDonusum}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
                       {/* AI Pro Improvement Banner */}
                       <div className="bg-[var(--card-bg)] rounded-[24px] border border-[var(--border-primary)] shadow-sm p-6 md:p-8 flex flex-col relative overflow-hidden group">
                         <div className="absolute top-[-50%] right-[-10%] w-[150%] h-[150%] bg-gradient-to-br from-[#FF5500]/10 via-purple-600/5 to-transparent blur-3xl rounded-full opacity-60 pointer-events-none"></div>
@@ -1921,35 +1972,44 @@ export default function App() {
                               <Sparkles className="w-5 h-5 text-[#FF5500]" />
                             </div>
                             <div>
-                              <span className="text-[var(--text-primary)] font-black text-lg tracking-tight block leading-tight">AI Tasarım Revizyonu</span>
-                              <span className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mt-0.5 block">Otomatik İyileştirme</span>
+                              <span className="text-[var(--text-primary)] font-black text-lg tracking-tight block leading-tight">AI Tasarım Revizyon Planı</span>
+                              <span className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mt-0.5 block">Adım Adım İyileştirme Rehberi</span>
                             </div>
                           </div>
                           <span className="bg-gradient-to-r from-[#FF5500] to-amber-500 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-lg uppercase tracking-widest shadow-md border border-white/20">PRO</span>
                         </div>
 
-                        <div className="relative z-10 flex-1 border border-[#FF5500]/20 bg-gradient-to-br from-[#FF5500]/[0.05] to-transparent rounded-2xl p-6 mb-4 backdrop-blur-md flex flex-col items-center justify-center text-center overflow-hidden">
-                          <div className="absolute inset-0 bg-[var(--card-bg)]/40 backdrop-blur-md z-10 flex flex-col items-center justify-center p-6">
-                            <div className="w-10 h-10 bg-[var(--card-bg)] rounded-full flex items-center justify-center mb-3 shadow-sm">
-                              <Sparkles className="w-5 h-5 text-[#FF5500]" />
+                        {Boolean(kullaniciProfile?.is_pro || kullaniciProfile?.role === 'pro' || kullaniciProfile?.role === 'admin') ? (
+                          <div className="relative z-10 flex-1 border border-emerald-500/30 bg-emerald-500/[0.03] rounded-2xl p-6 mb-4 backdrop-blur-md flex flex-col space-y-3 text-left">
+                            <div className="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-wider mb-1">
+                              <Check className="w-4 h-4" /> PRO Üye Revizyon Tavsiyeleri
                             </div>
-                            <p className="text-[var(--text-primary)] font-bold text-xs mb-1 uppercase tracking-tight">Revizyon Detayları Kilitli</p>
-                            <p className="text-[var(--text-secondary)] text-[10px] uppercase font-bold tracking-wider max-w-md">
-                              AI ile tasarımınızı otomatik iyileştirmek ve teknik revizyonları görmek için PRO plana geçin.
+                            <p className="text-[var(--text-primary)] text-sm leading-relaxed whitespace-pre-line font-medium">
+                              {sonuc.oneri}
                             </p>
                           </div>
-                          <p className="text-[var(--text-primary)] text-xs opacity-20 select-none blur-[2px]">
-                            {sonuc.oneri}
-                          </p>
-                        </div>
-
-                        <button 
-                          onClick={() => navigate('/pricing')}
-                          className="relative z-10 w-full py-3.5 rounded-xl bg-slate-900 hover:bg-black text-white font-black text-xs transition-all shadow-md flex items-center justify-center gap-2"
-                        >
-                          <span>Tasarımı AI İle İyileştir</span>
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
+                        ) : (
+                          <div className="relative z-10 flex-1 border border-[#FF5500]/20 bg-gradient-to-br from-[#FF5500]/[0.05] to-transparent rounded-2xl p-6 mb-4 backdrop-blur-md flex flex-col items-center justify-center text-center overflow-hidden">
+                            <div className="absolute inset-0 bg-[var(--card-bg)]/40 backdrop-blur-md z-10 flex flex-col items-center justify-center p-6">
+                              <div className="w-10 h-10 bg-[var(--card-bg)] rounded-full flex items-center justify-center mb-3 shadow-sm">
+                                <Sparkles className="w-5 h-5 text-[#FF5500]" />
+                              </div>
+                              <p className="text-[var(--text-primary)] font-bold text-xs mb-1 uppercase tracking-tight">Revizyon Detayları Kilitli</p>
+                              <p className="text-[var(--text-secondary)] text-[10px] uppercase font-bold tracking-wider max-w-md mb-3">
+                                AI ile tasarımınızı otomatik iyileştirmek ve teknik revizyonları görmek için PRO plana geçin.
+                              </p>
+                              <button 
+                                onClick={() => navigate('/pricing')}
+                                className="px-4 py-2 rounded-xl bg-[#FF5500] text-white font-bold text-xs shadow-md hover:bg-[#e64d00] transition-colors"
+                              >
+                                PRO'ya Yükselt
+                              </button>
+                            </div>
+                            <p className="text-[var(--text-primary)] text-xs opacity-20 select-none blur-[2px]">
+                              {sonuc.oneri}
+                            </p>
+                          </div>
+                        )}
                       </div>
 
                     </div>

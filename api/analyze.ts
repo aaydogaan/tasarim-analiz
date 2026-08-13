@@ -113,10 +113,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const kriterler = kriterBilgisi[tasarimTuru];
   const platformBilgisi = tasarimTuru === "Sosyal Medya" && platform ? `Platform: ${platform}` : "";
   const ai = new GoogleGenAI({ apiKey });
-  const isProUser = body.isPro || false;
+  let isProUser = body.isPro || false;
+
+  // Server-side check of auth token to guarantee PRO detection even if client payload differs
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      const token = authHeader.substring(7);
+      const supabase = createClient(
+        process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '',
+        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || ''
+      );
+      const { data: { user } } = await supabase.auth.getUser(token);
+      if (user) {
+        const { data: profile } = await supabase.from('profiles').select('is_pro, role').eq('id', user.id).maybeSingle();
+        if (profile?.is_pro || profile?.role === 'pro' || profile?.role === 'admin') {
+          isProUser = true;
+        }
+      }
+    } catch (e) {
+      console.warn("Could not verify auth token in analyze API:", e);
+    }
+  }
 
   const roleDescription = isProUser
-    ? "Sen dünya çapında ödüllü, kıdemli bir Tasarım Direktörü ve Sanat Yönetmenisin. Bu rapor bir PRO ÜYE içindir. Tasarımı en üst düzey teknik derinlik, renk teorisi, ızgara (grid) hiyerarşisi, tipografik kerning/leading, WCAG erişilebilirlik kontrast oranları ve UX psikolojisi ile milimetrik analiz et."
+    ? "Sen dünya çapında tasarım yarışmalarında jürilik yapan, 15+ yıl deneyimli Kıdemli Sanat Yönetmeni ve Tasarım Direktörüsün. Bu rapor ÖZEL BİR PRO ÜYE İÇİNDİR. Yüzeysel genel geçer cümleler yazma! Tasarımı milimetrik teknik derinlikte; tipografik hiyerarşi ve kerning/leading, WCAG 2.1 AA/AAA renk kontrast oranları, ızgara (grid) ve mikro-boşluk hizalaması, görsel ağırlık ve kullanıcı göz hareketleri (F/Z kalıbı) açısından EN ÜST DÜZEY SANAT YÖNETMENİ DERİNLİĞİNDE analiz et."
     : "Sen dünya çapında ödüllü, son derece detaycı, yapıcı ve uzman bir Grafik Tasarım Direktörüsün. Gönderilen görseli yüzeysel geçmeden, hem teknik terimlerle hem de anlaşılır bir dille tatmin edici ve rehberlik edici derinlikte analiz et.";
 
   const prompt = `${roleDescription}
@@ -125,7 +146,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 1. PUAN ÇEŞİTLİLİĞİ VE GERÇEKÇİLİK: Her tasarıma ortalama 70-80 puan verme! Gerçekten zayıf, acemi veya dengesiz tasarımlara 35-65 arası düşük puan ver. Gerçekten kusursuz, profesyonel tasarımlara 85-98 arası yüksek puan ver. Puanların cesur, adil ve görselin GERÇEK kalitesini yansıtacak şekilde geniş bir yelpazede dağılmasını sağla.
 2. PUAN MATEMATİĞİ: 4 alt kriterin her birine 0 ile 25 arasında tam puan ver. "genelPuan" DEĞERİ MUTLAKA BU 4 ALANIN PUANLARININ TOPLAMI OLMALIDIR (0 - 100 arası).
 3. HALÜSİNASYON ENGELLEYİCİ: Görselde OLMAYAN bir öğeyi varmış gibi eleştirme! Görsel bir Logo ise "buton", "CTA", "fiyat" gibi arayüz öğeleri arama ve yokluğunu hata sayma.
-4. DOĞALLIK: Jenerik veya robotik cümleler yerine, deneyimli bir sanat yönetmeni gibi DOĞAL, SPESİFİK ve GERÇEKÇİ konuş.
+4. DERİNLİK VE UZUNLUK: ${isProUser ? 'PRO analiz modundasın. Her kriter açıklamasını en az 3-4 detaylı teknik cümle olarak yaz. Genel yorumu 3 kapsamlı paragraf yap. Öneriler kısmına tam 5 maddelik somut, uygulanabilir adım adım revizyon rehberi yaz.' : 'Her kriter açıklamasını 2-3 doyurucu cümle olarak yaz.'}
 
 Tasarım Bağlamı:
 - Tasarım Türü: ${tasarimTuru}
@@ -147,22 +168,26 @@ Lütfen 4 temel kriter için (her biri 0-25 puan arası) değerlendirme yap:
 YALNIZCA GEÇERLİ BİR JSON NESNESİ DÖNDÜR. (Markdown veya \`\`\`json ekleme, doğrudan salt JSON çıktısı ver).
 JSON Şablonu (Puanlar tasarıma göre 0-25 arası özgürce belirlenmeli, genelPuan bunların toplamı olmalıdır):
 {
-  "renk": {"puan": 0, "aciklama": "${isProUser ? 'Renk teorisi, WCAG kontrast oranları, renk psikolojisi ve palet uyumu üzerine teknik derin analiz' : 'Renk paleti uyumu, renk psikolojisi ve görsel kontrast açısından 2-3 cümlelik net ve yapıcı analiz'}"},
-  "font": {"puan": 0, "aciklama": "${isProUser ? 'Tipografi hiyerarşisi, font ağırlıkları, kerning/leading, okunabilirlik ve punto oranları teknik analizi' : 'Tipografi hiyerarşisi, font seçimi uyumu ve okunabilirlik üzerine 2-3 cümlelik açıklayıcı analiz'}"},
-  "butunluk": {"puan": 0, "aciklama": "${isProUser ? 'Marka kimliği bütünlüğü, sektör standartları ve görsel dil uyumu teknik analizi' : 'Marka kimliği bütünlüğü ve sektör standartlarına uygunluk hakkında 2-3 cümlelik değerlendirme'}"},
-  "kompozisyon": {"puan": 0, "aciklama": "${isProUser ? 'Grid hiyerarşisi, negatif alan dengesi, odak noktası ve CTA yerleşimi teknik analizi' : 'Hizalama, negatif alan kullanımı, odak noktası ve görsel hiyerarşi üzerine 2-3 cümlelik analiz'}"},
+  "renk": {"puan": 0, "aciklama": "${isProUser ? 'Renk teorisi, WCAG 2.1 kontrast oranları, renk psikolojisi ve görsel dengesi üzerine 3-4 teknik detaylı cümle' : 'Renk paleti uyumu, renk psikolojisi ve görsel kontrast açısından net ve yapıcı analiz'}"},
+  "font": {"puan": 0, "aciklama": "${isProUser ? 'Tipografi hiyerarşisi, font ağırlıkları, kerning/leading, punto oranları ve okunabilirlik üzerine 3-4 teknik detaylı cümle' : 'Tipografi hiyerarşisi, font seçimi uyumu ve okunabilirlik üzerine açıklayıcı analiz'}"},
+  "butunluk": {"puan": 0, "aciklama": "${isProUser ? 'Marka kimliği bütünlüğü, sektör standartları, kurumsal ton ve görsel dil uyumu üzerine 3-4 teknik detaylı cümle' : 'Marka kimliği bütünlüğü ve sektör standartlarına uygunluk hakkında değerlendirme'}"},
+  "kompozisyon": {"puan": 0, "aciklama": "${isProUser ? 'Grid hiyerarşisi, negatif alan dengesi, visual weight ve CTA yerleşimi üzerine 3-4 teknik detaylı cümle' : 'Hizalama, negatif alan kullanımı, odak noktası ve görsel hiyerarşi üzerine analiz'}"},
   "genelPuan": 0,
-  "genelYorum": "${isProUser ? 'Tasarımın neleri başardığı, güçlü tarafları ve geliştirmeye açık noktaları hakkında kapsayıcı, profesyonel tasarım direktörü değerlendirmesi' : '2 paragraflık doyurucu, net ve yol gösterici genel değerlendirme'}",
-  "oneri": "${isProUser ? 'Gelişim için uygulanabilir 5 maddelik detaylı adım adım revizyon tavsiyesi' : 'Gelişim için uygulanabilir 3 maddelik net revizyon tavsiyesi'}",
+  "genelYorum": "${isProUser ? 'Tasarımın genel başarısı, güçlü ve zayıf yönleri, kullanıcı psikolojisi üzerindeki etkisi ve sektör standartları kıyaslamasını içeren 3 kapsayıcı paragraflık kıdemli tasarım direktörü raporu' : '2 paragraflık doyurucu, net ve yol gösterici genel değerlendirme'}",
+  "oneri": "${isProUser ? '1. [Adım 1], 2. [Adım 2], 3. [Adım 3], 4. [Adım 4], 5. [Adım 5] formatında tasarıma özel tam 5 maddelik uygulanabilir teknik revizyon tavsiyesi' : 'Gelişim için uygulanabilir 3 maddelik net revizyon tavsiyesi'}",
   "genelDegerlendirme": "Eksik / Geliştirilebilir / Başarılı / Usta İşi",
-  "gucluYon": "Tasarımı öne çıkaran 1 temel özellik",
-  "zayifYon": "En bariz teknik eksiklik",
+  "gucluYon": "Tasarımı öne çıkaran 1 temel teknik özellik",
+  "zayifYon": "En bariz düzeltilmesi gereken teknik eksiklik",
   "renkPaleti": ["#HEX1","#HEX2","#HEX3","#HEX4","#HEX5"],
-  "teknikOzet": {"baskınRenkSayisi": 3, "detayYogunlugu": 40, "negatifAlanOrani": 50}
+  "teknikOzet": {"baskınRenkSayisi": 3, "detayYogunlugu": 40, "negatifAlanOrani": 50}${isProUser ? ',\n  "proDetaylar": {\n    "renkKontrast": "Renk paletinin duygu dengesi ve WCAG kontrast analizi",\n    "tipografiDengesi": "Font çifti uyumu ve hiyerarşi analizi",\n    "kompozisyonVeGrid": "Negatif alan ve grid düzeni analizi",\n    "uxVeDonusum": "Kullanıcı odak noktası ve aksiyon potansiyeli analizi"\n  }' : ''}
 }`;
 
   try {
-    const modelsToTry = ['gemini-flash-lite-latest', 'gemini-flash-latest'];
+    const modelsToTry = isProUser 
+      ? ['gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-flash-latest'] 
+      : ['gemini-flash-lite-latest', 'gemini-flash-latest'];
+    const maxTokens = isProUser ? 3500 : 1800;
+
     let rawText = '';
     let secilenModel = '';
     let firstError = null;
@@ -182,8 +207,8 @@ JSON Şablonu (Puanlar tasarıma göre 0-25 arası özgürce belirlenmeli, genel
             }
           ],
           config: {
-            temperature: 0.45,
-            maxOutputTokens: 1200,
+            temperature: 0.4,
+            maxOutputTokens: maxTokens,
             responseMimeType: 'application/json',
           }
         });
