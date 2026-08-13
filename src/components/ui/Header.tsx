@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase';
 import LiveActivityFeed from './LiveActivityFeed';
 import MagneticWrapper from './MagneticWrapper';
 import GlobalSearch from './GlobalSearch';
+import { ProBadge } from './ProBadge';
 
 interface HeaderProps {
     kullanici: any;
@@ -33,6 +34,21 @@ export default function Header({
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
     const [supportsHover, setSupportsHover] = React.useState(false);
     const [isSearchOpen, setIsSearchOpen] = React.useState(false);
+    const [userProfile, setUserProfile] = React.useState<any>(null);
+
+    React.useEffect(() => {
+        if (!kullanici) return;
+        const fetchProfile = async () => {
+            const { data } = await supabase
+                .from('profiles')
+                .select('is_pro, role, display_name, full_name, avatar_url')
+                .eq('id', kullanici.id)
+                .maybeSingle();
+            if (data) setUserProfile(data);
+        };
+        fetchProfile();
+    }, [kullanici]);
+
     const dropdownCloseTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
     const toolsCloseTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
     const profileCloseTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -466,8 +482,12 @@ export default function Header({
                                 onClick={() => supportsHover ? null : setIsProfileDropdownOpen(!isProfileDropdownOpen)}
                                 className="flex items-center gap-1.5 outline-none group"
                             >
-                                <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-full border-2 border-[var(--color-brand-orange)]/30 overflow-hidden bg-gray-50 group-hover:border-[var(--color-brand-orange)] transition-colors">
-                                    <img src={kullanici.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici.id}`} alt="Profil" className="w-full h-full object-cover" />
+                                <div className={`w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-full overflow-hidden bg-gray-50 transition-colors ${
+                                    Boolean(userProfile?.is_pro || userProfile?.role === 'pro' || userProfile?.role === 'admin')
+                                    ? 'p-[2px] bg-gradient-to-tr from-amber-400 via-orange-500 to-red-500 shadow-sm'
+                                    : 'border-2 border-[var(--color-brand-orange)]/30 group-hover:border-[var(--color-brand-orange)]'
+                                }`}>
+                                    <img src={userProfile?.avatar_url || kullanici.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici.id}`} alt="Profil" className="w-full h-full object-cover rounded-full" />
                                 </div>
                                 <ChevronDown className={`hidden md:block w-3.5 h-3.5 text-[var(--text-secondary)] transition-transform duration-200 ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
                             </button>
@@ -482,7 +502,10 @@ export default function Header({
                                         className="absolute top-full right-0 mt-3 w-48 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-2xl shadow-xl overflow-hidden py-1 z-50"
                                     >
                                         <div className="px-4 py-3 border-b border-[var(--border-primary)] mb-1">
-                                            <p className="text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-bold mb-0.5">Oturum Açık</p>
+                                            <div className="flex items-center justify-between gap-1 mb-0.5">
+                                                <p className="text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-bold">Oturum Açık</p>
+                                                <ProBadge isPro={userProfile?.is_pro} role={userProfile?.role} size="xs" />
+                                            </div>
                                             <p className="text-[13px] text-[var(--text-primary)] font-medium truncate">{kullanici.email}</p>
                                         </div>
                                         <button
@@ -723,16 +746,21 @@ export default function Header({
                                     className="w-full flex items-center justify-between bg-[var(--bg-secondary)] hover:bg-[var(--bg-secondary)]/80 border border-[var(--border-primary)] rounded-[20px] p-2 transition-colors group"
                                 >
                                     <div className="flex items-center gap-3 overflow-hidden">
-                                        <div className="w-10 h-10 rounded-full border border-[var(--border-primary)] overflow-hidden shrink-0">
+                                        <div className={`w-10 h-10 rounded-full overflow-hidden shrink-0 ${
+                                            Boolean(userProfile?.is_pro || userProfile?.role === 'pro' || userProfile?.role === 'admin')
+                                            ? 'p-[2px] bg-gradient-to-tr from-amber-400 via-orange-500 to-red-500 shadow-sm'
+                                            : 'border border-[var(--border-primary)]'
+                                        }`}>
                                             <img 
-                                                src={kullanici.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici.id}`} 
+                                                src={userProfile?.avatar_url || kullanici.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${kullanici.id}`} 
                                                 alt="Profil" 
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-full object-cover rounded-full"
                                             />
                                         </div>
                                         <div className="flex flex-col items-start truncate">
-                                            <span className="text-[14px] font-bold text-[var(--text-primary)] truncate">
+                                            <span className="text-[14px] font-bold text-[var(--text-primary)] truncate flex items-center gap-1.5">
                                                 {kullanici.user_metadata?.full_name || 'Kullanıcı'}
+                                                <ProBadge isPro={userProfile?.is_pro} role={userProfile?.role} size="xs" />
                                             </span>
                                             <span className="text-[11px] text-[var(--text-secondary)] truncate">
                                                 {kullanici.email}
