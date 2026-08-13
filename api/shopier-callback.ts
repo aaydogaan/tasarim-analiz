@@ -21,30 +21,59 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const payload = req.body || {};
     console.log('Shopier callback notification received:', payload);
 
-    const email = payload.email || payload.buyer_email || payload.customer_email;
-    const status = payload.status || payload.payment_status;
+    const rawEmail = payload.email || payload.buyer_email || payload.customer_email || payload.email_address || payload.buyerEmail;
 
-    if (email) {
+    if (rawEmail && typeof rawEmail === 'string') {
       const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-      const targetEmail = email.trim();
-      
-      const { error: roleErr } = await supabase
-        .from('profiles')
-        .update({ role: 'pro' })
-        .eq('email', targetEmail);
+      const targetEmail = rawEmail.trim().toLowerCase();
 
+      console.log(`Processing Shopier PRO activation for email: ${targetEmail}`);
+
+      // 1. Match user ID via auth.users admin API if possible
+      let userId: string | null = null;
       try {
-        await supabase
-          .from('profiles')
-          .update({ is_pro: true })
-          .eq('email', targetEmail);
-      } catch (_) {}
-
-      if (roleErr) {
-        console.error('Supabase profile PRO update error:', roleErr);
-      } else {
-        console.log(`User ${targetEmail} successfully upgraded to PRO!`);
+        const { data: usersData, error: usersErr } = await supabase.auth.admin.listUsers();
+        if (!usersErr && usersData?.users) {
+          const matchedUser = usersData.users.find((u: any) => u.email && typeof u.email === 'string' && u.email.trim().toLowerCase() === targetEmail);
+          if (matchedUser) {
+            userId = matchedUser.id;
+          }
+        }
+      } catch (e) {
+        console.warn('Error listing auth users in Shopier callback:', e);
       }
+
+      let successCount = 0;
+
+      // 2. Update profiles by userId if found
+      if (userId) {
+        const { error: errBoth } = await supabase.from('profiles').update({ is_pro: true, role: 'pro' }).eq('id', userId);
+        if (!errBoth) {
+          successCount++;
+        } else {
+          const { error: errIsPro } = await supabase.from('profiles').update({ is_pro: true }).eq('id', userId);
+          const { error: errRole } = await supabase.from('profiles').update({ role: 'pro' }).eq('id', userId);
+          if (!errIsPro || !errRole) successCount++;
+        }
+      }
+
+      // 3. Fallback: Update profiles by email column in profiles table
+      const { error: errEmailBoth } = await supabase.from('profiles').update({ is_pro: true, role: 'pro' }).ilike('email', targetEmail);
+      if (!errEmailBoth) {
+        successCount++;
+      } else {
+        const { error: errEmailIsPro } = await supabase.from('profiles').update({ is_pro: true }).ilike('email', targetEmail);
+        const { error: errEmailRole } = await supabase.from('profiles').update({ role: 'pro' }).ilike('email', targetEmail);
+        if (!errEmailIsPro || !errEmailRole) successCount++;
+      }
+
+      if (successCount > 0) {
+        console.log(`User ${targetEmail} (ID: ${userId || 'N/A'}) successfully upgraded to PRO!`);
+      } else {
+        console.error(`Failed to update PRO status for user ${targetEmail}`);
+      }
+    } else {
+      console.warn('No email found in Shopier payload:', payload);
     }
 
     return res.status(200).send('OK');

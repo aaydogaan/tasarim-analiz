@@ -61,15 +61,28 @@ export default function AdminUsers() {
         const newProState = !currentProStatus;
         const newRole = newProState ? 'pro' : 'user';
         
-        let { error } = await supabase.from('profiles').update({ role: newRole }).eq('id', userId);
-        
-        // Also update is_pro if column exists in database
-        try {
-            await supabase.from('profiles').update({ is_pro: newProState }).eq('id', userId);
-        } catch (_) {}
+        let success = false;
+        let lastError: any = null;
 
-        if (error) {
-            toast.error('PRO durumu güncellenemedi: ' + error.message);
+        // Try updating both columns at once
+        const { error: errBoth } = await supabase.from('profiles').update({ is_pro: newProState, role: newRole }).eq('id', userId);
+        
+        if (!errBoth) {
+            success = true;
+        } else {
+            console.warn("Combined PRO update failed, trying fallback updates:", errBoth.message);
+            lastError = errBoth;
+
+            const { error: errIsPro } = await supabase.from('profiles').update({ is_pro: newProState }).eq('id', userId);
+            const { error: errRole } = await supabase.from('profiles').update({ role: newRole }).eq('id', userId);
+
+            if (!errIsPro || !errRole) {
+                success = true;
+            }
+        }
+
+        if (!success && lastError) {
+            toast.error('PRO durumu güncellenemedi: ' + lastError.message);
         } else {
             toast.success(newProState ? '⚡ PRO üyelik başarıyla verildi!' : 'PRO üyelik kaldırıldı');
             fetchUsers();
