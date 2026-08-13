@@ -583,7 +583,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
         const loadFounders = async () => {
             const { data, error } = await supabase
                 .from('profiles')
-                .select('id, slug, display_name, bio, avatar_url, website, social_handle, design_rank, specialty, experience_level, created_at, founder_number, verification_badge')
+                .select('*')
                 .order('created_at', { ascending: true })
                 .limit(100);
 
@@ -740,6 +740,7 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                         {founderSource === 'live' && founders.map((founder) => {
                             const rank = getMemberFounderDisplayNumber(founder.founderNumber) || 0;
                             const isGold = founder.verificationBadge === 'gold';
+                            const isProFounder = Boolean(founder.isPro || founder.role === 'pro' || founder.role === 'admin');
 
                             return (
                                 <div
@@ -753,27 +754,42 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                                     role="button"
                                     tabIndex={0}
                                 >
-                                    <div className="absolute -inset-2 rounded-full bg-[var(--color-brand-orange)]/30 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <div className="relative w-16 h-16 md:w-[84px] md:h-[84px] rounded-full p-[3px] bg-gradient-to-br from-orange-300 via-[var(--color-brand-orange)] to-amber-600 shadow-[0_12px_28px_rgba(255,77,0,0.2)] group-hover:shadow-[0_12px_40px_rgba(255,77,0,0.4)] transition-all">
+                                    <div className={`absolute -inset-2 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity ${
+                                        isProFounder ? 'bg-amber-500/50' : 'bg-[var(--color-brand-orange)]/30'
+                                    }`} />
+                                    <div className={`relative w-16 h-16 md:w-[84px] md:h-[84px] rounded-full p-[3px] transition-all ${
+                                        isProFounder
+                                        ? 'bg-gradient-to-tr from-amber-400 via-orange-500 to-red-500 shadow-[0_0_18px_rgba(245,158,11,0.7)] group-hover:shadow-[0_0_30px_rgba(245,158,11,0.95)]'
+                                        : 'bg-gradient-to-br from-orange-300 via-[var(--color-brand-orange)] to-amber-600 shadow-[0_12px_28px_rgba(255,77,0,0.2)] group-hover:shadow-[0_12px_40px_rgba(255,77,0,0.4)]'
+                                    }`}>
                                         <img
                                             src={founder.avatarUrl}
                                             style={{ backfaceVisibility: 'hidden', transform: 'translateZ(0)' }}
-                                            className={`w-full h-full rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--bg-primary)] object-cover transform-gpu`}
+                                            className="w-full h-full rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--bg-primary)] object-cover transform-gpu"
                                             alt=""
                                         />
+                                        
+                                        {isProFounder && (
+                                            <div className="absolute -top-1 -right-1 z-30 drop-shadow-md">
+                                                <ProBadge isPro={true} size="xs" />
+                                            </div>
+                                        )}
+
                                         {founder.verificationBadge && (
                                             <div className="absolute -bottom-1 -right-1 z-20 drop-shadow-md">
                                                 <VerifiedBadge badge={founder.verificationBadge} size="xs" />
                                             </div>
                                         )}
                                     </div>
-                                    <div className="absolute -top-16 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none w-max bg-[#111] border border-white/10 rounded-2xl px-4 py-3 shadow-2xl flex flex-col items-center z-50">
+                                    <div className="absolute -top-20 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none w-max bg-[#111] border border-white/10 rounded-2xl px-4 py-3 shadow-2xl flex flex-col items-center z-50">
                                         <span className="text-sm font-bold text-white flex items-center gap-1.5">
                                             <span>{founder.displayName || 'Gizli Tasarımcı'}</span>
                                             <VerifiedBadge badge={founder.verificationBadge} size="xs" />
+                                            <ProBadge isPro={isProFounder} role={founder.role} size="xs" />
                                         </span>
-                                        <span className="text-[10px] uppercase font-bold tracking-widest mt-1 text-[var(--color-brand-orange)]">
-                                            {isGold ? `${rank}. KURUCU` : `${rank}. DESTEKÇİ`}
+                                        <span className="text-[10px] uppercase font-bold tracking-widest mt-1 text-[var(--color-brand-orange)] flex items-center gap-1">
+                                            {isProFounder && <span className="text-amber-400 font-black">⚡ PRO</span>}
+                                            <span>{isGold ? `${rank}. KURUCU` : `${rank}. DESTEKÇİ`}</span>
                                         </span>
                                         <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#111] border-r border-b border-white/10 rotate-45" />
                                     </div>
@@ -919,11 +935,17 @@ export default function Community({ kullanici, onAuthClick, onProfileClick, onPr
                             >
                                 <div className="flex flex-col gap-4">
                                     <Link to={`/${authorSlug}`} className="flex items-center gap-4 group/profile">
-                                        <img
-                                            src={authorAvatar}
-                                            className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] object-cover shrink-0 group-hover/profile:border-[var(--color-brand-orange)] transition-colors"
-                                            alt="Avatar"
-                                        />
+                                        <div className={`w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden shrink-0 transition-all ${
+                                            Boolean(post.profiles?.is_pro || post.profiles?.role === 'pro' || post.profiles?.role === 'admin')
+                                            ? 'p-[2.5px] bg-gradient-to-tr from-amber-400 via-orange-500 to-red-500 shadow-md shadow-amber-500/25'
+                                            : 'border border-[var(--border-primary)] group-hover/profile:border-[var(--color-brand-orange)]'
+                                        }`}>
+                                            <img
+                                                src={authorAvatar}
+                                                className="w-full h-full rounded-full bg-[var(--bg-secondary)] object-cover"
+                                                alt="Avatar"
+                                            />
+                                        </div>
                                         <div className="flex-1 min-w-0 flex flex-col justify-center">
                                             <div className="flex items-center gap-2 mb-0.5">
                                                 <span className="font-bold text-base md:text-lg text-[var(--text-primary)] truncate group-hover/profile:text-[var(--color-brand-orange)] transition-colors flex items-center gap-1.5">

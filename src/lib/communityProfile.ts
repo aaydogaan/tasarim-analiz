@@ -20,6 +20,8 @@ export type NormalizedCommunityProfile = {
     isCoreFounder?: boolean;
     coverUrl?: string;
     verificationBadge?: string | null;
+    isPro?: boolean;
+    role?: string | null;
     portfolioPdfUrl?: string;
 };
 
@@ -289,6 +291,8 @@ export function normalizeCommunityProfile(authData: any, profile: any): Normaliz
         isCoreFounder: isCore,
         coverUrl: profile?.cover_url || '',
         verificationBadge: profile?.verification_badge || null,
+        isPro: Boolean(profile?.is_pro === true || profile?.is_pro === 'true' || profile?.role === 'pro' || profile?.role === 'admin' || authData?.user_metadata?.is_pro),
+        role: profile?.role || authData?.user_metadata?.role || null,
         portfolioPdfUrl: profile?.portfolio_pdf_url || ''
     };
 }
