@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
+import { ProBadge } from '../components/ui/ProBadge';
 import { ContestHeroCard, ContestData } from '../components/ui/ContestHeroCard';
 import { ContestDetailModal } from '../components/ui/ContestDetailModal';
 import { ContestSubmitModal } from '../components/ui/ContestSubmitModal';
@@ -269,8 +270,7 @@ export function Leaderboard() {
           totalPoints: `${xp.toLocaleString('tr-TR')} XP`,
           pointsNum: xp,
           trend: idx % 2 === 0 ? 'up' : 'down',
-          isCurrentUser: currentUser ? currentUser.id === userId : false,
-          verificationBadge: meta.verificationBadge
+          isCurrentUser: currentUser ? currentUser.id === userId : false
         };
       });
 
